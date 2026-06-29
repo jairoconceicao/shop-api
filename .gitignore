@@ -1,6 +1,62 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ============================================
+# C# / ASP.NET
+# ============================================
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+.nuget/
+
+# ============================================
+# Java / Spring
+# ============================================
+target/
+.classpath
+.project
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.iml
+*.jar
+.gradle/
+build/
+
+# ============================================
+# Node.js / Next.js / TypeScript
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+.turbo/
+dist/
+build/
+.env*.local
+.vercel/
+
+# ============================================
+# Go
+# ============================================
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -17,16 +73,52 @@ coverage.*
 *.coverprofile
 profile.cov
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
 # Go workspace file
 go.work
 go.work.sum
 
-# env file
-.env
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# ============================================
+# PostgreSQL
+# ============================================
+postgres/
+pgdata/
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
