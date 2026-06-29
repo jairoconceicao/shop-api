@@ -18,6 +18,67 @@ Para fins desta demonstração, a solução foi modelada como uma aplicação b�
 - Geração de pedidos
 - Notificações
 
+## Arquitetura comum entre as versões da API
+
+Utilizamos uma arquitetura monolito modular com vertical-slice por feature. Priorizando DDD e sempre que possivel, Dominio Rico.
+
+Uma sugestão de estrutura de pastas para cada projeto localizado na raiz do repositório é:
+
+```text
+aspnet-api/
+  src/
+    Domain/
+    Application/
+    Infrastructure/
+    Presentation/
+    Tests/
+
+go-api/
+  internal/
+    domain/
+    application/
+    infrastructure/
+    presentation/
+    tests/
+
+nextjs-api/
+  src/
+    domain/
+    application/
+    infrastructure/
+    presentation/
+    tests/
+
+nodejs-api/
+  src/
+    domain/
+    application/
+    infrastructure/
+    presentation/
+    tests/
+
+python-api/
+  src/
+    domain/
+    application/
+    infrastructure/
+    presentation/
+    tests/
+
+spring-api/
+  src/
+    main/
+      java/
+        com/example/shop/
+          domain/
+          application/
+          infrastructure/
+          presentation/
+    test/
+```
+
+Em todos os casos, o objetivo é separar claramente as responsabilidades por camada e, quando possível, organizar cada domínio de negócio em módulos ou features, por exemplo: clientes, catálogo, carrinho, pedidos e notificações.
+
 ## Modelagem do E-Commerce
 
 ### Registro do Cliente
