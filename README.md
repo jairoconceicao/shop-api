@@ -30,7 +30,7 @@ aspnet-api/
     Domain/
     Application/
     Infrastructure/
-    Presentation/
+    Api/
     Tests/
 
 go-api/
@@ -38,7 +38,7 @@ go-api/
     domain/
     application/
     infrastructure/
-    presentation/
+    api/
     tests/
 
 nextjs-api/
@@ -46,7 +46,7 @@ nextjs-api/
     domain/
     application/
     infrastructure/
-    presentation/
+    api/
     tests/
 
 nodejs-api/
@@ -54,7 +54,7 @@ nodejs-api/
     domain/
     application/
     infrastructure/
-    presentation/
+    api/
     tests/
 
 python-api/
@@ -62,7 +62,7 @@ python-api/
     domain/
     application/
     infrastructure/
-    presentation/
+    api/
     tests/
 
 spring-api/
@@ -73,7 +73,7 @@ spring-api/
           domain/
           application/
           infrastructure/
-          presentation/
+          api/
     test/
 ```
 
