@@ -2,13 +2,13 @@ namespace aspnet_api.Domain.Entities;
 
 public class Estoque
 {
-    public long Id { get; set; }
-    public string? Descricao { get; set; }
-    public DateTime DataMovimento { get; set; }
-    public long ProdutoId { get; set; }
-    public decimal QuantidadeMinima { get; set; }
-    public decimal QuantidadeMaxima { get; set; }
-    public decimal QuantidadeAtual { get; set; }
+    public long Id { get; private set; }
+    public string? Descricao { get; private set; }
+    public DateTime DataMovimento { get; private set; }
+    public long ProdutoId { get; private set; }
+    public decimal QuantidadeMinima { get; private set; }
+    public decimal QuantidadeMaxima { get; private set; }
+    public decimal QuantidadeAtual { get; private set; }
 
     public Estoque()
     {

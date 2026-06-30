@@ -4,11 +4,11 @@ namespace aspnet_api.Domain.Entities;
 
 public class Carrinho
 {
-    public long Id { get; set; }
-    public long ClienteId { get; set; }
-    public Endereco? EnderecoEntrega { get; set; }
-    public DateTime DataCarrinho { get; set; }
-    public List<CarrinhoItem> Items { get; set; } = new();
+    public long Id { get; private set; }
+    public long ClienteId { get; private set; }
+    public Endereco? EnderecoEntrega { get; private set; }
+    public DateTime DataCarrinho { get; private set; }
+    public List<CarrinhoItem> Items { get; private set; } = [];
 
     public Carrinho()
     {
@@ -20,6 +20,6 @@ public class Carrinho
         ClienteId = clienteId;
         EnderecoEntrega = enderecoEntrega;
         DataCarrinho = dataCarrinho;
-        Items = items ?? new List<CarrinhoItem>();
+        Items = items ?? [];
     }
 }

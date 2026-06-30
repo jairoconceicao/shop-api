@@ -31,6 +31,7 @@ public class CarrinhoConfiguration : IEntityTypeConfiguration<Carrinho>
             ib.HasKey("Id");
             ib.Property(i => i.ProdutoId).IsRequired();
             ib.Property(i => i.Quantidade).HasColumnType("decimal(18,2)");
+            ib.Property(i => i.ValorUnitario).HasColumnType("decimal(18,2)");
             ib.ToTable("CarrinhoItems");
         });
     }

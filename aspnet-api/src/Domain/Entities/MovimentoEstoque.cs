@@ -4,13 +4,13 @@ namespace aspnet_api.Domain.Entities;
 
 public class MovimentoEstoque
 {
-    public long Id { get; set; }
-    public long EstoqueId { get; set; }
-    public DateTime DataMovimento { get; set; }
-    public int OperacaoCodigo { get; set; }
-    public MovimentoTipo OperacaoTipo { get; set; }
-    public string? OperacaoDescricao { get; set; }
-    public decimal Quantidade { get; set; }
+    public long Id { get; private set; }
+    public long EstoqueId { get; private set; }
+    public DateTime DataMovimento { get; private set; }
+    public int OperacaoCodigo { get; private set; }
+    public MovimentoTipo OperacaoTipo { get; private set; }
+    public string? OperacaoDescricao { get; private set; }
+    public decimal Quantidade { get; private set; }
 
     public MovimentoEstoque()
     {
