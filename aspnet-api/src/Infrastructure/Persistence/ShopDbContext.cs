@@ -1,10 +1,11 @@
+using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Domain.Entities;
 using aspnet_api.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace aspnet_api.Infrastructure.Persistence;
 
-public class ShopDbContext : DbContext
+public class ShopDbContext : DbContext, IUnitOfWork
 {
     public ShopDbContext(DbContextOptions<ShopDbContext> options) : base(options)
     {

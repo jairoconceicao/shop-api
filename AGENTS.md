@@ -38,10 +38,21 @@ Dados de conexão para o banco de dados
 
 ## Convenção de Código para C# / .NET 10 / ASP.NET
 
-**Application**: um Use Case por Pasta — `{Action}Command.cs`. Handlers inject abstractions from `Application/Abstractions/`.
+### Application
 
-**API**: endpoints in `src/Api/Endpoints/`, policies in `Security/AuthorizationPolicies.cs`, DTOs in `Contracts/` separado por `Requests/` e `Responses/`.
+- Um Use Case por Pasta — `{Action}Command.cs`. Handlers inject abstractions from `Application/Abstractions/`.
+- Commands implementam a interface IActionCommand.
+- Quando possível, implementar FluentValidation
 
-**Domain**: entities, value objects, domain services, and policies only. Business rules live here and have unit tests in `tests/Domain.Tests/`.
+### API
 
-**Tests**: required for every changed behavior. Domain → unit; Application → fakes; API → contract + integration.
+Endpoints in `src/Api/Endpoints/`, policies in `Security/AuthorizationPolicies.cs`, DTOs in `Contracts/` separado por `Requests/` e `Responses/`.
+
+### Domain
+
+- Entities, value objects, domain services, and policies only. Business rules live here and have unit tests in `tests/Domain.Tests/`.
+- Evite usar throw - catch - exception. Prefira usar Notification Pattern e Result Object Pattern.
+
+### Tests
+
+Required for every changed behavior. Domain → unit; Application → fakes; API → contract + integration.

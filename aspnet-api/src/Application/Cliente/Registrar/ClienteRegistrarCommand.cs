@@ -1,24 +1,111 @@
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Responses.Clientes;
+using aspnet_api.Application.Abstractions.Persistence;
+using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Domain.Common;
+using aspnet_api.Domain.ValueObjects;
 using aspnet_api.src.Application.Abstractions.Commands;
+using aspnet_api.src.Application.Common;
 using FluentValidation;
+using DomainCliente = aspnet_api.Domain.Entities.Cliente;
+using DomainCelular = aspnet_api.Domain.ValueObjects.Celular;
+using DomainEndereco = aspnet_api.Domain.ValueObjects.Endereco;
 
 namespace aspnet_api.src.Application.Cliente.Registrar;
 
-public class ClienteRegistrarCommand : IActionCommand<CreateClienteRequest, ClienteIdResponse>
+public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>
 {
     private readonly IValidator<CreateClienteRequest> _validator;
+    private readonly IClienteRepository _clienteRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public ClienteRegistrarCommand(IValidator<CreateClienteRequest> validator)
+    public ClienteRegistrarCommand(
+        IValidator<CreateClienteRequest> validator,
+        IClienteRepository clienteRepository,
+        IUnitOfWork unitOfWork)
     {
         _validator = validator;
+        _clienteRepository = clienteRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<ClienteIdResponse> Handle(CreateClienteRequest command)
+    public async Task<Result<ClienteIdResponse>> Handle(CreateClienteRequest command)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        await _validator.ValidateAndThrowAsync(command);
-        throw new NotImplementedException();
+        var validationResult = await _validator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            return Result<ClienteIdResponse>.Failure(
+                "Dados invalidos para o cadastro do cliente.",
+                validationResult.Errors.ToNotifications());
+        }
+
+        var notifications = new List<Notification>();
+
+        if (await _clienteRepository.GetByCpfAsync(command.Cpf) is not null)
+        {
+            notifications.Add(new Notification(
+                "CLIENTE_CPF_DUPLICADO",
+                "Ja existe um cliente cadastrado com este CPF.",
+                nameof(command.Cpf)));
+        }
+
+        if (await _clienteRepository.GetByEmailAsync(command.Email) is not null)
+        {
+            notifications.Add(new Notification(
+                "CLIENTE_EMAIL_DUPLICADO",
+                "Ja existe um cliente cadastrado com este email.",
+                nameof(command.Email)));
+        }
+
+        if (notifications.Count > 0)
+        {
+            return Result<ClienteIdResponse>.Failure("Nao foi possivel cadastrar o cliente.", notifications);
+        }
+
+        var enderecoResult = DomainEndereco.Create(
+            command.Endereco.Logradouro,
+            command.Endereco.Numero,
+            command.Endereco.Complemento,
+            command.Endereco.Cep,
+            command.Endereco.Bairro,
+            command.Endereco.Cidade,
+            command.Endereco.Uf);
+
+        if (enderecoResult.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(enderecoResult.Message, enderecoResult.Notifications);
+        }
+
+        var celularResult = DomainCelular.Create(
+            command.Celular.Ddd,
+            command.Celular.Numero,
+            command.Celular.WhatsApp);
+
+        if (celularResult.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(celularResult.Message, celularResult.Notifications);
+        }
+
+        var clienteResult = DomainCliente.Create(
+            command.Nome,
+            command.Cpf,
+            command.DataNascimento,
+            enderecoResult.Data,
+            celularResult.Data,
+            command.Email);
+
+        if (clienteResult.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(clienteResult.Message, clienteResult.Notifications);
+        }
+
+        await _clienteRepository.AddAsync(clienteResult.Data!);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result<ClienteIdResponse>.Success(
+            new ClienteIdResponse { ClienteId = clienteResult.Data!.Id },
+            "Cliente cadastrado com sucesso.");
     }
 }

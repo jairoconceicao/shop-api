@@ -1,5 +1,6 @@
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Responses.Clientes;
+using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Cliente.Registrar;
 using FluentValidation;
@@ -12,7 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IValidator<CreateClienteRequest>, ClienteRegistrarCommandValidator>();
-        services.AddScoped<IActionCommand<CreateClienteRequest, ClienteIdResponse>, ClienteRegistrarCommand>();
+        services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
 
         return services;
     }
