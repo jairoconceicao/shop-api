@@ -31,6 +31,36 @@ public class Cliente
 
     public static Result<Cliente> Create(string nome, string cpf, DateOnly dataNascimento, Endereco? endereco, Celular? celular, string email)
     {
+        var notifications = Validate(nome, cpf, dataNascimento, endereco, celular, email);
+
+        if (notifications.Count > 0)
+        {
+            return Result<Cliente>.Failure("Cliente invalido.", notifications);
+        }
+
+        return Result<Cliente>.Success(new Cliente(0, nome, cpf, dataNascimento.ToDateTime(TimeOnly.MinValue), endereco, celular, email));
+    }
+
+    public void AtualizarCom(Cliente cliente)
+    {
+        ArgumentNullException.ThrowIfNull(cliente);
+
+        Nome = cliente.Nome;
+        Cpf = cliente.Cpf;
+        DataNascimento = cliente.DataNascimento;
+        Endereco = cliente.Endereco;
+        Celular = cliente.Celular;
+        Email = cliente.Email;
+    }
+
+    private static List<Notification> Validate(
+        string nome,
+        string cpf,
+        DateOnly dataNascimento,
+        Endereco? endereco,
+        Celular? celular,
+        string email)
+    {
         var notifications = new List<Notification>();
         var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -84,11 +114,6 @@ public class Cliente
             notifications.Add(new Notification("CLIENTE_CELULAR_OBRIGATORIO", "Celular e obrigatorio.", nameof(Celular)));
         }
 
-        if (notifications.Count > 0)
-        {
-            return Result<Cliente>.Failure("Cliente invalido.", notifications);
-        }
-
-        return Result<Cliente>.Success(new Cliente(0, nome, cpf, dataNascimento.ToDateTime(TimeOnly.MinValue), endereco, celular, email));
+        return notifications;
     }
 }

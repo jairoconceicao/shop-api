@@ -1,3 +1,4 @@
+using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Infrastructure;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.src.Application;
@@ -21,6 +22,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapClienteEndpoints();
 
 app.UseHttpsRedirection();
 

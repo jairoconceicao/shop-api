@@ -11,7 +11,23 @@ public static class ValidationFailureExtensions
             .Select(failure => new Notification(
                 string.IsNullOrWhiteSpace(failure.ErrorCode) ? "VALIDATION_ERROR" : failure.ErrorCode,
                 failure.ErrorMessage,
-                string.IsNullOrWhiteSpace(failure.PropertyName) ? null : failure.PropertyName))
+                NormalizePropertyName(failure.PropertyName)))
             .ToArray();
+    }
+
+    private static string? NormalizePropertyName(string? propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            return null;
+        }
+
+        const string requestPrefix = "Request.";
+        if (propertyName.StartsWith(requestPrefix, StringComparison.Ordinal))
+        {
+            return propertyName[requestPrefix.Length..];
+        }
+
+        return propertyName;
     }
 }
