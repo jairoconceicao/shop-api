@@ -15,107 +15,183 @@ namespace aspnet_api.Tests.Application.Cliente;
 
 public class ClienteAtualizarExcluirCommandTests
 {
-    [Fact]
-    public async Task Atualizar_DeveAtualizarClienteQuandoDadosForemValidos()
+    public class Atualizar : ClienteAtualizarExcluirCommandTests
     {
-        await using var context = CreateContext();
-        context.Clientes.Add(CreateClienteExistente(1, "12345678901", "antigo@exemplo.com", "Cliente Antigo"));
-        await context.SaveChangesAsync();
-
-        var command = CreateAtualizarSut(context);
-        var request = CreateValidUpdateRequest() with
+        [Fact]
+        public async Task DeveAtualizarClienteQuandoDadosForemValidos()
         {
-            Nome = "Cliente Atualizado",
-            Email = "novo@exemplo.com"
-        };
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "antigo@exemplo.com", "Cliente Antigo"));
+            await context.SaveChangesAsync();
 
-        var result = await command.Handle(new AtualizarClienteCommand(1, request));
+            var command = CreateAtualizarSut(context);
+            var request = CreateValidUpdateRequest() with
+            {
+                Nome = "Cliente Atualizado",
+                Email = "novo@exemplo.com"
+            };
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, result.Data!.ClienteId);
+            var result = await command.Handle(new AtualizarClienteCommand(1, request));
 
-        var clienteAtualizado = await context.Clientes.SingleAsync(cliente => cliente.Id == 1);
-        Assert.Equal("Cliente Atualizado", clienteAtualizado.Nome);
-        Assert.Equal("novo@exemplo.com", clienteAtualizado.Email);
-    }
+            Assert.True(result.IsSuccess);
+            Assert.Equal(1, result.Data!.ClienteId);
+            Assert.Equal("Cliente atualizado com sucesso.", result.Message);
 
-    [Fact]
-    public async Task Atualizar_DeveRetornarNotificacaoQuandoCpfJaExistirEmOutroCliente()
-    {
-        await using var context = CreateContext();
-        context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente1@exemplo.com", "Cliente Um"));
-        context.Clientes.Add(CreateClienteExistente(2, "99999999999", "cliente2@exemplo.com", "Cliente Dois"));
-        await context.SaveChangesAsync();
+            var clienteAtualizado = await context.Clientes.SingleAsync(cliente => cliente.Id == 1);
+            Assert.Equal("Cliente Atualizado", clienteAtualizado.Nome);
+            Assert.Equal("novo@exemplo.com", clienteAtualizado.Email);
+        }
 
-        var command = CreateAtualizarSut(context);
-        var request = CreateValidUpdateRequest() with
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoCpfJaExistirEmOutroCliente()
         {
-            Cpf = "99999999999"
-        };
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente1@exemplo.com", "Cliente Um"));
+            context.Clientes.Add(CreateClienteExistente(2, "99999999999", "cliente2@exemplo.com", "Cliente Dois"));
+            await context.SaveChangesAsync();
 
-        var result = await command.Handle(new AtualizarClienteCommand(1, request));
+            var command = CreateAtualizarSut(context);
+            var request = CreateValidUpdateRequest() with
+            {
+                Cpf = "99999999999"
+            };
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_CPF_DUPLICADO");
-    }
+            var result = await command.Handle(new AtualizarClienteCommand(1, request));
 
-    [Fact]
-    public async Task Atualizar_DeveRetornarNotificacaoQuandoRequestForInvalido()
-    {
-        await using var context = CreateContext();
-        context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente@exemplo.com", "Cliente Um"));
-        await context.SaveChangesAsync();
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_CPF_DUPLICADO");
+        }
 
-        var command = CreateAtualizarSut(context);
-        var request = CreateValidUpdateRequest() with
+        [Fact]
+        public async Task DevePermitirManterOCpfDoMesmoCliente()
         {
-            Email = "invalido"
-        };
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente@exemplo.com", "Cliente Um"));
+            await context.SaveChangesAsync();
 
-        var result = await command.Handle(new AtualizarClienteCommand(1, request));
+            var command = CreateAtualizarSut(context);
+            var request = CreateValidUpdateRequest() with
+            {
+                Cpf = "12345678901",
+                Nome = "Nome Atualizado"
+            };
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(UpdateClienteRequest.Email));
+            var result = await command.Handle(new AtualizarClienteCommand(1, request));
+
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoEmailJaExistirEmOutroCliente()
+        {
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente1@exemplo.com", "Cliente Um"));
+            context.Clientes.Add(CreateClienteExistente(2, "99999999999", "cliente2@exemplo.com", "Cliente Dois"));
+            await context.SaveChangesAsync();
+
+            var command = CreateAtualizarSut(context);
+            var request = CreateValidUpdateRequest() with
+            {
+                Email = "cliente2@exemplo.com"
+            };
+
+            var result = await command.Handle(new AtualizarClienteCommand(1, request));
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_EMAIL_DUPLICADO");
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoRequestForInvalido()
+        {
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente@exemplo.com", "Cliente Um"));
+            await context.SaveChangesAsync();
+
+            var command = CreateAtualizarSut(context);
+            var request = CreateValidUpdateRequest() with
+            {
+                Email = "invalido"
+            };
+
+            var result = await command.Handle(new AtualizarClienteCommand(1, request));
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(UpdateClienteRequest.Email));
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoClienteNaoForEncontrado()
+        {
+            await using var context = CreateContext();
+            var command = CreateAtualizarSut(context);
+
+            var result = await command.Handle(new AtualizarClienteCommand(99, CreateValidUpdateRequest()));
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_NAO_ENCONTRADO");
+        }
+
+        [Fact]
+        public async Task DeveLancarArgumentNullExceptionQuandoCommandForNulo()
+        {
+            await using var context = CreateContext();
+            var command = CreateAtualizarSut(context);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => command.Handle(null!));
+        }
     }
 
-    [Fact]
-    public async Task Atualizar_DeveRetornarNotificacaoQuandoClienteNaoForEncontrado()
+    public class Excluir : ClienteAtualizarExcluirCommandTests
     {
-        await using var context = CreateContext();
-        var command = CreateAtualizarSut(context);
+        [Fact]
+        public async Task DeveRemoverClienteQuandoExistir()
+        {
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente@exemplo.com", "Cliente Um"));
+            await context.SaveChangesAsync();
 
-        var result = await command.Handle(new AtualizarClienteCommand(99, CreateValidUpdateRequest()));
+            var command = CreateExcluirSut(context);
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_NAO_ENCONTRADO");
-    }
+            var result = await command.Handle(new ExcluirClienteCommand(1));
 
-    [Fact]
-    public async Task Excluir_DeveRemoverClienteQuandoExistir()
-    {
-        await using var context = CreateContext();
-        context.Clientes.Add(CreateClienteExistente(1, "12345678901", "cliente@exemplo.com", "Cliente Um"));
-        await context.SaveChangesAsync();
+            Assert.True(result.IsSuccess);
+            Assert.Equal(1, result.Data!.ClienteId);
+            Assert.Equal("Cliente excluido com sucesso.", result.Message);
+            Assert.Empty(context.Clientes);
+        }
 
-        var command = CreateExcluirSut(context);
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoClienteNaoForEncontrado()
+        {
+            await using var context = CreateContext();
+            var command = CreateExcluirSut(context);
 
-        var result = await command.Handle(new ExcluirClienteCommand(1));
+            var result = await command.Handle(new ExcluirClienteCommand(99));
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, result.Data!.ClienteId);
-        Assert.Empty(context.Clientes);
-    }
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_NAO_ENCONTRADO");
+        }
 
-    [Fact]
-    public async Task Excluir_DeveRetornarNotificacaoQuandoClienteNaoForEncontrado()
-    {
-        await using var context = CreateContext();
-        var command = CreateExcluirSut(context);
+        [Fact]
+        public async Task DeveLancarArgumentNullExceptionQuandoCommandForNulo()
+        {
+            await using var context = CreateContext();
+            var command = CreateExcluirSut(context);
 
-        var result = await command.Handle(new ExcluirClienteCommand(99));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => command.Handle(null!));
+        }
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_NAO_ENCONTRADO");
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoClienteIdForInvalido()
+        {
+            await using var context = CreateContext();
+            var command = CreateExcluirSut(context);
+
+            var result = await command.Handle(new ExcluirClienteCommand(0));
+
+            Assert.True(result.IsFailure);
+        }
     }
 
     private static ClienteAtualizarCommand CreateAtualizarSut(ShopDbContext context)

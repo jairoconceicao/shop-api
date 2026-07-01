@@ -9,113 +9,326 @@ public class ClienteRegistrarCommandValidatorTests
 {
     private readonly ClienteRegistrarCommandValidator _validator = new();
 
-    [Fact]
-    public void Validate_DeveAceitarRequestValido()
+    public class CpfValidation : ClienteRegistrarCommandValidatorTests
     {
-        var result = _validator.Validate(CreateValidRequest());
-
-        Assert.True(result.IsValid);
-        Assert.Empty(result.Errors);
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarCpfVazio()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Cpf = string.Empty });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "CPF e obrigatorio.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarCpfComFormatoInvalido()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Cpf = "123" });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "CPF deve conter 11 digitos numericos.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarNomeVazio()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Nome = string.Empty });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Nome e obrigatorio.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarDataNascimentoFutura()
-    {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var result = _validator.Validate(CreateValidRequest() with { DataNascimento = today.AddDays(1) });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Data de nascimento nao pode ser futura.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarEmailInvalido()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Email = "nao-e-email" });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Email deve ter um formato valido.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarEnderecoNulo()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Endereco = null! });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Endereco e obrigatorio.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarEnderecoComLogradouroVazio()
-    {
-        var result = _validator.Validate(CreateValidRequest() with
+        [Fact]
+        public void DeveAceitarCpfValido()
         {
-            Endereco = CreateValidEndereco() with { Logradouro = string.Empty }
-        });
+            var result = _validator.Validate(CreateValidRequest());
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Logradouro e obrigatorio.");
-    }
+            Assert.True(result.IsValid);
+        }
 
-    [Fact]
-    public void Validate_DeveRejeitarCelularNulo()
-    {
-        var result = _validator.Validate(CreateValidRequest() with { Celular = null! });
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Celular e obrigatorio.");
-    }
-
-    [Fact]
-    public void Validate_DeveRejeitarCelularComDddInvalido()
-    {
-        var result = _validator.Validate(CreateValidRequest() with
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarCpfVazio(string cpf)
         {
-            Celular = CreateValidCelular() with { Ddd = "1" }
-        });
+            var result = _validator.Validate(CreateValidRequest() with { Cpf = cpf });
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "DDD deve conter 2 digitos numericos.");
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "CPF e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("123")]
+        [InlineData("1234567890")]
+        [InlineData("123456789012")]
+        [InlineData("abcdefghijk")]
+        public void DeveRejeitarCpfComFormatoInvalido(string cpf)
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Cpf = cpf });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "CPF deve conter 11 digitos numericos.");
+        }
     }
 
-    [Fact]
-    public void Validate_DeveRejeitarCelularComNumeroMuitoGrande()
+    public class NomeValidation : ClienteRegistrarCommandValidatorTests
     {
-        var result = _validator.Validate(CreateValidRequest() with
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarNomeVazio(string nome)
         {
-            Celular = CreateValidCelular() with { Numero = new string('9', 31) }
-        });
+            var result = _validator.Validate(CreateValidRequest() with { Nome = nome });
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, error => error.ErrorMessage == "Numero de celular deve ter no maximo 30 caracteres.");
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Nome e obrigatorio.");
+        }
+
+        [Fact]
+        public void DeveRejeitarNomeComMaisDe200Caracteres()
+        {
+            var nomeLongo = new string('A', 201);
+            var result = _validator.Validate(CreateValidRequest() with { Nome = nomeLongo });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Nome deve ter no maximo 200 caracteres.");
+        }
+
+        [Fact]
+        public void DeveAceitarNomeCom200Caracteres()
+        {
+            var nome = new string('A', 200);
+            var result = _validator.Validate(CreateValidRequest() with { Nome = nome });
+
+            Assert.True(result.IsValid);
+        }
+    }
+
+    public class DataNascimentoValidation : ClienteRegistrarCommandValidatorTests
+    {
+        [Fact]
+        public void DeveRejeitarDataNascimentoFutura()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var result = _validator.Validate(CreateValidRequest() with { DataNascimento = today.AddDays(1) });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Data de nascimento nao pode ser futura.");
+        }
+
+        [Fact]
+        public void DeveAceitarDataNascimentoNoDiaAtual()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var result = _validator.Validate(CreateValidRequest() with { DataNascimento = today });
+
+            Assert.True(result.IsValid);
+        }
+
+        [Fact]
+        public void DeveAceitarDataNascimentoPassada()
+        {
+            var result = _validator.Validate(CreateValidRequest() with { DataNascimento = DateOnly.FromDateTime(DateTime.Today).AddDays(-1) });
+
+            Assert.True(result.IsValid);
+        }
+    }
+
+    public class EmailValidation : ClienteRegistrarCommandValidatorTests
+    {
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarEmailVazio(string email)
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Email = email });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Email e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("nao-e-email")]
+        [InlineData("email@")]
+        [InlineData("@email.com")]
+        public void DeveRejeitarEmailComFormatoInvalido(string email)
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Email = email });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Email deve ter um formato valido.");
+        }
+
+        [Fact]
+        public void DeveRejeitarEmailComMaisDe200Caracteres()
+        {
+            var emailLongo = new string('a', 190) + "@exemplo.com";
+            var result = _validator.Validate(CreateValidRequest() with { Email = emailLongo });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Email deve ter no maximo 200 caracteres.");
+        }
+
+        [Fact]
+        public void DeveAceitarEmailValido()
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Email = "usuario@dominio.com" });
+
+            Assert.True(result.IsValid);
+        }
+    }
+
+    public class EnderecoValidation : ClienteRegistrarCommandValidatorTests
+    {
+        [Fact]
+        public void DeveRejeitarEnderecoNulo()
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Endereco = null! });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Endereco e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarLogradouroVazio(string logradouro)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Logradouro = logradouro }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Logradouro e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarNumeroVazio(string numero)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Numero = numero }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Numero e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarBairroVazio(string bairro)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Bairro = bairro }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Bairro e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarCidadeVazia(string cidade)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Cidade = cidade }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Cidade e obrigatoria.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarUfVazia(string uf)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Uf = uf }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "UF e obrigatoria.");
+        }
+
+        [Theory]
+        [InlineData("S")]
+        [InlineData("SPA")]
+        public void DeveRejeitarUfComTamanhoInvalido(string uf)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Uf = uf }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "UF deve ter 2 caracteres.");
+        }
+
+        [Fact]
+        public void DeveAceitarEnderecoValido()
+        {
+            var result = _validator.Validate(CreateValidRequest());
+
+            Assert.True(result.IsValid);
+        }
+    }
+
+    public class CelularValidation : ClienteRegistrarCommandValidatorTests
+    {
+        [Fact]
+        public void DeveRejeitarCelularNulo()
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Celular = null! });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Celular e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarDddVazio(string ddd)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Celular = CreateValidCelular() with { Ddd = ddd }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "DDD e obrigatorio.");
+        }
+
+        [Theory]
+        [InlineData("1")]
+        [InlineData("123")]
+        [InlineData("1A")]
+        [InlineData("AB")]
+        public void DeveRejeitarDddComFormatoInvalido(string ddd)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Celular = CreateValidCelular() with { Ddd = ddd }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "DDD deve conter 2 digitos numericos.");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarNumeroVazio(string numero)
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Celular = CreateValidCelular() with { Numero = numero }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Numero de celular e obrigatorio.");
+        }
+
+        [Fact]
+        public void DeveRejeitarNumeroComMaisDe30Caracteres()
+        {
+            var result = _validator.Validate(CreateValidRequest() with
+            {
+                Celular = CreateValidCelular() with { Numero = new string('9', 31) }
+            });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Numero de celular deve ter no maximo 30 caracteres.");
+        }
+
+        [Fact]
+        public void DeveAceitarCelularValido()
+        {
+            var result = _validator.Validate(CreateValidRequest());
+
+            Assert.True(result.IsValid);
+        }
     }
 
     private static CreateClienteRequest CreateValidRequest()

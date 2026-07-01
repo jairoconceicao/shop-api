@@ -15,47 +15,108 @@ namespace aspnet_api.Tests.Application.Cliente.Registrar;
 
 public class ClienteRegistrarCommandTests
 {
-    [Fact]
-    public async Task Handle_DeveCadastrarClienteQuandoDadosForemValidos()
+    public class Handle : ClienteRegistrarCommandTests
     {
-        await using var context = CreateContext();
-        var command = CreateSut(context);
+        [Fact]
+        public async Task DeveCadastrarClienteQuandoDadosForemValidos()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
 
-        var result = await command.Handle(CreateValidRequest());
+            var result = await command.Handle(CreateValidRequest());
 
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Data);
-        Assert.True(result.Data!.ClienteId > 0);
-        Assert.Equal(1, await context.Clientes.CountAsync());
-    }
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Data);
+            Assert.True(result.Data!.ClienteId > 0);
+            Assert.Equal("Cliente cadastrado com sucesso.", result.Message);
+            Assert.Equal(1, await context.Clientes.CountAsync());
+        }
 
-    [Fact]
-    public async Task Handle_DeveRetornarNotificacaoQuandoCpfJaExistir()
-    {
-        await using var context = CreateContext();
-        context.Clientes.Add(CreateExistingCliente());
-        await context.SaveChangesAsync();
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoCpfJaExistir()
+        {
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateExistingCliente());
+            await context.SaveChangesAsync();
 
-        var command = CreateSut(context);
+            var command = CreateSut(context);
 
-        var result = await command.Handle(CreateValidRequest());
+            var result = await command.Handle(CreateValidRequest());
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_CPF_DUPLICADO");
-        Assert.Equal(1, await context.Clientes.CountAsync());
-    }
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_CPF_DUPLICADO");
+            Assert.Equal(1, await context.Clientes.CountAsync());
+        }
 
-    [Fact]
-    public async Task Handle_DeveRetornarNotificacaoQuandoRequestForInvalido()
-    {
-        await using var context = CreateContext();
-        var command = CreateSut(context);
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoEmailJaExistir()
+        {
+            await using var context = CreateContext();
+            context.Clientes.Add(CreateExistingCliente());
+            await context.SaveChangesAsync();
 
-        var result = await command.Handle(CreateValidRequest() with { Email = "invalido" });
+            var command = CreateSut(context);
+            var request = CreateValidRequest() with { Email = "existente@exemplo.com" };
 
-        Assert.True(result.IsFailure);
-        Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(CreateClienteRequest.Email));
-        Assert.Empty(context.Clientes);
+            var result = await command.Handle(request);
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "CLIENTE_EMAIL_DUPLICADO");
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoRequestForInvalido()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+
+            var result = await command.Handle(CreateValidRequest() with { Email = "invalido" });
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(CreateClienteRequest.Email));
+            Assert.Empty(context.Clientes);
+        }
+
+        [Fact]
+        public async Task DeveLancarArgumentNullExceptionQuandoCommandForNulo()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => command.Handle(null!));
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoEnderecoForInvalido()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+            var request = CreateValidRequest() with
+            {
+                Endereco = CreateValidEndereco() with { Logradouro = "" }
+            };
+
+            var result = await command.Handle(request);
+
+            Assert.True(result.IsFailure);
+            Assert.Empty(context.Clientes);
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoCelularForInvalido()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+            var request = CreateValidRequest() with
+            {
+                Celular = CreateValidCelular() with { Ddd = "1" }
+            };
+
+            var result = await command.Handle(request);
+
+            Assert.True(result.IsFailure);
+            Assert.Empty(context.Clientes);
+        }
     }
 
     private static ClienteRegistrarCommand CreateSut(ShopDbContext context)
