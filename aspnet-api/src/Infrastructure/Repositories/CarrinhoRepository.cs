@@ -36,4 +36,30 @@ public sealed class CarrinhoRepository : EfRepository<Carrinho>, ICarrinhoReposi
             .ThenByDescending(carrinho => carrinho.Id)
             .FirstOrDefaultAsync(carrinho => carrinho.ClienteId == clienteId, cancellationToken);
     }
+
+    public Task<Carrinho?> GetLatestAsync(CancellationToken cancellationToken = default)
+    {
+        return Set
+            .Include(carrinho => carrinho.Items)
+            .OrderByDescending(carrinho => carrinho.DataCarrinho)
+            .ThenByDescending(carrinho => carrinho.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<Carrinho?> GetByItemIdAsync(long itemId, CancellationToken cancellationToken = default)
+    {
+        return Set
+            .Include(carrinho => carrinho.Items)
+            .FirstOrDefaultAsync(carrinho => carrinho.Items.Any(item => item.Id == itemId), cancellationToken);
+    }
+
+    public async Task<long> GetNextItemIdAsync(CancellationToken cancellationToken = default)
+    {
+        var maxItemId = await Set
+            .SelectMany(carrinho => carrinho.Items)
+            .Select(item => (long?)item.Id)
+            .MaxAsync(cancellationToken);
+
+        return (maxItemId ?? 0) + 1;
+    }
 }

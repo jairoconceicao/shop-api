@@ -27,11 +27,11 @@ public class CarrinhoConfiguration : IEntityTypeConfiguration<Carrinho>
         builder.OwnsMany(c => c.Items, ib =>
         {
             ib.WithOwner().HasForeignKey("CarrinhoId");
-            ib.Property<long>("Id");
-            ib.HasKey("Id");
-            ib.Property(i => i.ProdutoId).IsRequired();
-            ib.Property(i => i.Quantidade).HasColumnType("decimal(18,2)");
-            ib.Property(i => i.ValorUnitario).HasColumnType("decimal(18,2)");
+            ib.Property(item => item.Id).ValueGeneratedNever();
+            ib.HasKey(item => item.Id);
+            ib.Property(item => item.ProdutoId).IsRequired();
+            ib.Property(item => item.Quantidade).HasColumnType("decimal(18,2)");
+            ib.Property(item => item.ValorUnitario).HasColumnType("decimal(18,2)");
             ib.ToTable("CarrinhoItems");
         });
     }

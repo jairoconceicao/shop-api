@@ -1,11 +1,17 @@
 using aspnet_api.Api.Contracts.Requests.Clientes;
+using aspnet_api.Api.Contracts.Requests.Carrinhos;
 using aspnet_api.Api.Contracts.Requests.Produtos;
 using aspnet_api.Api.Contracts.Responses.Clientes;
+using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Produtos;
 using aspnet_api.Application.Abstractions.Repositories;
 using aspnet_api.Application.Common;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
+using aspnet_api.src.Application.Carrinho.AdicionarItem;
+using aspnet_api.src.Application.Carrinho.AtualizarItem;
+using aspnet_api.src.Application.Carrinho.Criar;
+using aspnet_api.src.Application.Carrinho.ExcluirItem;
 using aspnet_api.src.Application.Cliente.Atualizar;
 using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
@@ -29,6 +35,10 @@ public static class DependencyInjection
         services.AddScoped<IValidator<ConsultarClientePorCpfQuery>, ConsultarClientePorCpfQueryValidator>();
         services.AddScoped<IValidator<ProdutosQuery>, CarregarCatalogoProdutosQueryValidator>();
         services.AddScoped<IValidator<ConsultarProdutoPorIdQuery>, ConsultarProdutoPorIdQueryValidator>();
+        services.AddScoped<IValidator<CreateCarrinhoRequest>, CarrinhoCriarCommandValidator>();
+        services.AddScoped<IValidator<AddCarrinhoItemRequest>, AddCarrinhoItemCommandValidator>();
+        services.AddScoped<IValidator<AtualizarCarrinhoItemCommand>, AtualizarCarrinhoItemCommandValidator>();
+        services.AddScoped<IValidator<ExcluirCarrinhoItemCommand>, ExcluirCarrinhoItemCommandValidator>();
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
@@ -37,6 +47,10 @@ public static class DependencyInjection
         services.AddScoped<IActionCommand<ConsultarClientePorCpfQuery, Result<ClienteDetalheResponse>>, ClienteConsultarPorCpfQuery>();
         services.AddScoped<IActionCommand<ProdutosQuery, Result<PagedResult<ProdutoCatalogoItemResponse>>>, ProdutoCarregarCatalogoQuery>();
         services.AddScoped<IActionCommand<ConsultarProdutoPorIdQuery, Result<ProdutoDetalheResponse>>, ProdutoConsultarPorIdQuery>();
+        services.AddScoped<IActionCommand<CreateCarrinhoRequest, Result<CarrinhoCriadoResponse>>, CarrinhoCriarCommand>();
+        services.AddScoped<IActionCommand<AddCarrinhoItemRequest, Result<AddCarrinhoItemResponse>>, CarrinhoAdicionarItemCommand>();
+        services.AddScoped<IActionCommand<AtualizarCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoAtualizarItemCommand>();
+        services.AddScoped<IActionCommand<ExcluirCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoExcluirItemCommand>();
 
         return services;
     }

@@ -92,6 +92,7 @@ Receberá dados basicos do cliente, o suficiente para o processamento do pedido
 Cliente 
 {
     id: Long
+    cpf: String
     nome: String
     dataNascimento: Date
     endereco: {
@@ -122,6 +123,8 @@ Produto
     descricao: String
     modelo: String
     preco: Decimal
+    foto: String
+    thumb: String
 }
 ```
 
@@ -163,6 +166,7 @@ Carrinho
     enderecoEntrega: Endereco
     dataCarrinho: DateTime
     items: {
+        id: Long
         produtoId: Long
         valorUnitario: Decimal
         quantidade: Decimal
@@ -180,6 +184,8 @@ Pedido
     clienteId: Long
     carrinhoId: Long
     enderecoEntrega: Endereco
+    formaPagamento: FormaPagamento
+    status: PedidoStatus
     items: [
       {
         produtoId: Long
@@ -197,32 +203,36 @@ Implementar proxima fase.
 
 ## Endpoints
 
+Os contratos abaixo refletem as rotas atualmente implementadas na API.
+As respostas de sucesso usam `ApiResponse<T>` (`status`, `message`, `data`) ou `PagedResponse<T>` (`status`, `message`, `pagination`).
+As respostas de erro usam `ApiErrorResponse` com `error.code`, `error.message` e `error.details`.
+
 ```jsonc
 
 // Registro de Novo Cliente
 // POST /api/v1/cliente
 // Body
 {
-  "cpf": "",
-  "nome": "",
-  "dataNascimento": "",
-  "email": "",
-  "endereco":{
-    "logradouro": "",
-    "numero": "",
-    "complemento": "",
-    "cep": "",
-    "bairro": "",
-    "cidade": "",
-    "uf": ""
+  "cpf": "12345678901",
+  "nome": "Fulano de Tal",
+  "dataNascimento": "1990-01-31",
+  "email": "fulano@exemplo.com",
+  "endereco": {
+    "logradouro": "Rua Exemplo",
+    "numero": "123",
+    "complemento": "Apto 10",
+    "cep": "01000000",
+    "bairro": "Centro",
+    "cidade": "Sao Paulo",
+    "uf": "SP"
   },
   "celular": {
-    "ddd": "",
-    "numero": "",
-    "whatsApp": ""
+    "ddd": "11",
+    "numero": "999999999",
+    "whatsApp": true
   }
 }
-// Response
+// Response - 201 Created
 {
   "status": true,
   "message": "",
@@ -231,30 +241,88 @@ Implementar proxima fase.
   }
 }
 
+// Consultar Cliente pelo ID
+// GET /api/v1/cliente/{clienteId}
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "clienteId": 9999,
+    "cpf": "12345678901",
+    "nome": "Fulano de Tal",
+    "dataNascimento": "1990-01-31",
+    "email": "fulano@exemplo.com",
+    "endereco": {
+      "logradouro": "Rua Exemplo",
+      "numero": "123",
+      "complemento": "Apto 10",
+      "cep": "01000000",
+      "bairro": "Centro",
+      "cidade": "Sao Paulo",
+      "uf": "SP"
+    },
+    "celular": {
+      "ddd": "11",
+      "numero": "999999999",
+      "whatsApp": true
+    }
+  }
+}
+
+// Consultar Cliente pelo CPF
+// GET /api/v1/cliente/cpf/{cpf}
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "clienteId": 9999,
+    "cpf": "12345678901",
+    "nome": "Fulano de Tal",
+    "dataNascimento": "1990-01-31",
+    "email": "fulano@exemplo.com",
+    "endereco": {
+      "logradouro": "Rua Exemplo",
+      "numero": "123",
+      "complemento": "Apto 10",
+      "cep": "01000000",
+      "bairro": "Centro",
+      "cidade": "Sao Paulo",
+      "uf": "SP"
+    },
+    "celular": {
+      "ddd": "11",
+      "numero": "999999999",
+      "whatsApp": true
+    }
+  }
+}
+
 // Atualizacao Dados do Cliente
 // PUT /api/v1/cliente/{clienteId}
 // Body
 {
-  "cpf": "",
-  "nome": "",
-  "dataNascimento": "",
-  "email": "",
+  "cpf": "12345678901",
+  "nome": "Fulano de Tal",
+  "dataNascimento": "1990-01-31",
+  "email": "fulano@exemplo.com",
   "endereco": {
-    "logradouro": "",
-    "numero": "",
-    "complemento": "",
-    "cep": "",
-    "bairro": "",
-    "cidade": "",
-    "uf": ""
+    "logradouro": "Rua Exemplo",
+    "numero": "123",
+    "complemento": "Apto 10",
+    "cep": "01000000",
+    "bairro": "Centro",
+    "cidade": "Sao Paulo",
+    "uf": "SP"
   },
   "celular": {
-    "ddd": "",
-    "numero": "",
-    "whatsApp": ""
+    "ddd": "11",
+    "numero": "999999999",
+    "whatsApp": true
   }
 }
-// Response
+// Response - 200 OK
 {
   "status": true,
   "message": "",
@@ -265,7 +333,7 @@ Implementar proxima fase.
 
 // Cancelar Conta do Cliente
 // DELETE /api/v1/cliente/{clienteId}
-// Response
+// Response - 200 OK
 {
   "status": true,
   "message": "",
@@ -276,50 +344,56 @@ Implementar proxima fase.
 
 // Carregar Catalogo de Produtos
 // GET /api/v1/produto?page=1&size=20
+// Response - 200 OK
 {
   "status": true,
   "message": "",
   "pagination": {
     "pages": 99,
-    "size": 99,
+    "size": 20,
     "totalItems": 99,
     "data": [
       {
         "produtoId": 9999,
-        "titulo": "",
-        "thumb": "",
+        "titulo": "Produto exemplo",
+        "thumb": null,
         "preco": 9999.99,
-        "estoque":9999.9999
-      },
+        "estoque": 9999.9999
+      }
     ]
   }
 }
 
 // Consultar Produto pelo ID
 // GET /api/v1/produto/{id}
+// Response - 200 OK
 {
-  "produtoId": 9999,
-  "titulo": "",
-  "descricao": "",
-  "modelo": "",
-  "foto": "",
-  "preco": 9999.99,
-  "estoque":9999.9999
+  "status": true,
+  "message": "",
+  "data": {
+    "produtoId": 9999,
+    "titulo": "Produto exemplo",
+    "descricao": "Descricao do produto",
+    "modelo": "Modelo X",
+    "foto": null,
+    "preco": 9999.99,
+    "estoque": 9999.9999
+  }
 }
 
 // Criar Carrinho
 // POST /api/v1/carrinho/criar
 // Body
 {
-  "clienteId": 99999,
+  "clienteId": 99999
 }
-// Response
+// Response - 201 Created
 {
   "status": true,
   "message": "",
-  "data":{
+  "data": {
     "carrinhoId": 9999,
-    "dataCarrinho": "dd/mm/yyy hh:mm:ss"
+    "dataCarrinho": "2026-07-01T14:30:00-03:00"
   }
 }
 
@@ -328,14 +402,14 @@ Implementar proxima fase.
 // Body
 {
   "produtoId": 9999,
-  "quantidade": 9999.9999,
-  "valorUnitario": 9999.9999
+  "quantidade": 2,
+  "valorUnitario": 9999.99
 }
-// Response
+// Response - 201 Created
 {
   "status": true,
   "message": "",
-  "data":{
+  "data": {
     "itemId": 999
   }
 }
@@ -343,11 +417,14 @@ Implementar proxima fase.
 // Editar quantidade do Item no Carrinho
 // PATCH /api/v1/carrinho/items/{itemId}
 // Body
-// Response
+{
+  "quantidade": 3
+}
+// Response - 200 OK
 {
   "status": true,
   "message": "",
-  "data":{
+  "data": {
     "itemId": 9999,
     "produtoId": 9999
   }
@@ -355,89 +432,17 @@ Implementar proxima fase.
 
 // Excluir item do Carrinho
 // DELETE /api/v1/carrinho/items/{itemId}
+// Response - 200 OK
 {
   "status": true,
   "message": "",
-  "data":{
+  "data": {
     "itemId": 9999,
     "produtoId": 9999
   }
 }
 
-// Criar Pedido
-// POST /api/v1/pedido
-// Body
-{
-  "clienteId": 9999,
-  "enderecoEntrega": {
-    "logradouro": "",
-    "numero": "",
-    "complemento": "",
-    "cep": "",
-    "bairro": "",
-    "cidade": "",
-    "uf": ""
-  },
-  "formaPagamento": "Pix | Cartao | Boleto",
-  "dataPedido": "dd/mm/yyyy hh:mm:ss",
-  "items": [
-    {
-      "produtoId": 9999,
-      "quantidade": 9999.9999,
-      "valorUnitario": 9999.9999
-    }
-  ]
-}
-// Response
-{
-  "status": true,
-  "message": "",
-  "data":{
-    "pedidoId": 9999
-  }
-}
-
-// Consultar Pedido
-// GET /api/v1/pedido/{pedidoId}
-{
-  "id": 9999,
-  "cliente": {
-    "cpf": "",
-    "nome": "",
-    "email": ""
-  },
-  "enderecoEntrega": {
-    "logradouro": "",
-    "numero": "",
-    "complemento": "",
-    "cep": "",
-    "bairro": "",
-    "cidade": "",
-    "uf": ""
-  },
-  "formaPagamento": "Pix | Cartao | Boleto",
-  "dataPedido": "dd/mm/yyyy hh:mm:ss",
-  "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
-  "items": [
-    {
-      "produtoId": 9999,
-      "quantidade": 9999.9999,
-      "valorUnitario": 9999.9999
-    }
-  ]
-}
-
-// Cancelar Pedido
-// PATCH /api/v1/pedido/{pedidoId}
-// Body
-{
-  "status": "Cancelado"
-}
-// Response
-{
-  "status": true,
-  "message": "",
-  "pedidoId": 9999
-}
+// Geração de Pedido
+// Em planejamento. Os contratos de pedido ainda não fazem parte da API implementada.
 
 ```

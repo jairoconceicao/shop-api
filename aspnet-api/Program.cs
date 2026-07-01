@@ -1,5 +1,4 @@
-using Asp.Versioning;
-using Asp.Versioning.ApiExplorer;
+using aspnet_api.Api.Endpoints.Carrinhos;
 using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Produtos;
 using aspnet_api.Infrastructure;
@@ -12,10 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddApiVersioning(options =>
 {
-    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.ReportApiVersions = true;
-    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+    options.ApiVersionReader = new Asp.Versioning.UrlSegmentApiVersionReader();
 }).AddApiExplorer(options =>
 {
     options.GroupNameFormat = "'v'VVV";
@@ -45,6 +44,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapClienteEndpoints();
 app.MapProdutoEndpoints();
+app.MapCarrinhoEndpoints();
 
 app.UseHttpsRedirection();
 
