@@ -1,4 +1,5 @@
 using aspnet_api.Api.Contracts.Responses.Shared;
+using aspnet_api.Application.Common;
 using aspnet_api.Domain.Common;
 using Microsoft.AspNetCore.Http;
 
@@ -20,13 +21,43 @@ public static class ResultHttpExtensions
                 statusCode: successStatusCode);
         }
 
-        var errorResponse = new ApiErrorResponse
+        return Results.Json(BuildErrorResponse(result.Notifications, result.Message), statusCode: ResolveStatusCode(result.Notifications));
+    }
+
+    public static IResult ToPagedHttpResult<T>(this Result<PagedResult<T>> result, int successStatusCode = StatusCodes.Status200OK)
+    {
+        if (result.IsSuccess)
+        {
+            var pagination = result.Data ?? new PagedResult<T>(Array.Empty<T>(), 0, 0, 0);
+
+            return Results.Json(
+                new PagedResponse<T>
+                {
+                    Status = true,
+                    Message = result.Message,
+                    Pagination = new PaginationResponse<T>
+                    {
+                        Pages = pagination.TotalPages,
+                        Size = pagination.Size,
+                        TotalItems = pagination.TotalItems,
+                        Data = pagination.Items
+                    }
+                },
+                statusCode: successStatusCode);
+        }
+
+        return Results.Json(BuildErrorResponse(result.Notifications, result.Message), statusCode: ResolveStatusCode(result.Notifications));
+    }
+
+    private static ApiErrorResponse BuildErrorResponse(IEnumerable<Notification> notifications, string message)
+    {
+        return new ApiErrorResponse
         {
             Error = new ApiError
             {
-                Code = ResolveErrorCode(result.Notifications),
-                Message = result.Message,
-                Details = result.Notifications.Select(notification => new ApiNotificationResponse
+                Code = ResolveErrorCode(notifications),
+                Message = message,
+                Details = notifications.Select(notification => new ApiNotificationResponse
                 {
                     Code = notification.Code,
                     Message = notification.Message,
@@ -34,8 +65,6 @@ public static class ResultHttpExtensions
                 }).ToArray()
             }
         };
-
-        return Results.Json(errorResponse, statusCode: ResolveStatusCode(result.Notifications));
     }
 
     private static string ResolveErrorCode(IEnumerable<Notification> notifications)
