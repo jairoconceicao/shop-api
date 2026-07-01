@@ -442,6 +442,27 @@ As respostas de erro usam `ApiErrorResponse` com `error.code`, `error.message` e
   }
 }
 
+// Obter Carrinho
+// GET /api/v1/carrinho/{carrinhoId}
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "clienteId": 99999,
+    "carrinhoId": 9999,
+    "dataCarrinho": "2026-07-01T14:30:00-03:00",
+    "items": [
+      {
+        "itemId": 9999,
+        "produtoId": 9999,
+        "quantidade": 2,
+        "valorUnitario": 9999.99
+      }
+    ]
+  }
+}
+
 // Geração de Pedido
 // Em planejamento. Os contratos de pedido ainda não fazem parte da API implementada.
 

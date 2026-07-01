@@ -12,6 +12,7 @@ using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
 using aspnet_api.src.Application.Carrinho.ExcluirItem;
+using aspnet_api.src.Application.Carrinho.Obter;
 using aspnet_api.src.Application.Cliente.Atualizar;
 using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<AddCarrinhoItemRequest>, AddCarrinhoItemCommandValidator>();
         services.AddScoped<IValidator<AtualizarCarrinhoItemCommand>, AtualizarCarrinhoItemCommandValidator>();
         services.AddScoped<IValidator<ExcluirCarrinhoItemCommand>, ExcluirCarrinhoItemCommandValidator>();
+        services.AddScoped<IValidator<ObterCarrinhoQuery>, ObterCarrinhoQueryValidator>();
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
@@ -51,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IActionCommand<AddCarrinhoItemRequest, Result<AddCarrinhoItemResponse>>, CarrinhoAdicionarItemCommand>();
         services.AddScoped<IActionCommand<AtualizarCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoAtualizarItemCommand>();
         services.AddScoped<IActionCommand<ExcluirCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoExcluirItemCommand>();
+        services.AddScoped<IActionCommand<ObterCarrinhoQuery, Result<CarrinhoResponse>>, CarrinhoObterQuery>();
 
         return services;
     }

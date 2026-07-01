@@ -9,6 +9,7 @@ using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
 using aspnet_api.src.Application.Carrinho.ExcluirItem;
+using aspnet_api.src.Application.Carrinho.Obter;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -29,6 +30,12 @@ public static class CarrinhoEndpoints
         var group = app.MapGroup("/api/v{version:apiVersion}/carrinho")
             .WithTags("Carrinhos")
             .WithApiVersionSet(versionSet);
+
+        group.MapGet("{carrinhoId:long}", ObterCarrinho)
+            .Produces<ApiResponse<CarrinhoResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
 
         group.MapPost("criar", CriarCarrinho)
             .Produces<ApiResponse<CarrinhoCriadoResponse>>(StatusCodes.Status201Created)
@@ -53,6 +60,14 @@ public static class CarrinhoEndpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
+    }
+
+    private static async Task<IResult> ObterCarrinho(
+        long carrinhoId,
+        [FromServices] IActionCommand<ObterCarrinhoQuery, Result<CarrinhoResponse>> command)
+    {
+        var result = await command.Handle(new ObterCarrinhoQuery(carrinhoId));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> CriarCarrinho(
