@@ -6,6 +6,8 @@ using aspnet_api.Api.Endpoints.Shared;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Cliente.Atualizar;
+using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
+using aspnet_api.src.Application.Cliente.ConsultarPorId;
 using aspnet_api.src.Application.Cliente.Excluir;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -27,6 +29,18 @@ public static class ClienteEndpoints
             .WithTags("Clientes")
             .WithApiVersionSet(versionSet);
 
+        group.MapGet("{clienteId:long}", ConsultarClientePorId)
+            .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
+
+        group.MapGet("cpf/{cpf}", ConsultarClientePorCpf)
+            .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
+
         group.MapPost(string.Empty, RegistrarCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status201Created)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
@@ -46,6 +60,22 @@ public static class ClienteEndpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
+    }
+
+    private static async Task<IResult> ConsultarClientePorId(
+        long clienteId,
+        IActionCommand<ConsultarClientePorIdQuery, Result<ClienteDetalheResponse>> command)
+    {
+        var result = await command.Handle(new ConsultarClientePorIdQuery(clienteId));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ConsultarClientePorCpf(
+        string cpf,
+        IActionCommand<ConsultarClientePorCpfQuery, Result<ClienteDetalheResponse>> command)
+    {
+        var result = await command.Handle(new ConsultarClientePorCpfQuery(cpf));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> RegistrarCliente(

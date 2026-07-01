@@ -19,12 +19,12 @@ public class Result
 
     public static Result Success(string message = "Operacao concluida com sucesso.")
     {
-        return new Result(true, message, Array.Empty<Notification>());
+        return new Result(true, message, []);
     }
 
     public static Result Failure(string message, IEnumerable<Notification>? notifications = null)
     {
-        return new Result(false, message, (notifications ?? Array.Empty<Notification>()).ToArray());
+        return new Result(false, message, [.. notifications ?? []]);
     }
 }
 
@@ -40,11 +40,11 @@ public sealed class Result<T> : Result
 
     public static Result<T> Success(T data, string message = "Operacao concluida com sucesso.")
     {
-        return new Result<T>(true, data, message, Array.Empty<Notification>());
+        return new Result<T>(true, data, message, []);
     }
 
     public new static Result<T> Failure(string message, IEnumerable<Notification>? notifications = null)
     {
-        return new Result<T>(false, default, message, (notifications ?? Array.Empty<Notification>()).ToArray());
+        return new Result<T>(false, default, message, [.. notifications ?? []]);
     }
 }
