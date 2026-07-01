@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Api.Contracts.Responses.Shared;
@@ -13,27 +14,38 @@ namespace aspnet_api.Api.Endpoints.Clientes;
 
 public static class ClienteEndpoints
 {
+    private static readonly ApiVersion V1 = new(1, 0);
+
     public static void MapClienteEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/cliente")
-            .WithTags("Clientes");
+        var versionSet = app.NewApiVersionSet("Clientes")
+            .HasApiVersion(V1)
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("/api/v{version:apiVersion}/cliente")
+            .WithTags("Clientes")
+            .WithApiVersionSet(versionSet);
 
         group.MapPost(string.Empty, RegistrarCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status201Created)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound);
+            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
+            .MapToApiVersion(V1);
 
         group.MapPut("{clienteId:long}", AtualizarCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
-            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity);
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
 
         group.MapDelete("{clienteId:long}", ExcluirCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity);
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
     }
 
     private static async Task<IResult> RegistrarCliente(
