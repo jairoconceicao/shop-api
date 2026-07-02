@@ -6,7 +6,6 @@ using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
 using aspnet_api.Api.Contracts.Responses.Produtos;
-using aspnet_api.Application.Abstractions.Repositories;
 using aspnet_api.Application.Common;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
@@ -27,7 +26,6 @@ using aspnet_api.src.Application.Pedido.ConsultarPorId;
 using aspnet_api.src.Application.Produto.CarregarCatalogo;
 using aspnet_api.src.Application.Produto.ConsultarPorId;
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace aspnet_api.src.Application;
 
