@@ -10,6 +10,7 @@ using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
 using aspnet_api.src.Application.Carrinho.ExcluirItem;
 using aspnet_api.src.Application.Carrinho.Obter;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -29,34 +30,40 @@ public static class CarrinhoEndpoints
 
         var group = app.MapGroup("/api/v{version:apiVersion}/carrinho")
             .WithTags("Carrinhos")
+            .RequireAuthorization()
             .WithApiVersionSet(versionSet);
 
         group.MapGet("{carrinhoId:long}", ObterCarrinho)
             .Produces<ApiResponse<CarrinhoResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapPost("criar", CriarCarrinho)
             .Produces<ApiResponse<CarrinhoCriadoResponse>>(StatusCodes.Status201Created)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapPost("items", AdicionarItemAoCarrinho)
             .Produces<ApiResponse<AddCarrinhoItemResponse>>(StatusCodes.Status201Created)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapPatch("items/{itemId:long}", EditarQuantidadeItemDoCarrinho)
             .Produces<ApiResponse<CarrinhoItemIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapDelete("items/{itemId:long}", ExcluirItemDoCarrinho)
             .Produces<ApiResponse<CarrinhoItemIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);

@@ -10,6 +10,7 @@ using aspnet_api.src.Application.Pedido.Cancelar;
 using aspnet_api.src.Application.Pedido.Criar;
 using aspnet_api.src.Application.Pedido.Consultar;
 using aspnet_api.src.Application.Pedido.ConsultarPorId;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -29,10 +30,12 @@ public static class PedidoEndpoints
 
         var group = app.MapGroup("/api/v{version:apiVersion}/pedido")
             .WithTags("Pedidos")
+            .RequireAuthorization()
             .WithApiVersionSet(versionSet);
 
         group.MapPost(string.Empty, CriarPedido)
             .Produces<ApiResponse<PedidoCriadoResponse>>(StatusCodes.Status201Created)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
@@ -40,18 +43,21 @@ public static class PedidoEndpoints
 
         group.MapGet("{pedidoId:long}", ConsultarPedidoPorId)
             .Produces<ApiResponse<PedidoResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapGet(string.Empty, ConsultarPedidos)
             .Produces<PagedResponse<PedidoResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapPatch("{pedidoId:long}", CancelarPedido)
             .Produces<ApiResponse<PedidoCanceladoResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);

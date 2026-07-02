@@ -331,6 +331,49 @@ public class ClienteRegistrarCommandValidatorTests
         }
     }
 
+    public class SenhaValidation : ClienteRegistrarCommandValidatorTests
+    {
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DeveRejeitarSenhaVazia(string senha)
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Senha = senha });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Senha e obrigatoria.");
+        }
+
+        [Theory]
+        [InlineData("1234567")]
+        [InlineData("curta")]
+        public void DeveRejeitarSenhaComMenosDe8Caracteres(string senha)
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Senha = senha });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Senha deve ter no minimo 8 caracteres.");
+        }
+
+        [Fact]
+        public void DeveRejeitarSenhaComMaisDe200Caracteres()
+        {
+            var senhaLonga = new string('a', 201);
+            var result = _validator.Validate(CreateValidRequest() with { Senha = senhaLonga });
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, error => error.ErrorMessage == "Senha deve ter no maximo 200 caracteres.");
+        }
+
+        [Fact]
+        public void DeveAceitarSenhaValida()
+        {
+            var result = _validator.Validate(CreateValidRequest() with { Senha = "SenhaValida123" });
+
+            Assert.True(result.IsValid);
+        }
+    }
+
     private static CreateClienteRequest CreateValidRequest()
     {
         return new CreateClienteRequest
@@ -339,6 +382,7 @@ public class ClienteRegistrarCommandValidatorTests
             Nome = "Cliente Teste",
             DataNascimento = DateOnly.FromDateTime(DateTime.Today).AddDays(-1),
             Email = "cliente@exemplo.com",
+            Senha = "SenhaSegura123",
             Endereco = CreateValidEndereco(),
             Celular = CreateValidCelular()
         };

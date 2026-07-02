@@ -1,7 +1,9 @@
+using aspnet_api.Api.Contracts.Requests.Auth;
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Requests.Carrinhos;
 using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Requests.Produtos;
+using aspnet_api.Api.Contracts.Responses.Auth;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
@@ -9,6 +11,8 @@ using aspnet_api.Api.Contracts.Responses.Produtos;
 using aspnet_api.Application.Common;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
+using aspnet_api.src.Application.Auth.Autenticar;
+using aspnet_api.src.Application.Auth.Encerrar;
 using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
@@ -49,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<ConsultarPedidoPorIdQuery>, ConsultarPedidoPorIdQueryValidator>();
         services.AddScoped<IValidator<PedidosQuery>, ConsultarPedidosQueryValidator>();
         services.AddScoped<IValidator<CancelarPedidoCommand>, CancelarPedidoCommandValidator>();
+        services.AddScoped<IValidator<LoginRequest>, AutenticarCommandValidator>();
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
@@ -66,6 +71,8 @@ public static class DependencyInjection
         services.AddScoped<IActionCommand<ConsultarPedidoPorIdQuery, Result<PedidoResponse>>, PedidoConsultarPorIdQuery>();
         services.AddScoped<IActionCommand<PedidosQuery, Result<PagedResult<PedidoResponse>>>, PedidoConsultarQuery>();
         services.AddScoped<IActionCommand<CancelarPedidoCommand, Result<PedidoCanceladoResponse>>, PedidoCancelarCommand>();
+        services.AddScoped<IActionCommand<LoginRequest, Result<LoginResponse>>, AutenticarCommand>();
+        services.AddScoped<IActionCommand<EncerrarSessaoCommandInput, Result<LogoutResponse>>, EncerrarSessaoCommand>();
 
         return services;
     }

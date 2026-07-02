@@ -1,11 +1,17 @@
+using System.Text;
+using aspnet_api.Api.Endpoints.Auth;
 using aspnet_api.Api.Endpoints.Carrinhos;
 using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Infrastructure;
 using aspnet_api.Infrastructure.Persistence;
+using aspnet_api.Infrastructure.Security;
 using aspnet_api.src.Application;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +27,32 @@ builder.Services.AddApiVersioning(options =>
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton(TimeProvider.System);
 
 // EF Core DbContext
 builder.Services.AddDbContext<ShopDbContext>(options =>
@@ -43,6 +75,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapAuthEndpoints();
 app.MapClienteEndpoints();
 app.MapProdutoEndpoints();
 app.MapCarrinhoEndpoints();
@@ -51,5 +87,3 @@ app.MapPedidoEndpoints();
 app.UseHttpsRedirection();
 
 app.Run();
-
-

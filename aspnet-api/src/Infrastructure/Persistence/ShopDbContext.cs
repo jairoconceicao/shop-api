@@ -17,6 +17,8 @@ public class ShopDbContext : DbContext, IUnitOfWork
     public DbSet<MovimentoEstoque> MovimentosEstoque => Set<MovimentoEstoque>();
     public DbSet<Carrinho> Carrinhos => Set<Carrinho>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<Sessao> Sessoes => Set<Sessao>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +28,8 @@ public class ShopDbContext : DbContext, IUnitOfWork
         modelBuilder.ApplyConfiguration(new MovimentoEstoqueConfiguration());
         modelBuilder.ApplyConfiguration(new CarrinhoConfiguration());
         modelBuilder.ApplyConfiguration(new PedidoConfiguration());
+        modelBuilder.ApplyConfiguration(new UsuarioConfiguration());
+        modelBuilder.ApplyConfiguration(new SessaoConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }

@@ -9,6 +9,7 @@ using aspnet_api.src.Application.Cliente.Atualizar;
 using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
 using aspnet_api.src.Application.Cliente.Excluir;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -27,21 +28,25 @@ public static class ClienteEndpoints
 
         var group = app.MapGroup("/api/v{version:apiVersion}/cliente")
             .WithTags("Clientes")
+            .RequireAuthorization()
             .WithApiVersionSet(versionSet);
 
         group.MapGet("{clienteId:long}", ConsultarClientePorId)
             .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapGet("cpf/{cpf}", ConsultarClientePorCpf)
             .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapPost(string.Empty, RegistrarCliente)
+            .AllowAnonymous()
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status201Created)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
@@ -50,6 +55,7 @@ public static class ClienteEndpoints
 
         group.MapPut("{clienteId:long}", AtualizarCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
@@ -57,6 +63,7 @@ public static class ClienteEndpoints
 
         group.MapDelete("{clienteId:long}", ExcluirCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);

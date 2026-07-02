@@ -54,6 +54,7 @@ public class SwaggerUiTests : IClassFixture<WebApplicationFactory<Program>>
             Nome = "Cliente Teste",
             DataNascimento = DateOnly.FromDateTime(DateTime.Today).AddDays(-1),
             Email = "cliente@exemplo.com",
+            Senha = "SenhaSegura123",
             Endereco = new EnderecoRequest
             {
                 Logradouro = "Rua Um",

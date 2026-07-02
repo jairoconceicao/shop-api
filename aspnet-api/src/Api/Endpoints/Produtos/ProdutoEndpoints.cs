@@ -8,6 +8,7 @@ using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Produto.CarregarCatalogo;
 using aspnet_api.src.Application.Produto.ConsultarPorId;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -27,15 +28,18 @@ public static class ProdutoEndpoints
 
         var group = app.MapGroup("/api/v{version:apiVersion}/produto")
             .WithTags("Produtos")
+            .RequireAuthorization()
             .WithApiVersionSet(versionSet);
 
         group.MapGet(string.Empty, CarregarCatalogoProdutos)
             .Produces<PagedResponse<ProdutoCatalogoItemResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapGet("{id:long}", ConsultarProdutoPorId)
             .Produces<ApiResponse<ProdutoDetalheResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);

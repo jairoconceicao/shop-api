@@ -2,6 +2,8 @@ using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Requests.Shared;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Application.Abstractions.Persistence;
+using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.ValueObjects;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
@@ -9,6 +11,7 @@ using aspnet_api.src.Application.Cliente.Registrar;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using DomainCliente = aspnet_api.Domain.Entities.Cliente;
+using DomainUsuario = aspnet_api.Domain.Entities.Usuario;
 using Xunit;
 
 namespace aspnet_api.Tests.Application.Cliente.Registrar;
@@ -30,6 +33,24 @@ public class ClienteRegistrarCommandTests
             Assert.True(result.Data!.ClienteId > 0);
             Assert.Equal("Cliente cadastrado com sucesso.", result.Message);
             Assert.Equal(1, await context.Clientes.CountAsync());
+            Assert.Equal(1, await context.Usuarios.CountAsync());
+        }
+
+        [Fact]
+        public async Task DeveCriarUsuarioVinculadoAoClienteQuandoCadastroForBemSucedido()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+
+            var result = await command.Handle(CreateValidRequest());
+
+            Assert.True(result.IsSuccess);
+            var cliente = await context.Clientes.SingleAsync();
+            var usuario = await context.Usuarios.SingleAsync();
+            Assert.Equal(cliente.Id, usuario.ClienteId);
+            Assert.Equal("cliente@exemplo.com", usuario.Email);
+            Assert.True(usuario.SenhaHash.Length > 0);
+            Assert.NotEqual("Senha12345", usuario.SenhaHash);
         }
 
         [Fact]
@@ -65,6 +86,25 @@ public class ClienteRegistrarCommandTests
         }
 
         [Fact]
+        public async Task DeveRetornarNotificacaoQuandoUsuarioComEmailJaExistir()
+        {
+            await using var context = CreateContext();
+            var clienteExistente = CreateExistingCliente();
+            context.Clientes.Add(clienteExistente);
+            context.Usuarios.Add(DomainUsuario.Create(
+                clienteExistente.Id, "existente@exemplo.com", "hash-original").Data!);
+            await context.SaveChangesAsync();
+
+            var command = CreateSut(context);
+            var request = CreateValidRequest() with { Cpf = "99999999999", Email = "existente@exemplo.com" };
+
+            var result = await command.Handle(request);
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.Code == "USUARIO_EMAIL_DUPLICADO");
+        }
+
+        [Fact]
         public async Task DeveRetornarNotificacaoQuandoRequestForInvalido()
         {
             await using var context = CreateContext();
@@ -75,6 +115,18 @@ public class ClienteRegistrarCommandTests
             Assert.True(result.IsFailure);
             Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(CreateClienteRequest.Email));
             Assert.Empty(context.Clientes);
+        }
+
+        [Fact]
+        public async Task DeveRetornarNotificacaoQuandoSenhaForCurta()
+        {
+            await using var context = CreateContext();
+            var command = CreateSut(context);
+
+            var result = await command.Handle(CreateValidRequest() with { Senha = "short" });
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, notification => notification.PropertyName == nameof(CreateClienteRequest.Senha));
         }
 
         [Fact]
@@ -122,10 +174,12 @@ public class ClienteRegistrarCommandTests
     private static ClienteRegistrarCommand CreateSut(ShopDbContext context)
     {
         IValidator<CreateClienteRequest> validator = new ClienteRegistrarCommandValidator();
-        var repository = new ClienteRepository(context);
+        var clienteRepository = new ClienteRepository(context);
+        var usuarioRepository = new UsuarioRepository(context);
+        IPasswordHasher passwordHasher = new FakePasswordHasher();
         IUnitOfWork unitOfWork = context;
 
-        return new ClienteRegistrarCommand(validator, repository, unitOfWork);
+        return new ClienteRegistrarCommand(validator, clienteRepository, usuarioRepository, passwordHasher, unitOfWork);
     }
 
     private static ShopDbContext CreateContext()
@@ -145,6 +199,7 @@ public class ClienteRegistrarCommandTests
             Nome = "Cliente Teste",
             DataNascimento = DateOnly.FromDateTime(DateTime.Today).AddDays(-1),
             Email = "cliente@exemplo.com",
+            Senha = "SenhaSegura123",
             Endereco = CreateValidEndereco(),
             Celular = CreateValidCelular()
         };
@@ -184,5 +239,12 @@ public class ClienteRegistrarCommandTests
             new Endereco("Rua Existente", "1", null, "00000000", "Centro", "Sao Paulo", "SP"),
             new Celular("11", "988888888", true),
             "existente@exemplo.com");
+    }
+
+    private sealed class FakePasswordHasher : IPasswordHasher
+    {
+        public string Hash(string password) => $"HASH::{password}";
+
+        public bool Verify(string password, string hash) => hash == $"HASH::{password}";
     }
 }

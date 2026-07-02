@@ -2,11 +2,13 @@ using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.Domain.ValueObjects;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
 using FluentValidation;
+using DomainUsuario = aspnet_api.Domain.Entities.Usuario;
 using DomainCliente = aspnet_api.Domain.Entities.Cliente;
 using DomainCelular = aspnet_api.Domain.ValueObjects.Celular;
 using DomainEndereco = aspnet_api.Domain.ValueObjects.Endereco;
@@ -17,15 +19,21 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
 {
     private readonly IValidator<CreateClienteRequest> _validator;
     private readonly IClienteRepository _clienteRepository;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWork _unitOfWork;
 
     public ClienteRegistrarCommand(
         IValidator<CreateClienteRequest> validator,
         IClienteRepository clienteRepository,
+        IUsuarioRepository usuarioRepository,
+        IPasswordHasher passwordHasher,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
+        _usuarioRepository = usuarioRepository;
+        _passwordHasher = passwordHasher;
         _unitOfWork = unitOfWork;
     }
 
@@ -42,6 +50,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
         }
 
         var notifications = new List<Notification>();
+        var emailNormalizado = command.Email.Trim().ToLowerInvariant();
 
         if (await _clienteRepository.GetByCpfAsync(command.Cpf) is not null)
         {
@@ -56,6 +65,14 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             notifications.Add(new Notification(
                 "CLIENTE_EMAIL_DUPLICADO",
                 "Ja existe um cliente cadastrado com este email.",
+                nameof(command.Email)));
+        }
+
+        if (await _usuarioRepository.GetByEmailAsync(emailNormalizado) is not null)
+        {
+            notifications.Add(new Notification(
+                "USUARIO_EMAIL_DUPLICADO",
+                "Ja existe um usuario cadastrado com este email.",
                 nameof(command.Email)));
         }
 
@@ -102,6 +119,16 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
         }
 
         await _clienteRepository.AddAsync(clienteResult.Data!);
+        await _unitOfWork.SaveChangesAsync();
+
+        var senhaHash = _passwordHasher.Hash(command.Senha);
+        var usuarioResult = DomainUsuario.Create(clienteResult.Data!.Id, emailNormalizado, senhaHash);
+        if (usuarioResult.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(usuarioResult.Message, usuarioResult.Notifications);
+        }
+
+        await _usuarioRepository.AddAsync(usuarioResult.Data!);
         await _unitOfWork.SaveChangesAsync();
 
         return Result<ClienteIdResponse>.Success(

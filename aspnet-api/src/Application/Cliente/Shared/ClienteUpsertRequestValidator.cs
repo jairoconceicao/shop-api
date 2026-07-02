@@ -36,6 +36,14 @@ public abstract class ClienteUpsertRequestValidator<TRequest> : AbstractValidato
         RuleFor(command => command.Celular)
             .NotNull().WithMessage("Celular e obrigatorio.")
             .SetValidator(new CelularRequestValidator());
+
+        if (typeof(TRequest) == typeof(CreateClienteRequest))
+        {
+            RuleFor(command => ((CreateClienteRequest)(object)command).Senha)
+                .NotEmpty().WithMessage("Senha e obrigatoria.")
+                .MinimumLength(8).WithMessage("Senha deve ter no minimo 8 caracteres.")
+                .MaximumLength(200).WithMessage("Senha deve ter no maximo 200 caracteres.");
+        }
     }
 }
 
