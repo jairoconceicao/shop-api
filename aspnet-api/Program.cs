@@ -60,8 +60,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton(TimeProvider.System);
 
 // EF Core DbContext
+var connectionString = builder.Configuration.GetConnectionString("ShopDb")
+    ?? throw new InvalidOperationException("Connection string 'ShopDb' was not found.");
+
 builder.Services.AddDbContext<ShopDbContext>(options =>
-    options.UseInMemoryDatabase("ShopDb")
+    options.UseNpgsql(connectionString)
 );
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
@@ -93,3 +96,4 @@ app.MapPedidoEndpoints();
 app.UseHttpsRedirection();
 
 app.Run();
+
