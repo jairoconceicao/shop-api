@@ -1,1007 +1,1490 @@
-openapi: 3.0.3
+---
+openapi: 3.1.1
 info:
   title: shop-api
   version: 1.0.0
-  description: >
-    Especificacao OpenAPI gerada a partir da secao Endpoints do README.md.
 servers:
-  - url: http://localhost:5000
-    description: API local
-tags:
-  - name: Clientes
-    description: Registro, atualizacao e exclusao de clientes
-  - name: Produtos
-    description: Consulta do catalogo e detalhe de produtos
-  - name: Carrinhos
-    description: Operacoes de carrinho de compras
-  - name: Pedidos
-    description: Criacao, consulta e cancelamento de pedidos
+- url: http://localhost:5228
+  description: API local
 paths:
-  /api/v1/cliente:
+  "/api/v1/auth/login":
     post:
-      tags: [Clientes]
-      summary: Registro de novo cliente
-      operationId: criarCliente
+      tags:
+      - Auth
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClienteUpsertRequest'
-            example:
-              cpf: '12345678901'
-              nome: 'Maria Silva'
-              dataNascimento: '1990-05-10'
-              email: 'maria.silva@example.com'
-              endereco:
-                logradouro: 'Rua A'
-                numero: '100'
-                complemento: 'Apto 12'
-                cep: '01001000'
-                bairro: 'Centro'
-                cidade: 'Sao Paulo'
-                uf: 'SP'
-              celular:
-                ddd: '11'
-                numero: '999999999'
-                whatsApp: true
+              "$ref": "#/components/schemas/LoginRequest"
+        required: true
       responses:
-        '201':
-          description: Cliente criado
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClienteMutationResponse'
-  /api/v1/cliente/{clienteId}:
+                "$ref": "#/components/schemas/ApiResponseOfLoginResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+  "/api/v1/auth/logout":
+    post:
+      tags:
+      - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfLogoutResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/cliente/{clienteId}":
+    get:
+      tags:
+      - Clientes
+      parameters:
+      - name: clienteId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfClienteDetalheResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
     put:
-      tags: [Clientes]
-      summary: Atualizacao dos dados do cliente
-      operationId: atualizarCliente
+      tags:
+      - Clientes
       parameters:
-        - name: clienteId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      requestBody:
+      - name: clienteId
+        in: path
         required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClienteUpsertRequest'
-            example:
-              cpf: '12345678901'
-              nome: 'Maria Silva'
-              dataNascimento: '1990-05-10'
-              email: 'maria.silva@example.com'
-              endereco:
-                logradouro: 'Rua A'
-                numero: '100'
-                complemento: 'Apto 12'
-                cep: '01001000'
-                bairro: 'Centro'
-                cidade: 'Sao Paulo'
-                uf: 'SP'
-              celular:
-                ddd: '11'
-                numero: '999999999'
-                whatsApp: true
+              "$ref": "#/components/schemas/UpdateClienteRequest"
+        required: true
       responses:
         '200':
-          description: Cliente atualizado
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClienteMutationResponse'
+                "$ref": "#/components/schemas/ApiResponseOfClienteIdResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
     delete:
-      tags: [Clientes]
-      summary: Cancelar conta do cliente
-      operationId: cancelarCliente
+      tags:
+      - Clientes
       parameters:
-        - name: clienteId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      responses:
-        '200':
-          description: Cliente cancelado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClienteMutationResponse'
-  /api/v1/produto:
-    get:
-      tags: [Produtos]
-      summary: Carregar catalogo de produtos
-      operationId: listarProdutos
-      parameters:
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          example: 1
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 20
-          example: 20
-      responses:
-        '200':
-          description: Catalogo de produtos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProdutoCatalogoResponse'
-  /api/v1/produto/{id}:
-    get:
-      tags: [Produtos]
-      summary: Consultar produto pelo ID
-      operationId: obterProduto
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      responses:
-        '200':
-          description: Produto encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProdutoDetalheResponse'
-  /api/v1/carrinho/{carrinhoId}:
-    get:
-      tags: [Carrinhos]
-      summary: Obter carrinho
-      operationId: obterCarrinho
-      parameters:
-        - name: carrinhoId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      responses:
-        '200':
-          description: Carrinho encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CarrinhoResponse'
-  /api/v1/carrinho/criar:
-    post:
-      tags: [Carrinhos]
-      summary: Criar carrinho
-      operationId: criarCarrinho
-      requestBody:
+      - name: clienteId
+        in: path
         required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfClienteIdResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/cliente/cpf/{cpf}":
+    get:
+      tags:
+      - Clientes
+      parameters:
+      - name: cpf
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfClienteDetalheResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/cliente":
+    post:
+      tags:
+      - Clientes
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CarrinhoCreateRequest'
-            example:
-              clienteId: 99999
+              "$ref": "#/components/schemas/CreateClienteRequest"
+        required: true
       responses:
         '201':
-          description: Carrinho criado
+          description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarrinhoCreateResponse'
-  /api/v1/carrinho/items:
-    post:
-      tags: [Carrinhos]
-      summary: Adicionar item ao carrinho
-      operationId: adicionarItemCarrinho
-      requestBody:
+                "$ref": "#/components/schemas/ApiResponseOfClienteIdResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+  "/api/v1/produto":
+    get:
+      tags:
+      - Produtos
+      parameters:
+      - name: page
+        in: query
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+          default: 1
+      - name: size
+        in: query
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+          default: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PagedResponseOfProdutoCatalogoItemResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/produto/{id}":
+    get:
+      tags:
+      - Produtos
+      parameters:
+      - name: id
+        in: path
         required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfProdutoDetalheResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/carrinho/{carrinhoId}":
+    get:
+      tags:
+      - Carrinhos
+      parameters:
+      - name: carrinhoId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfCarrinhoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/carrinho/criar":
+    post:
+      tags:
+      - Carrinhos
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CarrinhoItemCreateRequest'
-            example:
-              produtoId: 9999
-              quantidade: 9999.9999
-              valorUnitario: 9999.99
+              "$ref": "#/components/schemas/CreateCarrinhoRequest"
+        required: true
       responses:
         '201':
-          description: Item adicionado ao carrinho
+          description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarrinhoItemIdResponse'
-  /api/v1/carrinho/items/{itemId}:
+                "$ref": "#/components/schemas/ApiResponseOfCarrinhoCriadoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/carrinho/items":
+    post:
+      tags:
+      - Carrinhos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AddCarrinhoItemRequest"
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfAddCarrinhoItemResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/carrinho/items/{itemId}":
     patch:
-      tags: [Carrinhos]
-      summary: Editar quantidade do item no carrinho
-      operationId: atualizarItemCarrinho
+      tags:
+      - Carrinhos
       parameters:
-        - name: itemId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 999
-      requestBody:
+      - name: itemId
+        in: path
         required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CarrinhoItemUpdateRequest'
-            example:
-              quantidade: 4
+              "$ref": "#/components/schemas/UpdateCarrinhoItemRequest"
+        required: true
       responses:
         '200':
-          description: Item atualizado
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarrinhoItemMutationResponse'
+                "$ref": "#/components/schemas/ApiResponseOfCarrinhoItemIdResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
     delete:
-      tags: [Carrinhos]
-      summary: Excluir item do carrinho
-      operationId: excluirItemCarrinho
+      tags:
+      - Carrinhos
       parameters:
-        - name: itemId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 999
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
       responses:
         '200':
-          description: Item removido
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarrinhoItemMutationResponse'
-  /api/v1/pedido:
+                "$ref": "#/components/schemas/ApiResponseOfCarrinhoItemIdResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/pedido":
     post:
-      tags: [Pedidos]
-      summary: Criar pedido
-      operationId: criarPedido
+      tags:
+      - Pedidos
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePedidoRequest'
-            example:
-              carrinhoId: 9999
-              clienteId: 99999
-              enderecoEntrega:
-                logradouro: 'Rua Exemplo'
-                numero: '123'
-                complemento: 'Apto 10'
-                cep: '01000000'
-                bairro: 'Centro'
-                cidade: 'Sao Paulo'
-                uf: 'SP'
-              dataPedido: '2026-07-01T14:30:00-03:00'
-              formaPagamento: Pix
-              items:
-                - produtoId: 9999
-                  quantidade: 2
-                  valorUnitario: 9999.99
+              "$ref": "#/components/schemas/CreatePedidoRequest"
+        required: true
       responses:
         '201':
-          description: Pedido criado
+          description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PedidoCriadoResponse'
+                "$ref": "#/components/schemas/ApiResponseOfPedidoCriadoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
     get:
-      tags: [Pedidos]
-      summary: Consultar pedidos
-      operationId: consultarPedidos
+      tags:
+      - Pedidos
       parameters:
-        - name: cpf
-          in: query
-          required: true
-          schema:
-            type: string
-          example: '12345678901'
-        - name: dataInicio
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date-time
-          example: '2026-07-01T00:00:00-03:00'
-        - name: dataFim
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date-time
-          example: '2026-07-31T23:59:59-03:00'
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          example: 1
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 20
-          example: 20
-      responses:
-        '200':
-          description: Lista de pedidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PedidoListResponse'
-  /api/v1/pedido/{pedidoId}:
-    get:
-      tags: [Pedidos]
-      summary: Consultar pedido por ID
-      operationId: obterPedido
-      parameters:
-        - name: pedidoId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      responses:
-        '200':
-          description: Pedido encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PedidoResponse'
-    patch:
-      tags: [Pedidos]
-      summary: Cancelar pedido
-      operationId: cancelarPedido
-      parameters:
-        - name: pedidoId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          example: 9999
-      requestBody:
+      - name: cpf
+        in: query
         required: true
+        schema:
+          type: string
+      - name: dataInicio
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: dataFim
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        in: query
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+          default: 1
+      - name: size
+        in: query
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+          default: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PagedResponseOfPedidoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/pedido/{pedidoId}":
+    get:
+      tags:
+      - Pedidos
+      parameters:
+      - name: pedidoId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfPedidoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+    patch:
+      tags:
+      - Pedidos
+      parameters:
+      - name: pedidoId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePedidoStatusRequest'
-            example:
-              status: Cancelado
+              "$ref": "#/components/schemas/UpdatePedidoStatusRequest"
+        required: true
       responses:
         '200':
-          description: Pedido cancelado
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PedidoCanceladoResponse'
+                "$ref": "#/components/schemas/ApiResponseOfPedidoCanceladoResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
 components:
   schemas:
-    ClienteUpsertRequest:
+    AddCarrinhoItemRequest:
       type: object
-      required:
-        - cpf
-        - nome
-        - dataNascimento
-        - email
-        - endereco
-        - celular
       properties:
-        cpf:
-          type: string
-          example: '12345678901'
-        nome:
-          type: string
-          example: Maria Silva
-        dataNascimento:
-          type: string
-          format: date
-          example: '1990-05-10'
-        email:
-          type: string
-          format: email
-          example: maria.silva@example.com
-        endereco:
-          $ref: '#/components/schemas/Endereco'
-        celular:
-          $ref: '#/components/schemas/Celular'
-    Endereco:
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        quantidade:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        valorUnitario:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    AddCarrinhoItemResponse:
       type: object
-      required:
-        - logradouro
-        - numero
-        - cep
-        - bairro
-        - cidade
-        - uf
       properties:
-        logradouro:
-          type: string
-          example: Rua A
-        numero:
-          type: string
-          example: '100'
-        complemento:
-          type: string
-          example: Apto 12
-        cep:
-          type: string
-          example: '01001000'
-        bairro:
-          type: string
-          example: Centro
-        cidade:
-          type: string
-          example: Sao Paulo
-        uf:
-          type: string
-          example: SP
-    Celular:
+        itemId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+    ApiError:
       type: object
-      required:
-        - ddd
-        - numero
-        - whatsApp
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details: {}
+    ApiErrorResponse:
+      type: object
+      properties:
+        error:
+          "$ref": "#/components/schemas/ApiError"
+    ApiResponseOfAddCarrinhoItemResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/AddCarrinhoItemResponse"
+    ApiResponseOfCarrinhoCriadoResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/CarrinhoCriadoResponse"
+    ApiResponseOfCarrinhoItemIdResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/CarrinhoItemIdResponse"
+    ApiResponseOfCarrinhoResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/CarrinhoResponse"
+    ApiResponseOfClienteDetalheResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/ClienteDetalheResponse"
+    ApiResponseOfClienteIdResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/ClienteIdResponse"
+    ApiResponseOfLoginResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/LoginResponse"
+    ApiResponseOfLogoutResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/LogoutResponse"
+    ApiResponseOfPedidoCanceladoResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/PedidoCanceladoResponse"
+    ApiResponseOfPedidoCriadoResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/PedidoCriadoResponse"
+    ApiResponseOfPedidoResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/PedidoResponse"
+    ApiResponseOfProdutoDetalheResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/ProdutoDetalheResponse"
+    CarrinhoCriadoResponse:
+      type: object
+      properties:
+        carrinhoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        dataCarrinho:
+          type: string
+          format: date-time
+    CarrinhoItemIdResponse:
+      type: object
+      properties:
+        itemId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+    CarrinhoItemResponse:
+      type: object
+      properties:
+        itemId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        quantidade:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        valorUnitario:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    CarrinhoResponse:
+      type: object
+      properties:
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        carrinhoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        dataCarrinho:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CarrinhoItemResponse"
+    CelularRequest:
+      type: object
       properties:
         ddd:
           type: string
-          example: '11'
         numero:
           type: string
-          example: '999999999'
         whatsApp:
           type: boolean
-          example: true
-    ClienteIdData:
+    CelularResponse:
       type: object
-      required: [clienteId]
+      properties:
+        ddd:
+          type: string
+        numero:
+          type: string
+        whatsApp:
+          type: boolean
+    ClienteDetalheResponse:
+      type: object
       properties:
         clienteId:
-          type: integer
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
           format: int64
-          example: 9999
-    ClienteMutationResponse:
+        cpf:
+          type: string
+        nome:
+          type: string
+        dataNascimento:
+          type: string
+          format: date
+        email:
+          type: string
+        endereco:
+          "$ref": "#/components/schemas/EnderecoResponse"
+        celular:
+          "$ref": "#/components/schemas/CelularResponse"
+    ClienteIdResponse:
       type: object
-      required:
-        - status
-        - message
-        - data
-      properties:
-        status:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: ''
-        data:
-          $ref: '#/components/schemas/ClienteIdData'
-    ProdutoCatalogoItem:
-      type: object
-      required:
-        - produtoId
-        - titulo
-        - thumb
-        - preco
-        - estoque
-      properties:
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        titulo:
-          type: string
-          example: Camiseta Premium
-        thumb:
-          type: string
-          example: https://example.com/thumbs/produto-9999.png
-        preco:
-          type: number
-          example: 99.9
-        estoque:
-          type: number
-          example: 9999.9999
-    ProdutoCatalogoResponse:
-      type: object
-      required:
-        - status
-        - message
-        - pagination
-      properties:
-        status:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: ''
-        pagination:
-          type: object
-          required:
-            - pages
-            - size
-            - totalItems
-            - data
-          properties:
-            pages:
-              type: integer
-              example: 99
-            size:
-              type: integer
-              example: 20
-            totalItems:
-              type: integer
-              format: int64
-              example: 99
-            data:
-              type: array
-              items:
-                $ref: '#/components/schemas/ProdutoCatalogoItem'
-    ProdutoDetalheResponse:
-      type: object
-      required:
-        - produtoId
-        - titulo
-        - descricao
-        - modelo
-        - foto
-        - preco
-        - estoque
-      properties:
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        titulo:
-          type: string
-          example: Camiseta Premium
-        descricao:
-          type: string
-          example: Camiseta de algodao premium
-        modelo:
-          type: string
-          example: CK-2026
-        foto:
-          type: string
-          example: https://example.com/produtos/9999.jpg
-        preco:
-          type: number
-          example: 99.9
-        estoque:
-          type: number
-          example: 9999.9999
-    CarrinhoCreateRequest:
-      type: object
-      required: [clienteId]
       properties:
         clienteId:
-          type: integer
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
           format: int64
-          example: 99999
-    CarrinhoCreateResponse:
+    CreateCarrinhoRequest:
       type: object
-      required:
-        - status
-        - message
-        - data
       properties:
-        status:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: ''
-        data:
-          type: object
-          required:
-            - carrinhoId
-            - dataCarrinho
-          properties:
-            carrinhoId:
-              type: integer
-              format: int64
-              example: 9999
-            dataCarrinho:
-              type: string
-              format: date-time
-              example: '2026-06-30T12:30:00Z'
-    CarrinhoItemResponse:
-      type: object
-      required:
-        - itemId
-        - produtoId
-        - quantidade
-        - valorUnitario
-      properties:
-        itemId:
-          type: integer
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
           format: int64
-          example: 9999
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        quantidade:
-          type: number
-          example: 2
-        valorUnitario:
-          type: number
-          example: 99.99
-    CarrinhoResponse:
+    CreateClienteRequest:
       type: object
-      required:
-        - status
-        - message
-        - data
       properties:
-        status:
-          type: boolean
-          example: true
-        message:
+        senha:
           type: string
-          example: ''
-        data:
-          type: object
-          required:
-            - clienteId
-            - carrinhoId
-            - dataCarrinho
-            - items
-          properties:
-            clienteId:
-              type: integer
-              format: int64
-              example: 99999
-            carrinhoId:
-              type: integer
-              format: int64
-              example: 9999
-            dataCarrinho:
-              type: string
-              format: date-time
-              example: '2026-07-01T14:30:00-03:00'
-            items:
-              type: array
-              items:
-                $ref: '#/components/schemas/CarrinhoItemResponse'
-    CarrinhoItemCreateRequest:
-      type: object
-      required:
-        - produtoId
-        - quantidade
-        - valorUnitario
-      properties:
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        quantidade:
-          type: number
-          example: 9999.9999
-        valorUnitario:
-          type: number
-          example: 9999.99
-    CarrinhoItemUpdateRequest:
-      type: object
-      required: [quantidade]
-      properties:
-        quantidade:
-          type: number
-          example: 4
-    CarrinhoItemIdResponse:
-      type: object
-      required:
-        - status
-        - message
-        - data
-      properties:
-        status:
-          type: boolean
-          example: true
-        message:
+        cpf:
           type: string
-          example: ''
-        data:
-          type: object
-          required: [itemId]
-          properties:
-            itemId:
-              type: integer
-              format: int64
-              example: 999
-    CarrinhoItemMutationResponse:
-      type: object
-      required:
-        - status
-        - message
-        - data
-      properties:
-        status:
-          type: boolean
-          example: true
-        message:
+        nome:
           type: string
-          example: ''
-        data:
-          type: object
-          required:
-            - itemId
-            - produtoId
-          properties:
-            itemId:
-              type: integer
-              format: int64
-              example: 9999
-            produtoId:
-              type: integer
-              format: int64
-              example: 9999
+        dataNascimento:
+          type: string
+          format: date
+        email:
+          type: string
+        endereco:
+          "$ref": "#/components/schemas/EnderecoRequest"
+        celular:
+          "$ref": "#/components/schemas/CelularRequest"
     CreatePedidoRequest:
       type: object
-      required:
-        - clienteId
-        - carrinhoId
-        - enderecoEntrega
-        - formaPagamento
-        - dataPedido
-        - items
       properties:
         clienteId:
-          type: integer
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
           format: int64
-          example: 99999
         carrinhoId:
-          type: integer
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
           format: int64
-          example: 9999
         enderecoEntrega:
-          $ref: '#/components/schemas/Endereco'
+          "$ref": "#/components/schemas/EnderecoRequest"
         formaPagamento:
-          $ref: '#/components/schemas/FormaPagamento'
+          "$ref": "#/components/schemas/FormaPagamento"
         dataPedido:
           type: string
           format: date-time
-          example: '2026-07-01T14:30:00-03:00'
         items:
           type: array
           items:
-            $ref: '#/components/schemas/PedidoItemRequest'
-    PedidoItemRequest:
+            "$ref": "#/components/schemas/PedidoItemRequest"
+    EnderecoRequest:
       type: object
-      required:
-        - produtoId
-        - quantidade
-        - valorUnitario
       properties:
-        itemId:
-          type: integer
-          format: int64
-          example: 9999
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        quantidade:
-          type: number
-          example: 2
-        valorUnitario:
-          type: number
-          example: 9999.99
+        logradouro:
+          type: string
+        numero:
+          type: string
+        complemento:
+          type:
+          - 'null'
+          - string
+        cep:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        uf:
+          type: string
+    EnderecoResponse:
+      type: object
+      properties:
+        logradouro:
+          type: string
+        numero:
+          type: string
+        complemento:
+          type:
+          - 'null'
+          - string
+        cep:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        uf:
+          type: string
     FormaPagamento:
-      type: string
       enum:
-        - Pix
-        - Cartao
-        - Boleto
-      example: Pix
-    PedidoCriadoData:
+      - Pix
+      - Cartao
+      - Boleto
+    LoginRequest:
       type: object
-      required:
-        - pedidoId
-        - clienteId
-        - dataPedido
-        - formaPagamento
-        - status
-        - valorTotal
       properties:
-        pedidoId:
-          type: integer
-          format: int64
-          example: 9999
-        clienteId:
-          type: integer
-          format: int64
-          example: 99999
-        dataPedido:
+        email:
+          type: string
+        senha:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        tipo:
+          type: string
+        expiraEm:
           type: string
           format: date-time
-          example: '2026-07-01T14:30:00-03:00'
-        formaPagamento:
-          $ref: '#/components/schemas/FormaPagamento'
-        status:
-          $ref: '#/components/schemas/PedidoStatus'
-        valorTotal:
-          type: number
-          example: 99999.9999
-    PedidoCriadoResponse:
+        usuarioId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        email:
+          type: string
+    LogoutResponse:
       type: object
-      required:
-        - status
-        - message
-        - data
+      properties:
+        jti:
+          type: string
+        revogadaEm:
+          type: string
+          format: date-time
+    PagedResponseOfPedidoResponse:
+      type: object
       properties:
         status:
           type: boolean
-          example: true
         message:
           type: string
-          example: ''
-        data:
-          $ref: '#/components/schemas/PedidoCriadoData'
-    PedidoData:
+        pagination:
+          "$ref": "#/components/schemas/PaginationResponseOfPedidoResponse"
+    PagedResponseOfProdutoCatalogoItemResponse:
       type: object
-      required:
-        - pedidoId
-        - carrinhoId
-        - clienteId
-        - enderecoEntrega
-        - dataPedido
-        - formaPagamento
-        - status
-        - items
       properties:
-        pedidoId:
-          type: integer
-          format: int64
-          example: 9999
-        carrinhoId:
-          type: integer
-          format: int64
-          example: 9999
-        clienteId:
-          type: integer
-          format: int64
-          example: 99999
-        enderecoEntrega:
-          $ref: '#/components/schemas/Endereco'
-        dataPedido:
-          type: string
-          format: date-time
-          example: '2026-07-01T14:30:00-03:00'
-        formaPagamento:
-          $ref: '#/components/schemas/FormaPagamento'
         status:
-          $ref: '#/components/schemas/PedidoStatus'
-        items:
+          type: boolean
+        message:
+          type: string
+        pagination:
+          "$ref": "#/components/schemas/PaginationResponseOfProdutoCatalogoItemResponse"
+    PaginationResponseOfPedidoResponse:
+      type: object
+      properties:
+        pages:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+        size:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+        totalItems:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        data:
           type: array
           items:
-            $ref: '#/components/schemas/PedidoItemResponse'
-    PedidoResponse:
+            "$ref": "#/components/schemas/PedidoResponse"
+    PaginationResponseOfProdutoCatalogoItemResponse:
       type: object
-      required:
-        - status
-        - message
-        - data
       properties:
-        status:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: ''
+        pages:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+        size:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int32
+        totalItems:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
         data:
-          $ref: '#/components/schemas/PedidoData'
-    PedidoCanceladoData:
-      type: object
-      required:
-        - pedidoId
-        - clienteId
-        - dataPedido
-        - status
-      properties:
-        pedidoId:
-          type: integer
-          format: int64
-          example: 9999
-        clienteId:
-          type: integer
-          format: int64
-          example: 99999
-        dataPedido:
-          type: string
-          format: date-time
-          example: '2026-07-01T14:30:00-03:00'
-        status:
-          $ref: '#/components/schemas/PedidoStatus'
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProdutoCatalogoItemResponse"
     PedidoCanceladoResponse:
       type: object
-      required:
-        - status
-        - message
-        - data
       properties:
-        status:
-          type: boolean
-          example: true
-        message:
+        pedidoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        dataPedido:
           type: string
-          example: ''
-        data:
-          $ref: '#/components/schemas/PedidoCanceladoData'
-    PedidoListResponse:
+          format: date-time
+        status:
+          "$ref": "#/components/schemas/PedidoStatus"
+    PedidoCriadoResponse:
       type: object
-      required:
-        - status
-        - message
-        - pagination
       properties:
-        status:
-          type: boolean
-          example: true
-        message:
+        pedidoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        dataPedido:
           type: string
-          example: ''
-        pagination:
-          type: object
-          required:
-            - pages
-            - size
-            - totalItems
-            - data
-          properties:
-            pages:
-              type: integer
-              example: 99
-            size:
-              type: integer
-              example: 20
-            totalItems:
-              type: integer
-              format: int64
-              example: 99
-            data:
-              type: array
-              items:
-                $ref: '#/components/schemas/PedidoData'
+          format: date-time
+        formaPagamento:
+          "$ref": "#/components/schemas/FormaPagamento"
+        status:
+          "$ref": "#/components/schemas/PedidoStatus"
+        valorTotal:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    PedidoItemRequest:
+      type: object
+      properties:
+        itemId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - 'null'
+          - integer
+          - string
+          format: int64
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        quantidade:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        valorUnitario:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    PedidoItemResponse:
+      type: object
+      properties:
+        itemId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        quantidade:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        valorUnitario:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    PedidoResponse:
+      type: object
+      properties:
+        pedidoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        carrinhoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        clienteId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        enderecoEntrega:
+          "$ref": "#/components/schemas/EnderecoResponse"
+        dataPedido:
+          type: string
+          format: date-time
+        formaPagamento:
+          "$ref": "#/components/schemas/FormaPagamento"
+        status:
+          "$ref": "#/components/schemas/PedidoStatus"
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/PedidoItemResponse"
+    PedidoStatus:
+      enum:
+      - Criado
+      - EmProcessamento
+      - Processado
+      - Cancelado
+      - Devolvido
+    ProdutoCatalogoItemResponse:
+      type: object
+      properties:
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        titulo:
+          type: string
+        thumb:
+          type:
+          - 'null'
+          - string
+        preco:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        estoque:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    ProdutoDetalheResponse:
+      type: object
+      properties:
+        produtoId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        titulo:
+          type: string
+        descricao:
+          type:
+          - 'null'
+          - string
+        modelo:
+          type:
+          - 'null'
+          - string
+        foto:
+          type:
+          - 'null'
+          - string
+        preco:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+        estoque:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    UpdateCarrinhoItemRequest:
+      type: object
+      properties:
+        quantidade:
+          pattern: "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$"
+          type:
+          - number
+          - string
+          format: double
+    UpdateClienteRequest:
+      type: object
+      properties:
+        cpf:
+          type: string
+        nome:
+          type: string
+        dataNascimento:
+          type: string
+          format: date
+        email:
+          type: string
+        endereco:
+          "$ref": "#/components/schemas/EnderecoRequest"
+        celular:
+          "$ref": "#/components/schemas/CelularRequest"
     UpdatePedidoStatusRequest:
       type: object
-      required: [status]
       properties:
         status:
-          type: string
-          enum: [Cancelado]
-          example: Cancelado
-    PedidoStatus:
-      type: string
-      enum:
-        - Criado
-        - EmProcessamento
-        - Processado
-        - Cancelado
-        - Devolvido
-      example: Criado
+          "$ref": "#/components/schemas/PedidoStatus"
+  securitySchemes:
+    Bearer:
+      type: http
+      description: JWT enviado no cabeçalho Authorization como Bearer {token}
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Auth
+- name: Clientes
+- name: Produtos
+- name: Carrinhos
+- name: Pedidos
