@@ -163,6 +163,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProdutoDetalheResponse'
+  /api/v1/carrinho/{carrinhoId}:
+    get:
+      tags: [Carrinhos]
+      summary: Obter carrinho
+      operationId: obterCarrinho
+      parameters:
+        - name: carrinhoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 9999
+      responses:
+        '200':
+          description: Carrinho encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarrinhoResponse'
   /api/v1/carrinho/criar:
     post:
       tags: [Carrinhos]
@@ -561,6 +581,65 @@ components:
               type: string
               format: date-time
               example: '2026-06-30T12:30:00Z'
+    CarrinhoItemResponse:
+      type: object
+      required:
+        - itemId
+        - produtoId
+        - quantidade
+        - valorUnitario
+      properties:
+        itemId:
+          type: integer
+          format: int64
+          example: 9999
+        produtoId:
+          type: integer
+          format: int64
+          example: 9999
+        quantidade:
+          type: number
+          example: 2
+        valorUnitario:
+          type: number
+          example: 99.99
+    CarrinhoResponse:
+      type: object
+      required:
+        - status
+        - message
+        - data
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: ''
+        data:
+          type: object
+          required:
+            - clienteId
+            - carrinhoId
+            - dataCarrinho
+            - items
+          properties:
+            clienteId:
+              type: integer
+              format: int64
+              example: 99999
+            carrinhoId:
+              type: integer
+              format: int64
+              example: 9999
+            dataCarrinho:
+              type: string
+              format: date-time
+              example: '2026-07-01T14:30:00-03:00'
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CarrinhoItemResponse'
     CarrinhoItemCreateRequest:
       type: object
       required:
