@@ -91,25 +91,25 @@ Receberá dados basicos do cliente, o suficiente para o processamento do pedido
 ```text
 Cliente 
 {
-    id: Long
-    cpf: String
-    nome: String
-    dataNascimento: Date
-    endereco: {
-        logradouro: String
-        numero: String
-        complemento: String
-        cep: String
-        bairro: String
-        cidade: String
-        uf: String
-    }
-    celular: {
-        ddd: String
-        numero: String
-        whatsApp: Boolean
-    }
-    email: String
+  id: Long
+  cpf: String
+  nome: String
+  dataNascimento: Date
+  endereco: {
+    logradouro: String
+    numero: String
+    complemento: String
+    cep: String
+    bairro: String
+    cidade: String
+    uf: String
+  }
+  celular: {
+    ddd: String
+    numero: String
+    whatsApp: Boolean
+  }
+  email: String
 }
 ```
 
@@ -118,13 +118,13 @@ Cliente
 ```text
 Produto
 {
-    id: Long
-    titulo: String
-    descricao: String
-    modelo: String
-    preco: Decimal
-    foto: String
-    thumb: String
+  id: Long
+  titulo: String
+  descricao: String
+  modelo: String
+  preco: Decimal
+  foto: String
+  thumb: String
 }
 ```
 
@@ -133,26 +133,26 @@ Produto
 ```text
 Estoque
 {
-    id: Long
-    descricao: String
-    dataMovimento: DateTime
-    produtoId: Long
-    quantidadeMinima: Decimal
-    quantidadeMaxima: Decimal
-    quantidadeAtual: Decimal
+  id: Long
+  descricao: String
+  dataMovimento: DateTime
+  produtoId: Long
+  quantidadeMinima: Decimal
+  quantidadeMaxima: Decimal
+  quantidadeAtual: Decimal
 }
 
 MovimentoEstoque
 {
-    id: Long
-    estoqueId: Long
-    dataMovimento: DateTime
-    operacao: {
-        codigo: Int
-        tipo: IN | OU
-        descricao: String
-    }
-    quantidade: Decimal
+  id: Long
+  estoqueId: Long
+  dataMovimento: DateTime
+  operacao: {
+    codigo: Int
+    tipo: IN | OU
+    descricao: String
+  }
+  quantidade: Decimal
 }
 ```
 
@@ -161,16 +161,16 @@ MovimentoEstoque
 ```text
 Carrinho
 {
+  id: Long
+  clienteId: Long
+  enderecoEntrega: Endereco
+  dataCarrinho: DateTime
+  items: {
     id: Long
-    clienteId: Long
-    enderecoEntrega: Endereco
-    dataCarrinho: DateTime
-    items: {
-        id: Long
-        produtoId: Long
-        valorUnitario: Decimal
-        quantidade: Decimal
-    }
+    produtoId: Long
+    valorUnitario: Decimal
+    quantidade: Decimal
+  }
 }
 ```
 
@@ -179,20 +179,20 @@ Carrinho
 ```text
 Pedido
 {
-    id: Long
-    dataPedido: DateTime
-    clienteId: Long
-    carrinhoId: Long
-    enderecoEntrega: Endereco
-    formaPagamento: FormaPagamento
-    status: PedidoStatus
-    items: [
-      {
-        produtoId: Long
-        valorUnitario: Decimal
-        quantidade: Decimal
-      }
-    ]
+  id: Long
+  dataPedido: DateTime
+  clienteId: Long
+  carrinhoId: Long
+  enderecoEntrega: Endereco
+  formaPagamento: FormaPagamento
+  status: PedidoStatus
+  items: [
+    {
+      produtoId: Long
+      valorUnitario: Decimal
+      quantidade: Decimal
+    }
+  ]
 }
 
 ```
