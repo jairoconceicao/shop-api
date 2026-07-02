@@ -4,6 +4,7 @@ using aspnet_api.Api.Endpoints.Carrinhos;
 using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
+using aspnet_api.Api.OpenApi;
 using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Infrastructure;
 using aspnet_api.Infrastructure.Persistence;
@@ -15,7 +16,11 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddOperationTransformer<BearerSecurityRequirementTransformer>();
+});
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
@@ -72,6 +77,7 @@ if (app.Environment.IsDevelopment())
     {
         options.RoutePrefix = "swagger";
         options.SwaggerEndpoint("/openapi/v1.json", "Shop Api v1");
+        options.EnablePersistAuthorization();
     });
 }
 
