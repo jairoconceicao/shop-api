@@ -1,5 +1,6 @@
 using aspnet_api.Api.Endpoints.Carrinhos;
 using aspnet_api.Api.Endpoints.Clientes;
+using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
 using aspnet_api.Infrastructure;
 using aspnet_api.Infrastructure.Persistence;
@@ -45,9 +46,10 @@ if (app.Environment.IsDevelopment())
 app.MapClienteEndpoints();
 app.MapProdutoEndpoints();
 app.MapCarrinhoEndpoints();
+app.MapPedidoEndpoints();
 
 app.UseHttpsRedirection();
 
 app.Run();
 
-public partial class Program { }
+

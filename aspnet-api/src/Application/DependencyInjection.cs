@@ -1,8 +1,10 @@
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Requests.Carrinhos;
+using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Requests.Produtos;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
+using aspnet_api.Api.Contracts.Responses.Pedidos;
 using aspnet_api.Api.Contracts.Responses.Produtos;
 using aspnet_api.Application.Abstractions.Repositories;
 using aspnet_api.Application.Common;
@@ -18,6 +20,10 @@ using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
 using aspnet_api.src.Application.Cliente.Excluir;
 using aspnet_api.src.Application.Cliente.Registrar;
+using aspnet_api.src.Application.Pedido.Cancelar;
+using aspnet_api.src.Application.Pedido.Criar;
+using aspnet_api.src.Application.Pedido.Consultar;
+using aspnet_api.src.Application.Pedido.ConsultarPorId;
 using aspnet_api.src.Application.Produto.CarregarCatalogo;
 using aspnet_api.src.Application.Produto.ConsultarPorId;
 using FluentValidation;
@@ -41,6 +47,10 @@ public static class DependencyInjection
         services.AddScoped<IValidator<AtualizarCarrinhoItemCommand>, AtualizarCarrinhoItemCommandValidator>();
         services.AddScoped<IValidator<ExcluirCarrinhoItemCommand>, ExcluirCarrinhoItemCommandValidator>();
         services.AddScoped<IValidator<ObterCarrinhoQuery>, ObterCarrinhoQueryValidator>();
+        services.AddScoped<IValidator<CreatePedidoRequest>, PedidoCriarCommandValidator>();
+        services.AddScoped<IValidator<ConsultarPedidoPorIdQuery>, ConsultarPedidoPorIdQueryValidator>();
+        services.AddScoped<IValidator<PedidosQuery>, ConsultarPedidosQueryValidator>();
+        services.AddScoped<IValidator<CancelarPedidoCommand>, CancelarPedidoCommandValidator>();
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
@@ -54,6 +64,10 @@ public static class DependencyInjection
         services.AddScoped<IActionCommand<AtualizarCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoAtualizarItemCommand>();
         services.AddScoped<IActionCommand<ExcluirCarrinhoItemCommand, Result<CarrinhoItemIdResponse>>, CarrinhoExcluirItemCommand>();
         services.AddScoped<IActionCommand<ObterCarrinhoQuery, Result<CarrinhoResponse>>, CarrinhoObterQuery>();
+        services.AddScoped<IActionCommand<CreatePedidoRequest, Result<PedidoCriadoResponse>>, PedidoCriarCommand>();
+        services.AddScoped<IActionCommand<ConsultarPedidoPorIdQuery, Result<PedidoResponse>>, PedidoConsultarPorIdQuery>();
+        services.AddScoped<IActionCommand<PedidosQuery, Result<PagedResult<PedidoResponse>>>, PedidoConsultarQuery>();
+        services.AddScoped<IActionCommand<CancelarPedidoCommand, Result<PedidoCanceladoResponse>>, PedidoCancelarCommand>();
 
         return services;
     }

@@ -45,4 +45,14 @@ public sealed class PedidoRepository : EfRepository<Pedido>, IPedidoRepository
             .ThenByDescending(pedido => pedido.Id)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<long> GetNextItemIdAsync(CancellationToken cancellationToken = default)
+    {
+        var maxItemId = await Set
+            .SelectMany(pedido => pedido.Items)
+            .Select(item => (long?)item.Id)
+            .MaxAsync(cancellationToken);
+
+        return (maxItemId ?? 0) + 1;
+    }
 }

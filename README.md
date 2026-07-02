@@ -463,7 +463,136 @@ As respostas de erro usam `ApiErrorResponse` com `error.code`, `error.message` e
   }
 }
 
-// Geração de Pedido
-// Em planejamento. Os contratos de pedido ainda não fazem parte da API implementada.
+// Criar Pedido
+// POST /api/v1/pedido
+// Body
+{
+  "carrinhoId": 9999,
+  "clienteId": 99999,
+  "endercoEntrega": {
+    "logradouro": "Rua Exemplo",
+    "numero": "123",
+    "complemento": "Apto 10",
+    "cep": "01000000",
+    "bairro": "Centro",
+    "cidade": "Sao Paulo",
+    "uf": "SP"
+  },
+  "dataPedido": "2026-07-01T14:30:00-03:00",
+  "formaPagamento": "Pix | Cartao | Boleto",
+  "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+  "items": [
+    {
+      "itemId": 9999,
+      "produtoId": 9999,
+      "quantidade": 2,
+      "valorUnitario": 9999.99
+    }
+  ]
+}
+// Response - 201 Created
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "pedidoId": 9999,
+    "clienteId": 99999,
+    "dataPedido": "2026-07-01T14:30:00-03:00",
+    "formaPagamento": "Pix | Cartao | Boleto",
+    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+    "valorTotal": 99999.9999,
+  }
+}
 
+// Consultar Pedido por Id
+// GET /api/v1/pedido/{pedidoId}
+// Response = 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "pedidoId": 9999,
+    "carrinhoId": 9999,
+    "clienteId": 99999,
+    "endercoEntrega": {
+      "logradouro": "Rua Exemplo",
+      "numero": "123",
+      "complemento": "Apto 10",
+      "cep": "01000000",
+      "bairro": "Centro",
+      "cidade": "Sao Paulo",
+      "uf": "SP"
+    },
+    "dataPedido": "2026-07-01T14:30:00-03:00",
+    "formaPagamento": "Pix | Cartao | Boleto",
+    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+    "items": [
+      {
+        "itemId": 9999,
+        "produtoId": 9999,
+        "quantidade": 2,
+        "valorUnitario": 9999.99
+      }
+    ]
+  }
+}
+
+// Consultar Pedidos
+// GET /api/v1/pedido?cpf={cpf}&dataInicio={dataPedidoIni}&dataFim={dataPedidoFim}
+// Response = 200 OK
+{
+  "status": true,
+  "message": "",
+  "pagination": {
+    "pages": 99,
+    "size": 20,
+    "totalItems": 99,
+    "data": [
+      {
+        "pedidoId": 9999,
+        "carrinhoId": 9999,
+        "clienteId": 99999,
+        "endercoEntrega": {
+          "logradouro": "Rua Exemplo",
+          "numero": "123",
+          "complemento": "Apto 10",
+          "cep": "01000000",
+          "bairro": "Centro",
+          "cidade": "Sao Paulo",
+          "uf": "SP"
+        },
+        "dataPedido": "2026-07-01T14:30:00-03:00",
+        "formaPagamento": "Pix | Cartao | Boleto",
+        "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+        "items": [
+          {
+            "itemId": 9999,
+            "produtoId": 9999,
+            "quantidade": 2,
+            "valorUnitario": 9999.99
+          }
+        ]
+      }
+    ]
+  }
+}
+
+// Cancelar Pedido
+// PATCH /api/v1/pedido/{pedidoId}
+// Body
+{
+  "pedidoId": 9999,
+  "status": "Cancelado",
+}
+// Response = 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "pedidoId": 9999,
+    "clienteId": 99999,
+    "dataPedido": "2026-07-01T14:30:00-03:00",
+    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+  }
+}
 ```

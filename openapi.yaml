@@ -282,19 +282,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PedidoCreateRequest'
+              $ref: '#/components/schemas/CreatePedidoRequest'
             example:
-              clienteId: 9999
+              carrinhoId: 9999
+              clienteId: 99999
               enderecoEntrega:
-                logradouro: 'Rua A'
-                numero: '100'
-                complemento: 'Apto 12'
-                cep: '01001000'
+                logradouro: 'Rua Exemplo'
+                numero: '123'
+                complemento: 'Apto 10'
+                cep: '01000000'
                 bairro: 'Centro'
                 cidade: 'Sao Paulo'
                 uf: 'SP'
+              dataPedido: '2026-07-01T14:30:00-03:00'
               formaPagamento: Pix
-              dataPedido: '2026-06-30T12:30:00Z'
               items:
                 - produtoId: 9999
                   quantidade: 2
@@ -305,11 +306,59 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PedidoCreateResponse'
+                $ref: '#/components/schemas/PedidoCriadoResponse'
+    get:
+      tags: [Pedidos]
+      summary: Consultar pedidos
+      operationId: consultarPedidos
+      parameters:
+        - name: cpf
+          in: query
+          required: true
+          schema:
+            type: string
+          example: '12345678901'
+        - name: dataInicio
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: '2026-07-01T00:00:00-03:00'
+        - name: dataFim
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: '2026-07-31T23:59:59-03:00'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: Lista de pedidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoListResponse'
   /api/v1/pedido/{pedidoId}:
     get:
       tags: [Pedidos]
-      summary: Consultar pedido
+      summary: Consultar pedido por ID
       operationId: obterPedido
       parameters:
         - name: pedidoId
@@ -343,7 +392,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PedidoCancelRequest'
+              $ref: '#/components/schemas/UpdatePedidoStatusRequest'
             example:
               status: Cancelado
       responses:
@@ -352,7 +401,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PedidoCancelResponse'
+                $ref: '#/components/schemas/PedidoCanceladoResponse'
 components:
   schemas:
     ClienteUpsertRequest:
@@ -712,40 +761,21 @@ components:
               type: integer
               format: int64
               example: 9999
-    PedidoItemRequest:
-      type: object
-      required:
-        - produtoId
-        - quantidade
-        - valorUnitario
-      properties:
-        produtoId:
-          type: integer
-          format: int64
-          example: 9999
-        quantidade:
-          type: number
-          example: 9999.9999
-        valorUnitario:
-          type: number
-          example: 9999.99
-    FormaPagamento:
-      type: string
-      enum:
-        - Pix
-        - Cartao
-        - Boleto
-      example: Pix
-    PedidoCreateRequest:
+    CreatePedidoRequest:
       type: object
       required:
         - clienteId
+        - carrinhoId
         - enderecoEntrega
         - formaPagamento
         - dataPedido
         - items
       properties:
         clienteId:
+          type: integer
+          format: int64
+          example: 99999
+        carrinhoId:
           type: integer
           format: int64
           example: 9999
@@ -756,20 +786,69 @@ components:
         dataPedido:
           type: string
           format: date-time
-          example: '2026-06-30T12:30:00Z'
+          example: '2026-07-01T14:30:00-03:00'
         items:
           type: array
           items:
             $ref: '#/components/schemas/PedidoItemRequest'
-    PedidoIdData:
+    PedidoItemRequest:
       type: object
-      required: [pedidoId]
+      required:
+        - produtoId
+        - quantidade
+        - valorUnitario
+      properties:
+        itemId:
+          type: integer
+          format: int64
+          example: 9999
+        produtoId:
+          type: integer
+          format: int64
+          example: 9999
+        quantidade:
+          type: number
+          example: 2
+        valorUnitario:
+          type: number
+          example: 9999.99
+    FormaPagamento:
+      type: string
+      enum:
+        - Pix
+        - Cartao
+        - Boleto
+      example: Pix
+    PedidoCriadoData:
+      type: object
+      required:
+        - pedidoId
+        - clienteId
+        - dataPedido
+        - formaPagamento
+        - status
+        - valorTotal
       properties:
         pedidoId:
           type: integer
           format: int64
           example: 9999
-    PedidoCreateResponse:
+        clienteId:
+          type: integer
+          format: int64
+          example: 99999
+        dataPedido:
+          type: string
+          format: date-time
+          example: '2026-07-01T14:30:00-03:00'
+        formaPagamento:
+          $ref: '#/components/schemas/FormaPagamento'
+        status:
+          $ref: '#/components/schemas/PedidoStatus'
+        valorTotal:
+          type: number
+          example: 99999.9999
+    PedidoCriadoResponse:
       type: object
       required:
         - status
@@ -783,41 +862,140 @@ components:
           type: string
           example: ''
         data:
-          $ref: '#/components/schemas/PedidoIdData'
-    PedidoCliente:
+          $ref: '#/components/schemas/PedidoCriadoData'
+    PedidoData:
       type: object
       required:
-        - cpf
-        - nome
-        - email
+        - pedidoId
+        - carrinhoId
+        - clienteId
+        - enderecoEntrega
+        - dataPedido
+        - formaPagamento
+        - status
+        - items
       properties:
-        cpf:
-          type: string
-          example: '12345678901'
-        nome:
-          type: string
-          example: Maria Silva
-        email:
-          type: string
-          format: email
-          example: maria.silva@example.com
-    PedidoItemResponse:
-      type: object
-      required:
-        - produtoId
-        - quantidade
-        - valorUnitario
-      properties:
-        produtoId:
+        pedidoId:
           type: integer
           format: int64
           example: 9999
-        quantidade:
-          type: number
-          example: 2
-        valorUnitario:
-          type: number
-          example: 99.9
+        carrinhoId:
+          type: integer
+          format: int64
+          example: 9999
+        clienteId:
+          type: integer
+          format: int64
+          example: 99999
+        enderecoEntrega:
+          $ref: '#/components/schemas/Endereco'
+        dataPedido:
+          type: string
+          format: date-time
+          example: '2026-07-01T14:30:00-03:00'
+        formaPagamento:
+          $ref: '#/components/schemas/FormaPagamento'
+        status:
+          $ref: '#/components/schemas/PedidoStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PedidoItemResponse'
+    PedidoResponse:
+      type: object
+      required:
+        - status
+        - message
+        - data
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: ''
+        data:
+          $ref: '#/components/schemas/PedidoData'
+    PedidoCanceladoData:
+      type: object
+      required:
+        - pedidoId
+        - clienteId
+        - dataPedido
+        - status
+      properties:
+        pedidoId:
+          type: integer
+          format: int64
+          example: 9999
+        clienteId:
+          type: integer
+          format: int64
+          example: 99999
+        dataPedido:
+          type: string
+          format: date-time
+          example: '2026-07-01T14:30:00-03:00'
+        status:
+          $ref: '#/components/schemas/PedidoStatus'
+    PedidoCanceladoResponse:
+      type: object
+      required:
+        - status
+        - message
+        - data
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: ''
+        data:
+          $ref: '#/components/schemas/PedidoCanceladoData'
+    PedidoListResponse:
+      type: object
+      required:
+        - status
+        - message
+        - pagination
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: ''
+        pagination:
+          type: object
+          required:
+            - pages
+            - size
+            - totalItems
+            - data
+          properties:
+            pages:
+              type: integer
+              example: 99
+            size:
+              type: integer
+              example: 20
+            totalItems:
+              type: integer
+              format: int64
+              example: 99
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/PedidoData'
+    UpdatePedidoStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [Cancelado]
+          example: Cancelado
     PedidoStatus:
       type: string
       enum:
@@ -827,59 +1005,3 @@ components:
         - Cancelado
         - Devolvido
       example: Criado
-    PedidoResponse:
-      type: object
-      required:
-        - id
-        - cliente
-        - enderecoEntrega
-        - formaPagamento
-        - dataPedido
-        - status
-        - items
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 9999
-        cliente:
-          $ref: '#/components/schemas/PedidoCliente'
-        enderecoEntrega:
-          $ref: '#/components/schemas/Endereco'
-        formaPagamento:
-          $ref: '#/components/schemas/FormaPagamento'
-        dataPedido:
-          type: string
-          format: date-time
-          example: '2026-06-30T12:30:00Z'
-        status:
-          $ref: '#/components/schemas/PedidoStatus'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PedidoItemResponse'
-    PedidoCancelRequest:
-      type: object
-      required: [status]
-      properties:
-        status:
-          type: string
-          enum: [Cancelado]
-          example: Cancelado
-    PedidoCancelResponse:
-      type: object
-      required:
-        - status
-        - message
-        - pedidoId
-      properties:
-        status:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: ''
-        pedidoId:
-          type: integer
-          format: int64
-          example: 9999

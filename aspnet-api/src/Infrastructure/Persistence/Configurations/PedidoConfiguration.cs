@@ -12,6 +12,8 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         builder.HasKey(p => p.Id);
         builder.Property(p => p.DataPedido).IsRequired();
         builder.Property(p => p.ClienteId).IsRequired();
+        builder.Property(p => p.FormaPagamento).HasConversion<string>().IsRequired();
+        builder.Property(p => p.Status).HasConversion<string>().IsRequired();
 
         builder.OwnsOne(p => p.EnderecoEntrega, e =>
         {
@@ -27,8 +29,8 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         builder.OwnsMany(p => p.Items, ib =>
         {
             ib.WithOwner().HasForeignKey("PedidoId");
-            ib.Property<long>("Id");
-            ib.HasKey("Id");
+            ib.Property(item => item.Id).ValueGeneratedNever();
+            ib.HasKey(item => item.Id);
             ib.Property(i => i.ProdutoId).IsRequired();
             ib.Property(i => i.Quantidade).HasColumnType("decimal(18,2)");
             ib.Property(i => i.ValorUnitario).HasColumnType("decimal(18,2)");

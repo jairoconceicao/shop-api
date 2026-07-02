@@ -7,6 +7,8 @@ public sealed record CreatePedidoRequest
 {
     public long ClienteId { get; init; }
 
+    public long CarrinhoId { get; init; }
+
     public EnderecoRequest EnderecoEntrega { get; init; } = new();
 
     public FormaPagamento FormaPagamento { get; init; }
