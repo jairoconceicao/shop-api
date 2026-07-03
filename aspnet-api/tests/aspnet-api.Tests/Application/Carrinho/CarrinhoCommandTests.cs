@@ -27,7 +27,7 @@ public class CarrinhoCriarCommandTests
         public async Task DeveCriarCarrinhoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null!, null!, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
@@ -108,10 +108,10 @@ public class CarrinhoAdicionarItemCommandTests
         public async Task DeveAdicionarItemAoCarrinhoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
 
-            var produto = new DomainProduto(1, "Produto Teste", "Descricao", "Modelo", 50.0m, null, null);
+            var produto = DomainProduto.Reconstituir(1, "Produto Teste", "Descricao", "Modelo", 50.0m, null!, null!);
             context.Produtos.Add(produto);
             await context.SaveChangesAsync();
 
@@ -130,11 +130,11 @@ public class CarrinhoAdicionarItemCommandTests
         public async Task DeveIncrementarQuantidadeQuandoItemJaExistir()
         {
             await using var context = CreateContext();
-            var itemExistente = new CarrinhoItem(1, 1, 2.0m, 50.0m);
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem> { itemExistente });
+            var itemExistente = CarrinhoItem.Reconstituir(1, 1, 2.0m, 50.0m);
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem> { itemExistente });
             context.Carrinhos.Add(carrinho);
 
-            var produto = new DomainProduto(1, "Produto Teste", "Descricao", "Modelo", 50.0m, null, null);
+            var produto = DomainProduto.Reconstituir(1, "Produto Teste", "Descricao", "Modelo", 50.0m, null!, null!);
             context.Produtos.Add(produto);
             await context.SaveChangesAsync();
 
@@ -167,7 +167,7 @@ public class CarrinhoAdicionarItemCommandTests
         public async Task DeveRetornarFalhaQuandoProdutoNaoExistir()
         {
             await using var context = CreateContext();
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -231,8 +231,8 @@ public class CarrinhoAtualizarItemCommandTests
         public async Task DeveAtualizarQuantidadeDoItemQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var item = new CarrinhoItem(1, 1, 2.0m, 50.0m);
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem> { item });
+            var item = CarrinhoItem.Reconstituir(1, 1, 2.0m, 50.0m);
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem> { item });
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -310,8 +310,8 @@ public class CarrinhoExcluirItemCommandTests
         public async Task DeveExcluirItemDoCarrinhoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var item = new CarrinhoItem(1, 1, 2.0m, 50.0m);
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem> { item });
+            var item = CarrinhoItem.Reconstituir(1, 1, 2.0m, 50.0m);
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem> { item });
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -389,7 +389,7 @@ public class CarrinhoObterQueryTests
         public async Task DeveRetornarCarrinhoQuandoExistir()
         {
             await using var context = CreateContext();
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -457,3 +457,7 @@ public class CarrinhoObterQueryTests
         return new ShopDbContext(options);
     }
 }
+
+
+
+

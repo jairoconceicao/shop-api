@@ -14,14 +14,19 @@ public class Produto
     {
     }
 
-    public Produto(long id, string titulo, string? descricao, string? modelo, decimal preco, string foto, string thumb)
+    public static Produto Reconstituir(long id, string titulo, string? descricao, string? modelo, decimal preco, string? foto, string? thumb)
     {
-        Id = id;
-        Titulo = titulo;
-        Descricao = descricao;
-        Modelo = modelo;
-        Preco = preco;
-        Foto = foto;
-        Thumb = thumb;
+        return new Produto
+        {
+            Id = id,
+            Titulo = titulo,
+            Descricao = descricao,
+            Modelo = modelo,
+            Preco = preco,
+            Foto = foto,
+            Thumb = thumb
+        };
     }
 }
+
+

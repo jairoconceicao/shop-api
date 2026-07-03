@@ -17,3 +17,5 @@ public sealed record CreatePedidoRequest
 
     public List<PedidoItemRequest> Items { get; init; } = [];
 }
+
+

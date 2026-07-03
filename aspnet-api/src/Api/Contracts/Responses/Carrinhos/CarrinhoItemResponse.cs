@@ -10,3 +10,5 @@ public sealed record CarrinhoItemResponse
 
     public decimal ValorUnitario { get; init; }
 }
+
+

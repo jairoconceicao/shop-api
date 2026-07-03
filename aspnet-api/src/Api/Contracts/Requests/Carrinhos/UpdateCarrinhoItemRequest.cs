@@ -4,3 +4,5 @@ public sealed record UpdateCarrinhoItemRequest
 {
     public decimal Quantidade { get; init; }
 }
+
+

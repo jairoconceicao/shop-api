@@ -110,3 +110,5 @@ public static class ClienteEndpoints
         return result.ToHttpResult(StatusCodes.Status200OK);
     }
 }
+
+

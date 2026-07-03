@@ -14,3 +14,5 @@ public sealed record LoginResponse
 
     public string Email { get; init; } = string.Empty;
 }
+
+

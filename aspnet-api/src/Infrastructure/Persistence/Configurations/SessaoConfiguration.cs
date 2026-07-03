@@ -26,3 +26,5 @@ public class SessaoConfiguration : IEntityTypeConfiguration<Sessao>
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+

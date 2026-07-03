@@ -6,3 +6,5 @@ public sealed record UpdatePedidoStatusRequest
 {
     public PedidoStatus Status { get; init; }
 }
+
+

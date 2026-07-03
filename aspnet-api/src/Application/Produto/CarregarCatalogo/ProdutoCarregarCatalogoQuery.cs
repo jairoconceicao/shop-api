@@ -52,3 +52,5 @@ public sealed class ProdutoCarregarCatalogoQuery : IActionCommand<ProdutosQuery,
             "Catalogo de produtos carregado com sucesso.");
     }
 }
+
+

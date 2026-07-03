@@ -36,3 +36,5 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         });
     }
 }
+
+

@@ -29,10 +29,10 @@ public class PedidoCriarCommandTests
         public async Task DeveCriarPedidoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -65,7 +65,7 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoCarrinhoNaoExistir()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
@@ -82,10 +82,10 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoCarrinhoNaoPertencerAoCliente()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var carrinho = new DomainCarrinho(1, 2, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 2, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
             await context.SaveChangesAsync();
 
@@ -102,14 +102,14 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoJaExistirPedidoParaOCarrinho()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var carrinho = new DomainCarrinho(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
             context.Carrinhos.Add(carrinho);
 
             var endereco = new Endereco("Rua", "123", null, "12345678", "Centro", "Cidade", "SP");
-            var pedidoExistente = new DomainPedido(1, DateTime.Now, 1, 1, endereco, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedidoExistente = DomainPedido.Reconstituir(1, DateTime.Now, 1, 1, endereco, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.Add(pedidoExistente);
             await context.SaveChangesAsync();
 
@@ -199,7 +199,7 @@ public class PedidoCancelarCommandTests
         public async Task DeveCancelarPedidoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var pedido = new DomainPedido(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.Add(pedido);
             await context.SaveChangesAsync();
 
@@ -290,10 +290,10 @@ public class PedidoConsultarQueryTests
         public async Task DeveConsultarPedidosQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var pedido = new DomainPedido(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.Add(pedido);
             await context.SaveChangesAsync();
 
@@ -325,11 +325,11 @@ public class PedidoConsultarQueryTests
         public async Task DeveFiltrarPedidosPorDataInicio()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var pedidoAntigo = new DomainPedido(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
-            var pedidoRecente = new DomainPedido(2, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedidoAntigo = DomainPedido.Reconstituir(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedidoRecente = DomainPedido.Reconstituir(2, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.AddRange(pedidoAntigo, pedidoRecente);
             await context.SaveChangesAsync();
 
@@ -346,11 +346,11 @@ public class PedidoConsultarQueryTests
         public async Task DeveFiltrarPedidosPorDataFim()
         {
             await using var context = CreateContext();
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
-            var pedidoAntigo = new DomainPedido(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
-            var pedidoRecente = new DomainPedido(2, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedidoAntigo = DomainPedido.Reconstituir(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedidoRecente = DomainPedido.Reconstituir(2, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.AddRange(pedidoAntigo, pedidoRecente);
             await context.SaveChangesAsync();
 
@@ -413,7 +413,7 @@ public class PedidoConsultarPorIdQueryTests
         public async Task DeveConsultarPedidoPorIdQuandoExistir()
         {
             await using var context = CreateContext();
-            var pedido = new DomainPedido(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             context.Pedidos.Add(pedido);
             await context.SaveChangesAsync();
 
@@ -481,3 +481,6 @@ public class PedidoConsultarPorIdQueryTests
         return new ShopDbContext(options);
     }
 }
+
+
+

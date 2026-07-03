@@ -6,3 +6,5 @@ public interface IMovimentoEstoqueRepository : IRepository<MovimentoEstoque>
 {
     Task<IReadOnlyList<MovimentoEstoque>> ListByEstoqueIdAsync(long estoqueId, CancellationToken cancellationToken = default);
 }
+
+

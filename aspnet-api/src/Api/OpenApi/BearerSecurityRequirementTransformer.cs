@@ -45,3 +45,5 @@ public sealed class BearerSecurityRequirementTransformer : IOpenApiOperationTran
         return Task.CompletedTask;
     }
 }
+
+

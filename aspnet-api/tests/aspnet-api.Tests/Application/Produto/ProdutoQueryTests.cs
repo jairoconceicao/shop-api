@@ -20,10 +20,10 @@ public class ProdutoCarregarCatalogoQueryTests
         public async Task DeveCarregarCatalogoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var produto = new DomainProduto(1, "Produto Teste", "Descricao", "Modelo", 99.99m, null, null);
+            var produto = DomainProduto.Reconstituir(1, "Produto Teste", "Descricao", "Modelo", 99.99m, null!, null!);
             context.Produtos.Add(produto);
 
-            var estoque = new Estoque(1, null, DateTime.Now, 1, 0m, 100m, 10.0m);
+            var estoque = Estoque.Reconstituir(1, null, DateTime.Now, 1, 0m, 100m, 10.0m);
             context.Estoques.Add(estoque);
             await context.SaveChangesAsync();
 
@@ -102,10 +102,10 @@ public class ProdutoConsultarPorIdQueryTests
         public async Task DeveConsultarProdutoPorIdQuandoExistir()
         {
             await using var context = CreateContext();
-            var produto = new DomainProduto(1, "Produto Teste", "Descricao", "Modelo", 99.99m, null, null);
+            var produto = DomainProduto.Reconstituir(1, "Produto Teste", "Descricao", "Modelo", 99.99m, null!, null!);
             context.Produtos.Add(produto);
 
-            var estoque = new Estoque(1, null, DateTime.Now, 1, 0m, 100m, 10.0m);
+            var estoque = Estoque.Reconstituir(1, null, DateTime.Now, 1, 0m, 100m, 10.0m);
             context.Estoques.Add(estoque);
             await context.SaveChangesAsync();
 
@@ -174,3 +174,6 @@ public class ProdutoConsultarPorIdQueryTests
         return new ShopDbContext(options);
     }
 }
+
+
+

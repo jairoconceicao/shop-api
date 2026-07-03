@@ -56,3 +56,5 @@ public sealed class PedidoRepository : EfRepository<Pedido>, IPedidoRepository
         return (maxItemId ?? 0) + 1;
     }
 }
+
+

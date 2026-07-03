@@ -8,3 +8,5 @@ public interface IUsuarioRepository : IRepository<Usuario>
 
     Task<Usuario?> GetByClienteIdAsync(long clienteId, CancellationToken cancellationToken = default);
 }
+
+

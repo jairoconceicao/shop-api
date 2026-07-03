@@ -63,3 +63,5 @@ public sealed class CarrinhoRepository : EfRepository<Carrinho>, ICarrinhoReposi
         return (maxItemId ?? 0) + 1;
     }
 }
+
+

@@ -59,3 +59,5 @@ public static class AuthEndpoints
         return result.ToHttpResult(StatusCodes.Status200OK);
     }
 }
+
+

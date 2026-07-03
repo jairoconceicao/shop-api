@@ -49,3 +49,5 @@ public sealed class ClienteConsultarPorIdQuery : IActionCommand<ConsultarCliente
             "Cliente consultado com sucesso.");
     }
 }
+
+

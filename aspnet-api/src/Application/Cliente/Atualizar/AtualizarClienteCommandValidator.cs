@@ -16,3 +16,5 @@ public sealed class AtualizarClienteCommandValidator : AbstractValidator<Atualiz
             .SetValidator(new ClienteAtualizarCommandValidator());
     }
 }
+
+

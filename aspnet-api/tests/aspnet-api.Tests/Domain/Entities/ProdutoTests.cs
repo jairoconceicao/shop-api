@@ -10,7 +10,7 @@ public class ProdutoTests
         [Fact]
         public void DeveCriarProdutoComTodosOsCampos()
         {
-            var produto = new Produto(1, "Titulo", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
+            var produto = Produto.Reconstituir(1, "Titulo", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
 
             Assert.Equal(1, produto.Id);
             Assert.Equal("Titulo", produto.Titulo);
@@ -38,10 +38,13 @@ public class ProdutoTests
         [Fact]
         public void DeveCriarProdutoUsandoConstructorComParametros()
         {
-            var produto = new Produto(1, "Teste", null, null, 0m, null, null);
+            var produto = Produto.Reconstituir(1, "Teste", null!, null!, 0m, null!, null!);
 
             Assert.Equal(1, produto.Id);
             Assert.Equal("Teste", produto.Titulo);
         }
     }
 }
+
+
+

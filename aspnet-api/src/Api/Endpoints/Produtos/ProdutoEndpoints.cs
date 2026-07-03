@@ -67,3 +67,5 @@ public static class ProdutoEndpoints
         return result.ToHttpResult();
     }
 }
+
+

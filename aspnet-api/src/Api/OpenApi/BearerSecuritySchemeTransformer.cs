@@ -30,3 +30,5 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
         return Task.CompletedTask;
     }
 }
+
+

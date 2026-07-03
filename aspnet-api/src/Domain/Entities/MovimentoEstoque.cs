@@ -16,14 +16,19 @@ public class MovimentoEstoque
     {
     }
 
-    public MovimentoEstoque(long id, long estoqueId, DateTime dataMovimento, int operacaoCodigo, MovimentoTipo operacaoTipo, string? operacaoDescricao, decimal quantidade)
+    public static MovimentoEstoque Reconstituir(long id, long estoqueId, DateTime dataMovimento, int operacaoCodigo, MovimentoTipo operacaoTipo, string? operacaoDescricao, decimal quantidade)
     {
-        Id = id;
-        EstoqueId = estoqueId;
-        DataMovimento = dataMovimento;
-        OperacaoCodigo = operacaoCodigo;
-        OperacaoTipo = operacaoTipo;
-        OperacaoDescricao = operacaoDescricao;
-        Quantidade = quantidade;
+        return new MovimentoEstoque
+        {
+            Id = id,
+            EstoqueId = estoqueId,
+            DataMovimento = dataMovimento,
+            OperacaoCodigo = operacaoCodigo,
+            OperacaoTipo = operacaoTipo,
+            OperacaoDescricao = operacaoDescricao,
+            Quantidade = quantidade
+        };
     }
 }
+
+

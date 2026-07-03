@@ -14,3 +14,5 @@ public sealed class CarregarCatalogoProdutosQueryValidator : AbstractValidator<P
             .GreaterThan(0).WithMessage("Size deve ser maior que zero.");
     }
 }
+
+

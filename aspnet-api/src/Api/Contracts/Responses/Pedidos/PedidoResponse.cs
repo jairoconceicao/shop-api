@@ -21,3 +21,5 @@ public sealed record PedidoResponse
 
     public IReadOnlyCollection<PedidoItemResponse> Items { get; init; } = [];
 }
+
+

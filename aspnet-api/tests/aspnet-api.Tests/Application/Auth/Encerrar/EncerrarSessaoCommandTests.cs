@@ -106,3 +106,5 @@ public class EncerrarSessaoCommandTests
         public long? UsuarioId => 1;
     }
 }
+
+

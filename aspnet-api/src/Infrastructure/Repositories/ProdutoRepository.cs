@@ -27,3 +27,5 @@ public sealed class ProdutoRepository : EfRepository<Produto>, IProdutoRepositor
         return new PagedResult<Produto>(items, page, size, totalItems);
     }
 }
+
+

@@ -8,3 +8,5 @@ public sealed record ApiNotificationResponse
 
     public string? PropertyName { get; init; }
 }
+
+

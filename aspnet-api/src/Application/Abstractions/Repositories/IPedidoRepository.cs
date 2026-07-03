@@ -10,3 +10,5 @@ public interface IPedidoRepository : IRepository<Pedido>
 
     Task<long> GetNextItemIdAsync(CancellationToken cancellationToken = default);
 }
+
+

@@ -72,7 +72,7 @@ public sealed class CarrinhoAdicionarItemCommand : IActionCommand<AddCarrinhoIte
         else
         {
             var itemId = await _carrinhoRepository.GetNextItemIdAsync();
-            carrinho.AdicionarItem(new CarrinhoItem(itemId, command.ProdutoId, command.Quantidade, command.ValorUnitario));
+            carrinho.AdicionarItem(CarrinhoItem.Reconstituir(itemId, command.ProdutoId, command.Quantidade, command.ValorUnitario));
         }
 
         await _unitOfWork.SaveChangesAsync();
@@ -84,3 +84,5 @@ public sealed class CarrinhoAdicionarItemCommand : IActionCommand<AddCarrinhoIte
             "Item adicionado ao carrinho com sucesso.");
     }
 }
+
+

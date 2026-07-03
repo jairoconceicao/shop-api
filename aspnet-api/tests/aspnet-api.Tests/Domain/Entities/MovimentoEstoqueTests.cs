@@ -12,7 +12,7 @@ public class MovimentoEstoqueTests
         public void DeveCriarMovimentoEstoqueComTodosOsCampos()
         {
             var dataMovimento = DateTime.Now;
-            var movimento = new MovimentoEstoque(1, 10, dataMovimento, 100, MovimentoTipo.IN, "Entrada", 50m);
+            var movimento = MovimentoEstoque.Reconstituir(1, 10, dataMovimento, 100, MovimentoTipo.IN, "Entrada", 50m);
 
             Assert.Equal(1, movimento.Id);
             Assert.Equal(10, movimento.EstoqueId);
@@ -42,9 +42,11 @@ public class MovimentoEstoqueTests
         [InlineData(MovimentoTipo.OU)]
         public void DeveCriarMovimentoEstoqueComDiferentesTipos(MovimentoTipo tipo)
         {
-            var movimento = new MovimentoEstoque(1, 10, DateTime.Now, 100, tipo, "Descricao", 50m);
+            var movimento = MovimentoEstoque.Reconstituir(1, 10, DateTime.Now, 100, tipo, "Descricao", 50m);
 
             Assert.Equal(tipo, movimento.OperacaoTipo);
         }
     }
 }
+
+

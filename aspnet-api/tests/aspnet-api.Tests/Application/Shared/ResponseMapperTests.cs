@@ -24,10 +24,10 @@ public class CarrinhoResponseMapperTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
             var dataCarrinho = DateTime.Now;
-            var carrinho = new DomainCarrinho(1, 5, null, dataCarrinho, items);
+            var carrinho = DomainCarrinho.Reconstituir(1, 5, null, dataCarrinho, items);
 
             var result = carrinho.ToResponse();
 
@@ -45,7 +45,7 @@ public class CarrinhoResponseMapperTests
         [Fact]
         public void DeveMapearCarrinhoComListaVazia()
         {
-            var carrinho = new DomainCarrinho(1, 5, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = DomainCarrinho.Reconstituir(1, 5, null, DateTime.Now, new List<CarrinhoItem>());
 
             var result = carrinho.ToResponse();
 
@@ -71,7 +71,7 @@ public class ClienteResponseMapperTests
         {
             var endereco = new Endereco("Rua", "123", "Apto", "12345678", "Centro", "Cidade", "SP");
             var celular = new Celular("11", "999999999", true);
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), endereco, celular, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), endereco, celular, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
@@ -89,7 +89,7 @@ public class ClienteResponseMapperTests
         [Fact]
         public void DeveMapearClienteComEnderecoNulo()
         {
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
@@ -100,7 +100,7 @@ public class ClienteResponseMapperTests
         [Fact]
         public void DeveMapearClienteComCelularNulo()
         {
-            var cliente = new DomainCliente(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
@@ -127,9 +127,9 @@ public class PedidoResponseMapperTests
             var endereco = new Endereco("Rua", "123", null, "12345678", "Centro", "Cidade", "SP");
             var items = new List<PedidoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var pedido = new DomainPedido(1, DateTime.Now, 5, 1, endereco, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, items);
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 5, 1, endereco, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, items);
 
             var result = pedido.ToResponse();
 
@@ -144,7 +144,7 @@ public class PedidoResponseMapperTests
         [Fact]
         public void DeveMapearPedidoComEnderecoNulo()
         {
-            var pedido = new DomainPedido(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
 
             var result = pedido.ToResponse();
 
@@ -159,9 +159,9 @@ public class PedidoResponseMapperTests
         {
             var items = new List<PedidoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var pedido = new DomainPedido(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Cartao, DomainStatusPedido.Criado, items);
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Cartao, DomainStatusPedido.Criado, items);
 
             var result = pedido.ToCriadoResponse();
 
@@ -178,7 +178,7 @@ public class PedidoResponseMapperTests
         [Fact]
         public void DeveMapearPedidoCanceladoParaResponse()
         {
-            var pedido = new DomainPedido(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
+            var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 5, 1, null, DomainFormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
             pedido.Cancelar();
 
             var result = pedido.ToCanceladoResponse();
@@ -240,7 +240,7 @@ public class ProdutoResponseMapperTests
         [Fact]
         public void DeveMapearProdutoParaCatalogoItemResponse()
         {
-            var produto = new DomainProduto(1, "Produto", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
+            var produto = DomainProduto.Reconstituir(1, "Produto", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
 
             var result = produto.ToCatalogoItemResponse(10.0m);
 
@@ -263,7 +263,7 @@ public class ProdutoResponseMapperTests
         [Fact]
         public void DeveMapearProdutoParaDetalheResponse()
         {
-            var produto = new DomainProduto(1, "Produto", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
+            var produto = DomainProduto.Reconstituir(1, "Produto", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
 
             var result = produto.ToDetalheResponse(5.0m);
 
@@ -280,3 +280,4 @@ public class ProdutoResponseMapperTests
         }
     }
 }
+

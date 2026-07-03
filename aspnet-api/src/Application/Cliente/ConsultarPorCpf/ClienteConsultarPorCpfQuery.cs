@@ -49,3 +49,5 @@ public sealed class ClienteConsultarPorCpfQuery : IActionCommand<ConsultarClient
             "Cliente consultado com sucesso.");
     }
 }
+
+

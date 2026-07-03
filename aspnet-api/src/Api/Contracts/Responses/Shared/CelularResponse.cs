@@ -8,3 +8,5 @@ public sealed record CelularResponse
 
     public bool WhatsApp { get; init; }
 }
+
+

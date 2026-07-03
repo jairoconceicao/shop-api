@@ -34,3 +34,5 @@ public sealed class PedidoCriarCommandValidator : AbstractValidator<CreatePedido
             .SetValidator(new PedidoItemRequestValidator());
     }
 }
+
+

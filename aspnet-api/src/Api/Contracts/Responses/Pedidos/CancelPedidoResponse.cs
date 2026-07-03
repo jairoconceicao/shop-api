@@ -8,3 +8,5 @@ public sealed record CancelPedidoResponse
 
     public long PedidoId { get; init; }
 }
+
+

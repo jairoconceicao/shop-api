@@ -12,3 +12,5 @@ public sealed record PedidoCanceladoResponse
 
     public PedidoStatus Status { get; init; }
 }
+
+

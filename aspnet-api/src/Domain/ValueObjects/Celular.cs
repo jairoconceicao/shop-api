@@ -45,3 +45,5 @@ public sealed class Celular
         return Result<Celular>.Success(new Celular(ddd, numero, whatsApp));
     }
 }
+
+

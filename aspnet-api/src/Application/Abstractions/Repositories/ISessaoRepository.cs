@@ -8,3 +8,5 @@ public interface ISessaoRepository : IRepository<Sessao>
 
     Task<IReadOnlyList<Sessao>> ListByUsuarioIdAsync(long usuarioId, CancellationToken cancellationToken = default);
 }
+
+

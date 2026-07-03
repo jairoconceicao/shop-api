@@ -7,3 +7,5 @@ public interface IProdutoRepository : IRepository<Produto>
 {
     Task<PagedResult<Produto>> GetPagedAsync(int page, int size, CancellationToken cancellationToken = default);
 }
+
+

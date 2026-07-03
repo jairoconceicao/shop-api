@@ -94,7 +94,7 @@ public class ClienteRegistrarCommandTests
             var clienteExistente = CreateExistingCliente();
             context.Clientes.Add(clienteExistente);
             context.Usuarios.Add(DomainUsuario.Create(
-                clienteExistente.Id, "existente@exemplo.com", "hash-original").Data!);
+                clienteExistente.Id, "existente@exemplo.com", "hash-original"));
             await context.SaveChangesAsync();
 
             var command = CreateSut(context);
@@ -233,7 +233,7 @@ public class ClienteRegistrarCommandTests
 
     private static DomainCliente CreateExistingCliente()
     {
-        return new DomainCliente(
+        return DomainCliente.Reconstituir(
             1,
             "Cliente Existente",
             "12345678901",

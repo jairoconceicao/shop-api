@@ -18,3 +18,5 @@ public class EstoqueConfiguration : IEntityTypeConfiguration<Estoque>
         builder.Property(e => e.QuantidadeAtual).HasColumnType("decimal(18,2)");
     }
 }
+
+

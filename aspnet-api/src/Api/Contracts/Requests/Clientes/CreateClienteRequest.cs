@@ -4,3 +4,5 @@ public sealed record CreateClienteRequest : ClienteUpsertRequest
 {
     public string Senha { get; init; } = string.Empty;
 }
+
+

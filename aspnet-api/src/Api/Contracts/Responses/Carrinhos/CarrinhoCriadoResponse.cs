@@ -6,3 +6,5 @@ public sealed record CarrinhoCriadoResponse
 
     public DateTime DataCarrinho { get; init; }
 }
+
+

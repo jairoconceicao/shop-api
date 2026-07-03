@@ -8,3 +8,5 @@ public sealed record AddCarrinhoItemRequest
 
     public decimal ValorUnitario { get; init; }
 }
+
+

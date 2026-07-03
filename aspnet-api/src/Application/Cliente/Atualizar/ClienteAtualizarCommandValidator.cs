@@ -6,3 +6,5 @@ namespace aspnet_api.src.Application.Cliente.Atualizar;
 public sealed class ClienteAtualizarCommandValidator : ClienteUpsertRequestValidator<UpdateClienteRequest>
 {
 }
+
+

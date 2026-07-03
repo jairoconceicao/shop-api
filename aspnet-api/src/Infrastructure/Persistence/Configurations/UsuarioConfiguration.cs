@@ -26,3 +26,5 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+

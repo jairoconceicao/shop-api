@@ -22,6 +22,8 @@ public class ShopDbContext : DbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.ApplyConfiguration(new ClienteConfiguration());
         modelBuilder.ApplyConfiguration(new ProdutoConfiguration());
         modelBuilder.ApplyConfiguration(new EstoqueConfiguration());
@@ -30,7 +32,7 @@ public class ShopDbContext : DbContext, IUnitOfWork
         modelBuilder.ApplyConfiguration(new PedidoConfiguration());
         modelBuilder.ApplyConfiguration(new UsuarioConfiguration());
         modelBuilder.ApplyConfiguration(new SessaoConfiguration());
-
-        base.OnModelCreating(modelBuilder);
     }
 }
+
+

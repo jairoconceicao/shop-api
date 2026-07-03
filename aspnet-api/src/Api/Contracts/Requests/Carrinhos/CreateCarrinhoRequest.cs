@@ -4,3 +4,5 @@ public sealed record CreateCarrinhoRequest
 {
     public long ClienteId { get; init; }
 }
+
+

@@ -24,3 +24,5 @@ public sealed class ConsultarPedidosQueryValidator : AbstractValidator<PedidosQu
             .WithMessage("DataInicio deve ser menor ou igual a DataFim.");
     }
 }
+
+

@@ -48,3 +48,5 @@ public sealed class Result<T> : Result
         return new Result<T>(false, default, message, [.. notifications ?? []]);
     }
 }
+
+

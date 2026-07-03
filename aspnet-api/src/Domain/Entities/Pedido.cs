@@ -18,12 +18,40 @@ public class Pedido
     {
     }
 
-    public Pedido(long id, DateTime dataPedido, long clienteId, long? carrinhoId, Endereco? enderecoEntrega, StatusPedido statusPedido, List<PedidoItem>? items)
-        : this(id, dataPedido, clienteId, carrinhoId, enderecoEntrega, FormaPagamento.Pix, statusPedido, items)
+    public static Pedido Create(
+        long clienteId,
+        long? carrinhoId,
+        Endereco? enderecoEntrega,
+        DateTime dataPedido,
+        FormaPagamento formaPagamento,
+        StatusPedido statusPedido,
+        IEnumerable<PedidoItem>? items)
     {
+        return new Pedido
+        {
+            ClienteId = clienteId,
+            CarrinhoId = carrinhoId,
+            EnderecoEntrega = enderecoEntrega,
+            DataPedido = dataPedido,
+            FormaPagamento = formaPagamento,
+            Status = statusPedido,
+            Items = items?.ToList() ?? []
+        };
     }
 
-    public Pedido(
+    public static Pedido Reconstituir(
+        long id,
+        DateTime dataPedido,
+        long clienteId,
+        long? carrinhoId,
+        Endereco? enderecoEntrega,
+        StatusPedido statusPedido,
+        IEnumerable<PedidoItem>? items)
+    {
+        return Reconstituir(id, dataPedido, clienteId, carrinhoId, enderecoEntrega, FormaPagamento.Pix, statusPedido, items);
+    }
+
+    public static Pedido Reconstituir(
         long id,
         DateTime dataPedido,
         long clienteId,
@@ -31,16 +59,19 @@ public class Pedido
         Endereco? enderecoEntrega,
         FormaPagamento formaPagamento,
         StatusPedido statusPedido,
-        List<PedidoItem>? items)
+        IEnumerable<PedidoItem>? items)
     {
-        Id = id;
-        DataPedido = dataPedido;
-        ClienteId = clienteId;
-        CarrinhoId = carrinhoId;
-        EnderecoEntrega = enderecoEntrega;
-        FormaPagamento = formaPagamento;
-        Status = statusPedido;
-        Items = items ?? [];
+        return new Pedido
+        {
+            Id = id,
+            DataPedido = dataPedido,
+            ClienteId = clienteId,
+            CarrinhoId = carrinhoId,
+            EnderecoEntrega = enderecoEntrega,
+            FormaPagamento = formaPagamento,
+            Status = statusPedido,
+            Items = items?.ToList() ?? []
+        };
     }
 
     public PedidoItem? GetItemById(long itemId)
@@ -71,3 +102,5 @@ public class Pedido
         return Items.Sum(item => item.Quantidade * item.ValorUnitario);
     }
 }
+
+

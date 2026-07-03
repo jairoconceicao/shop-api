@@ -10,3 +10,5 @@ public sealed class ObterCarrinhoQueryValidator : AbstractValidator<ObterCarrinh
             .GreaterThan(0).WithMessage("CarrinhoId e obrigatorio.");
     }
 }
+
+

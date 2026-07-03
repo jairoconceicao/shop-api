@@ -110,12 +110,11 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
 
         var nextItemId = await _pedidoRepository.GetNextItemIdAsync();
         var items = CreateItems(command.Items, nextItemId);
-        var pedido = new DomainPedido(
-            0,
-            command.DataPedido,
+        var pedido = DomainPedido.Create(
             command.ClienteId,
             command.CarrinhoId,
             enderecoResult.Data,
+            command.DataPedido,
             command.FormaPagamento.ToDomain(),
             DomainStatusPedido.Criado,
             items);
@@ -134,9 +133,11 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
 
         foreach (var request in requests)
         {
-            items.Add(new PedidoItem(nextItemId++, request.ProdutoId, request.Quantidade, request.ValorUnitario));
+            items.Add(PedidoItem.Reconstituir(nextItemId++, request.ProdutoId, request.Quantidade, request.ValorUnitario));
         }
 
         return items;
     }
 }
+
+

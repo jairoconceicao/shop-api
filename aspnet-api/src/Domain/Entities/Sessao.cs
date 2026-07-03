@@ -15,16 +15,6 @@ public class Sessao
     {
     }
 
-    public Sessao(long id, long usuarioId, string jti, DateTime criadaEm, DateTime expiraEm, DateTime? revogadaEm)
-    {
-        Id = id;
-        UsuarioId = usuarioId;
-        Jti = jti;
-        CriadaEm = criadaEm;
-        ExpiraEm = expiraEm;
-        RevogadaEm = revogadaEm;
-    }
-
     public static Result<Sessao> Create(long usuarioId, string jti, DateTime expiraEm)
     {
         var notifications = Validate(usuarioId, jti, expiraEm);
@@ -35,7 +25,28 @@ public class Sessao
         }
 
         var agora = DateTime.UtcNow;
-        return Result<Sessao>.Success(new Sessao(0, usuarioId, jti, agora, expiraEm, null));
+        return Result<Sessao>.Success(new Sessao
+        {
+            Id = 0,
+            UsuarioId = usuarioId,
+            Jti = jti,
+            CriadaEm = agora,
+            ExpiraEm = expiraEm,
+            RevogadaEm = null
+        });
+    }
+
+    public static Sessao Reconstituir(long id, long usuarioId, string jti, DateTime criadaEm, DateTime expiraEm, DateTime? revogadaEm)
+    {
+        return new Sessao
+        {
+            Id = id,
+            UsuarioId = usuarioId,
+            Jti = jti,
+            CriadaEm = criadaEm,
+            ExpiraEm = expiraEm,
+            RevogadaEm = revogadaEm
+        };
     }
 
     public Result Revogar()
@@ -79,3 +90,5 @@ public class Sessao
         return notifications;
     }
 }
+
+

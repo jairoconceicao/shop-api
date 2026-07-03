@@ -19,3 +19,5 @@ public class ProdutoConfiguration : IEntityTypeConfiguration<Produto>
         builder.Property(p => p.Thumb).HasMaxLength(2000);
     }
 }
+
+

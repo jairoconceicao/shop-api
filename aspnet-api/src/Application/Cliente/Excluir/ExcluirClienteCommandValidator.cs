@@ -10,3 +10,5 @@ public sealed class ExcluirClienteCommandValidator : AbstractValidator<ExcluirCl
             .GreaterThan(0).WithMessage("ClienteId e obrigatorio.");
     }
 }
+
+

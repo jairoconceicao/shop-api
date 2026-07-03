@@ -37,3 +37,5 @@ public class CarrinhoConfiguration : IEntityTypeConfiguration<Carrinho>
         });
     }
 }
+
+

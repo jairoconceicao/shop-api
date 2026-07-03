@@ -42,3 +42,5 @@ public sealed record ApiError
 
     public object? Details { get; init; }
 }
+
+

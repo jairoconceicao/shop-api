@@ -13,3 +13,5 @@ public record ResponseData<T>(
     T? Data
 );
 
+
+

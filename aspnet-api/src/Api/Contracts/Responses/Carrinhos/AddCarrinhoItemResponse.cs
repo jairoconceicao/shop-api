@@ -4,3 +4,5 @@ public sealed record AddCarrinhoItemResponse
 {
     public long ItemId { get; init; }
 }
+
+

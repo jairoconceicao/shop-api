@@ -6,3 +6,5 @@ public interface ISessaoAtualProvider
 
     long? UsuarioId { get; }
 }
+
+

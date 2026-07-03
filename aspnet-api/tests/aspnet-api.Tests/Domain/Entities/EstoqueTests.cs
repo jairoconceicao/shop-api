@@ -11,7 +11,7 @@ public class EstoqueTests
         public void DeveCriarEstoqueComTodosOsCampos()
         {
             var dataMovimento = DateTime.Now;
-            var estoque = new Estoque(1, "Descricao", dataMovimento, 10, 5m, 100m, 50m);
+            var estoque = Estoque.Reconstituir(1, "Descricao", dataMovimento, 10, 5m, 100m, 50m);
 
             Assert.Equal(1, estoque.Id);
             Assert.Equal("Descricao", estoque.Descricao);
@@ -37,3 +37,5 @@ public class EstoqueTests
         }
     }
 }
+
+

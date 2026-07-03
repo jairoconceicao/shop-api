@@ -11,3 +11,5 @@ public sealed class CarrinhoCriarCommandValidator : AbstractValidator<CreateCarr
             .GreaterThan(0).WithMessage("ClienteId e obrigatorio.");
     }
 }
+
+

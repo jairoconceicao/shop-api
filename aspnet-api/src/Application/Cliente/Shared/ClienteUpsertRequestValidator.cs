@@ -97,3 +97,5 @@ public sealed class CelularRequestValidator : AbstractValidator<CelularRequest>
             .MaximumLength(30).WithMessage("Numero de celular deve ter no maximo 30 caracteres.");
     }
 }
+
+

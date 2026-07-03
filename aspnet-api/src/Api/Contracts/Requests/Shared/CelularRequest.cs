@@ -8,3 +8,5 @@ public sealed record CelularRequest
 
     public bool WhatsApp { get; init; }
 }
+
+

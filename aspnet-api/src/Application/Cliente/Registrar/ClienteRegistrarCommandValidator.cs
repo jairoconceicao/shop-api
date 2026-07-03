@@ -6,3 +6,5 @@ namespace aspnet_api.src.Application.Cliente.Registrar;
 public sealed class ClienteRegistrarCommandValidator : ClienteUpsertRequestValidator<CreateClienteRequest>
 {
 }
+
+

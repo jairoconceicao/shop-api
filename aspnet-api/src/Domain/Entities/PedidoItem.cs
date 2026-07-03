@@ -11,16 +11,31 @@ public class PedidoItem
     {
     }
 
-    public PedidoItem(long produtoId, decimal quantidade, decimal valorUnitario)
-        : this(0, produtoId, quantidade, valorUnitario)
+    public static PedidoItem Create(long produtoId, decimal quantidade, decimal valorUnitario)
     {
+        return new PedidoItem
+        {
+            ProdutoId = produtoId,
+            Quantidade = quantidade,
+            ValorUnitario = valorUnitario
+        };
     }
 
-    public PedidoItem(long id, long produtoId, decimal quantidade, decimal valorUnitario)
+    public static PedidoItem Reconstituir(long produtoId, decimal quantidade, decimal valorUnitario)
     {
-        Id = id;
-        ProdutoId = produtoId;
-        Quantidade = quantidade;
-        ValorUnitario = valorUnitario;
+        return Reconstituir(0, produtoId, quantidade, valorUnitario);
+    }
+
+    public static PedidoItem Reconstituir(long id, long produtoId, decimal quantidade, decimal valorUnitario)
+    {
+        return new PedidoItem
+        {
+            Id = id,
+            ProdutoId = produtoId,
+            Quantidade = quantidade,
+            ValorUnitario = valorUnitario
+        };
     }
 }
+
+

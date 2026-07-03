@@ -24,3 +24,5 @@ public sealed class UpdateCarrinhoItemRequestValidator : AbstractValidator<Updat
             .GreaterThan(0).WithMessage("Quantidade deve ser maior que zero.");
     }
 }
+
+

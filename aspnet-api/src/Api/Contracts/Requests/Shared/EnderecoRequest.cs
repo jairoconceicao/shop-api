@@ -16,3 +16,5 @@ public sealed record EnderecoRequest
 
     public string Uf { get; init; } = string.Empty;
 }
+
+

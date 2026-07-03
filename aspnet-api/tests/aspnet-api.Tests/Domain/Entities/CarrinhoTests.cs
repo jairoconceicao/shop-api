@@ -15,10 +15,10 @@ public class CarrinhoTests
             var endereco = new Endereco("Rua", "123", null, "12345678", "Centro", "Cidade", "SP");
             var items = new List<CarrinhoItem>
             {
-                new(1, 2, 50.0m)
+                CarrinhoItem.Reconstituir(1, 2, 50.0m)
             };
 
-            var carrinho = new Carrinho(1, 10, endereco, dataCarrinho, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, endereco, dataCarrinho, items);
 
             Assert.Equal(1, carrinho.Id);
             Assert.Equal(10, carrinho.ClienteId);
@@ -42,7 +42,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveInicializarItemsComoListaVaziaQuandoNulo()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, null);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, null);
 
             Assert.NotNull(carrinho.Items);
             Assert.Empty(carrinho.Items);
@@ -56,10 +56,10 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m),
-                new(2, 20, 1.0m, 30.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m),
+                CarrinhoItem.Reconstituir(2, 20, 1.0m, 30.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.GetItemById(2);
 
@@ -73,9 +73,9 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.GetItemById(99);
 
@@ -85,7 +85,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveRetornarNullQuandoListaVazia()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
 
             var result = carrinho.GetItemById(1);
 
@@ -100,10 +100,10 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m),
-                new(2, 20, 1.0m, 30.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m),
+                CarrinhoItem.Reconstituir(2, 20, 1.0m, 30.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.GetItemByProdutoId(20);
 
@@ -117,9 +117,9 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.GetItemByProdutoId(99);
 
@@ -129,7 +129,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveRetornarNullQuandoListaVazia()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
 
             var result = carrinho.GetItemByProdutoId(10);
 
@@ -142,8 +142,8 @@ public class CarrinhoTests
         [Fact]
         public void DeveAdicionarItemAoCarrinho()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
-            var item = new CarrinhoItem(1, 10, 2.0m, 50.0m);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var item = CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m);
 
             var result = carrinho.AdicionarItem(item);
 
@@ -155,7 +155,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveLancarArgumentNullExceptionQuandoItemForNull()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
 
             Assert.Throws<ArgumentNullException>(() => carrinho.AdicionarItem(null!));
         }
@@ -168,9 +168,9 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.AtualizarQuantidadeItem(1, 5.0m);
 
@@ -184,9 +184,9 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.AtualizarQuantidadeItem(99, 5.0m);
 
@@ -196,7 +196,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveRetornarNullQuandoListaVazia()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
 
             var result = carrinho.AtualizarQuantidadeItem(1, 5.0m);
 
@@ -211,10 +211,10 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m),
-                new(2, 20, 1.0m, 30.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m),
+                CarrinhoItem.Reconstituir(2, 20, 1.0m, 30.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.RemoverItem(1);
 
@@ -229,9 +229,9 @@ public class CarrinhoTests
         {
             var items = new List<CarrinhoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                CarrinhoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, items);
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, items);
 
             var result = carrinho.RemoverItem(99);
 
@@ -242,7 +242,7 @@ public class CarrinhoTests
         [Fact]
         public void DeveRetornarNullQuandoListaVazia()
         {
-            var carrinho = new Carrinho(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
+            var carrinho = Carrinho.Reconstituir(1, 10, null, DateTime.Now, new List<CarrinhoItem>());
 
             var result = carrinho.RemoverItem(1);
 
@@ -250,3 +250,6 @@ public class CarrinhoTests
         }
     }
 }
+
+
+

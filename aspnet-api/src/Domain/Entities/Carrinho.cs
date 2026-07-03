@@ -14,13 +14,27 @@ public class Carrinho
     {
     }
 
-    public Carrinho(long id, long clienteId, Endereco? enderecoEntrega, DateTime dataCarrinho, List<CarrinhoItem>? items)
+    public static Carrinho Create(long clienteId, Endereco? enderecoEntrega, DateTime dataCarrinho, IEnumerable<CarrinhoItem>? items)
     {
-        Id = id;
-        ClienteId = clienteId;
-        EnderecoEntrega = enderecoEntrega;
-        DataCarrinho = dataCarrinho;
-        Items = items ?? [];
+        return new Carrinho
+        {
+            ClienteId = clienteId,
+            EnderecoEntrega = enderecoEntrega,
+            DataCarrinho = dataCarrinho,
+            Items = items?.ToList() ?? []
+        };
+    }
+
+    public static Carrinho Reconstituir(long id, long clienteId, Endereco? enderecoEntrega, DateTime dataCarrinho, IEnumerable<CarrinhoItem>? items)
+    {
+        return new Carrinho
+        {
+            Id = id,
+            ClienteId = clienteId,
+            EnderecoEntrega = enderecoEntrega,
+            DataCarrinho = dataCarrinho,
+            Items = items?.ToList() ?? []
+        };
     }
 
     public CarrinhoItem? GetItemById(long itemId)
@@ -65,3 +79,5 @@ public class Carrinho
         return item;
     }
 }
+
+

@@ -10,3 +10,5 @@ public sealed class ExcluirCarrinhoItemCommandValidator : AbstractValidator<Excl
             .GreaterThan(0).WithMessage("ItemId e obrigatorio.");
     }
 }
+
+

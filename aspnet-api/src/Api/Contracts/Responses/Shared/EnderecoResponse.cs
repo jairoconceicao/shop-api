@@ -16,3 +16,5 @@ public sealed record EnderecoResponse
 
     public string Uf { get; init; } = string.Empty;
 }
+
+

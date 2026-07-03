@@ -17,3 +17,5 @@ public sealed class AddCarrinhoItemCommandValidator : AbstractValidator<AddCarri
             .GreaterThan(0).WithMessage("ValorUnitario deve ser maior que zero.");
     }
 }
+
+

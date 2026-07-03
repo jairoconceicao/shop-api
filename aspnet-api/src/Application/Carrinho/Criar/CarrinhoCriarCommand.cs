@@ -52,7 +52,7 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
                 });
         }
 
-        var carrinho = new DomainCarrinho(0, command.ClienteId, null, DateTime.Now, null);
+        var carrinho = DomainCarrinho.Create(command.ClienteId, null, DateTime.Now, null);
         await _carrinhoRepository.AddAsync(carrinho);
         await _unitOfWork.SaveChangesAsync();
 
@@ -65,3 +65,5 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
             "Carrinho criado com sucesso.");
     }
 }
+
+

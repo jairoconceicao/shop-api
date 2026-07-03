@@ -12,3 +12,5 @@ public interface ICarrinhoRepository : IRepository<Carrinho>
 
     Task<long> GetNextItemIdAsync(CancellationToken cancellationToken = default);
 }
+
+

@@ -258,7 +258,7 @@ public class ClienteAtualizarExcluirCommandTests
 
     private static DomainCliente CreateClienteExistente(long id, string cpf, string email, string nome)
     {
-        return new DomainCliente(
+        return DomainCliente.Reconstituir(
             id,
             nome,
             cpf,
@@ -268,3 +268,6 @@ public class ClienteAtualizarExcluirCommandTests
             email);
     }
 }
+
+
+

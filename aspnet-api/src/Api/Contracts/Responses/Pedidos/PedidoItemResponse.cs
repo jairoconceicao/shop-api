@@ -10,3 +10,5 @@ public sealed record PedidoItemResponse
 
     public decimal ValorUnitario { get; init; }
 }
+
+

@@ -16,3 +16,5 @@ public sealed record ProdutoDetalheResponse
 
     public decimal Estoque { get; init; }
 }
+
+

@@ -39,3 +39,5 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         });
     }
 }
+
+

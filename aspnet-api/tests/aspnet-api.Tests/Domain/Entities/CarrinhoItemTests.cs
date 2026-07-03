@@ -21,7 +21,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveCriarCarrinhoItemComTresParametros()
         {
-            var item = new CarrinhoItem(10, 2.5m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.5m, 50.0m);
 
             Assert.Equal(0, item.Id);
             Assert.Equal(10, item.ProdutoId);
@@ -32,7 +32,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveCriarCarrinhoItemComQuatroParametros()
         {
-            var item = new CarrinhoItem(5, 10, 3.0m, 25.0m);
+            var item = CarrinhoItem.Reconstituir(5, 10, 3.0m, 25.0m);
 
             Assert.Equal(5, item.Id);
             Assert.Equal(10, item.ProdutoId);
@@ -46,7 +46,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveAtualizarQuantidade()
         {
-            var item = new CarrinhoItem(10, 2.0m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.0m, 50.0m);
 
             item.AtualizarQuantidade(5.0m);
 
@@ -56,7 +56,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveAtualizarQuantidadeParaZero()
         {
-            var item = new CarrinhoItem(10, 2.0m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.0m, 50.0m);
 
             item.AtualizarQuantidade(0m);
 
@@ -69,7 +69,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveIncrementarQuantidade()
         {
-            var item = new CarrinhoItem(10, 2.0m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.0m, 50.0m);
 
             item.IncrementarQuantidade(3.0m);
 
@@ -92,7 +92,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveAtualizarValorUnitario()
         {
-            var item = new CarrinhoItem(10, 2.0m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.0m, 50.0m);
 
             item.AtualizarValorUnitario(75.0m);
 
@@ -102,7 +102,7 @@ public class CarrinhoItemTests
         [Fact]
         public void DeveAtualizarValorUnitarioParaZero()
         {
-            var item = new CarrinhoItem(10, 2.0m, 50.0m);
+            var item = CarrinhoItem.Reconstituir(10, 2.0m, 50.0m);
 
             item.AtualizarValorUnitario(0m);
 
@@ -110,3 +110,5 @@ public class CarrinhoItemTests
         }
     }
 }
+
+

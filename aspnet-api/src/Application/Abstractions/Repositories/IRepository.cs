@@ -12,3 +12,5 @@ public interface IRepository<T> where T : class
 
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
 }
+
+

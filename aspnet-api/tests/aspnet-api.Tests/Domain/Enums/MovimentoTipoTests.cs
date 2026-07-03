@@ -25,3 +25,5 @@ public class MovimentoTipoTests
         Assert.Equal(MovimentoTipo.OU, saida);
     }
 }
+
+

@@ -11,17 +11,30 @@ public class CarrinhoItem
     {
     }
 
-    public CarrinhoItem(long produtoId, decimal quantidade, decimal valorUnitario)
-        : this(0, produtoId, quantidade, valorUnitario)
+    public static CarrinhoItem Create(long produtoId, decimal quantidade, decimal valorUnitario)
     {
+        return new CarrinhoItem
+        {
+            ProdutoId = produtoId,
+            Quantidade = quantidade,
+            ValorUnitario = valorUnitario
+        };
     }
 
-    public CarrinhoItem(long id, long produtoId, decimal quantidade, decimal valorUnitario)
+    public static CarrinhoItem Reconstituir(long produtoId, decimal quantidade, decimal valorUnitario)
     {
-        Id = id;
-        ProdutoId = produtoId;
-        Quantidade = quantidade;
-        ValorUnitario = valorUnitario;
+        return Reconstituir(0, produtoId, quantidade, valorUnitario);
+    }
+
+    public static CarrinhoItem Reconstituir(long id, long produtoId, decimal quantidade, decimal valorUnitario)
+    {
+        return new CarrinhoItem
+        {
+            Id = id,
+            ProdutoId = produtoId,
+            Quantidade = quantidade,
+            ValorUnitario = valorUnitario
+        };
     }
 
     public void AtualizarQuantidade(decimal quantidade)
@@ -39,3 +52,5 @@ public class CarrinhoItem
         ValorUnitario = valorUnitario;
     }
 }
+
+

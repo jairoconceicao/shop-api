@@ -49,3 +49,5 @@ public sealed class PedidoConsultarPorIdQuery : IActionCommand<ConsultarPedidoPo
             "Pedido consultado com sucesso.");
     }
 }
+
+

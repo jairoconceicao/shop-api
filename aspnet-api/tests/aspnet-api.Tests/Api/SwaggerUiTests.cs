@@ -81,8 +81,9 @@ public class SwaggerUiTests : IClassFixture<WebApplicationFactory<Program>>
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/v1/cliente", CreateValidRequest());
+        var responseBody = await response.Content.ReadAsStringAsync();
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.True(response.StatusCode == HttpStatusCode.Created, responseBody);
         Assert.True(response.Headers.TryGetValues("api-supported-versions", out var values));
         Assert.Contains("1.0", values);
     }
@@ -91,10 +92,10 @@ public class SwaggerUiTests : IClassFixture<WebApplicationFactory<Program>>
     {
         return new CreateClienteRequest
         {
-            Cpf = "12345678901",
+            Cpf = GenerateUniqueCpf(),
             Nome = "Cliente Teste",
             DataNascimento = DateOnly.FromDateTime(DateTime.Today).AddDays(-1),
-            Email = "cliente@exemplo.com",
+            Email = GenerateUniqueEmail(),
             Senha = "SenhaSegura123",
             Endereco = new EnderecoRequest
             {
@@ -115,6 +116,16 @@ public class SwaggerUiTests : IClassFixture<WebApplicationFactory<Program>>
         };
     }
 
+    private static string GenerateUniqueCpf()
+    {
+        return Random.Shared.NextInt64(10_000_000_000, 100_000_000_000).ToString();
+    }
+
+    private static string GenerateUniqueEmail()
+    {
+        return $"cliente-{Guid.NewGuid():N}@exemplo.com";
+    }
+
     private static async Task<JsonElement> GetOpenApiDocumentAsync(HttpClient client)
     {
         var json = await client.GetStringAsync("/openapi/v1.json");
@@ -132,3 +143,6 @@ public class SwaggerUiTests : IClassFixture<WebApplicationFactory<Program>>
         return path.GetProperty(method);
     }
 }
+
+
+

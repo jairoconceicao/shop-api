@@ -19,3 +19,5 @@ public sealed class PedidoItemRequestValidator : AbstractValidator<PedidoItemReq
             .GreaterThan(0).WithMessage("ValorUnitario deve ser maior que zero.");
     }
 }
+
+

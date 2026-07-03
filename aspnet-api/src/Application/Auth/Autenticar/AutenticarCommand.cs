@@ -88,3 +88,5 @@ public sealed class AutenticarCommand : IActionCommand<LoginRequest, Result<Logi
             "Login realizado com sucesso.");
     }
 }
+
+

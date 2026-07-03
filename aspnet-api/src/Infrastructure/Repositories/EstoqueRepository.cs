@@ -16,3 +16,5 @@ public sealed class EstoqueRepository : EfRepository<Estoque>, IEstoqueRepositor
         return Set.FirstOrDefaultAsync(estoque => estoque.ProdutoId == produtoId, cancellationToken);
     }
 }
+
+

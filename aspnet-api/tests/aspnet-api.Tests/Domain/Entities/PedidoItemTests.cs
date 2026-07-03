@@ -21,7 +21,7 @@ public class PedidoItemTests
         [Fact]
         public void DeveCriarPedidoItemComTresParametros()
         {
-            var item = new PedidoItem(10, 2.5m, 50.0m);
+            var item = PedidoItem.Reconstituir(10, 2.5m, 50.0m);
 
             Assert.Equal(0, item.Id);
             Assert.Equal(10, item.ProdutoId);
@@ -32,7 +32,7 @@ public class PedidoItemTests
         [Fact]
         public void DeveCriarPedidoItemComQuatroParametros()
         {
-            var item = new PedidoItem(5, 10, 3.0m, 25.0m);
+            var item = PedidoItem.Reconstituir(5, 10, 3.0m, 25.0m);
 
             Assert.Equal(5, item.Id);
             Assert.Equal(10, item.ProdutoId);
@@ -41,3 +41,5 @@ public class PedidoItemTests
         }
     }
 }
+
+

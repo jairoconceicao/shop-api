@@ -10,3 +10,5 @@ public sealed class ConsultarPedidoPorIdQueryValidator : AbstractValidator<Consu
             .GreaterThan(0).WithMessage("PedidoId e obrigatorio.");
     }
 }
+
+

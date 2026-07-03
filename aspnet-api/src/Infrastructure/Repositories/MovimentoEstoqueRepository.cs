@@ -21,3 +21,5 @@ public sealed class MovimentoEstoqueRepository : EfRepository<MovimentoEstoque>,
             .ToListAsync(cancellationToken);
     }
 }
+
+

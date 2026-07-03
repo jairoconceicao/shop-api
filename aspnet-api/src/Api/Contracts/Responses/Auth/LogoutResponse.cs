@@ -6,3 +6,5 @@ public sealed record LogoutResponse
 
     public DateTime RevogadaEm { get; init; }
 }
+
+

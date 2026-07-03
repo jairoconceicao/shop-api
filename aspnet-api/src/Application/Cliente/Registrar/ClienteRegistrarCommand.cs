@@ -105,7 +105,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             return Result<ClienteIdResponse>.Failure(celularResult.Message, celularResult.Notifications);
         }
 
-        var clienteResult = DomainCliente.Create(
+        var cliente = DomainCliente.Create(
             command.Nome,
             command.Cpf,
             command.DataNascimento,
@@ -113,21 +113,12 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             celularResult.Data,
             command.Email);
 
-        if (clienteResult.IsFailure)
-        {
-            return Result<ClienteIdResponse>.Failure(clienteResult.Message, clienteResult.Notifications);
-        }
-
-        var cliente = await PersistirClienteAsync(clienteResult.Data!);
+        cliente = await PersistirClienteAsync(cliente, command.Cpf);
 
         var senhaHash = _passwordHasher.Hash(command.Senha);
-        var usuarioResult = DomainUsuario.Create(cliente.Id, emailNormalizado, senhaHash);
-        if (usuarioResult.IsFailure)
-        {
-            return Result<ClienteIdResponse>.Failure(usuarioResult.Message, usuarioResult.Notifications);
-        }
+        var usuario = DomainUsuario.Create(cliente.Id, emailNormalizado, senhaHash);
 
-        await _usuarioRepository.AddAsync(usuarioResult.Data!);
+        await _usuarioRepository.AddAsync(usuario);
         await _unitOfWork.SaveChangesAsync();
 
         return Result<ClienteIdResponse>.Success(
@@ -135,10 +126,11 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             "Cliente cadastrado com sucesso.");
     }
 
-    private async Task<DomainCliente> PersistirClienteAsync(DomainCliente cliente)
+    private async Task<DomainCliente> PersistirClienteAsync(DomainCliente cliente, string cpf)
     {
         await _clienteRepository.AddAsync(cliente);
         await _unitOfWork.SaveChangesAsync();
-        return cliente;
+
+        return await _clienteRepository.GetByCpfAsync(cpf) ?? cliente;
     }
 }

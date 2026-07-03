@@ -4,3 +4,5 @@ public sealed record ClienteIdResponse
 {
     public long ClienteId { get; init; }
 }
+
+

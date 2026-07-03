@@ -8,3 +8,5 @@ public interface IClienteRepository : IRepository<Cliente>
 
     Task<Cliente?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 }
+
+

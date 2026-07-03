@@ -94,3 +94,5 @@ public sealed class Endereco
         return Result<Endereco>.Success(new Endereco(logradouro, numero, complemento, cep, bairro, cidade, uf));
     }
 }
+
+

@@ -54,3 +54,5 @@ public sealed class ProdutoConsultarPorIdQuery : IActionCommand<ConsultarProduto
             "Produto consultado com sucesso.");
     }
 }
+
+

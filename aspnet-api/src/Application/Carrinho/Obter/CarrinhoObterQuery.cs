@@ -49,3 +49,5 @@ public sealed class CarrinhoObterQuery : IActionCommand<ObterCarrinhoQuery, Resu
             "Carrinho consultado com sucesso.");
     }
 }
+
+

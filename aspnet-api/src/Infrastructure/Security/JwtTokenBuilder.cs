@@ -62,3 +62,5 @@ internal sealed class JwtTokenBuilder
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
+
+

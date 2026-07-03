@@ -6,3 +6,5 @@ public sealed record CarrinhoItemIdResponse
 
     public long ProdutoId { get; init; }
 }
+
+

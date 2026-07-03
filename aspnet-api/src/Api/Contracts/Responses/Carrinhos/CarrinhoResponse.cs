@@ -10,3 +10,5 @@ public sealed record CarrinhoResponse
 
     public IReadOnlyCollection<CarrinhoItemResponse> Items { get; init; } = [];
 }
+
+

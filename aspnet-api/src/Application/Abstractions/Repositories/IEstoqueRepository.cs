@@ -6,3 +6,5 @@ public interface IEstoqueRepository : IRepository<Estoque>
 {
     Task<Estoque?> GetByProdutoIdAsync(long produtoId, CancellationToken cancellationToken = default);
 }
+
+

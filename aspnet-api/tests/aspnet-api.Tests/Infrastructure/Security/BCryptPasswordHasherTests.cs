@@ -59,3 +59,5 @@ public class BCryptPasswordHasherTests
         Assert.ThrowsAny<ArgumentException>(() => _hasher.Hash(""));
     }
 }
+
+

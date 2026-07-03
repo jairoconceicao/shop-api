@@ -76,3 +76,5 @@ public sealed class PedidoConsultarQuery : IActionCommand<PedidosQuery, Result<P
             "Pedidos consultados com sucesso.");
     }
 }
+
+

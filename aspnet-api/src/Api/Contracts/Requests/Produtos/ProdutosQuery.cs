@@ -6,3 +6,5 @@ public sealed record ProdutosQuery
 
     public int Size { get; init; } = 20;
 }
+
+

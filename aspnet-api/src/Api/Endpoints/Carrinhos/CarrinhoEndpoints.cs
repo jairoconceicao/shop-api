@@ -110,3 +110,5 @@ public static class CarrinhoEndpoints
         return result.ToHttpResult();
     }
 }
+
+

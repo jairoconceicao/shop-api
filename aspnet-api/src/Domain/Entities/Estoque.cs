@@ -14,14 +14,19 @@ public class Estoque
     {
     }
 
-    public Estoque(long id, string? descricao, DateTime dataMovimento, long produtoId, decimal quantidadeMinima, decimal quantidadeMaxima, decimal quantidadeAtual)
+    public static Estoque Reconstituir(long id, string? descricao, DateTime dataMovimento, long produtoId, decimal quantidadeMinima, decimal quantidadeMaxima, decimal quantidadeAtual)
     {
-        Id = id;
-        Descricao = descricao;
-        DataMovimento = dataMovimento;
-        ProdutoId = produtoId;
-        QuantidadeMinima = quantidadeMinima;
-        QuantidadeMaxima = quantidadeMaxima;
-        QuantidadeAtual = quantidadeAtual;
+        return new Estoque
+        {
+            Id = id,
+            Descricao = descricao,
+            DataMovimento = dataMovimento,
+            ProdutoId = produtoId,
+            QuantidadeMinima = quantidadeMinima,
+            QuantidadeMaxima = quantidadeMaxima,
+            QuantidadeAtual = quantidadeAtual
+        };
     }
 }
+
+

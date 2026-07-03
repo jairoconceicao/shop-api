@@ -16,10 +16,10 @@ public class PedidoTests
             var endereco = new Endereco("Rua", "123", null, "12345678", "Centro", "Cidade", "SP");
             var items = new List<PedidoItem>
             {
-                new(1, 2, 50.0m)
+                PedidoItem.Reconstituir(1, 2, 50.0m)
             };
 
-            var pedido = new Pedido(1, dataPedido, 10, 5, endereco, StatusPedido.Criado, items);
+            var pedido = Pedido.Reconstituir(1, dataPedido, 10, 5, endereco, StatusPedido.Criado, items);
 
             Assert.Equal(1, pedido.Id);
             Assert.Equal(dataPedido, pedido.DataPedido);
@@ -47,7 +47,7 @@ public class PedidoTests
         [Fact]
         public void DeveInicializarItemsComoListaVaziaQuandoNulo()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, null);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, null);
 
             Assert.NotNull(pedido.Items);
             Assert.Empty(pedido.Items);
@@ -56,7 +56,7 @@ public class PedidoTests
         [Fact]
         public void DeveCriarPedidoComCarrinhoIdNulo()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             Assert.Null(pedido.CarrinhoId);
         }
@@ -69,7 +69,7 @@ public class PedidoTests
         [InlineData(StatusPedido.Devolvido)]
         public void DeveCriarPedidoComDiferentesStatus(StatusPedido status)
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, status, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, status, new List<PedidoItem>());
 
             Assert.Equal(status, pedido.Status);
         }
@@ -82,10 +82,10 @@ public class PedidoTests
         {
             var items = new List<PedidoItem>
             {
-                new(1, 10, 2.0m, 50.0m),
-                new(2, 20, 1.0m, 30.0m)
+                PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m),
+                PedidoItem.Reconstituir(2, 20, 1.0m, 30.0m)
             };
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
 
             var result = pedido.GetItemById(2);
 
@@ -99,9 +99,9 @@ public class PedidoTests
         {
             var items = new List<PedidoItem>
             {
-                new(1, 10, 2.0m, 50.0m)
+                PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m)
             };
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
 
             var result = pedido.GetItemById(99);
 
@@ -111,7 +111,7 @@ public class PedidoTests
         [Fact]
         public void DeveRetornarNullQuandoListaVazia()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             var result = pedido.GetItemById(1);
 
@@ -124,8 +124,8 @@ public class PedidoTests
         [Fact]
         public void DeveAdicionarItemAoPedido()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
-            var item = new PedidoItem(1, 10, 2.0m, 50.0m);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var item = PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m);
 
             var result = pedido.AdicionarItem(item);
 
@@ -137,7 +137,7 @@ public class PedidoTests
         [Fact]
         public void DeveLancarArgumentNullExceptionQuandoItemForNull()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             Assert.Throws<ArgumentNullException>(() => pedido.AdicionarItem(null!));
         }
@@ -148,7 +148,7 @@ public class PedidoTests
         [Fact]
         public void DeveAtualizarStatusDoPedido()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             pedido.AtualizarStatus(StatusPedido.EmProcessamento);
 
@@ -163,7 +163,7 @@ public class PedidoTests
         [InlineData(StatusPedido.Devolvido)]
         public void DeveAtualizarParaQualquerStatus(StatusPedido novoStatus)
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             pedido.AtualizarStatus(novoStatus);
 
@@ -176,7 +176,7 @@ public class PedidoTests
         [Fact]
         public void DeveCancelarPedido()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             pedido.Cancelar();
 
@@ -186,7 +186,7 @@ public class PedidoTests
         [Fact]
         public void DeveCancelarPedidoEmProcessamento()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.EmProcessamento, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.EmProcessamento, new List<PedidoItem>());
 
             pedido.Cancelar();
 
@@ -201,10 +201,10 @@ public class PedidoTests
         {
             var items = new List<PedidoItem>
             {
-                new(1, 10, 2.0m, 50.0m),
-                new(2, 20, 1.0m, 30.0m)
+                PedidoItem.Reconstituir(1, 10, 2.0m, 50.0m),
+                PedidoItem.Reconstituir(2, 20, 1.0m, 30.0m)
             };
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
 
             var total = pedido.CalcularValorTotal();
 
@@ -214,7 +214,7 @@ public class PedidoTests
         [Fact]
         public void DeveRetornarZeroQuandoListaVazia()
         {
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, new List<PedidoItem>());
 
             var total = pedido.CalcularValorTotal();
 
@@ -226,9 +226,9 @@ public class PedidoTests
         {
             var items = new List<PedidoItem>
             {
-                new(1, 10, 3.0m, 25.0m)
+                PedidoItem.Reconstituir(1, 10, 3.0m, 25.0m)
             };
-            var pedido = new Pedido(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
+            var pedido = Pedido.Reconstituir(1, DateTime.Now, 10, null, null, StatusPedido.Criado, items);
 
             var total = pedido.CalcularValorTotal();
 
@@ -236,3 +236,6 @@ public class PedidoTests
         }
     }
 }
+
+
+

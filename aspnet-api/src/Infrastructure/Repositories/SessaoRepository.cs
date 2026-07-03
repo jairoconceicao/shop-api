@@ -23,3 +23,5 @@ public sealed class SessaoRepository : EfRepository<Sessao>, ISessaoRepository
             .ToListAsync(cancellationToken);
     }
 }
+
+

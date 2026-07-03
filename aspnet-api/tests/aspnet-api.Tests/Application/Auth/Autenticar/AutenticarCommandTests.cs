@@ -141,7 +141,7 @@ public class AutenticarCommandTests
 
     private static long SeedUsuario(ShopDbContext context, string email, string senha)
     {
-        var usuario = Usuario.Create(99, email, $"HASH::{senha}").Data!;
+        var usuario = Usuario.Create(99, email, $"HASH::{senha}");
         context.Usuarios.Add(usuario);
         context.SaveChanges();
         return usuario.Id;

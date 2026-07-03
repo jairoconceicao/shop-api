@@ -16,3 +16,5 @@ public record ClienteUpsertRequest
 
     public CelularRequest Celular { get; init; } = new();
 }
+
+

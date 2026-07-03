@@ -80,3 +80,5 @@ public class AutenticarCommandValidatorTests
         Assert.Contains(result.Errors, e => e.ErrorMessage == "Senha deve ter no minimo 8 caracteres.");
     }
 }
+
+

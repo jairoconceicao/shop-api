@@ -18,3 +18,5 @@ public sealed record ClienteDetalheResponse
 
     public CelularResponse Celular { get; init; } = new();
 }
+
+

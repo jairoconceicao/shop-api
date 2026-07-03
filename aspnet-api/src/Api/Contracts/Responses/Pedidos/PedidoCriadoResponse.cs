@@ -16,3 +16,5 @@ public sealed record PedidoCriadoResponse
 
     public decimal ValorTotal { get; init; }
 }
+
+

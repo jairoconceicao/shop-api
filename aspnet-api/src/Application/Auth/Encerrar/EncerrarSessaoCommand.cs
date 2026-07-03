@@ -68,3 +68,5 @@ public sealed class EncerrarSessaoCommand : IActionCommand<EncerrarSessaoCommand
             "Logout realizado com sucesso.");
     }
 }
+
+

@@ -10,3 +10,5 @@ public sealed class ConsultarProdutoPorIdQueryValidator : AbstractValidator<Cons
             .GreaterThan(0).WithMessage("ProdutoId e obrigatorio.");
     }
 }
+
+

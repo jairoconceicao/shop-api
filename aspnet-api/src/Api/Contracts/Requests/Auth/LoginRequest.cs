@@ -6,3 +6,5 @@ public sealed record LoginRequest
 
     public string Senha { get; init; } = string.Empty;
 }
+
+

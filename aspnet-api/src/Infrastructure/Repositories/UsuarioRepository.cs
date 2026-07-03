@@ -22,3 +22,5 @@ public sealed class UsuarioRepository : EfRepository<Usuario>, IUsuarioRepositor
         return Set.FirstOrDefaultAsync(u => u.ClienteId == clienteId, cancellationToken);
     }
 }
+
+

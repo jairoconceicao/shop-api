@@ -11,3 +11,5 @@ public interface IJwtTokenService
 }
 
 public sealed record JwtToken(string Token, string Jti, DateTime ExpiraEm);
+
+

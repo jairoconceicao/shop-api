@@ -12,3 +12,5 @@ public sealed record PedidosQuery
 
     public int Size { get; init; } = 20;
 }
+
+

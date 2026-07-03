@@ -10,3 +10,5 @@ public sealed record PagedResult<T>(
         ? 0
         : (int)Math.Ceiling(TotalItems / (double)Size);
 }
+
+

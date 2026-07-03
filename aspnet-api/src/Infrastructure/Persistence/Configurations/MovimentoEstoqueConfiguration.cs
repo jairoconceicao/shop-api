@@ -22,3 +22,5 @@ public class MovimentoEstoqueConfiguration : IEntityTypeConfiguration<MovimentoE
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+

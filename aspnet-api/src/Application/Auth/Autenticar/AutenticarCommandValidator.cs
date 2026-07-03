@@ -20,3 +20,5 @@ public sealed class AutenticarCommandValidator : AbstractValidator<LoginRequest>
             .MaximumLength(200).WithMessage("Senha deve ter no maximo 200 caracteres.");
     }
 }
+
+

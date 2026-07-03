@@ -11,3 +11,5 @@ public sealed class ConsultarClientePorCpfQueryValidator : AbstractValidator<Con
             .Matches(@"^\d{11}$").WithMessage("CPF deve conter 11 digitos numericos.");
     }
 }
+
+

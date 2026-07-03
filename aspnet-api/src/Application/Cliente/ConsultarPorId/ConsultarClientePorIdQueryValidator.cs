@@ -10,3 +10,5 @@ public sealed class ConsultarClientePorIdQueryValidator : AbstractValidator<Cons
             .GreaterThan(0).WithMessage("ClienteId e obrigatorio.");
     }
 }
+
+

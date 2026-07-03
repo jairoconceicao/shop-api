@@ -8,3 +8,5 @@ public sealed record PedidoClienteResponse
 
     public string Email { get; init; } = string.Empty;
 }
+
+

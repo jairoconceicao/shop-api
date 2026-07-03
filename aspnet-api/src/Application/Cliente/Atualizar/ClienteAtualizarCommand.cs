@@ -102,7 +102,7 @@ public sealed class ClienteAtualizarCommand : IActionCommand<AtualizarClienteCom
             return Result<ClienteIdResponse>.Failure(celularResult.Message, celularResult.Notifications);
         }
 
-        var clienteResult = DomainCliente.Create(
+        var clienteAtualizado = DomainCliente.Create(
             command.Request.Nome,
             command.Request.Cpf,
             command.Request.DataNascimento,
@@ -110,12 +110,7 @@ public sealed class ClienteAtualizarCommand : IActionCommand<AtualizarClienteCom
             celularResult.Data,
             command.Request.Email);
 
-        if (clienteResult.IsFailure)
-        {
-            return Result<ClienteIdResponse>.Failure(clienteResult.Message, clienteResult.Notifications);
-        }
-
-        cliente.AtualizarCom(clienteResult.Data!);
+        cliente.AtualizarCom(clienteAtualizado);
         _clienteRepository.Update(cliente);
         await _unitOfWork.SaveChangesAsync();
 
