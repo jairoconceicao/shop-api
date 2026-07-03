@@ -10,6 +10,7 @@ public class EstoqueConfiguration : IEntityTypeConfiguration<Estoque>
     {
         builder.ToTable("Estoques");
         builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.Descricao).HasMaxLength(500);
         builder.Property(e => e.DataMovimento).IsRequired();
         builder.Property(e => e.QuantidadeMinima).HasColumnType("decimal(18,2)");

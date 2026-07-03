@@ -29,6 +29,16 @@ public class Cliente
         Email = email;
     }
 
+    public Cliente(string nome, string cpf, DateTime dataNascimento, Endereco? endereco, Celular? celular, string email)
+    {
+        Nome = nome;
+        Cpf = cpf;
+        DataNascimento = dataNascimento;
+        Endereco = endereco;
+        Celular = celular;
+        Email = email;
+    }
+
     public static Result<Cliente> Create(string nome, string cpf, DateOnly dataNascimento, Endereco? endereco, Celular? celular, string email)
     {
         var notifications = Validate(nome, cpf, dataNascimento, endereco, celular, email);
@@ -38,7 +48,7 @@ public class Cliente
             return Result<Cliente>.Failure("Cliente invalido.", notifications);
         }
 
-        return Result<Cliente>.Success(new Cliente(0, nome, cpf, dataNascimento.ToDateTime(TimeOnly.MinValue), endereco, celular, email));
+        return Result<Cliente>.Success(new Cliente(nome, cpf, dataNascimento.ToDateTime(TimeOnly.MinValue), endereco, celular, email));
     }
 
     public void AtualizarCom(Cliente cliente)

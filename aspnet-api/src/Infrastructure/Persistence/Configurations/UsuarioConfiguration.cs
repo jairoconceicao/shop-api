@@ -10,6 +10,7 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
     {
         builder.ToTable("Usuarios");
         builder.HasKey(u => u.Id);
+        builder.Property(u => u.Id).ValueGeneratedOnAdd();
         builder.Property(u => u.ClienteId).IsRequired();
         builder.Property(u => u.Email).IsRequired().HasMaxLength(200);
         builder.Property(u => u.SenhaHash).IsRequired().HasMaxLength(500);

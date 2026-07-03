@@ -10,6 +10,7 @@ public class SessaoConfiguration : IEntityTypeConfiguration<Sessao>
     {
         builder.ToTable("Sessoes");
         builder.HasKey(s => s.Id);
+        builder.Property(s => s.Id).ValueGeneratedOnAdd();
         builder.Property(s => s.UsuarioId).IsRequired();
         builder.Property(s => s.Jti).IsRequired().HasMaxLength(100);
         builder.Property(s => s.CriadaEm).IsRequired();

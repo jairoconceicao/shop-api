@@ -11,6 +11,7 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
     {
         builder.ToTable("Clientes");
         builder.HasKey(c => c.Id);
+        builder.Property(c => c.Id).ValueGeneratedOnAdd();
         builder.Property(c => c.Nome).IsRequired().HasMaxLength(200);
         builder.Property(c => c.Cpf).IsRequired().HasMaxLength(11);
         builder.Property(c => c.Email).HasMaxLength(200);
