@@ -118,11 +118,10 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             return Result<ClienteIdResponse>.Failure(clienteResult.Message, clienteResult.Notifications);
         }
 
-        await _clienteRepository.AddAsync(clienteResult.Data!);
-        await _unitOfWork.SaveChangesAsync();
+        var cliente = await PersistirClienteAsync(clienteResult.Data!);
 
         var senhaHash = _passwordHasher.Hash(command.Senha);
-        var usuarioResult = DomainUsuario.Create(clienteResult.Data!.Id, emailNormalizado, senhaHash);
+        var usuarioResult = DomainUsuario.Create(cliente.Id, emailNormalizado, senhaHash);
         if (usuarioResult.IsFailure)
         {
             return Result<ClienteIdResponse>.Failure(usuarioResult.Message, usuarioResult.Notifications);
@@ -132,7 +131,14 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
         await _unitOfWork.SaveChangesAsync();
 
         return Result<ClienteIdResponse>.Success(
-            new ClienteIdResponse { ClienteId = clienteResult.Data!.Id },
+            new ClienteIdResponse { ClienteId = cliente.Id },
             "Cliente cadastrado com sucesso.");
+    }
+
+    private async Task<DomainCliente> PersistirClienteAsync(DomainCliente cliente)
+    {
+        await _clienteRepository.AddAsync(cliente);
+        await _unitOfWork.SaveChangesAsync();
+        return cliente;
     }
 }

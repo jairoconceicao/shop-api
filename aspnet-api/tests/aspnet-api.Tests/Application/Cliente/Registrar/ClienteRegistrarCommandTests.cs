@@ -32,6 +32,8 @@ public class ClienteRegistrarCommandTests
             Assert.NotNull(result.Data);
             Assert.True(result.Data!.ClienteId > 0);
             Assert.Equal("Cliente cadastrado com sucesso.", result.Message);
+            var cliente = await context.Clientes.SingleAsync();
+            Assert.Equal(cliente.Id, result.Data.ClienteId);
             Assert.Equal(1, await context.Clientes.CountAsync());
             Assert.Equal(1, await context.Usuarios.CountAsync());
         }
