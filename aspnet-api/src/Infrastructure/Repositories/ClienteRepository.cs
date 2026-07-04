@@ -5,10 +5,41 @@ using Microsoft.EntityFrameworkCore;
 
 namespace aspnet_api.Infrastructure.Repositories;
 
-public sealed class ClienteRepository : EfRepository<Cliente>, IClienteRepository
+public sealed class ClienteRepository : IClienteRepository
 {
-    public ClienteRepository(ShopDbContext dbContext) : base(dbContext)
+    private readonly ShopDbContext _dbContext;
+
+    public ClienteRepository(ShopDbContext dbContext)
     {
+        _dbContext = dbContext;
+    }
+
+    private DbSet<Cliente> Set => _dbContext.Set<Cliente>();
+
+    public async Task<Cliente?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        return await Set.FindAsync([id], cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Cliente>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        return await Set.AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    public async Task AddAsync(Cliente entity, CancellationToken cancellationToken = default)
+    {
+        await Set.AddAsync(entity, cancellationToken);
+    }
+
+    public void Update(Cliente entity)
+    {
+        Set.Update(entity);
+    }
+
+    public Task DeleteAsync(Cliente entity, CancellationToken cancellationToken = default)
+    {
+        Set.Remove(entity);
+        return Task.CompletedTask;
     }
 
     public Task<Cliente?> GetByCpfAsync(string cpf, CancellationToken cancellationToken = default)
@@ -21,5 +52,3 @@ public sealed class ClienteRepository : EfRepository<Cliente>, IClienteRepositor
         return Set.AsNoTracking().FirstOrDefaultAsync(cliente => cliente.Email == email, cancellationToken);
     }
 }
-
-
