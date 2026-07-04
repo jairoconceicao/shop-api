@@ -13,8 +13,17 @@ using aspnet_api.src.Application;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
 
 builder.Services.AddOpenApi(options =>
 {
@@ -96,6 +105,3 @@ app.MapPedidoEndpoints();
 app.UseHttpsRedirection();
 
 app.Run();
-
-
-
