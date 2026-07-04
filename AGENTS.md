@@ -56,3 +56,7 @@ Endpoints in `src/Api/Endpoints/`, policies in `Security/AuthorizationPolicies.c
 ### Tests
 
 Required for every changed behavior. Domain → unit; Application → fakes; API → contract + integration.
+
+## Tarefas
+
+Para cada tarefa solicitada via prompt, ao finalizá-la se for realizado alteração ou criação de código, crie um commit.
