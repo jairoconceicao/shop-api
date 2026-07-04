@@ -28,7 +28,8 @@ public sealed class ClienteRepository : IClienteRepository
 
     public async Task AddAsync(Cliente entity, CancellationToken cancellationToken = default)
     {
-        await Set.AddAsync(entity, cancellationToken);
+        await _dbContext.Clientes.AddAsync(entity, cancellationToken);
+        await _dbContext.SaveChangesAsync();
     }
 
     public void Update(Cliente entity)
@@ -44,11 +45,11 @@ public sealed class ClienteRepository : IClienteRepository
 
     public Task<Cliente?> GetByCpfAsync(string cpf, CancellationToken cancellationToken = default)
     {
-        return Set.AsNoTracking().FirstOrDefaultAsync(cliente => cliente.Cpf == cpf, cancellationToken);
+        return Set.FirstOrDefaultAsync(cliente => cliente.Cpf == cpf, cancellationToken);
     }
 
     public Task<Cliente?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return Set.AsNoTracking().FirstOrDefaultAsync(cliente => cliente.Email == email, cancellationToken);
+        return Set.FirstOrDefaultAsync(cliente => cliente.Email == email, cancellationToken);
     }
 }

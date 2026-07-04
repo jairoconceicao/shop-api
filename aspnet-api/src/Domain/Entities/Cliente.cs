@@ -7,7 +7,7 @@ public class Cliente
     public long Id { get; private set; }
     public string Nome { get; private set; } = string.Empty;
     public string Cpf { get; private set; } = string.Empty;
-    public DateTime DataNascimento { get; private set; }
+    public DateOnly DataNascimento { get; private set; }
     public Endereco? Endereco { get; private set; }
     public Celular? Celular { get; private set; }
     public string Email { get; private set; } = string.Empty;
@@ -16,7 +16,7 @@ public class Cliente
     {
     }
 
-    public static Cliente Reconstituir(long id, string nome, string cpf, DateTime dataNascimento, Endereco? endereco, Celular? celular, string email)
+    public static Cliente Reconstituir(long id, string nome, string cpf, DateOnly dataNascimento, Endereco? endereco, Celular? celular, string email)
     {
         return new Cliente
         {
@@ -36,7 +36,7 @@ public class Cliente
         {
             Nome = nome,
             Cpf = cpf,
-            DataNascimento = dataNascimento.ToDateTime(TimeOnly.MinValue),
+            DataNascimento = dataNascimento,
             Endereco = endereco,
             Celular = celular,
             Email = email

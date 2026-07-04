@@ -15,7 +15,7 @@ public static class ClienteResponseMapper
             ClienteId = cliente.Id,
             Cpf = cliente.Cpf,
             Nome = cliente.Nome,
-            DataNascimento = DateOnly.FromDateTime(cliente.DataNascimento),
+            DataNascimento = cliente.DataNascimento,
             Email = cliente.Email,
             Endereco = cliente.Endereco is null
                 ? new EnderecoResponse()

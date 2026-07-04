@@ -72,9 +72,15 @@ builder.Services.AddSingleton(TimeProvider.System);
 var connectionString = builder.Configuration.GetConnectionString("ShopDb")
     ?? throw new InvalidOperationException("Connection string 'ShopDb' was not found.");
 
-builder.Services.AddDbContext<ShopDbContext>(options =>
-    options.UseNpgsql(connectionString)
-);
+builder.Services.AddDbContext<ShopDbContext>(options => 
+{
+    options.UseNpgsql(connectionString);
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
+#if DEBUG
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
+#endif
+});
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
