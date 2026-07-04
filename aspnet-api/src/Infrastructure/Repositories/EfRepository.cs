@@ -21,8 +21,10 @@ public abstract class EfRepository<T> : IRepository<T> where T : class
     public virtual async Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default) =>
         await Set.AsNoTracking().ToListAsync(cancellationToken);
 
-    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default) =>
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    {
         await Set.AddAsync(entity, cancellationToken);
+    }
 
     public virtual void Update(T entity) => Set.Update(entity);
 
@@ -32,5 +34,3 @@ public abstract class EfRepository<T> : IRepository<T> where T : class
         return Task.CompletedTask;
     }
 }
-
-

@@ -8,10 +8,10 @@ using aspnet_api.Domain.ValueObjects;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
 using FluentValidation;
-using DomainUsuario = aspnet_api.Domain.Entities.Usuario;
-using DomainCliente = aspnet_api.Domain.Entities.Cliente;
-using DomainCelular = aspnet_api.Domain.ValueObjects.Celular;
-using DomainEndereco = aspnet_api.Domain.ValueObjects.Endereco;
+// using DomainUsuario = aspnet_api.Domain.Entities.Usuario;
+// using DomainCliente = aspnet_api.Domain.Entities.Cliente;
+// using DomainCelular = aspnet_api.Domain.ValueObjects.Celular;
+// using DomainEndereco = aspnet_api.Domain.ValueObjects.Endereco;
 
 namespace aspnet_api.src.Application.Cliente.Registrar;
 
@@ -81,7 +81,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             return Result<ClienteIdResponse>.Failure("Nao foi possivel cadastrar o cliente.", notifications);
         }
 
-        var enderecoResult = DomainEndereco.Create(
+        var enderecoResult = Endereco.Create(
             command.Endereco.Logradouro,
             command.Endereco.Numero,
             command.Endereco.Complemento,
@@ -95,7 +95,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             return Result<ClienteIdResponse>.Failure(enderecoResult.Message, enderecoResult.Notifications);
         }
 
-        var celularResult = DomainCelular.Create(
+        var celularResult = Celular.Create(
             command.Celular.Ddd,
             command.Celular.Numero,
             command.Celular.WhatsApp);
@@ -105,7 +105,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             return Result<ClienteIdResponse>.Failure(celularResult.Message, celularResult.Notifications);
         }
 
-        var cliente = DomainCliente.Create(
+        var cliente = aspnet_api.Domain.Entities.Cliente.Create(
             command.Nome,
             command.Cpf,
             command.DataNascimento,
@@ -116,7 +116,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
         cliente = await PersistirClienteAsync(cliente, command.Cpf);
 
         var senhaHash = _passwordHasher.Hash(command.Senha);
-        var usuario = DomainUsuario.Create(cliente.Id, emailNormalizado, senhaHash);
+        var usuario = aspnet_api.Domain.Entities.Usuario.Create(cliente.Id, emailNormalizado, senhaHash);
 
         await _usuarioRepository.AddAsync(usuario);
         await _unitOfWork.SaveChangesAsync();
@@ -126,7 +126,7 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             "Cliente cadastrado com sucesso.");
     }
 
-    private async Task<DomainCliente> PersistirClienteAsync(DomainCliente cliente, string cpf)
+    private async Task<aspnet_api.Domain.Entities.Cliente> PersistirClienteAsync(aspnet_api.Domain.Entities.Cliente cliente, string cpf)
     {
         await _clienteRepository.AddAsync(cliente);
         await _unitOfWork.SaveChangesAsync();

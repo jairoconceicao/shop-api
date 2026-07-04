@@ -20,7 +20,6 @@ public class Usuario
         var agora = DateTime.UtcNow;
         return new Usuario
         {
-            Id = 0,
             ClienteId = clienteId,
             Email = email.Trim().ToLowerInvariant(),
             SenhaHash = senhaHash,
