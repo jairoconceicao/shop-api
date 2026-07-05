@@ -1,7 +1,7 @@
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.src.Infrastructure.Persistence;
 
-namespace aspnet_api.Infrastructure;
+namespace aspnet_api.src.Ioc;
 
 public static class InfrastructurePersistenceServiceCollectionExtensions
 {

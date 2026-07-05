@@ -1,4 +1,4 @@
-namespace aspnet_api.Infrastructure;
+namespace aspnet_api.src.Ioc;
 
 public static class InfrastructureDependencyInjection
 {

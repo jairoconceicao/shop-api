@@ -31,7 +31,7 @@ using aspnet_api.src.Application.Produto.CarregarCatalogo;
 using aspnet_api.src.Application.Produto.ConsultarPorId;
 using FluentValidation;
 
-namespace aspnet_api.src.Application;
+namespace aspnet_api.src.Ioc;
 
 public static class ApplicationDependencyInjection
 {

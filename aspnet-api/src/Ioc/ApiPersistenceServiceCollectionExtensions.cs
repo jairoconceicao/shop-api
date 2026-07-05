@@ -1,7 +1,7 @@
 using aspnet_api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace aspnet_api.Api;
+namespace aspnet_api.src.Ioc;
 
 public static class ApiPersistenceServiceCollectionExtensions
 {

@@ -1,7 +1,7 @@
 using aspnet_api.Application.Abstractions.Repositories;
 using aspnet_api.Infrastructure.Repositories;
 
-namespace aspnet_api.Infrastructure;
+namespace aspnet_api.src.Ioc;
 
 public static class InfrastructureRepositoryServiceCollectionExtensions
 {

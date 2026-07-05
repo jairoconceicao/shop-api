@@ -4,7 +4,7 @@ using aspnet_api.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-namespace aspnet_api.Api;
+namespace aspnet_api.src.Ioc;
 
 public static class ApiSecurityServiceCollectionExtensions
 {

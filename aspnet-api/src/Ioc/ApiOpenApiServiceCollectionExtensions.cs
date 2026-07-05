@@ -1,6 +1,6 @@
 using aspnet_api.Api.OpenApi;
 
-namespace aspnet_api.Api;
+namespace aspnet_api.src.Ioc;
 
 public static class ApiOpenApiServiceCollectionExtensions
 {

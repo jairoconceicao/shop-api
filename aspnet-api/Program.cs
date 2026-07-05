@@ -1,6 +1,5 @@
 using aspnet_api.Api;
-using aspnet_api.Infrastructure;
-using aspnet_api.src.Application;
+using aspnet_api.src.Ioc;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
