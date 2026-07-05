@@ -4,6 +4,7 @@ using aspnet_api.Api.Endpoints.Carrinhos;
 using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
+using aspnet_api.Api.Middleware;
 using aspnet_api.Api.OpenApi;
 using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Infrastructure;
@@ -100,6 +101,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+app.UseMiddleware<ValidacaoSessaoJwtMiddleware>();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
