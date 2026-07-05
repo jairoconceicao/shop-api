@@ -33,7 +33,7 @@ using FluentValidation;
 
 namespace aspnet_api.src.Application;
 
-public static class DependencyInjection
+public static class ApplicationDependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
