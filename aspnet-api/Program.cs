@@ -13,9 +13,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
         .Enrich.FromLogContext();
 });
 
-builder.Services.AddApiOpenApi();
-builder.Services.AddApiSecurity(builder.Configuration, builder.Environment);
-builder.Services.AddApiPersistence(builder.Configuration);
+builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
