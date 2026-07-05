@@ -1,6 +1,4 @@
-using System.Text;
 using aspnet_api.Api;
-using aspnet_api.Api.Endpoints;
 using aspnet_api.Infrastructure;
 using aspnet_api.src.Application;
 using Serilog;
@@ -15,7 +13,9 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
         .Enrich.FromLogContext();
 });
 
-builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+builder.Services.AddApiOpenApi();
+builder.Services.AddApiSecurity(builder.Configuration, builder.Environment);
+builder.Services.AddApiPersistence(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
