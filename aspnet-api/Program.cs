@@ -1,9 +1,5 @@
 using System.Text;
-using aspnet_api.Api.Endpoints.Auth;
-using aspnet_api.Api.Endpoints.Carrinhos;
-using aspnet_api.Api.Endpoints.Clientes;
-using aspnet_api.Api.Endpoints.Pedidos;
-using aspnet_api.Api.Endpoints.Produtos;
+using aspnet_api.Api.Endpoints;
 using aspnet_api.Api.Middleware;
 using aspnet_api.Api.OpenApi;
 using aspnet_api.Application.Abstractions.Security;
@@ -104,12 +100,10 @@ app.UseAuthentication();
 app.UseMiddleware<ValidacaoSessaoJwtMiddleware>();
 app.UseAuthorization();
 
-app.MapAuthEndpoints();
-app.MapClienteEndpoints();
-app.MapProdutoEndpoints();
-app.MapCarrinhoEndpoints();
-app.MapPedidoEndpoints();
+app.MapEndpoints();
 
 app.UseHttpsRedirection();
 
 app.Run();
+
+
