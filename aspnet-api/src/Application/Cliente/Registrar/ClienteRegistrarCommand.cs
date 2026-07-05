@@ -113,7 +113,8 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
             celularResult.Data,
             command.Email);
 
-        cliente = await PersistirClienteAsync(cliente, command.Cpf);
+        await _clienteRepository.AddAsync(cliente);
+        await _unitOfWork.SaveChangesAsync();
 
         var senhaHash = _passwordHasher.Hash(command.Senha);
         var usuario = aspnet_api.Domain.Entities.Usuario.Create(cliente.Id, emailNormalizado, senhaHash);
@@ -124,13 +125,5 @@ public sealed class ClienteRegistrarCommand : IActionCommand<CreateClienteReques
         return Result<ClienteIdResponse>.Success(
             new ClienteIdResponse { ClienteId = cliente.Id },
             "Cliente cadastrado com sucesso.");
-    }
-
-    private async Task<aspnet_api.Domain.Entities.Cliente> PersistirClienteAsync(aspnet_api.Domain.Entities.Cliente cliente, string cpf)
-    {
-        await _clienteRepository.AddAsync(cliente);
-        await _unitOfWork.SaveChangesAsync();
-
-        return await _clienteRepository.GetByCpfAsync(cpf) ?? cliente;
     }
 }

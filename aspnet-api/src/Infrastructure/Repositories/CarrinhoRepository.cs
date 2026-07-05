@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace aspnet_api.Infrastructure.Repositories;
 
-public sealed class CarrinhoRepository : EfRepository<Carrinho>, ICarrinhoRepository
+public sealed class CarrinhoRepository(ShopDbContext dbContext) : EfRepository<Carrinho>(dbContext), ICarrinhoRepository
 {
-    public CarrinhoRepository(ShopDbContext dbContext) : base(dbContext)
-    {
-    }
 
     public override async Task<Carrinho?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace aspnet_api.Infrastructure.Persistence;
 
-public class ShopDbContext : DbContext, IUnitOfWork
+public class ShopDbContext : DbContext
 {
     public ShopDbContext(DbContextOptions<ShopDbContext> options) : base(options)
     {
