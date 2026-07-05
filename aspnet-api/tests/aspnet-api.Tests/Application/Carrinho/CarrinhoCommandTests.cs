@@ -5,6 +5,7 @@ using aspnet_api.Domain.Entities;
 using aspnet_api.Domain.ValueObjects;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
@@ -27,7 +28,7 @@ public class CarrinhoCriarCommandTests
         public async Task DeveCriarCarrinhoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null!, null!, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null!, null!, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
@@ -85,7 +86,7 @@ public class CarrinhoCriarCommandTests
         IValidator<CreateCarrinhoRequest> validator = new CarrinhoCriarCommandValidator();
         var clienteRepository = new ClienteRepository(context);
         var carrinhoRepository = new CarrinhoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new CarrinhoCriarCommand(validator, clienteRepository, carrinhoRepository, unitOfWork);
     }
@@ -208,7 +209,7 @@ public class CarrinhoAdicionarItemCommandTests
         IValidator<AddCarrinhoItemRequest> validator = new AddCarrinhoItemCommandValidator();
         var produtoRepository = new ProdutoRepository(context);
         var carrinhoRepository = new CarrinhoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new CarrinhoAdicionarItemCommand(validator, produtoRepository, carrinhoRepository, unitOfWork);
     }
@@ -287,7 +288,7 @@ public class CarrinhoAtualizarItemCommandTests
     {
         IValidator<AtualizarCarrinhoItemCommand> validator = new AtualizarCarrinhoItemCommandValidator();
         var carrinhoRepository = new CarrinhoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new CarrinhoAtualizarItemCommand(validator, carrinhoRepository, unitOfWork);
     }
@@ -366,7 +367,7 @@ public class CarrinhoExcluirItemCommandTests
     {
         IValidator<ExcluirCarrinhoItemCommand> validator = new ExcluirCarrinhoItemCommandValidator();
         var carrinhoRepository = new CarrinhoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new CarrinhoExcluirItemCommand(validator, carrinhoRepository, unitOfWork);
     }

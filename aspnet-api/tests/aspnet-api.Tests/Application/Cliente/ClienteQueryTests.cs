@@ -19,7 +19,7 @@ public class ClienteConsultarPorIdQueryTests
         public async Task DeveConsultarClientePorIdQuandoExistir()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
@@ -96,7 +96,7 @@ public class ClienteConsultarPorCpfQueryTests
         public async Task DeveConsultarClientePorCpfQuandoExistir()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 

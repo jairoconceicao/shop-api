@@ -1,7 +1,9 @@
 using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Requests.Shared;
+using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Cliente.Atualizar;
 using aspnet_api.src.Application.Cliente.Excluir;
 using FluentValidation;
@@ -199,7 +201,8 @@ public class ClienteAtualizarExcluirCommandTests
         IValidator<AtualizarClienteCommand> validator = new AtualizarClienteCommandValidator();
         var repository = new ClienteRepository(context);
 
-        return new ClienteAtualizarCommand(validator, repository, context);
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
+        return new ClienteAtualizarCommand(validator, repository, unitOfWork);
     }
 
     private static ClienteExcluirCommand CreateExcluirSut(ShopDbContext context)
@@ -207,7 +210,8 @@ public class ClienteAtualizarExcluirCommandTests
         IValidator<ExcluirClienteCommand> validator = new ExcluirClienteCommandValidator();
         var repository = new ClienteRepository(context);
 
-        return new ClienteExcluirCommand(validator, repository, context);
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
+        return new ClienteExcluirCommand(validator, repository, unitOfWork);
     }
 
     private static ShopDbContext CreateContext()
@@ -262,7 +266,7 @@ public class ClienteAtualizarExcluirCommandTests
             id,
             nome,
             cpf,
-            new DateTime(1990, 1, 1),
+            DateOnly.FromDateTime(new DateTime(1990, 1, 1)),
             new DomainEndereco("Rua Existente", "1", null, "00000000", "Centro", "Sao Paulo", "SP"),
             new DomainCelular("11", "988888888", true),
             email);

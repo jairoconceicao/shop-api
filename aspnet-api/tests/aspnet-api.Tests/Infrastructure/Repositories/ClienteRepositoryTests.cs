@@ -50,7 +50,7 @@ public class ClienteRepositoryTests
             cliente.Id,
             "Cliente Atualizado",
             "10987654321",
-            new DateTime(1991, 2, 3),
+            DateOnly.FromDateTime(new DateTime(1991, 2, 3)),
             new Endereco("Rua Nova", "123", null, "87654321", "Centro", "Sao Paulo", "SP"),
             new Celular("11", "988888888", false),
             "atualizado@exemplo.com");

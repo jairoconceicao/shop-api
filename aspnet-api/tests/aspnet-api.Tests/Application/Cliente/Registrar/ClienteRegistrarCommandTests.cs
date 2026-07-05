@@ -7,6 +7,7 @@ using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.ValueObjects;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Cliente.Registrar;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -179,7 +180,7 @@ public class ClienteRegistrarCommandTests
         var clienteRepository = new ClienteRepository(context);
         var usuarioRepository = new UsuarioRepository(context);
         IPasswordHasher passwordHasher = new FakePasswordHasher();
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new ClienteRegistrarCommand(validator, clienteRepository, usuarioRepository, passwordHasher, unitOfWork);
     }
@@ -237,7 +238,7 @@ public class ClienteRegistrarCommandTests
             1,
             "Cliente Existente",
             "12345678901",
-            new DateTime(1990, 1, 1),
+            DateOnly.FromDateTime(new DateTime(1990, 1, 1)),
             new Endereco("Rua Existente", "1", null, "00000000", "Centro", "Sao Paulo", "SP"),
             new Celular("11", "988888888", true),
             "existente@exemplo.com");

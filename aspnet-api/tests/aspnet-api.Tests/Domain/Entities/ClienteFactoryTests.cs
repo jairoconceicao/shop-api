@@ -23,7 +23,7 @@ public class ClienteFactoryTests
             Assert.Equal("Cliente Teste", cliente.Nome);
             Assert.Equal("12345678901", cliente.Cpf);
             Assert.Equal("cliente@exemplo.com", cliente.Email);
-            Assert.Equal(DateTime.Today.AddDays(-1), cliente.DataNascimento.Date);
+            Assert.Equal(DateOnly.FromDateTime(DateTime.Today).AddDays(-1), cliente.DataNascimento);
         }
 
         [Fact]
@@ -40,7 +40,7 @@ public class ClienteFactoryTests
             Assert.NotNull(cliente);
             Assert.Equal(string.Empty, cliente.Nome);
             Assert.Equal(string.Empty, cliente.Cpf);
-            Assert.Equal(DateTime.Today.AddDays(1), cliente.DataNascimento.Date);
+            Assert.Equal(DateOnly.FromDateTime(DateTime.Today).AddDays(1), cliente.DataNascimento);
             Assert.Null(cliente.Endereco);
             Assert.Null(cliente.Celular);
             Assert.Equal(string.Empty, cliente.Email);

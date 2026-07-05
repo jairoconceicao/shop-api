@@ -7,6 +7,7 @@ using aspnet_api.Domain.Entities;
 using aspnet_api.Domain.ValueObjects;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Pedido.Cancelar;
 using aspnet_api.src.Application.Pedido.Consultar;
 using aspnet_api.src.Application.Pedido.ConsultarPorId;
@@ -29,7 +30,7 @@ public class PedidoCriarCommandTests
         public async Task DeveCriarPedidoQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
@@ -65,7 +66,7 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoCarrinhoNaoExistir()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
@@ -82,7 +83,7 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoCarrinhoNaoPertencerAoCliente()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var carrinho = DomainCarrinho.Reconstituir(1, 2, null, DateTime.Now, new List<CarrinhoItem>());
@@ -102,7 +103,7 @@ public class PedidoCriarCommandTests
         public async Task DeveRetornarFalhaQuandoJaExistirPedidoParaOCarrinho()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var carrinho = DomainCarrinho.Reconstituir(1, 1, null, DateTime.Now, new List<CarrinhoItem>());
@@ -151,7 +152,7 @@ public class PedidoCriarCommandTests
         var clienteRepository = new ClienteRepository(context);
         var carrinhoRepository = new CarrinhoRepository(context);
         var pedidoRepository = new PedidoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new PedidoCriarCommand(validator, clienteRepository, carrinhoRepository, pedidoRepository, unitOfWork);
     }
@@ -267,7 +268,7 @@ public class PedidoCancelarCommandTests
     {
         IValidator<CancelarPedidoCommand> validator = new CancelarPedidoCommandValidator();
         var pedidoRepository = new PedidoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new PedidoCancelarCommand(validator, pedidoRepository, unitOfWork);
     }
@@ -290,7 +291,7 @@ public class PedidoConsultarQueryTests
         public async Task DeveConsultarPedidosQuandoDadosValidos()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var pedido = DomainPedido.Reconstituir(1, DateTime.Now, 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
@@ -325,7 +326,7 @@ public class PedidoConsultarQueryTests
         public async Task DeveFiltrarPedidosPorDataInicio()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var pedidoAntigo = DomainPedido.Reconstituir(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());
@@ -346,7 +347,7 @@ public class PedidoConsultarQueryTests
         public async Task DeveFiltrarPedidosPorDataFim()
         {
             await using var context = CreateContext();
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
             context.Clientes.Add(cliente);
 
             var pedidoAntigo = DomainPedido.Reconstituir(1, DateTime.Now.AddDays(-10), 1, 1, null, src.Domain.Enums.FormaPagamento.Pix, DomainStatusPedido.Criado, new List<PedidoItem>());

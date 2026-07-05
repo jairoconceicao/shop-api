@@ -5,6 +5,7 @@ using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Entities;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Auth.Encerrar;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -70,7 +71,7 @@ public class EncerrarSessaoCommandTests
     {
         ISessaoAtualProvider provider = new FakeSessaoAtualProvider(jti);
         ISessaoRepository sessaoRepository = new SessaoRepository(context);
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new EncerrarSessaoCommand(provider, sessaoRepository, unitOfWork);
     }

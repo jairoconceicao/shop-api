@@ -6,6 +6,7 @@ using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Entities;
 using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Infrastructure.Repositories;
+using aspnet_api.src.Infrastructure.Persistence;
 using aspnet_api.src.Application.Auth.Autenticar;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -125,7 +126,7 @@ public class AutenticarCommandTests
         ISessaoRepository sessaoRepository = new SessaoRepository(context);
         IPasswordHasher passwordHasher = new FakePasswordHasher();
         IJwtTokenService jwtTokenService = new FakeJwtTokenService();
-        IUnitOfWork unitOfWork = context;
+        IUnitOfWork unitOfWork = new UnitOfWork(context);
 
         return new AutenticarCommand(validator, usuarioRepository, sessaoRepository, passwordHasher, jwtTokenService, unitOfWork);
     }

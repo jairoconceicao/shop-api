@@ -71,7 +71,7 @@ public class ClienteResponseMapperTests
         {
             var endereco = new Endereco("Rua", "123", "Apto", "12345678", "Centro", "Cidade", "SP");
             var celular = new Celular("11", "999999999", true);
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), endereco, celular, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), endereco, celular, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
@@ -89,7 +89,7 @@ public class ClienteResponseMapperTests
         [Fact]
         public void DeveMapearClienteComEnderecoNulo()
         {
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
@@ -100,7 +100,7 @@ public class ClienteResponseMapperTests
         [Fact]
         public void DeveMapearClienteComCelularNulo()
         {
-            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", new DateTime(1990, 1, 1), null, null, "teste@email.com");
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
 
             var result = cliente.ToDetalheResponse();
 
