@@ -54,8 +54,8 @@ partial class ShopDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(11)
                     .HasColumnType("character varying(11)");
 
-                b.Property<DateTime>("DataNascimento")
-                    .HasColumnType("timestamp with time zone");
+                b.Property<DateOnly>("DataNascimento")
+                    .HasColumnType("date");
 
                 b.Property<string>("Email")
                     .IsRequired()
@@ -573,5 +573,4 @@ partial class ShopDbContextModelSnapshot : ModelSnapshot
 #pragma warning restore 612, 618
     }
 }
-
 

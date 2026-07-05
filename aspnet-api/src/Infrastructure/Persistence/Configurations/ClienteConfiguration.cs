@@ -16,7 +16,7 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         builder.Property(c => c.Nome).IsRequired().HasMaxLength(200);
         builder.Property(c => c.Cpf).IsRequired().HasMaxLength(11);
         builder.Property(c => c.Email).HasMaxLength(200);
-        builder.Property(c => c.DataNascimento).IsRequired();
+        builder.Property(c => c.DataNascimento).IsRequired().HasColumnType("date");
 
         builder.OwnsOne(c => c.Endereco, e =>
         {
@@ -37,5 +37,4 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         });
     }
 }
-
 

@@ -41,7 +41,7 @@ namespace aspnet_api.src.Infrastructure.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Cpf = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
-                    DataNascimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DataNascimento = table.Column<DateOnly>(type: "date", nullable: false),
                     Logradouro = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Numero = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Complemento = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -305,5 +305,4 @@ namespace aspnet_api.src.Infrastructure.Persistence.Migrations
         }
     }
 }
-
 

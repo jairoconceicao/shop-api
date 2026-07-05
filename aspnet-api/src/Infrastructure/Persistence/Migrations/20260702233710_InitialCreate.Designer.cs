@@ -57,8 +57,8 @@ namespace aspnet_api.src.Infrastructure.Persistence.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("character varying(11)");
 
-                    b.Property<DateTime>("DataNascimento")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("DataNascimento")
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -577,5 +577,4 @@ namespace aspnet_api.src.Infrastructure.Persistence.Migrations
         }
     }
 }
-
 
