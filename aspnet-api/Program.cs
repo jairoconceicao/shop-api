@@ -1,4 +1,3 @@
-using aspnet_api.Api;
 using aspnet_api.src.Ioc;
 using Serilog;
 

@@ -1,7 +1,7 @@
 using aspnet_api.Api.Endpoints;
 using aspnet_api.Api.Middleware;
 
-namespace aspnet_api.Api;
+namespace aspnet_api.src.Ioc;
 
 public static class WebApplicationExtensions
 {
