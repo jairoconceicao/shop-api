@@ -7,8 +7,8 @@ const envSchema = z.object({
     .default("local"),
   VITE_API_BASE_URL: z
     .string()
-    .url()
-    .default("http://localhost:5228/api/v1"),
+    .min(1)
+    .default("/api/v1"),
 });
 
 const parsedEnv = envSchema.parse(import.meta.env);
@@ -16,5 +16,6 @@ const parsedEnv = envSchema.parse(import.meta.env);
 export const env = {
   appName: parsedEnv.VITE_APP_NAME,
   appEnv: parsedEnv.VITE_APP_ENV,
-  apiBaseUrl: parsedEnv.VITE_API_BASE_URL.replace(/\/+$/, ""),
+  apiBaseUrl: parsedEnv.VITE_API_BASE_URL.replace(/\/+$/, "") || "/",
 } as const;
+

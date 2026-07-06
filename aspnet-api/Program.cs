@@ -12,6 +12,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 });
 
 builder.Services.AddApiOpenApi();
+builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiSecurity(builder.Configuration, builder.Environment);
 builder.Services.AddApiPersistence(builder.Configuration);
 builder.Services.AddApplication();
@@ -21,3 +22,4 @@ var app = builder.Build();
 
 app.UseApiPipeline();
 app.Run();
+

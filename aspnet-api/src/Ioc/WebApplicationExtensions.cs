@@ -20,6 +20,7 @@ public static class WebApplicationExtensions
             });
         }
 
+        app.UseCors(ApiCorsServiceCollectionExtensions.LocalFrontendPolicyName);
         app.UseAuthentication();
         app.UseMiddleware<ValidacaoSessaoJwtMiddleware>();
         app.UseAuthorization();
@@ -31,3 +32,4 @@ public static class WebApplicationExtensions
         return app;
     }
 }
+
