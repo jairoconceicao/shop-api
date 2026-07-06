@@ -1,9 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
-import { HomePage } from "@/pages/HomePage";
+import { CatalogPage } from "@/pages/CatalogPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { ProductDetailPage } from "@/pages/ProductDetailPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
@@ -16,8 +17,8 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: "catalogo", element: <HomePage /> },
-          { path: "produto/:id", element: <PlaceholderPage title="Detalhe do produto" /> },
+          { path: "catalogo", element: <CatalogPage /> },
+          { path: "produto/:id", element: <ProductDetailPage /> },
           { path: "carrinho", element: <PlaceholderPage title="Carrinho" /> },
           { path: "checkout", element: <PlaceholderPage title="Checkout" /> },
           { path: "pedidos", element: <PlaceholderPage title="Pedidos" /> },

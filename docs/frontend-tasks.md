@@ -33,11 +33,11 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 4. Catálogo e produto
 
-- [ ] Implementar listagem paginada de produtos.
-- [ ] Implementar filtro e navegação para o detalhe do produto.
-- [ ] Implementar página de detalhe do produto.
-- [ ] Mapear a resposta paginada do catálogo para o formato da UI.
-- [ ] Exibir estados de carregamento, vazio e erro no catálogo.
+- [x] Implementar listagem paginada de produtos.
+- [x] Implementar filtro e navegação para o detalhe do produto.
+- [x] Implementar página de detalhe do produto.
+- [x] Mapear a resposta paginada do catálogo para o formato da UI.
+- [x] Exibir estados de carregamento, vazio e erro no catálogo.
 
 ### Fase 5. Carrinho e checkout
 
@@ -83,5 +83,3 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 6. Pedidos.
 7. Cliente.
 8. Testes e ajustes finais.
-
-
