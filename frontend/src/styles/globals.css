@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-spanish-green-50: #f8fbf9;
+  --color-spanish-green-100: #f3f6f4;
+  --color-spanish-green-200: #e4e9e2;
+  --color-spanish-green-300: #d1d9ce;
+  --color-spanish-green-400: #869a7e;
+  --color-spanish-green-500: #6c7f65;
+  --color-spanish-green-600: #4b5d48;
+  --color-spanish-green-700: #3a4937;
+  --color-spanish-green-800: #262c21;
+  --color-spanish-green-900: #171f14;
+  --color-spanish-green-950: #090e07;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-spanish-green-50 text-spanish-green-950 antialiased;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}

@@ -8,13 +8,13 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 1. Base do projeto
 
-- [ ] Criar o app SPA em `frontend/` com React e Vite.
-- [ ] Configurar Tailwind CSS v4 com a paleta `spanish-green`.
-- [ ] Configurar Zod, Zustand e estrutura de pastas por feature.
-- [ ] Criar o client HTTP centralizado para a API v1.
-- [ ] Configurar variáveis de ambiente para base URL e ambiente local.
-- [ ] Criar o sistema base de rotas e layout global.
-- [ ] Conectar o frontend ao backend local em `http://localhost:5228`.
+- [x] Criar o app SPA em `frontend/` com React e Vite.
+- [x] Configurar Tailwind CSS v4 com a paleta `spanish-green`.
+- [x] Configurar Zod, Zustand e estrutura de pastas por feature.
+- [x] Criar o client HTTP centralizado para a API v1.
+- [x] Configurar variáveis de ambiente para base URL e ambiente local.
+- [x] Criar o sistema base de rotas e layout global.
+- [x] Conectar o frontend ao backend local em `http://localhost:5228`.
 
 ### Fase 2. Design system
 
@@ -83,3 +83,4 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 6. Pedidos.
 7. Cliente.
 8. Testes e ajustes finais.
+
