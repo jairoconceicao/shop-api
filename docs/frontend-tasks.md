@@ -41,12 +41,12 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 5. Carrinho e checkout
 
-- [ ] Implementar store do carrinho atual.
-- [ ] Criar schemas Zod para inclusão e alteração de itens.
-- [ ] Implementar criação do carrinho.
-- [ ] Implementar inclusão, edição e remoção de itens.
-- [ ] Implementar tela de checkout com validação de dados.
-- [ ] Implementar criação de pedido a partir do carrinho.
+- [x] Implementar store do carrinho atual.
+- [x] Criar schemas Zod para inclusão e alteração de itens.
+- [x] Implementar criação do carrinho.
+- [x] Implementar inclusão, edição e remoção de itens.
+- [x] Implementar tela de checkout com validação de dados.
+- [x] Implementar criação de pedido a partir do carrinho.
 
 ### Fase 6. Pedidos
 

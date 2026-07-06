@@ -6,6 +6,9 @@ import { Button } from "@/shared/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/Card";
 import { EmptyState } from "@/shared/components/ui/EmptyState";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
+import { toast } from "@/shared/components/ui/Toast";
+import { useAuthStore } from "@/features/auth/auth.store";
+import { cartFeature, useCartStore } from "@/features/cart";
 import { catalogFeature, type CatalogProductDetail } from "@/features/catalog";
 import { getProductById } from "@/features/catalog/catalog.api";
 
@@ -85,14 +88,29 @@ export function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const session = useAuthStore((state) => state.session);
+  const isSubmitting = useCartStore((state) => state.isSubmitting);
+  const addItemToCurrentCart = useCartStore((state) => state.addItemToCurrentCart);
   const [product, setProduct] = useState<CatalogProductDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const backTarget = useMemo(() => {
     const state = location.state as { from?: string } | null;
     return state?.from ?? catalogFeature.routes.list;
   }, [location.state]);
+
+  const context = useMemo(() => {
+    if (!session?.token || !session.customerId) {
+      return null;
+    }
+
+    return {
+      token: session.token,
+      customerId: session.customerId,
+    };
+  }, [session?.customerId, session?.token]);
 
   useEffect(() => {
     let active = true;
@@ -108,6 +126,7 @@ export function ProductDetailPage() {
         }
 
         setProduct(data);
+        setQuantity(1);
       } catch (loadError) {
         if (!active) {
           return;
@@ -139,6 +158,39 @@ export function ProductDetailPage() {
       active = false;
     };
   }, [id]);
+
+  const canAddToCart = Boolean(product && context && product.stock > 0);
+  const canIncreaseQuantity = Boolean(product && product.stock > 0 && quantity < product.stock);
+
+  const handleAddToCart = async () => {
+    if (!product) {
+      return;
+    }
+
+    if (!context) {
+      toast.error("Sessão inválida", "Você precisa estar autenticado para adicionar itens.");
+      return;
+    }
+
+    if (product.stock <= 0) {
+      toast.warning("Produto indisponível", "Não há estoque suficiente para adicionar este item.");
+      return;
+    }
+
+    const nextQuantity = Math.min(Math.max(quantity, 1), product.stock);
+
+    try {
+      await addItemToCurrentCart(context, {
+        productId: product.id,
+        quantity: nextQuantity,
+        unitValue: product.price,
+      });
+      toast.success("Adicionado ao carrinho", `${product.title} foi incluído com sucesso.`);
+      navigate(cartFeature.routes.current);
+    } catch {
+      toast.error("Não foi possível adicionar o item", "Tente novamente em instantes.");
+    }
+  };
 
   if (isLoading) {
     return <DetailSkeleton />;
@@ -239,6 +291,46 @@ export function ProductDetailPage() {
                 <p className="mt-2 text-sm font-semibold text-spanish-green-950">
                   {formatCurrency(product.price)}
                 </p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50/70 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
+                    Quantidade
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
+                    </Button>
+                    <div className="min-w-16 rounded-2xl border border-spanish-green-200 bg-white px-4 py-2 text-center text-sm font-semibold text-spanish-green-950">
+                      {quantity}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setQuantity((current) => (product.stock > 0 ? Math.min(product.stock, current + 1) : current))}
+                      disabled={!canIncreaseQuantity}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="secondary" onClick={() => navigate(cartFeature.routes.current)}>
+                    Ir ao carrinho
+                  </Button>
+                  <Button onClick={handleAddToCart} disabled={!canAddToCart} isLoading={isSubmitting}>
+                    Adicionar ao carrinho
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

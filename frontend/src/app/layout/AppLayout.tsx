@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { ToastViewport } from "@/shared/components/ui/Toast";
 import { env } from "@/config/env";
 import { useAuthStore } from "@/features/auth/auth.store";
+import { useCartStore } from "@/features/cart";
 
 const navItems = [
   { to: "/catalogo", label: "Catálogo" },
@@ -23,12 +24,30 @@ export function AppLayout() {
   const session = useAuthStore((state) => state.session);
   const logout = useAuthStore((state) => state.logout);
   const isSubmitting = useAuthStore((state) => state.isSubmitting);
+  const initializeCart = useCartStore((state) => state.initializeCart);
+  const clearCurrentCart = useCartStore((state) => state.clearCurrentCart);
+  const cartItemCount = useCartStore((state) =>
+    state.currentCart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+  );
 
   useEffect(() => {
     if (!isReady) {
       initializeSession();
     }
   }, [initializeSession, isReady]);
+
+  useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
+    if (!isAuthenticated || !session?.token || !session.customerId) {
+      clearCurrentCart();
+      return;
+    }
+
+    void initializeCart({ token: session.token, customerId: session.customerId });
+  }, [clearCurrentCart, initializeCart, isAuthenticated, isReady, session?.customerId, session?.token]);
 
   const isLoginRoute = location.pathname === "/login";
 
@@ -47,14 +66,19 @@ export function AppLayout() {
                     to={item.to}
                     className={({ isActive }) =>
                       [
-                        "rounded-full px-4 py-2 text-sm font-medium transition",
+                        "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition",
                         isActive
                           ? "bg-spanish-green-700 text-white shadow-sm"
                           : "text-spanish-green-700 hover:bg-spanish-green-100",
                       ].join(" ")
                     }
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.to === "/carrinho" && cartItemCount > 0 ? (
+                      <Badge variant="neutral" className="bg-white/15 text-current ring-white/10">
+                        {cartItemCount}
+                      </Badge>
+                    ) : null}
                   </NavLink>
                 ))}
               </nav>
@@ -75,6 +99,7 @@ export function AppLayout() {
                     size="sm"
                     onClick={async () => {
                       await logout();
+                      clearCurrentCart();
                       navigate("/login", { replace: true });
                     }}
                     isLoading={isSubmitting}

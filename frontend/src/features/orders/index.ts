@@ -5,3 +5,5 @@ export const ordersFeature = {
     detail: (id: string) => `/pedidos/${id}`,
   },
 } as const;
+
+export { formatOrderStatus, formatPaymentMethod } from "./order.labels";
