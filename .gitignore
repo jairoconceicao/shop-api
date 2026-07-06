@@ -122,3 +122,8 @@ pgdata/
 # ============================================
 .DS_Store
 Thumbs.db
+
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
