@@ -23,8 +23,26 @@
     @apply scroll-smooth;
   }
 
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
   body {
-    @apply bg-spanish-green-50 text-spanish-green-950 antialiased;
+    @apply min-h-screen bg-spanish-green-50 text-spanish-green-950 antialiased;
+  }
+
+  ::selection {
+    background: rgb(58 73 55 / 0.18);
+    color: rgb(9 14 7);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(58 73 55 / 0.72);
+    outline-offset: 2px;
   }
 
   a {

@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "@/shared/components/BrandMark";
+import { ToastViewport } from "@/shared/components/ui/Toast";
 import { env } from "@/config/env";
 
 const navItems = [
@@ -48,6 +49,8 @@ export function AppLayout() {
           <span>Backend local esperado em {env.apiBaseUrl}</span>
         </div>
       </footer>
+
+      <ToastViewport />
     </div>
   );
 }
