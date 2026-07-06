@@ -1,5 +1,6 @@
 using aspnet_api.Api.Endpoints;
 using aspnet_api.Api.Middleware;
+using aspnet_api.Ioc;
 
 namespace aspnet_api.src.Ioc;
 

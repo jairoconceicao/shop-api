@@ -5,7 +5,7 @@ using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
 
-namespace aspnet_api.Api.Endpoints;
+namespace aspnet_api.Ioc;
 
 public static class EndpointRouteBuilderExtensions
 {

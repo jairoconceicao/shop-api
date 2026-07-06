@@ -5,15 +5,10 @@ using aspnet_api.Api.Contracts.Responses.Shared;
 using aspnet_api.Api.Endpoints.Shared;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
-using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
-using aspnet_api.src.Application.Carrinho.Criar;
 using aspnet_api.src.Application.Carrinho.ExcluirItem;
 using aspnet_api.src.Application.Carrinho.Obter;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace aspnet_api.Api.Endpoints.Carrinhos;
 
