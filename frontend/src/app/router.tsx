@@ -6,6 +6,8 @@ import { CartPage } from "@/pages/CartPage";
 import { CheckoutPage } from "@/pages/CheckoutPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { OrderDetailPage } from "@/pages/OrderDetailPage";
+import { OrdersPage } from "@/pages/OrdersPage";
 import { ProductDetailPage } from "@/pages/ProductDetailPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
@@ -23,8 +25,8 @@ export const router = createBrowserRouter([
           { path: "produto/:id", element: <ProductDetailPage /> },
           { path: "carrinho", element: <CartPage /> },
           { path: "checkout", element: <CheckoutPage /> },
-          { path: "pedidos", element: <PlaceholderPage title="Pedidos" /> },
-          { path: "pedidos/:id", element: <PlaceholderPage title="Pedido" /> },
+          { path: "pedidos", element: <OrdersPage /> },
+          { path: "pedidos/:id", element: <OrderDetailPage /> },
           { path: "cliente", element: <PlaceholderPage title="Cliente" /> },
         ],
       },
