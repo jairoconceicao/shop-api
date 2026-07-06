@@ -58,6 +58,8 @@ O Frontend deve serguir na linha de e-commerce populares como Mercado Livre, Kab
 }
 ```
 
+Deve ser implementado na pasta `/frontend`
+
 ## Convenção de Código para C# / .NET 10 / ASP.NET
 
 ### API
