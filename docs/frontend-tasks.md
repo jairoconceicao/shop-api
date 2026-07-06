@@ -25,11 +25,11 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 3. Autenticação e sessão
 
-- [ ] Implementar schemas Zod para login.
-- [ ] Criar store de sessão com token JWT e dados do usuário.
-- [ ] Implementar login e logout.
-- [ ] Proteger rotas autenticadas.
-- [ ] Persistir a sessão localmente com expiração controlada.
+- [x] Implementar schemas Zod para login.
+- [x] Criar store de sessão com token JWT e dados do usuário.
+- [x] Implementar login e logout.
+- [x] Proteger rotas autenticadas.
+- [x] Persistir a sessão localmente com expiração controlada.
 
 ### Fase 4. Catálogo e produto
 
@@ -83,4 +83,5 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 6. Pedidos.
 7. Cliente.
 8. Testes e ajustes finais.
+
 
