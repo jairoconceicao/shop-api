@@ -19,10 +19,6 @@ spring-api:
 
 Banco de dados: PostgreSql
 
-### Frontend
-
-Não será implementado neste momento.
-
 ### Infra
 
 A aplicação vai rodar localmente via docker, nos seguintes containers:
@@ -35,6 +31,32 @@ Dados de conexão para o banco de dados
 - user: shopapi
 - password: shopapi
 - databaseName: shopapi
+
+### Frontend
+
+O Frontend deve serguir na linha de e-commerce populares como Mercado Livre, Kabum e Magazine Luiza e deve ser construído com a stack abaixo:
+
+- SPA, sem server-side pages
+- React + TailwindCss V4
+- Zod como validation library
+- Zustand como state management
+- Utilize este esquema de cores para o tailwindcss
+
+```text
+'spanish-green': {
+  '50': '#f8fbf9',
+  '100': '#f3f6f4',
+  '200': '#e4e9e2',
+  '300': '#d1d9ce',
+  '400': '#869a7e',
+  '500': '#6c7f65',
+  '600': '#4b5d48',
+  '700': '#3a4937',
+  '800': '#262c21',
+  '900': '#171f14',
+  '950': '#090e07',
+}
+```
 
 ## Convenção de Código para C# / .NET 10 / ASP.NET
 
@@ -68,4 +90,5 @@ Required for every changed behavior. Domain → unit; Application → fakes; API
 
 ## Tarefas
 
-Para cada tarefa solicitada via prompt, ao finalizá-la se for realizado alteração ou criação de código, crie um commit conforme a Skill `commit-mesages`.
+- **SEMPRE** separe tarefas de backend e frontend.
+- Para cada tarefa solicitada via prompt, ao finalizá-la se for realizado alteração ou criação de código, crie um commit conforme a Skill `commit-mesages`.
