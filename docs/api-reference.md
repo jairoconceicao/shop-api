@@ -505,6 +505,9 @@ GET /api/v1/pedido/{pedidoId}
 GET /api/v1/pedido?cpf={cpf}&dataInicio={dataInicio}&dataFim={dataFim}&page=1&size=20
 ```
 
+- `cpf` é obrigatório.
+- `dataInicio` e `dataFim` aceitam `date-time` em ISO 8601.
+
 ```jsonc
 // Response - 200 OK
 {
@@ -569,3 +572,4 @@ PATCH /api/v1/pedido/{pedidoId}
   }
 }
 ```
+
