@@ -1,14 +1,69 @@
 # Referência da API
 
-Os contratos abaixo refletem as rotas atualmente implementadas na API.
+Os contratos abaixo refletem as rotas atualmente implementadas na API v1.
 
 ## Envelopes de resposta
 
-- **Sucesso (carga única)**: `ApiResponse<T>` com `status`, `message` e `data`.
-- **Sucesso (lista paginada)**: `PagedResponse<T>` com `status`, `message` e
-  `pagination`.
-- **Erro**: `ApiErrorResponse` com `error.code`, `error.message` e
-  `error.details`.
+- **Sucesso com item único**: `ApiResponse<T>` com `status`, `message` e `data`.
+- **Sucesso paginado**: `PagedResponse<T>` com `status`, `message` e `pagination`.
+- **Erro**: `ApiErrorResponse` com `error.code`, `error.message` e `error.details`.
+
+## Convenções
+
+- A versão atual exposta é `v1`.
+- Rotas protegidas exigem `Authorization: Bearer <token>`.
+- Datas são serializadas em ISO 8601.
+- Enums são serializados como string.
+
+---
+
+## Auth
+
+### Login
+
+```text
+POST /api/v1/auth/login
+```
+
+```jsonc
+// Request
+{
+  "email": "fulano@exemplo.com",
+  "senha": "123456"
+}
+
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "token": "eyJhbGciOi...",
+    "tipo": "Bearer",
+    "expiraEm": "2026-07-06T14:30:00-03:00",
+    "usuarioId": 9999,
+    "clienteId": 8888,
+    "email": "fulano@exemplo.com"
+  }
+}
+```
+
+### Logout
+
+```text
+POST /api/v1/auth/logout
+```
+
+```jsonc
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "jti": "a1b2c3d4e5f6",
+    "revogadaEm": "2026-07-06T14:30:00-03:00"
+  }
+}
+```
 
 ---
 
@@ -27,6 +82,7 @@ POST /api/v1/cliente
   "nome": "Fulano de Tal",
   "dataNascimento": "1990-01-31",
   "email": "fulano@exemplo.com",
+  "senha": "123456",
   "endereco": {
     "logradouro": "Rua Exemplo",
     "numero": "123",
@@ -366,9 +422,9 @@ POST /api/v1/pedido
 ```jsonc
 // Request
 {
-  "carrinhoId": 9999,
   "clienteId": 99999,
-  "endercoEntrega": {
+  "carrinhoId": 9999,
+  "enderecoEntrega": {
     "logradouro": "Rua Exemplo",
     "numero": "123",
     "complemento": "Apto 10",
@@ -377,9 +433,8 @@ POST /api/v1/pedido
     "cidade": "Sao Paulo",
     "uf": "SP"
   },
+  "formaPagamento": "Pix",
   "dataPedido": "2026-07-01T14:30:00-03:00",
-  "formaPagamento": "Pix | Cartao | Boleto",
-  "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
   "items": [
     {
       "itemId": 9999,
@@ -398,8 +453,8 @@ POST /api/v1/pedido
     "pedidoId": 9999,
     "clienteId": 99999,
     "dataPedido": "2026-07-01T14:30:00-03:00",
-    "formaPagamento": "Pix | Cartao | Boleto",
-    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+    "formaPagamento": "Pix",
+    "status": "Criado",
     "valorTotal": 99999.9999
   }
 }
@@ -420,7 +475,7 @@ GET /api/v1/pedido/{pedidoId}
     "pedidoId": 9999,
     "carrinhoId": 9999,
     "clienteId": 99999,
-    "endercoEntrega": {
+    "enderecoEntrega": {
       "logradouro": "Rua Exemplo",
       "numero": "123",
       "complemento": "Apto 10",
@@ -430,8 +485,8 @@ GET /api/v1/pedido/{pedidoId}
       "uf": "SP"
     },
     "dataPedido": "2026-07-01T14:30:00-03:00",
-    "formaPagamento": "Pix | Cartao | Boleto",
-    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+    "formaPagamento": "Pix",
+    "status": "Criado",
     "items": [
       {
         "itemId": 9999,
@@ -447,7 +502,7 @@ GET /api/v1/pedido/{pedidoId}
 ### Consultar pedidos
 
 ```text
-GET /api/v1/pedido?cpf={cpf}&dataInicio={dataPedidoIni}&dataFim={dataPedidoFim}
+GET /api/v1/pedido?cpf={cpf}&dataInicio={dataInicio}&dataFim={dataFim}&page=1&size=20
 ```
 
 ```jsonc
@@ -464,7 +519,7 @@ GET /api/v1/pedido?cpf={cpf}&dataInicio={dataPedidoIni}&dataFim={dataPedidoFim}
         "pedidoId": 9999,
         "carrinhoId": 9999,
         "clienteId": 99999,
-        "endercoEntrega": {
+        "enderecoEntrega": {
           "logradouro": "Rua Exemplo",
           "numero": "123",
           "complemento": "Apto 10",
@@ -474,8 +529,8 @@ GET /api/v1/pedido?cpf={cpf}&dataInicio={dataPedidoIni}&dataFim={dataPedidoFim}
           "uf": "SP"
         },
         "dataPedido": "2026-07-01T14:30:00-03:00",
-        "formaPagamento": "Pix | Cartao | Boleto",
-        "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido",
+        "formaPagamento": "Pix",
+        "status": "Criado",
         "items": [
           {
             "itemId": 9999,
@@ -499,7 +554,6 @@ PATCH /api/v1/pedido/{pedidoId}
 ```jsonc
 // Request
 {
-  "pedidoId": 9999,
   "status": "Cancelado"
 }
 
@@ -511,7 +565,7 @@ PATCH /api/v1/pedido/{pedidoId}
     "pedidoId": 9999,
     "clienteId": 99999,
     "dataPedido": "2026-07-01T14:30:00-03:00",
-    "status": "Criado | EmProcessamento | Processado | Cancelado | Devolvido"
+    "status": "Cancelado"
   }
 }
 ```
