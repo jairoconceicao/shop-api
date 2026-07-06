@@ -18,10 +18,10 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 2. Design system
 
-- [ ] Implementar `Button`, `Input`, `Select`, `Checkbox`, `Card` e `Badge`.
-- [ ] Implementar `Modal`, `Toast`, `Pagination`, `Skeleton`, `EmptyState` e `Stepper`.
-- [ ] Criar estados de loading, vazio, erro e sucesso para os componentes base.
-- [ ] Definir padrões de foco, contraste e responsividade para desktop e mobile.
+- [x] Implementar `Button`, `Input`, `Select`, `Checkbox`, `Card` e `Badge`.
+- [x] Implementar `Modal`, `Toast`, `Pagination`, `Skeleton`, `EmptyState` e `Stepper`.
+- [x] Criar estados de loading, vazio, erro e sucesso para os componentes base.
+- [x] Definir padrões de foco, contraste e responsividade para desktop e mobile.
 
 ### Fase 3. Autenticação e sessão
 
@@ -50,11 +50,11 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 6. Pedidos
 
-- [ ] Criar schemas Zod para filtros de busca de pedidos.
-- [ ] Implementar listagem de pedidos por CPF com paginação.
-- [ ] Implementar consulta de pedido por ID.
-- [ ] Implementar cancelamento de pedido.
-- [ ] Traduzir `FormaPagamento` e `PedidoStatus` para textos amigáveis.
+- [x] Criar schemas Zod para filtros de busca de pedidos.
+- [x] Implementar listagem de pedidos por CPF com paginação.
+- [x] Implementar consulta de pedido por ID.
+- [x] Implementar cancelamento de pedido.
+- [x] Traduzir `FormaPagamento` e `PedidoStatus` para textos amigáveis.
 
 ### Fase 7. Cliente
 
@@ -63,6 +63,11 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 - [ ] Implementar consulta de cliente por ID e por CPF.
 - [ ] Implementar atualização de cliente.
 - [ ] Implementar exclusão de conta do cliente.
+
+Estado atual:
+
+- A rota `/cliente` ainda está reservada com `PlaceholderPage`.
+- Os fluxos dessa fase seguem pendentes na implementação atual.
 
 ### Fase 8. Qualidade e testes
 
