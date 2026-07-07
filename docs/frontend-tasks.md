@@ -58,16 +58,16 @@ Escopo exclusivo do frontend. O backend já está implementado e disponível em 
 
 ### Fase 7. Cliente
 
-- [ ] Criar schemas Zod para cadastro e atualização de cliente.
-- [ ] Implementar cadastro de cliente.
-- [ ] Implementar consulta de cliente por ID e por CPF.
-- [ ] Implementar atualização de cliente.
-- [ ] Implementar exclusão de conta do cliente.
+- [x] Criar schemas Zod para cadastro e atualização de cliente.
+- [x] Implementar cadastro de cliente.
+- [x] Implementar consulta de cliente por ID e por CPF.
+- [x] Implementar atualização de cliente.
+- [x] Implementar exclusão de conta do cliente.
 
 Estado atual:
 
-- A rota `/cliente` ainda está reservada com `PlaceholderPage`.
-- Os fluxos dessa fase seguem pendentes na implementação atual.
+- A rota `/cliente` agora entrega o fluxo completo de cadastro, consulta, atualização e exclusão.
+- Os fluxos da fase 7 foram concluídos no frontend.
 
 ### Fase 8. Qualidade e testes
 
@@ -88,3 +88,4 @@ Estado atual:
 6. Pedidos.
 7. Cliente.
 8. Testes e ajustes finais.
+

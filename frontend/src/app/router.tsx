@@ -1,11 +1,11 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
+import { CustomerPage } from "@/pages/CustomerPage";
 import { CatalogPage } from "@/pages/CatalogPage";
 import { CartPage } from "@/pages/CartPage";
 import { CheckoutPage } from "@/pages/CheckoutPage";
 import { LoginPage } from "@/pages/LoginPage";
-import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { OrderDetailPage } from "@/pages/OrderDetailPage";
 import { OrdersPage } from "@/pages/OrdersPage";
 import { ProductDetailPage } from "@/pages/ProductDetailPage";
@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
           { path: "checkout", element: <CheckoutPage /> },
           { path: "pedidos", element: <OrdersPage /> },
           { path: "pedidos/:id", element: <OrderDetailPage /> },
-          { path: "cliente", element: <PlaceholderPage title="Cliente" /> },
+          { path: "cliente", element: <CustomerPage /> },
         ],
       },
       { path: "*", element: <NotFoundPage /> },
