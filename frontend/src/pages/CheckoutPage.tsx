@@ -151,7 +151,13 @@ export function CheckoutPage() {
     let active = true;
     setDetailsLoading(true);
 
-    Promise.allSettled(currentCart.items.map((item) => getProductById(item.productId))).then((results) => {
+    if (!context?.token) {
+      setProductDetails({});
+      setDetailsLoading(false);
+      return;
+    }
+
+    Promise.allSettled(currentCart.items.map((item) => getProductById(item.productId, context.token))).then((results) => {
       if (!active) {
         return;
       }
@@ -171,7 +177,7 @@ export function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [currentCart]);
+  }, [context?.token, currentCart]);
 
   const itemsWithDetails = useMemo(() => {
     if (!currentCart) {
@@ -560,3 +566,6 @@ export function CheckoutPage() {
     </div>
   );
 }
+
+
+

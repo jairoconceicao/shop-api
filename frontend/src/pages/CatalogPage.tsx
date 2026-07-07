@@ -14,6 +14,7 @@ import {
   type CatalogSort,
   type CatalogStockFilter,
 } from "@/features/catalog";
+import { useAuthStore } from "@/features/auth/auth.store";
 import { getCatalogPage } from "@/features/catalog/catalog.api";
 
 const PAGE_SIZE = 12;
@@ -165,6 +166,7 @@ function CatalogSkeleton() {
 
 export function CatalogPage() {
   const location = useLocation();
+  const sessionToken = useAuthStore((state) => state.session?.token ?? null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [pageData, setPageData] = useState<Awaited<ReturnType<typeof getCatalogPage>> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,7 +185,12 @@ export function CatalogPage() {
       setError(null);
 
       try {
-        const data = await getCatalogPage(page, PAGE_SIZE);
+        if (!sessionToken) {
+          setError("Sessão inválida. Faça login novamente.");
+          return;
+        }
+
+        const data = await getCatalogPage(page, PAGE_SIZE, sessionToken);
         if (!active) {
           return;
         }
@@ -207,7 +214,7 @@ export function CatalogPage() {
     return () => {
       active = false;
     };
-  }, [page]);
+  }, [page, sessionToken]);
 
   const visibleProducts = useMemo(() => {
     if (!pageData) {
@@ -388,3 +395,10 @@ export function CatalogPage() {
     </div>
   );
 }
+
+
+
+
+
+
+

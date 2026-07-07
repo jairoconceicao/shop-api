@@ -120,7 +120,11 @@ export function ProductDetailPage() {
       setError(null);
 
       try {
-        const data = await getProductById(productId);
+        if (!session?.token) {
+          throw new Error("Sessão ausente.");
+        }
+
+        const data = await getProductById(productId, session.token);
         if (!active) {
           return;
         }
@@ -157,7 +161,7 @@ export function ProductDetailPage() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, session?.token]);
 
   const canAddToCart = Boolean(product && context && product.stock > 0);
   const canIncreaseQuantity = Boolean(product && product.stock > 0 && quantity < product.stock);
@@ -217,7 +221,13 @@ export function ProductDetailPage() {
             setIsLoading(true);
             setError(null);
 
-            void getProductById(id)
+            if (!session?.token) {
+              setError("Sessão ausente.");
+              setIsLoading(false);
+              return;
+            }
+
+            void getProductById(id, session.token)
               .then((data) => setProduct(data))
               .catch((retryError) =>
                 setError(retryError instanceof Error ? retryError.message : "Não foi possível carregar o produto."),
@@ -339,4 +349,7 @@ export function ProductDetailPage() {
     </div>
   );
 }
+
+
+
 

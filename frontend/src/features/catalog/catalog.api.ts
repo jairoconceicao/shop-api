@@ -87,13 +87,15 @@ function mapDetail(product: z.infer<typeof productDetailSchema>): CatalogProduct
   };
 }
 
-export async function getCatalogPage(page: number, size: number): Promise<CatalogPageData> {
+export async function getCatalogPage(page: number, size: number, token: string): Promise<CatalogPageData> {
   return pagedCatalogResponseSchema.parse(
-    await requestJson<unknown>(`/produto?page=${page}&size=${size}`),
+    await requestJson<unknown>(`/produto?page=${page}&size=${size}`, { token }),
   );
 }
 
-export async function getProductById(id: string | number): Promise<CatalogProductDetail> {
-  return productDetailResponseSchema.parse(await requestJson<unknown>(`/produto/${id}`));
+export async function getProductById(id: string | number, token: string): Promise<CatalogProductDetail> {
+  return productDetailResponseSchema.parse(await requestJson<unknown>(`/produto/${id}`, { token }));
 }
+
+
 
