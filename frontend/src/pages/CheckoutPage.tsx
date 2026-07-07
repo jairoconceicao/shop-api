@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/shared/components/ui/Badge";
 import { Button } from "@/shared/components/ui/Button";
@@ -12,6 +12,7 @@ import { useAuthStore } from "@/features/auth/auth.store";
 import { catalogFeature, getProductById, type CatalogProductDetail } from "@/features/catalog";
 import { cartFeature, useCartStore } from "@/features/cart";
 import { checkoutFormSchema, createOrder, type CheckoutFormValues } from "@/features/checkout";
+import { getCustomerById, type CustomerDetail } from "@/features/customer";
 import { formatOrderStatus, formatPaymentMethod } from "@/features/orders";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -39,6 +40,30 @@ function formatDate(value: string) {
 
 function getCartItemSubtotal(quantity: number, unitValue: number) {
   return quantity * unitValue;
+}
+
+function buildEmptyCheckoutAddress(): CheckoutFormValues["address"] {
+  return {
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    cep: "",
+    bairro: "",
+    cidade: "",
+    uf: "",
+  };
+}
+
+function buildCheckoutAddress(customer: CustomerDetail): CheckoutFormValues["address"] {
+  return {
+    logradouro: customer.endereco.logradouro,
+    numero: customer.endereco.numero,
+    complemento: customer.endereco.complemento ?? "",
+    cep: customer.endereco.cep,
+    bairro: customer.endereco.bairro,
+    cidade: customer.endereco.cidade,
+    uf: customer.endereco.uf,
+  };
 }
 
 function CheckoutSkeleton() {
@@ -101,9 +126,11 @@ export function CheckoutPage() {
   const initializeCart = useCartStore((state) => state.initializeCart);
   const loadCurrentCart = useCartStore((state) => state.loadCurrentCart);
   const clearCurrentCart = useCartStore((state) => state.clearCurrentCart);
+  const prefilledAddressRef = useRef(false);
 
   const [productDetails, setProductDetails] = useState<Record<number, CatalogProductDetail>>({});
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [isLoadingCustomerAddress, setIsLoadingCustomerAddress] = useState(false);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [orderResult, setOrderResult] = useState<{
     orderId: number;
@@ -114,15 +141,7 @@ export function CheckoutPage() {
   } | null>(null);
   const [values, setValues] = useState<CheckoutFormValues>({
     paymentMethod: "Pix",
-    address: {
-      logradouro: "",
-      numero: "",
-      complemento: "",
-      cep: "",
-      bairro: "",
-      cidade: "",
-      uf: "",
-    },
+    address: buildEmptyCheckoutAddress(),
   });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutFieldName, string>>>({});
 
@@ -140,6 +159,55 @@ export function CheckoutPage() {
   useEffect(() => {
     void initializeCart(context);
   }, [context, initializeCart]);
+
+  useEffect(() => {
+    prefilledAddressRef.current = false;
+
+    if (!context?.token || !context.customerId) {
+      setIsLoadingCustomerAddress(false);
+      return;
+    }
+
+    let active = true;
+    setIsLoadingCustomerAddress(true);
+    setValues((current) => ({
+      ...current,
+      address: buildEmptyCheckoutAddress(),
+    }));
+
+    void getCustomerById(context.token, context.customerId)
+      .then((customer) => {
+        if (!active) {
+          return;
+        }
+
+        if (!prefilledAddressRef.current) {
+          setValues((current) => ({
+            ...current,
+            address: buildCheckoutAddress(customer),
+          }));
+        }
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+
+        toast.error(
+          "Não foi possível carregar o endereço cadastrado",
+          "Preencha os campos manualmente para concluir o checkout.",
+        );
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoadingCustomerAddress(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [context?.customerId, context?.token]);
 
   useEffect(() => {
     if (!currentCart?.items.length) {
@@ -217,6 +285,7 @@ export function CheckoutPage() {
   };
 
   const handleAddressChange = <K extends keyof CheckoutFormValues["address"]>(field: K, value: string) => {
+    prefilledAddressRef.current = true;
     setValues((current) => ({
       ...current,
       address: {
@@ -407,6 +476,13 @@ export function CheckoutPage() {
             <CardDescription>
               Os campos abaixo são validados com Zod antes do envio para a API.
             </CardDescription>
+            {isLoadingCustomerAddress ? (
+              <p className="text-sm text-spanish-green-600">Carregando o endereço cadastrado do cliente.</p>
+            ) : (
+              <p className="text-sm text-spanish-green-600">
+                O endereço do cadastro é preenchido automaticamente e pode ser ajustado antes do checkout.
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <form className="grid gap-4" onSubmit={submitOrder}>
@@ -566,6 +642,3 @@ export function CheckoutPage() {
     </div>
   );
 }
-
-
-
