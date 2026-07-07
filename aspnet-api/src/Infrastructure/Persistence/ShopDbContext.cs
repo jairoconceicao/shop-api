@@ -11,6 +11,14 @@ public class ShopDbContext : DbContext
     {
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>()
+            .HaveColumnType("timestamp without time zone");
+
+        base.ConfigureConventions(configurationBuilder);
+    }
+
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<Estoque> Estoques => Set<Estoque>();
