@@ -71,17 +71,17 @@ API.
 
 ### Fase 4. Pagina de produto
 
-- [ ] [T-031] Reorganizar o detalhe do produto em duas colunas no desktop e
+- [x] [T-031] Reorganizar o detalhe do produto em duas colunas no desktop e
   fluxo empilhado no mobile.
-- [ ] [T-032] Destacar imagem principal e galeria do produto.
-- [ ] [T-033] Destacar preco, parcelamento e disponibilidade de compra.
-- [ ] [T-034] Destacar CTAs de compra, quantidade e acao primaria no topo da
+- [x] [T-032] Destacar imagem principal e galeria do produto.
+- [x] [T-033] Destacar preco, parcelamento e disponibilidade de compra.
+- [x] [T-034] Destacar CTAs de compra, quantidade e acao primaria no topo da
   pagina.
-- [ ] [T-035] Melhorar a hierarquia visual de breadcrumb, avaliacao e
+- [x] [T-035] Melhorar a hierarquia visual de breadcrumb, avaliacao e
   informacoes complementares.
-- [ ] [T-036] Incluir secoes de especificacoes tecnicas e conteudos de apoio.
-- [ ] [T-037] Incluir blocos de confianca e informacoes auxiliares da compra.
-- [ ] [T-038] Revisar estados de carregamento, vazio e erro do detalhe do
+- [x] [T-036] Incluir secoes de especificacoes tecnicas e conteudos de apoio.
+- [x] [T-037] Incluir blocos de confianca e informacoes auxiliares da compra.
+- [x] [T-038] Revisar estados de carregamento, vazio e erro do detalhe do
   produto.
 
 ### Fase 5. Carrinho e checkout
@@ -163,5 +163,6 @@ O conjunto de tasks fica concluido quando:
 - Os fluxos existentes continuarem funcionando com os contratos atuais da API.
 - As sugestoes sem suporte de backend estiverem explicitamente registradas como
   `future`.
+
 
 
