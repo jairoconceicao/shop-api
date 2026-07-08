@@ -28,6 +28,8 @@ const checkoutSteps = [
   { title: "Confirmação", description: "Pedido criado e rastreável." },
 ];
 
+const checkoutProgressStep = 1;
+
 function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
@@ -74,7 +76,7 @@ function buildCheckoutAddress(customer: CustomerDetail): CheckoutFormValues["add
 function CheckoutSkeleton() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <Card>
+      <Card className="border-spanish-green-200 bg-white shadow-sm">
         <CardHeader>
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-9 w-3/5" />
@@ -91,7 +93,7 @@ function CheckoutSkeleton() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-spanish-green-200 bg-white shadow-sm">
         <CardHeader>
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-8 w-1/2" />
@@ -118,6 +120,14 @@ function CheckoutItemImage({ product }: { product?: CatalogProductDetail }) {
       </span>
     </div>
   );
+}
+
+function buildCheckoutFallbackDescription(product?: CatalogProductDetail) {
+  if (product?.description) {
+    return product.description.slice(0, 140);
+  }
+
+  return "Produto adicionado ao carrinho aguardando mais informações do catálogo.";
 }
 
 type CheckoutFieldName = keyof CheckoutFormValues["address"] | "paymentMethod";
@@ -435,7 +445,7 @@ export function CheckoutPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="space-y-4">
-        <Card>
+        <Card className="overflow-hidden border-spanish-green-200 bg-white shadow-sm">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant="info">Checkout</Badge>
@@ -450,12 +460,43 @@ export function CheckoutPage() {
               visível no desktop.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Stepper steps={checkoutSteps} currentStep={1} />
+          <CardContent className="space-y-5">
+            <Stepper steps={checkoutSteps} currentStep={checkoutProgressStep} />
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Total</p>
+                <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{formatCurrency(totalValue)}</p>
+              </div>
+              <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Produtos</p>
+                <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{currentCart.items.length}</p>
+              </div>
+              <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
+                  Quantidade
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{totalQuantity}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        {error ? (
+          <Card className="border-amber-200 bg-amber-50 shadow-sm">
+            <CardHeader className="gap-3">
+              <Badge variant="warning">Sincronização</Badge>
+              <CardTitle className="text-amber-950">O carrinho foi carregado, mas a API retornou um erro</CardTitle>
+              <CardDescription className="text-amber-900">{error}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" onClick={handleLoadCart} isLoading={isLoading}>
+                Tentar sincronizar novamente
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card className="border-spanish-green-200 bg-white shadow-sm">
           <CardHeader>
             <Badge variant="neutral">Dados de entrega</Badge>
             <CardTitle>Endereço e pagamento</CardTitle>
@@ -472,7 +513,7 @@ export function CheckoutPage() {
           </CardHeader>
           <CardContent>
             <form className="grid gap-5" onSubmit={submitOrder}>
-              <div className="rounded-3xl bg-spanish-green-50 p-4 sm:p-5">
+              <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4 sm:p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-spanish-green-500">
@@ -539,7 +580,7 @@ export function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-spanish-green-50 p-4 sm:p-5">
+              <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4 sm:p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-spanish-green-500">
@@ -587,8 +628,8 @@ export function CheckoutPage() {
         </Card>
       </section>
 
-      <aside className="space-y-4 lg:sticky lg:top-28 self-start">
-        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
+      <aside className="space-y-4 self-start lg:sticky lg:top-28">
+        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50 shadow-sm">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Resumo fixo
@@ -607,9 +648,7 @@ export function CheckoutPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                  Produtos
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">Produtos</p>
                 <p className="mt-2 text-lg font-semibold text-white">{currentCart.items.length}</p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
@@ -625,7 +664,7 @@ export function CheckoutPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-spanish-green-200 bg-white shadow-sm">
           <CardHeader>
             <Badge variant="info">Carrinho</Badge>
             <CardTitle>Revisão do pedido</CardTitle>
@@ -635,20 +674,29 @@ export function CheckoutPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {itemsWithDetails.map((item) => (
-              <div key={item.itemId} className="flex gap-3 rounded-2xl border border-spanish-green-200 bg-spanish-green-50 p-3">
+              <div
+                key={item.itemId}
+                className="grid gap-3 rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-3 sm:grid-cols-[72px_1fr]"
+              >
                 <div className="size-16 overflow-hidden rounded-2xl bg-white">
                   <CheckoutItemImage product={item.product ?? undefined} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-spanish-green-950">
-                    {item.product?.title ?? `Produto ${item.productId}`}
-                  </p>
-                  <p className="text-xs text-spanish-green-600">
-                    {item.quantity} x {formatCurrency(item.unitValue)}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-spanish-green-950">
-                    {formatCurrency(getCartItemSubtotal(item.quantity, item.unitValue))}
-                  </p>
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-spanish-green-950">
+                      {item.product?.title ?? `Produto ${item.productId}`}
+                    </p>
+                    <Badge variant="neutral">Qtd. {item.quantity}</Badge>
+                  </div>
+                  <p className="text-xs text-spanish-green-600">{buildCheckoutFallbackDescription(item.product ?? undefined)}</p>
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-medium text-spanish-green-700">
+                      {item.quantity} x {formatCurrency(item.unitValue)}
+                    </span>
+                    <span className="font-semibold text-spanish-green-950">
+                      {formatCurrency(getCartItemSubtotal(item.quantity, item.unitValue))}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -658,5 +706,4 @@ export function CheckoutPage() {
     </div>
   );
 }
-
 

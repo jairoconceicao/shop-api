@@ -4,6 +4,7 @@ import { Badge } from "@/shared/components/ui/Badge";
 import { Button } from "@/shared/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/Card";
 import { EmptyState } from "@/shared/components/ui/EmptyState";
+import { Modal } from "@/shared/components/ui/Modal";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
 import { toast } from "@/shared/components/ui/Toast";
 import { useAuthStore } from "@/features/auth/auth.store";
@@ -59,7 +60,7 @@ function getCartItemSubtotal(quantity: number, unitValue: number) {
 function CartSkeleton() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <Card>
+      <Card className="border-spanish-green-200 bg-white shadow-sm">
         <CardHeader>
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-9 w-3/5" />
@@ -78,7 +79,7 @@ function CartSkeleton() {
           ))}
         </CardContent>
       </Card>
-      <Card>
+      <Card className="border-spanish-green-200 bg-white shadow-sm">
         <CardHeader>
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-8 w-1/2" />
@@ -107,6 +108,14 @@ function CartItemImage({ product }: { product?: CatalogProductDetail }) {
   );
 }
 
+function buildCartFallbackDescription(product?: CatalogProductDetail) {
+  if (product?.description) {
+    return product.description.slice(0, 140);
+  }
+
+  return "Produto adicionado ao carrinho aguardando mais informações do catálogo.";
+}
+
 export function CartPage() {
   const navigate = useNavigate();
   const session = useAuthStore((state) => state.session);
@@ -122,6 +131,11 @@ export function CartPage() {
 
   const [productDetails, setProductDetails] = useState<Record<number, CatalogProductDetail>>({});
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    itemId: number;
+    title: string;
+    quantity: number;
+  } | null>(null);
 
   const context = useMemo(() => {
     if (!session?.token || !session.customerId) {
@@ -159,8 +173,7 @@ export function CartPage() {
         return;
       }
 
-      const nextDetails: Record<number, CatalogProductDetail> = {}
-;
+      const nextDetails: Record<number, CatalogProductDetail> = {};
 
       results.forEach((result, index) => {
         if (result.status === "fulfilled") {
@@ -248,6 +261,18 @@ export function CartPage() {
     }
   };
 
+  const confirmRemoveItem = async () => {
+    if (!pendingRemoval) {
+      return;
+    }
+
+    try {
+      await handleRemoveItem(pendingRemoval.itemId);
+    } finally {
+      setPendingRemoval(null);
+    }
+  };
+
   if (isLoading) {
     return <CartSkeleton />;
   }
@@ -285,11 +310,11 @@ export function CartPage() {
   if (!currentCart || currentCart.items.length === 0) {
     return (
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <Card className="overflow-hidden border-spanish-green-200 bg-white">
+        <Card className="overflow-hidden border-spanish-green-200 bg-white shadow-sm">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant="info">Carrinho</Badge>
-              <Badge variant="neutral">Vitrine pronta</Badge>
+              <Badge variant="neutral">Compra guiada</Badge>
             </div>
             <CardTitle className="text-3xl sm:text-4xl">Seu carrinho está vazio</CardTitle>
             <CardDescription className="max-w-3xl text-base">
@@ -304,7 +329,7 @@ export function CartPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
+        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50 shadow-sm">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Próximos passos
@@ -334,7 +359,7 @@ export function CartPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <section className="space-y-4">
-        <Card>
+        <Card className="overflow-hidden border-spanish-green-200 bg-white shadow-sm">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant="info">Carrinho</Badge>
@@ -350,25 +375,19 @@ export function CartPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-3xl bg-spanish-green-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Itens
-              </p>
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Itens</p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{currentCart.items.length}</p>
             </div>
-            <div className="rounded-3xl bg-spanish-green-50 p-4">
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
                 Quantidade
               </p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{totalQuantity}</p>
             </div>
-            <div className="rounded-3xl bg-spanish-green-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Total
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-spanish-green-950">
-                {formatCurrency(totalValue)}
-              </p>
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Total</p>
+              <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{formatCurrency(totalValue)}</p>
             </div>
           </CardContent>
         </Card>
@@ -391,11 +410,12 @@ export function CartPage() {
             const stock = item.product?.stock;
             const unitSubtotal = getCartItemSubtotal(item.quantity, item.unitValue);
             const canIncrement = stock === undefined || item.quantity < stock;
+            const productTitle = item.product?.title ?? `Produto ${item.productId}`;
 
             return (
-              <Card key={item.itemId} className="overflow-hidden">
-                <CardContent className="grid gap-4 p-4 sm:grid-cols-[108px_1fr] sm:p-5">
-                  <div className="overflow-hidden rounded-3xl bg-spanish-green-100">
+              <Card key={item.itemId} className="overflow-hidden border-spanish-green-200 bg-white shadow-sm">
+                <CardContent className="grid gap-4 p-4 sm:grid-cols-[124px_1fr] sm:p-5">
+                  <div className="overflow-hidden rounded-[1.75rem] border border-spanish-green-200 bg-spanish-green-50">
                     <div className="aspect-square">
                       <CartItemImage product={item.product ?? undefined} />
                     </div>
@@ -408,15 +428,12 @@ export function CartPage() {
                           <Badge variant={getStockVariant(stock)}>{getStockLabel(stock)}</Badge>
                           <Badge variant="neutral">Item #{item.itemId}</Badge>
                         </div>
-                        <h3 className="text-xl font-semibold tracking-tight text-spanish-green-950">
-                          {item.product?.title ?? `Produto ${item.productId}`}
-                        </h3>
+                        <h3 className="text-xl font-semibold tracking-tight text-spanish-green-950">{productTitle}</h3>
                         <p className="text-sm leading-6 text-spanish-green-700">
-                          {item.product?.description?.slice(0, 140) ??
-                            "Produto adicionado ao carrinho aguardando mais informações do catálogo."}
+                          {buildCartFallbackDescription(item.product ?? undefined)}
                         </p>
                       </div>
-                      <div className="rounded-3xl bg-spanish-green-50 px-4 py-3 text-right">
+                      <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 px-4 py-3 text-right">
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
                           Subtotal
                         </p>
@@ -437,6 +454,7 @@ export function CartPage() {
                             size="sm"
                             onClick={() => handleQuantityChange(item.itemId, item.quantity - 1)}
                             disabled={isSubmitting || item.quantity <= 1}
+                            aria-label={`Diminuir quantidade de ${productTitle}`}
                           >
                             -
                           </Button>
@@ -448,13 +466,14 @@ export function CartPage() {
                             size="sm"
                             onClick={() => handleQuantityChange(item.itemId, item.quantity + 1)}
                             disabled={isSubmitting || !canIncrement}
+                            aria-label={`Aumentar quantidade de ${productTitle}`}
                           >
                             +
                           </Button>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl bg-spanish-green-50 px-4 py-3">
+                      <div className="rounded-2xl border border-spanish-green-200 bg-spanish-green-50 px-4 py-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
                           Valor unitário
                         </p>
@@ -474,7 +493,13 @@ export function CartPage() {
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={() => handleRemoveItem(item.itemId)}
+                          onClick={() =>
+                            setPendingRemoval({
+                              itemId: item.itemId,
+                              title: productTitle,
+                              quantity: item.quantity,
+                            })
+                          }
                           isLoading={isSubmitting}
                         >
                           Remover
@@ -489,8 +514,8 @@ export function CartPage() {
         </div>
       </section>
 
-      <aside className="space-y-4 lg:sticky lg:top-28 self-start">
-        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
+      <aside className="space-y-4 self-start lg:sticky lg:top-28">
+        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50 shadow-sm">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Resumo
@@ -509,9 +534,7 @@ export function CartPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                  Itens
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">Itens</p>
                 <p className="mt-2 text-lg font-semibold text-white">{currentCart.items.length}</p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
@@ -527,7 +550,7 @@ export function CartPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-spanish-green-200 bg-white shadow-sm">
           <CardHeader>
             <Badge variant="info">Checkout</Badge>
             <CardTitle>Pronto para finalizar</CardTitle>
@@ -556,8 +579,52 @@ export function CartPage() {
           </CardContent>
         </Card>
       </aside>
+
+      <Modal
+        open={pendingRemoval !== null}
+        title="Remover item do carrinho"
+        description={
+          pendingRemoval
+            ? `Confirme a remoção de ${pendingRemoval.quantity} unidade(s) de ${pendingRemoval.title}.`
+            : undefined
+        }
+        onClose={() => setPendingRemoval(null)}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setPendingRemoval(null)} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={() => void confirmRemoveItem()} isLoading={isSubmitting}>
+              Remover item
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
+              Ação definitiva
+            </p>
+            <p className="mt-2 text-sm leading-6 text-spanish-green-700">
+              O item será removido do carrinho atual e você poderá adicioná-lo novamente depois, se desejar.
+            </p>
+          </div>
+          {pendingRemoval ? (
+            <div className="grid gap-3 rounded-3xl border border-spanish-green-200 bg-white p-4 sm:grid-cols-[auto_1fr] sm:items-center">
+              <div className="rounded-2xl border border-spanish-green-200 bg-spanish-green-50 px-4 py-3 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Qtd.</p>
+                <p className="mt-1 text-2xl font-semibold text-spanish-green-950">{pendingRemoval.quantity}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-spanish-green-950">{pendingRemoval.title}</p>
+                <p className="mt-1 text-sm leading-6 text-spanish-green-700">
+                  O carrinho permanecerá sincronizado após a atualização da API.
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
     </div>
   );
 }
-
-
