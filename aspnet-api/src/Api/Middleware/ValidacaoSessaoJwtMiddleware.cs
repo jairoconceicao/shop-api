@@ -56,7 +56,7 @@ public sealed class ValidacaoSessaoJwtMiddleware
             return;
         }
 
-        var agora = timeProvider.GetUtcNow().UtcDateTime;
+        var agora = timeProvider.GetLocalNow().DateTime;
         if (sessao.EstaAtiva(agora))
         {
             await _next(context);

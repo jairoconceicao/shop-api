@@ -17,7 +17,7 @@ public class Usuario
 
     public static Usuario Create(long clienteId, string email, string senhaHash)
     {
-        var agora = DateTime.UtcNow;
+        var agora = DateTime.Now;
         return new Usuario
         {
             ClienteId = clienteId,
@@ -52,7 +52,7 @@ public class Usuario
         }
 
         SenhaHash = senhaHash;
-        AtualizadoEm = DateTime.UtcNow;
+        AtualizadoEm = DateTime.Now;
         return Result.Success("Senha atualizada com sucesso.");
     }
 }

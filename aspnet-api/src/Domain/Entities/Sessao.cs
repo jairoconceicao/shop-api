@@ -24,7 +24,7 @@ public class Sessao
             return Result<Sessao>.Failure("Sessao invalida.", notifications);
         }
 
-        var agora = DateTime.UtcNow;
+        var agora = DateTime.Now;
         return Result<Sessao>.Success(new Sessao
         {
             Id = 0,
@@ -59,7 +59,7 @@ public class Sessao
             });
         }
 
-        RevogadaEm = DateTime.UtcNow;
+        RevogadaEm = DateTime.Now;
         return Result.Success("Sessao revogada com sucesso.");
     }
 
@@ -82,7 +82,7 @@ public class Sessao
             notifications.Add(new Notification("SESSAO_JTI_OBRIGATORIO", "Identificador do token e obrigatorio.", nameof(Jti)));
         }
 
-        if (expiraEm <= DateTime.UtcNow)
+        if (expiraEm <= DateTime.Now)
         {
             notifications.Add(new Notification("SESSAO_EXPIRACAO_INVALIDA", "Expiracao da sessao deve ser futura.", nameof(ExpiraEm)));
         }

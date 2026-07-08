@@ -51,7 +51,7 @@ public class UsuarioRepositoryTests
             "atualizado@exemplo.com",
             "HASH::atualizado",
             usuario.CriadoEm,
-            DateTime.UtcNow);
+            DateTime.Now);
 
         repository.Update(atualizado);
         await context.SaveChangesAsync();

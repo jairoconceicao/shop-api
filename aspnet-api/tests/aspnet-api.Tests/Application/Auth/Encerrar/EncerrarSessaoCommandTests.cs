@@ -87,7 +87,7 @@ public class EncerrarSessaoCommandTests
 
     private static Sessao SeedSessao(ShopDbContext context)
     {
-        var sessao = Sessao.Create(1, Guid.NewGuid().ToString("N"), DateTime.UtcNow.AddHours(1)).Data!;
+        var sessao = Sessao.Create(1, Guid.NewGuid().ToString("N"), DateTime.Now.AddHours(1)).Data!;
         context.Sessoes.Add(sessao);
         context.SaveChanges();
         return sessao;

@@ -14,8 +14,8 @@ internal sealed class JwtTokenBuilder
     private string _clienteId = string.Empty;
     private string _emissor = string.Empty;
     private string _audience = string.Empty;
-    private DateTime _emissao = DateTime.UtcNow;
-    private DateTime _expiracao = DateTime.UtcNow.AddHours(1);
+    private DateTime _emissao = DateTime.Now;
+    private DateTime _expiracao = DateTime.Now.AddHours(1);
 
     public JwtTokenBuilder(JwtOptions options)
     {

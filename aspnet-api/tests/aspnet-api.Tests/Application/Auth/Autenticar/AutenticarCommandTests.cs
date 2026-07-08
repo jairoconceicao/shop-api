@@ -115,7 +115,7 @@ public class AutenticarCommandTests
             Assert.Equal(usuarioId, sessao.UsuarioId);
             Assert.False(string.IsNullOrWhiteSpace(sessao.Jti));
             Assert.Null(sessao.RevogadaEm);
-            Assert.True(sessao.ExpiraEm > DateTime.UtcNow);
+            Assert.True(sessao.ExpiraEm > DateTime.Now);
         }
     }
 
@@ -160,7 +160,7 @@ public class AutenticarCommandTests
         public JwtToken Gerar(JwtDescriptor descriptor, TimeSpan duracao)
         {
             var jti = Guid.NewGuid().ToString("N");
-            var expiraEm = DateTime.UtcNow.Add(duracao);
+            var expiraEm = DateTime.Now.Add(duracao);
             var token = $"TOKEN.{descriptor.UsuarioId}.{descriptor.ClienteId}.{descriptor.Email}.{jti}";
             return new JwtToken(token, jti, expiraEm);
         }

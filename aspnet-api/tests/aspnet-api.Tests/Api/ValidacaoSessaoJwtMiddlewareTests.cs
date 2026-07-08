@@ -35,7 +35,7 @@ public class ValidacaoSessaoJwtMiddlewareTests
             var httpContext = CreateHttpContext(sessao.Jti, sessao.UsuarioId);
             var provider = CreateSessaoAtualProvider(httpContext);
 
-            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.UtcNow));
+            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.Now));
 
             Assert.Equal(StatusCodes.Status204NoContent, httpContext.Response.StatusCode);
             Assert.Null((await context.Sessoes.SingleAsync()).RevogadaEm);
@@ -56,7 +56,7 @@ public class ValidacaoSessaoJwtMiddlewareTests
             var httpContext = CreateHttpContext(sessao.Jti, sessao.UsuarioId);
             var provider = CreateSessaoAtualProvider(httpContext);
 
-            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.UtcNow));
+            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.Now));
 
             Assert.Equal(StatusCodes.Status401Unauthorized, httpContext.Response.StatusCode);
 
@@ -82,7 +82,7 @@ public class ValidacaoSessaoJwtMiddlewareTests
             var httpContext = CreateHttpContext("jti-inexistente", usuarioId: 1);
             var provider = CreateSessaoAtualProvider(httpContext);
 
-            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.UtcNow));
+            await middleware.InvokeAsync(httpContext, provider, new SessaoRepository(context), new UnitOfWork(context), new FixedTimeProvider(DateTimeOffset.Now));
 
             Assert.Equal(StatusCodes.Status401Unauthorized, httpContext.Response.StatusCode);
 
@@ -110,7 +110,7 @@ public class ValidacaoSessaoJwtMiddlewareTests
 
     private static Sessao SeedSessaoAtiva(ShopDbContext context)
     {
-        var sessao = Sessao.Create(1, Guid.NewGuid().ToString("N"), DateTime.UtcNow.AddHours(1)).Data!;
+        var sessao = Sessao.Create(1, Guid.NewGuid().ToString("N"), DateTime.Now.AddHours(1)).Data!;
         context.Sessoes.Add(sessao);
         context.SaveChanges();
         return sessao;
@@ -118,7 +118,7 @@ public class ValidacaoSessaoJwtMiddlewareTests
 
     private static Sessao SeedSessaoExpirada(ShopDbContext context)
     {
-        var sessao = Sessao.Reconstituir(1, 1, Guid.NewGuid().ToString("N"), DateTime.UtcNow.AddHours(-2), DateTime.UtcNow.AddMinutes(-5), null);
+        var sessao = Sessao.Reconstituir(1, 1, Guid.NewGuid().ToString("N"), DateTime.Now.AddHours(-2), DateTime.Now.AddMinutes(-5), null);
         context.Sessoes.Add(sessao);
         context.SaveChanges();
         return sessao;
@@ -134,11 +134,11 @@ public class ValidacaoSessaoJwtMiddlewareTests
         var context = new DefaultHttpContext
         {
             RequestServices = serviceProvider,
-            User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
+            User = new ClaimsPrincipal(new ClaimsIdentity(
+            [
                 new Claim(JwtRegisteredClaimNames.Jti, jti),
                 new Claim(JwtRegisteredClaimNames.Sub, usuarioId.ToString())
-            }, "Bearer"))
+            ], "Bearer"))
         };
 
         context.Request.Headers.Authorization = $"Bearer token-{jti}";
