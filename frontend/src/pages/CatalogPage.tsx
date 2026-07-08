@@ -24,8 +24,17 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
+const installmentFormatter = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 function formatCurrency(value: number) {
   return currencyFormatter.format(value);
+}
+
+function formatInstallment(value: number) {
+  return installmentFormatter.format(value);
 }
 
 function getStockLabel(stock: number) {
@@ -50,6 +59,18 @@ function getStockVariant(stock: number) {
   }
 
   return "success" as const;
+}
+
+function getPurchaseHint(stock: number) {
+  if (stock <= 0) {
+    return "Volte depois para ver reposição.";
+  }
+
+  if (stock <= 5) {
+    return "Compra rápida para não perder estoque.";
+  }
+
+  return "Disponível para compra imediata.";
 }
 
 function sortProducts(items: CatalogProductSummary[], sortBy: CatalogSort) {
@@ -85,6 +106,18 @@ function filterProducts(items: CatalogProductSummary[], query: string, stockFilt
   });
 }
 
+function buildPageSearchParams(query: string, page: number) {
+  const nextParams = new URLSearchParams();
+
+  if (query.trim()) {
+    nextParams.set("q", query.trim());
+  }
+
+  nextParams.set("page", String(page));
+
+  return nextParams;
+}
+
 function ProductCard({
   product,
   to,
@@ -95,12 +128,14 @@ function ProductCard({
   from: string;
 }) {
   const stockLabel = getStockLabel(product.stock);
+  const purchaseHint = getPurchaseHint(product.stock);
+  const installmentValue = product.price / 10;
 
   return (
     <Link
       to={to}
       state={{ from }}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-spanish-green-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200"
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-spanish-green-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-spanish-green-100">
         {product.imageUrl ? (
@@ -111,32 +146,51 @@ function ProductCard({
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(108,127,101,0.24),_rgba(23,31,20,0.08))]">
+          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(108,127,101,0.24),_rgba(23,31,20,0.08))] p-6">
             <span className="max-w-[80%] text-center text-sm font-semibold uppercase tracking-[0.22em] text-spanish-green-700">
               {product.title}
             </span>
           </div>
         )}
-        <div className="absolute left-4 top-4">
+
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <Badge variant={getStockVariant(product.stock)}>{stockLabel}</Badge>
+          <Badge variant="neutral" className="bg-white/90 text-spanish-green-700 ring-white/60">
+            Compra segura
+          </Badge>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-spanish-green-950">
             {product.title}
           </h3>
-          <p className="text-2xl font-semibold tracking-tight text-spanish-green-900">
-            {formatCurrency(product.price)}
-          </p>
+          <div className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight text-spanish-green-900">
+              {formatCurrency(product.price)}
+            </p>
+            <p className="text-sm text-spanish-green-600">
+              ou 10x de {formatInstallment(installmentValue)} sem juros
+            </p>
+          </div>
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-3 text-sm text-spanish-green-600">
-          <span>{product.stock > 0 ? `${product.stock} em estoque` : "Sem estoque"}</span>
-          <span className="font-semibold text-spanish-green-700 transition group-hover:text-spanish-green-900">
-            Ver detalhes
-          </span>
+        <div className="mt-auto rounded-3xl bg-spanish-green-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
+                Estoque
+              </p>
+              <p className="mt-1 text-sm font-semibold text-spanish-green-950">
+                {product.stock > 0 ? `${product.stock} unidades` : "Sem estoque"}
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-spanish-green-700 ring-1 ring-spanish-green-200 transition group-hover:bg-spanish-green-700 group-hover:text-white">
+              Ver oferta
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-spanish-green-700">{purchaseHint}</p>
         </div>
       </div>
     </Link>
@@ -152,7 +206,7 @@ function CatalogSkeleton() {
           <div className="space-y-3 p-5">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-6 w-4/5" />
-            <Skeleton className="h-7 w-1/2" />
+            <Skeleton className="h-8 w-1/2" />
             <div className="flex items-center justify-between gap-3">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-20" />
@@ -171,11 +225,17 @@ export function CatalogPage() {
   const [pageData, setPageData] = useState<Awaited<ReturnType<typeof getCatalogPage>> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [stockFilter, setStockFilter] = useState<CatalogStockFilter>("all");
   const [sortBy, setSortBy] = useState<CatalogSort>("relevance");
 
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+
+  useEffect(() => {
+    if (location.pathname === "/catalogo") {
+      setQuery(searchParams.get("q") ?? "");
+    }
+  }, [location.pathname, searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -224,34 +284,60 @@ export function CatalogPage() {
     return sortProducts(filterProducts(pageData.items, query, stockFilter), sortBy);
   }, [pageData, query, sortBy, stockFilter]);
 
+  const totalWithStock = useMemo(
+    () => visibleProducts.filter((product) => product.stock > 0).length,
+    [visibleProducts],
+  );
+
+  const lowStockCount = useMemo(
+    () => visibleProducts.filter((product) => product.stock > 0 && product.stock <= 5).length,
+    [visibleProducts],
+  );
+
+  const averagePrice = useMemo(() => {
+    if (!visibleProducts.length) {
+      return 0;
+    }
+
+    return visibleProducts.reduce((sum, product) => sum + product.price, 0) / visibleProducts.length;
+  }, [visibleProducts]);
+
   const clearFilters = () => {
     setQuery("");
     setStockFilter("all");
     setSortBy("relevance");
+    setSearchParams(buildPageSearchParams("", 1), { replace: true });
   };
 
   const updatePage = (nextPage: number) => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set("page", String(nextPage));
-    setSearchParams(nextParams, { replace: true });
+    setSearchParams(buildPageSearchParams(query, nextPage), { replace: true });
+  };
+
+  const applySearch = () => {
+    setSearchParams(buildPageSearchParams(query, 1), { replace: true });
+  };
+
+  const quickFilter = (nextQuery: string) => {
+    setQuery(nextQuery);
+    setSearchParams(buildPageSearchParams(nextQuery, 1), { replace: true });
   };
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="overflow-hidden border-spanish-green-200 bg-white">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="success">Fase 4</Badge>
+              <Badge variant="success">Descoberta</Badge>
               <Badge variant="info">Catálogo</Badge>
-              <Badge variant="neutral">Paginado</Badge>
+              <Badge variant="neutral">Compra guiada</Badge>
             </div>
             <CardTitle className="text-3xl sm:text-4xl">
-              Catálogo pensado para descoberta, comparação e detalhe.
+              Encontre ofertas, compare preço e leve para o carrinho com menos atrito.
             </CardTitle>
             <CardDescription className="max-w-3xl text-base">
-              A listagem consulta a API v1, respeita paginação e navegação por produto e exibe estados
-              claros de carregamento, vazio e erro. Os filtros abaixo atuam sobre a página carregada.
+              A vitrine privilegia busca, comparação e sinais de compra. O filtro do topo passa por esta
+              página e a listagem responde com estoque, preço e navegação clara para o detalhe.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-3">
@@ -263,29 +349,27 @@ export function CatalogPage() {
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Total na API
+                Itens visíveis
               </p>
-              <p className="mt-2 text-2xl font-semibold text-spanish-green-950">
-                {pageData ? pageData.totalItems : "..."}
-              </p>
+              <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{visibleProducts.length}</p>
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Itens visíveis
+                Ticket médio
               </p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">
-                {visibleProducts.length}
+                {visibleProducts.length ? formatCurrency(averagePrice) : "—"}
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-wrap justify-between gap-3">
-            <p className="text-sm text-spanish-green-600">Baseado em {location.pathname}</p>
+            <p className="text-sm text-spanish-green-600">{location.pathname} • foco em navegação comercial</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" size="sm" onClick={clearFilters}>
                 Limpar filtros
               </Button>
               <Button variant="ghost" size="sm" onClick={() => updatePage(1)} disabled={page === 1}>
-                Ir para a primeira página
+                Primeira página
               </Button>
             </div>
           </CardFooter>
@@ -296,43 +380,100 @@ export function CatalogPage() {
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Filtros
             </Badge>
-            <CardTitle className="text-white">Refine rapidamente a página atual</CardTitle>
+            <CardTitle className="text-white">Refine a vitrine</CardTitle>
             <CardDescription className="text-spanish-green-100">
-              Busca por nome, estoque e ordenação para ajudar a localizar itens antes de abrir o detalhe.
+              Busque um produto específico ou filtre a página atual por disponibilidade e preço.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Input
-              label="Buscar na página"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ex.: notebook, headset, monitor"
-              className="bg-white"
-            />
+            <form className="grid gap-4" onSubmit={(event) => {
+              event.preventDefault();
+              applySearch();
+            }}>
+              <Input
+                label="Buscar na vitrine"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ex.: notebook, headset, monitor"
+                className="bg-white"
+              />
 
-            <Select
-              label="Estoque"
-              value={stockFilter}
-              onChange={(event) => setStockFilter(event.target.value as CatalogStockFilter)}
-              className="bg-white"
-            >
-              <option value="all">Todos os itens</option>
-              <option value="in-stock">Em estoque</option>
-              <option value="low-stock">Últimas unidades</option>
-              <option value="out-of-stock">Sem estoque</option>
-            </Select>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <button
+                  type="button"
+                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
+                  onClick={() => quickFilter("oferta")}
+                >
+                  oferta
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
+                  onClick={() => quickFilter("notebook")}
+                >
+                  notebook
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
+                  onClick={() => quickFilter("smartphone")}
+                >
+                  smartphone
+                </button>
+              </div>
 
-            <Select
-              label="Ordenação"
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value as CatalogSort)}
-              className="bg-white"
-            >
-              <option value="relevance">Relevância</option>
-              <option value="price-asc">Menor preço</option>
-              <option value="price-desc">Maior preço</option>
-              <option value="stock-desc">Maior estoque</option>
-            </Select>
+              <Select
+                label="Estoque"
+                value={stockFilter}
+                onChange={(event) => setStockFilter(event.target.value as CatalogStockFilter)}
+                className="bg-white"
+              >
+                <option value="all">Todos os itens</option>
+                <option value="in-stock">Em estoque</option>
+                <option value="low-stock">Últimas unidades</option>
+                <option value="out-of-stock">Sem estoque</option>
+              </Select>
+
+              <Select
+                label="Ordenação"
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as CatalogSort)}
+                className="bg-white"
+              >
+                <option value="relevance">Relevância</option>
+                <option value="price-asc">Menor preço</option>
+                <option value="price-desc">Maior preço</option>
+                <option value="stock-desc">Maior estoque</option>
+              </Select>
+
+              <Button type="submit" variant="secondary" className="justify-self-start bg-white text-spanish-green-800 hover:bg-spanish-green-50">
+                Aplicar busca
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <Card className="border-spanish-green-200 bg-white">
+          <CardContent className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Disponíveis</p>
+            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{totalWithStock}</p>
+            <p className="mt-2 text-sm leading-6 text-spanish-green-600">Itens prontos para compra na página atual.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-spanish-green-200 bg-white">
+          <CardContent className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Últimas unidades</p>
+            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{lowStockCount}</p>
+            <p className="mt-2 text-sm leading-6 text-spanish-green-600">Produtos que merecem destaque no carrinho.</p>
+          </CardContent>
+        </Card>
+        <Card className="border-spanish-green-200 bg-white">
+          <CardContent className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Filtro ativo</p>
+            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{query.trim() || "Todos"}</p>
+            <p className="mt-2 text-sm leading-6 text-spanish-green-600">A busca do topo também chega aqui via `q`.</p>
           </CardContent>
         </Card>
       </section>
@@ -343,7 +484,7 @@ export function CatalogPage() {
         ) : error ? (
           <EmptyState
             tone="error"
-            title="Falha ao carregar o catálogo"
+            title="Falha ao carregar a vitrine"
             description={error}
             action={{
               label: "Tentar novamente",
@@ -355,7 +496,7 @@ export function CatalogPage() {
           <EmptyState
             tone="empty"
             title="Nenhum produto encontrado"
-            description="A API respondeu sem itens para esta página."
+            description="A API respondeu sem itens para esta página. Tente navegar para outra página ou recarregar a listagem."
             action={{
               label: "Atualizar página",
               onClick: () => updatePage(page),
@@ -395,10 +536,4 @@ export function CatalogPage() {
     </div>
   );
 }
-
-
-
-
-
-
 
