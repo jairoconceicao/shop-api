@@ -103,17 +103,17 @@ API.
 
 ### Fase 6. Conta e pedidos
 
-- [ ] [T-049] Reorganizar a area do cliente em um hub com menu lateral ou
+- [x] [T-049] Reorganizar a area do cliente em um hub com menu lateral ou
   cards de atalho.
-- [ ] [T-050] Criar resumo visual da conta com status e ultimas atividades.
-- [ ] [T-051] Reutilizar o fluxo atual de cliente na rota `/account/profile`.
-- [ ] [T-052] Revisar a edicao de dados do cliente para o novo layout.
-- [ ] [T-053] Reaproveitar a listagem de pedidos para `/account/orders`.
-- [ ] [T-054] Reestruturar a exibicao da lista de pedidos com melhor
+- [x] [T-050] Criar resumo visual da conta com status e ultimas atividades.
+- [x] [T-051] Reutilizar o fluxo atual de cliente na rota `/account/profile`.
+- [x] [T-052] Revisar a edicao de dados do cliente para o novo layout.
+- [x] [T-053] Reaproveitar a listagem de pedidos para `/account/orders`.
+- [x] [T-054] Reestruturar a exibicao da lista de pedidos com melhor
   escaneabilidade.
-- [ ] [T-055] Reestruturar a pagina de detalhe do pedido com mais hierarquia
+- [x] [T-055] Reestruturar a pagina de detalhe do pedido com mais hierarquia
   visual.
-- [ ] [T-056] Exibir logout e status da conta com visual mais comercial.
+- [x] [T-056] Exibir logout e status da conta com visual mais comercial.
 
 ### Fase 7. Qualidade, acessibilidade e validacao
 

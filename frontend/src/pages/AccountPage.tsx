@@ -43,6 +43,47 @@ export function AccountPage() {
     [],
   );
 
+  const accountStatus = useMemo(
+    () => [
+      {
+        label: "Sessao",
+        value: session ? "Ativa" : "Inativa",
+        tone: session ? "success" : "neutral",
+      },
+      {
+        label: "Perfil",
+        value: session?.customerId ? `#${session.customerId}` : "Sem vinculo",
+        tone: session?.customerId ? "info" : "neutral",
+      },
+      {
+        label: "Carrinho",
+        value: currentCart ? `#${currentCart.cartId}` : "Nao sincronizado",
+        tone: currentCart ? "accent" : "neutral",
+      },
+    ],
+    [currentCart, session],
+  );
+
+  const recentActivities = useMemo(
+    () => [
+      {
+        title: "Conta pronta para uso",
+        description: session ? `Sessao autenticada com ${session.email}.` : "Nenhuma sessao ativa no momento.",
+      },
+      {
+        title: "Perfil",
+        description: session?.customerId
+          ? `Fluxo principal disponível em /account/profile para o cliente #${session.customerId}.`
+          : "A rota /account/profile continua disponivel para consulta e cadastro.",
+      },
+      {
+        title: "Pedidos",
+        description: `Historico consolidado em /account/orders com ${currentCart ? "carrinho sincronizado" : "sincronizacao pendente"}.`,
+      },
+    ],
+    [currentCart, session],
+  );
+
   const handleLogout = async () => {
     await logout();
     clearCurrentCart();
@@ -64,21 +105,30 @@ export function AccountPage() {
               Um ponto de entrada para dados pessoais, pedidos e ações da sessão ativa.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
+          <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Cliente</p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                 {session ? session.email : "Sem sessão"}
               </p>
+              <p className="mt-2 text-sm leading-6 text-spanish-green-600">
+                Acesso comercial centralizado para dados, pedidos e checkout.
+              </p>
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Token</p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">{session?.tokenType ?? "-"}</p>
+              <p className="mt-2 text-sm leading-6 text-spanish-green-600">
+                Sessão autenticada para os fluxos privados da loja.
+              </p>
             </div>
-            <div className="rounded-3xl bg-spanish-green-50 p-4 sm:col-span-2">
+            <div className="rounded-3xl bg-spanish-green-50 p-4 sm:col-span-2 xl:col-span-1">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Carrinho</p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                 {currentCart ? `#${currentCart.cartId}` : "Nenhum carrinho sincronizado"}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-spanish-green-600">
+                O estado atual da compra permanece visível nesta hub.
               </p>
             </div>
           </CardContent>
@@ -89,12 +139,38 @@ export function AccountPage() {
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Acesso rápido
             </Badge>
-            <CardTitle className="text-white">Atalhos da conta</CardTitle>
+            <CardTitle className="text-white">Painel da conta</CardTitle>
             <CardDescription className="text-spanish-green-100">
-              Navegue para os fluxos principais ou encerre a sessão atual.
+              Status, atividades recentes e atalhos para os fluxos principais.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-6">
+            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+              {accountStatus.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-100">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-white">{item.value}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-spanish-green-200">{item.tone}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-200">
+                Atividades recentes
+              </p>
+              <div className="grid gap-3">
+                {recentActivities.map((item) => (
+                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-spanish-green-100">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {accountCards.map((item) => (
               <Link
                 key={item.title}
@@ -102,14 +178,20 @@ export function AccountPage() {
                 aria-disabled={item.disabled || undefined}
                 className={[
                   "rounded-2xl border border-white/10 px-4 py-3 transition",
-                  item.disabled ? "pointer-events-none bg-white/5 text-spanish-green-200" : "bg-white/10 text-white hover:bg-white/15",
+                  item.disabled
+                    ? "pointer-events-none bg-white/5 text-spanish-green-200"
+                    : "bg-white/10 text-white hover:bg-white/15",
                 ].join(" ")}
               >
                 <p className="font-semibold">{item.title}</p>
                 <p className="mt-1 text-sm leading-6 text-spanish-green-100">{item.description}</p>
               </Link>
             ))}
-            <Button variant="secondary" onClick={handleLogout} className="mt-2 bg-white text-spanish-green-900 hover:bg-spanish-green-50">
+            <Button
+              variant="secondary"
+              onClick={handleLogout}
+              className="mt-2 bg-white text-spanish-green-900 hover:bg-spanish-green-50"
+            >
               Sair da conta
             </Button>
           </CardContent>
