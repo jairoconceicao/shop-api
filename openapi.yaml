@@ -407,6 +407,23 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ApiErrorResponse"
+  "/api/v1/categoria":
+    get:
+      tags:
+      - Categorias
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfCategoriaResponseArray"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
   "/api/v1/carrinho/{carrinhoId}":
     get:
       tags:
@@ -882,6 +899,19 @@ components:
           oneOf:
           - type: 'null'
           - "$ref": "#/components/schemas/CarrinhoResponse"
+    ApiResponseOfCategoriaResponseArray:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          oneOf:
+          - type: 'null'
+          - type: array
+            items:
+              "$ref": "#/components/schemas/CategoriaResponse"
     ApiResponseOfClienteDetalheResponse:
       type: object
       properties:
@@ -1046,6 +1076,19 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/CarrinhoItemResponse"
+    CategoriaResponse:
+      type: object
+      properties:
+        categoriaId:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        titulo:
+          type: string
+        descricao:
+          type: string
     CelularRequest:
       type: object
       properties:
@@ -1511,7 +1554,7 @@ components:
     CategoriaProdutoResponse:
       type: object
       properties:
-        id:
+        categoriaId:
           pattern: "^-?(?:0|[1-9]\\d*)$"
           type:
           - integer
@@ -1566,6 +1609,7 @@ tags:
 - name: Auth
 - name: Clientes
 - name: Produtos
+- name: Categorias
 - name: Carrinhos
 - name: Pedidos
 
