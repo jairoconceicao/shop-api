@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { Badge } from "@/shared/components/ui/Badge";
 import { Button } from "@/shared/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/Card";
@@ -8,14 +8,10 @@ import { Input } from "@/shared/components/ui/Input";
 import { Pagination } from "@/shared/components/ui/Pagination";
 import { Select } from "@/shared/components/ui/Select";
 import { Skeleton } from "@/shared/components/ui/Skeleton";
-import {
-  catalogFeature,
-  type CatalogProductSummary,
-  type CatalogSort,
-  type CatalogStockFilter,
-} from "@/features/catalog";
+import { catalogFeature, type CatalogPageData, type CatalogSort, type CatalogStockFilter } from "@/features/catalog";
 import { useAuthStore } from "@/features/auth/auth.store";
 import { getCatalogPage } from "@/features/catalog/catalog.api";
+import { ProductCard } from "@/shared/components/product/ProductCard";
 
 const PAGE_SIZE = 12;
 
@@ -24,56 +20,11 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-const installmentFormatter = new Intl.NumberFormat("pt-BR", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
 
-function formatInstallment(value: number) {
-  return installmentFormatter.format(value);
-}
-
-function getStockLabel(stock: number) {
-  if (stock <= 0) {
-    return "Indisponível";
-  }
-
-  if (stock <= 5) {
-    return "Últimas unidades";
-  }
-
-  return "Em estoque";
-}
-
-function getStockVariant(stock: number) {
-  if (stock <= 0) {
-    return "danger" as const;
-  }
-
-  if (stock <= 5) {
-    return "warning" as const;
-  }
-
-  return "success" as const;
-}
-
-function getPurchaseHint(stock: number) {
-  if (stock <= 0) {
-    return "Volte depois para ver reposição.";
-  }
-
-  if (stock <= 5) {
-    return "Compra rápida para não perder estoque.";
-  }
-
-  return "Disponível para compra imediata.";
-}
-
-function sortProducts(items: CatalogProductSummary[], sortBy: CatalogSort) {
+function sortProducts(items: CatalogPageData["items"], sortBy: CatalogSort) {
   const sorted = [...items];
 
   switch (sortBy) {
@@ -88,7 +39,7 @@ function sortProducts(items: CatalogProductSummary[], sortBy: CatalogSort) {
   }
 }
 
-function filterProducts(items: CatalogProductSummary[], query: string, stockFilter: CatalogStockFilter) {
+function filterProducts(items: CatalogPageData["items"], query: string, stockFilter: CatalogStockFilter) {
   const normalizedQuery = query.trim().toLowerCase();
 
   return items.filter((item) => {
@@ -118,91 +69,12 @@ function buildPageSearchParams(query: string, page: number) {
   return nextParams;
 }
 
-function ProductCard({
-  product,
-  to,
-  from,
-}: {
-  product: CatalogProductSummary;
-  to: string;
-  from: string;
-}) {
-  const stockLabel = getStockLabel(product.stock);
-  const purchaseHint = getPurchaseHint(product.stock);
-  const installmentValue = product.price / 10;
-
-  return (
-    <Link
-      to={to}
-      state={{ from }}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-spanish-green-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200"
-    >
-      <div className="relative aspect-[4/3] overflow-hidden bg-spanish-green-100">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(108,127,101,0.24),_rgba(23,31,20,0.08))] p-6">
-            <span className="max-w-[80%] text-center text-sm font-semibold uppercase tracking-[0.22em] text-spanish-green-700">
-              {product.title}
-            </span>
-          </div>
-        )}
-
-        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <Badge variant={getStockVariant(product.stock)}>{stockLabel}</Badge>
-          <Badge variant="neutral" className="bg-white/90 text-spanish-green-700 ring-white/60">
-            Compra segura
-          </Badge>
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-4 p-5">
-        <div className="space-y-3">
-          <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-spanish-green-950">
-            {product.title}
-          </h3>
-          <div className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight text-spanish-green-900">
-              {formatCurrency(product.price)}
-            </p>
-            <p className="text-sm text-spanish-green-600">
-              ou 10x de {formatInstallment(installmentValue)} sem juros
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto rounded-3xl bg-spanish-green-50 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Estoque
-              </p>
-              <p className="mt-1 text-sm font-semibold text-spanish-green-950">
-                {product.stock > 0 ? `${product.stock} unidades` : "Sem estoque"}
-              </p>
-            </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-spanish-green-700 ring-1 ring-spanish-green-200 transition group-hover:bg-spanish-green-700 group-hover:text-white">
-              Ver oferta
-            </span>
-          </div>
-          <p className="mt-3 text-sm leading-6 text-spanish-green-700">{purchaseHint}</p>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 function CatalogSkeleton() {
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 12 }, (_, index) => (
         <Card key={index} className="overflow-hidden">
-          <Skeleton className="aspect-[4/3] w-full rounded-none" />
+          <Skeleton className="aspect-square w-full rounded-none" />
           <div className="space-y-3 p-5">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-6 w-4/5" />
@@ -222,7 +94,7 @@ export function CatalogPage() {
   const location = useLocation();
   const sessionToken = useAuthStore((state) => state.session?.token ?? null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [pageData, setPageData] = useState<Awaited<ReturnType<typeof getCatalogPage>> | null>(null);
+  const [pageData, setPageData] = useState<CatalogPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -232,10 +104,8 @@ export function CatalogPage() {
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
   useEffect(() => {
-    if (location.pathname === "/products") {
-      setQuery(searchParams.get("q") ?? "");
-    }
-  }, [location.pathname, searchParams]);
+    setQuery(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -269,7 +139,7 @@ export function CatalogPage() {
       }
     }
 
-    loadPage();
+    void loadPage();
 
     return () => {
       active = false;
@@ -284,22 +154,16 @@ export function CatalogPage() {
     return sortProducts(filterProducts(pageData.items, query, stockFilter), sortBy);
   }, [pageData, query, sortBy, stockFilter]);
 
-  const totalWithStock = useMemo(
-    () => visibleProducts.filter((product) => product.stock > 0).length,
-    [visibleProducts],
-  );
+  const metrics = useMemo(() => {
+    const totalValue = visibleProducts.reduce((sum, product) => sum + product.price, 0);
+    const totalWithStock = visibleProducts.filter((product) => product.stock > 0).length;
+    const lowStockCount = visibleProducts.filter((product) => product.stock > 0 && product.stock <= 5).length;
 
-  const lowStockCount = useMemo(
-    () => visibleProducts.filter((product) => product.stock > 0 && product.stock <= 5).length,
-    [visibleProducts],
-  );
-
-  const averagePrice = useMemo(() => {
-    if (!visibleProducts.length) {
-      return 0;
-    }
-
-    return visibleProducts.reduce((sum, product) => sum + product.price, 0) / visibleProducts.length;
+    return {
+      averagePrice: visibleProducts.length ? totalValue / visibleProducts.length : 0,
+      totalWithStock,
+      lowStockCount,
+    };
   }, [visibleProducts]);
 
   const clearFilters = () => {
@@ -324,7 +188,7 @@ export function CatalogPage() {
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <Card className="overflow-hidden border-spanish-green-200 bg-white">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
@@ -336,29 +200,23 @@ export function CatalogPage() {
               Encontre ofertas, compare preço e leve para o carrinho com menos atrito.
             </CardTitle>
             <CardDescription className="max-w-3xl text-base">
-              A vitrine privilegia busca, comparação e sinais de compra. O filtro do topo passa por esta
-              página e a listagem responde com estoque, preço e navegação clara para o detalhe.
+              A listagem agora usa o mesmo cartão comercial da home, com destaque para preço, avaliação,
+              frete e CTA de compra.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-3xl bg-spanish-green-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Página atual
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Página atual</p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{page}</p>
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Itens visíveis
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Itens visíveis</p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">{visibleProducts.length}</p>
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Ticket médio
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Ticket médio</p>
               <p className="mt-2 text-2xl font-semibold text-spanish-green-950">
-                {visibleProducts.length ? formatCurrency(averagePrice) : "—"}
+                {visibleProducts.length ? formatCurrency(metrics.averagePrice) : "—"}
               </p>
             </div>
           </CardContent>
@@ -386,10 +244,13 @@ export function CatalogPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <form className="grid gap-4" onSubmit={(event) => {
-              event.preventDefault();
-              applySearch();
-            }}>
+            <form
+              className="grid gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                applySearch();
+              }}
+            >
               <Input
                 label="Buscar na vitrine"
                 value={query}
@@ -399,27 +260,20 @@ export function CatalogPage() {
               />
 
               <div className="flex flex-wrap gap-2 text-xs">
-                <button
-                  type="button"
-                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
-                  onClick={() => quickFilter("oferta")}
-                >
-                  oferta
-                </button>
-                <button
-                  type="button"
-                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
-                  onClick={() => quickFilter("notebook")}
-                >
-                  notebook
-                </button>
-                <button
-                  type="button"
-                  className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
-                  onClick={() => quickFilter("smartphone")}
-                >
-                  smartphone
-                </button>
+                {[
+                  "oferta",
+                  "notebook",
+                  "smartphone",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className="rounded-full bg-white/10 px-3 py-1 font-medium text-white transition hover:bg-white/15"
+                    onClick={() => quickFilter(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
               </div>
 
               <Select
@@ -458,14 +312,14 @@ export function CatalogPage() {
         <Card className="border-spanish-green-200 bg-white">
           <CardContent className="p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Disponíveis</p>
-            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{totalWithStock}</p>
+            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{metrics.totalWithStock}</p>
             <p className="mt-2 text-sm leading-6 text-spanish-green-600">Itens prontos para compra na página atual.</p>
           </CardContent>
         </Card>
         <Card className="border-spanish-green-200 bg-white">
           <CardContent className="p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Últimas unidades</p>
-            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{lowStockCount}</p>
+            <p className="mt-2 text-3xl font-semibold text-spanish-green-950">{metrics.lowStockCount}</p>
             <p className="mt-2 text-sm leading-6 text-spanish-green-600">Produtos que merecem destaque no carrinho.</p>
           </CardContent>
         </Card>
@@ -536,5 +390,3 @@ export function CatalogPage() {
     </div>
   );
 }
-
-

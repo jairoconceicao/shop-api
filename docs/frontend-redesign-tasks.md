@@ -54,19 +54,19 @@ API.
 - [x] [T-021] Criar bloco de ofertas em destaque para a home.
 - [x] [T-022] Criar bloco de categorias em destaque para a home.
 - [x] [T-023] Criar bloco de produtos em destaque para a home.
-- [ ] [T-024] Reaproveitar a listagem paginada atual como base do catalogo em
+- [x] [T-024] Reaproveitar a listagem paginada atual como base do catalogo em
   `/products`.
-- [ ] [T-025] Refatorar `ProductCard` para exibir imagem, nome e preco de forma
+- [x] [T-025] Refatorar `ProductCard` para exibir imagem, nome e preco de forma
   mais comercial.
-- [ ] [T-026] Adicionar avaliacao visual, parcelamento e frete gratis ao
+- [x] [T-026] Adicionar avaliacao visual, parcelamento e frete gratis ao
   `ProductCard`.
-- [ ] [T-027] Adicionar CTA de compra e navegacao consistente ao card de
+- [x] [T-027] Adicionar CTA de compra e navegacao consistente ao card de
   produto.
-- [ ] [T-028] Ajustar filtros, busca e paginação para uma navegacao simples no
+- [x] [T-028] Ajustar filtros, busca e paginação para uma navegacao simples no
   mobile.
-- [ ] [T-029] Atualizar breadcrumbs, CTAs e links internos para a nova
+- [x] [T-029] Atualizar breadcrumbs, CTAs e links internos para a nova
   nomenclatura de rotas.
-- [ ] [T-030] Revisar estados vazios e erros da listagem para refletir o novo
+- [x] [T-030] Revisar estados vazios e erros da listagem para refletir o novo
   layout.
 
 ### Fase 4. Pagina de produto
@@ -163,4 +163,5 @@ O conjunto de tasks fica concluido quando:
 - Os fluxos existentes continuarem funcionando com os contratos atuais da API.
 - As sugestoes sem suporte de backend estiverem explicitamente registradas como
   `future`.
+
 
