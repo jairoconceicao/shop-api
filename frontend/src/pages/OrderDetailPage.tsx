@@ -184,10 +184,10 @@ export function OrderDetailPage() {
     return (
       <EmptyState
         tone="error"
-        title="Falha ao abrir o pedido"
+        title="Falha ao abrir a compra"
         description={error ?? "Não foi possível carregar os dados do pedido."}
         action={{
-          label: "Voltar para pedidos",
+          label: "Voltar aos pedidos",
           onClick: () => navigate(backTarget, { replace: true }),
           variant: "secondary",
         }}
@@ -207,7 +207,7 @@ export function OrderDetailPage() {
           className="text-sm font-semibold text-spanish-green-700 hover:text-spanish-green-900"
           to={ordersFeature.routes.list}
         >
-          Ver todos os pedidos
+          Ver histórico de compras
         </Link>
       </div>
 
@@ -247,8 +247,8 @@ export function OrderDetailPage() {
 
         <Card>
           <CardHeader className="gap-4">
-            <CardTitle>Entrega e ações</CardTitle>
-            <CardDescription>Endereço de entrega, status atual e operação de cancelamento.</CardDescription>
+            <CardTitle>Entrega e acompanhamento</CardTitle>
+            <CardDescription>Endereço, status atual e cancelamento da compra.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-3xl border border-spanish-green-200 bg-white p-5">
@@ -269,23 +269,23 @@ export function OrderDetailPage() {
 
             <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50/70 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Status atual
+                Status da compra
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Badge variant={orderBadgeVariant(order.status)}>{formatOrderStatus(order.status)}</Badge>
                 <Badge variant="neutral">{formatPaymentMethod(order.paymentMethod)}</Badge>
               </div>
               <p className="mt-3 text-sm leading-6 text-spanish-green-700">
-                O cancelamento é enviado para a API com status `Cancelado`.
+                Cancelar a compra altera o status para `Cancelado`.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Button onClick={handleCancel} isLoading={isCancelling} disabled={!canCancel}>
-                Cancelar pedido
+                Cancelar compra
               </Button>
               <Button variant="secondary" onClick={() => navigate(ordersFeature.routes.list)}>
-                Voltar à lista
+                Voltar aos pedidos
               </Button>
             </div>
           </CardContent>
@@ -294,7 +294,7 @@ export function OrderDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Itens do pedido</CardTitle>
+          <CardTitle>Itens da compra</CardTitle>
           <CardDescription>Detalhamento dos produtos incluídos na compra.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -305,7 +305,7 @@ export function OrderDetailPage() {
             >
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Item
+                  Produto
                 </p>
                 <p className="mt-2 text-sm font-semibold text-spanish-green-950">Produto #{item.productId}</p>
               </div>
@@ -338,3 +338,5 @@ export function OrderDetailPage() {
     </div>
   );
 }
+
+

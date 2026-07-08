@@ -249,7 +249,7 @@ export function CustomerPage() {
       setActiveLookup(lookup);
 
       if (!options?.silent) {
-        toast.success("Cliente localizado", `${customer.nome} foi carregado com sucesso.`);
+        toast.success("Conta localizada", `${customer.nome} foi carregado com sucesso.`);
       }
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 404) {
@@ -280,7 +280,7 @@ export function CustomerPage() {
         "Informe um dado válido para a consulta.";
 
       setLookupError(message);
-      toast.error("Consulta inválida", message);
+      toast.error("Busca inválida", message);
       return;
     }
 
@@ -333,7 +333,7 @@ export function CustomerPage() {
         "Corrija os campos do cadastro.";
 
       setFormError(message);
-      toast.error("Cadastro inválido", message);
+      toast.error("Conta inválido", message);
       return;
     }
 
@@ -347,7 +347,7 @@ export function CustomerPage() {
         setCurrentCustomer(nextCustomer);
         setLookupValues({ customerId: String(nextCustomer.customerId), cpf: nextCustomer.cpf });
         setActiveLookup("id");
-        toast.success("Cliente atualizado", "Os dados do cliente foram salvos com sucesso.");
+        toast.success("Conta atualizada", "Os dados do cliente foram salvos com sucesso.");
         return;
       }
 
@@ -356,7 +356,7 @@ export function CustomerPage() {
       setCurrentCustomer(nextCustomer);
       setLookupValues({ customerId: String(nextCustomer.customerId), cpf: nextCustomer.cpf });
       setActiveLookup("id");
-      toast.success("Cliente cadastrado", "O novo cliente foi criado com sucesso.");
+      toast.success("Conta cadastrada", "O novo cliente foi criado com sucesso.");
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Não foi possível salvar o cliente.");
     } finally {
@@ -402,7 +402,7 @@ export function CustomerPage() {
       await deleteCustomer(token, currentCustomer.customerId);
       await logout();
       clearCurrentCart();
-      toast.success("Conta excluída", "O cliente foi removido e a sessão foi encerrada.");
+      toast.success("Conta excluída", "A conta de foi removido e a sessão foi encerrada.");
       setDeleteOpen(false);
       clearForm();
       navigate("/login", { replace: true });
@@ -422,26 +422,26 @@ export function CustomerPage() {
           <Card className="overflow-hidden border-spanish-green-200 bg-white">
             <CardHeader className="gap-4">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="success">Fase 7</Badge>
-                <Badge variant="info">Cliente</Badge>
+                <Badge variant="success">Conta</Badge>
+                <Badge variant="info">Conta</Badge>
                 <Badge variant="neutral">CPF e ID</Badge>
               </div>
-              <CardTitle className="text-3xl sm:text-4xl">Gestão completa do cadastro do cliente.</CardTitle>
+              <CardTitle className="text-3xl sm:text-4xl">Minha conta e dados de entrega.</CardTitle>
               <CardDescription className="max-w-3xl text-base">
-                Consulte por ID ou CPF, carregue os dados do cliente autenticado, atualize o cadastro e
-                exclua a conta quando necessário.
+                Consulte por ID ou CPF, carregue os dados da conta autenticada, atualize as informações e
+                gerencie a conta quando necessário.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-3xl bg-spanish-green-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Estado atual</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Conta atual</p>
                 <p className="mt-2 text-lg font-semibold text-spanish-green-950">
-                  {currentCustomer ? `Cliente #${currentCustomer.customerId}` : "Aguardando consulta"}
+                  {currentCustomer ? `Conta #${currentCustomer.customerId}` : "Aguardando consulta"}
                 </p>
               </div>
               <div className="rounded-3xl bg-spanish-green-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                  Consulta ativa
+                  Busca ativa
                 </p>
                 <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                   {activeLookup ? activeLookup.toUpperCase() : "Nenhuma"}
@@ -449,7 +449,7 @@ export function CustomerPage() {
               </div>
               <div className="rounded-3xl bg-spanish-green-50 p-4 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                  Cliente autenticado
+                  Conta autenticada
                 </p>
                 <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                   {sessionCustomerId ? `#${sessionCustomerId}` : "Sessão sem cliente vinculado"}
@@ -458,10 +458,10 @@ export function CustomerPage() {
             </CardContent>
             <CardFooter className="flex flex-wrap justify-between gap-3">
               <p className="text-sm text-spanish-green-600">
-                Use a busca para consultar o cadastro atual ou localizar outro cliente.
+                Use a busca para consultar sua conta ou localizar outro cadastro.
               </p>
               <Button variant="secondary" size="sm" onClick={clearForm}>
-                Limpar seleção
+                Limpar conta
               </Button>
             </CardFooter>
           </Card>
@@ -469,17 +469,17 @@ export function CustomerPage() {
           <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
             <CardHeader>
               <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
-                Consulta
+                Busca
               </Badge>
-              <CardTitle className="text-white">Buscar por ID ou CPF</CardTitle>
+              <CardTitle className="text-white">Localizar cadastro</CardTitle>
               <CardDescription className="text-spanish-green-100">
-                A consulta reidrata o formulário com os dados retornados pela API v1.
+                A busca carrega os dados da conta para edição.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="grid gap-4" onSubmit={handleLookupSubmit}>
                 <Input
-                  label="ID do cliente"
+                  label="ID da conta"
                   type="number"
                   inputMode="numeric"
                   min="1"
@@ -515,7 +515,7 @@ export function CustomerPage() {
 
                 <div className="flex flex-wrap gap-3">
                   <Button type="submit" value="id" isLoading={isLoadingCustomer}>
-                    Buscar por ID
+                    Buscar por conta
                   </Button>
                   <Button type="submit" value="cpf" variant="secondary" isLoading={isLoadingCustomer}>
                     Buscar por CPF
@@ -533,7 +533,7 @@ export function CustomerPage() {
             <Card className="border-spanish-green-200 bg-white">
               <CardHeader className="gap-4">
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="success">Dados carregados</Badge>
+                  <Badge variant="success">Conta carregada</Badge>
                   <Badge variant="neutral">#{currentCustomer.customerId}</Badge>
                 </div>
                 <CardTitle>{currentCustomer.nome}</CardTitle>
@@ -565,10 +565,10 @@ export function CustomerPage() {
               </CardContent>
               <CardFooter className="flex flex-wrap justify-between gap-3">
                 <p className="text-sm text-spanish-green-600">
-                  Atualize os dados abaixo ou remova a conta do cliente.
+                  Atualize seus dados abaixo ou remova a conta.
                 </p>
                 <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
-                  Excluir conta
+                  Excluir minha conta
                 </Button>
               </CardFooter>
             </Card>
@@ -576,13 +576,13 @@ export function CustomerPage() {
             <Card className="border-spanish-green-200 bg-white">
               <CardHeader>
                 <Badge variant={isCreateMode ? "info" : "success"}>
-                  {isCreateMode ? "Cadastro" : "Atualização"}
+                  {isCreateMode ? "Conta" : "Atualização"}
                 </Badge>
-                <CardTitle>{isCreateMode ? "Cadastrar cliente" : "Editar cliente"}</CardTitle>
+                <CardTitle>{isCreateMode ? "Cadastrar conta" : "Editar conta"}</CardTitle>
                 <CardDescription>
                   {isCreateMode
-                    ? "Crie um novo cadastro com os dados pessoais, endereço e celular."
-                    : "Altere os campos e salve para atualizar o cadastro existente."}
+                    ? "Crie uma nova conta com os dados pessoais, endereço e celular."
+                    : "Altere os campos e salve para atualizar a conta existente."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -633,7 +633,7 @@ export function CustomerPage() {
                     />
                   ) : (
                     <div className="rounded-2xl border border-spanish-green-200 bg-spanish-green-50/70 px-4 py-3 text-sm leading-6 text-spanish-green-700">
-                      A senha não é alterada neste fluxo de atualização.
+                      A senha permanece inalterada neste fluxo.
                     </div>
                   )}
 
@@ -736,7 +736,7 @@ export function CustomerPage() {
 
                   <div className="flex flex-wrap gap-3">
                     <Button type="submit" isLoading={isSaving}>
-                      {isCreateMode ? "Cadastrar cliente" : "Salvar alterações"}
+                      {isCreateMode ? "Cadastrar conta" : "Salvar alterações"}
                     </Button>
                     <Button
                       type="button"
@@ -760,19 +760,19 @@ export function CustomerPage() {
         ) : lookupError ? (
           <EmptyState
             tone="error"
-            title="Falha ao consultar cliente"
+            title="Falha ao consultar a conta"
             description={lookupError}
             action={{ label: "Tentar novamente", onClick: retryLookup, variant: "secondary" }}
           />
         ) : (
           <EmptyState
             tone="empty"
-            title="Consulte ou cadastre um cliente para começar"
-            description="Use a busca por ID ou CPF para carregar um cadastro existente. Se preferir, preencha o formulário e crie um novo cliente."
+            title="Consulte ou cadastre uma conta para começar"
+            description="Use a busca por ID ou CPF para carregar seus dados. Se preferir, preencha o formulário e crie uma nova conta."
             action={
               sessionCustomerId
                 ? {
-                    label: "Carregar meu cadastro",
+                    label: "Carregar minha conta",
                     onClick: () => {
                       if (!token || !sessionCustomerId) {
                         return;
@@ -794,7 +794,7 @@ export function CustomerPage() {
           setDeleteOpen(false);
           setDeleteError(null);
         }}
-        title="Excluir conta do cliente"
+        title="Excluir minha conta do cliente"
         description="Essa ação remove a conta e encerra a sessão ativa."
         tone="accent"
         footer={
@@ -809,14 +809,14 @@ export function CustomerPage() {
               Cancelar
             </Button>
             <Button variant="danger" onClick={confirmDelete} isLoading={isDeleting}>
-              Excluir permanentemente
+              Excluir conta
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <p className="text-sm leading-6 text-spanish-green-700">
-            O cliente <strong>{currentCustomer?.nome}</strong> será removido do sistema.
+            A conta de <strong>{currentCustomer?.nome}</strong> será removida do sistema.
           </p>
           {deleteError ? (
             <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -828,6 +828,8 @@ export function CustomerPage() {
     </>
   );
 }
+
+
 
 
 

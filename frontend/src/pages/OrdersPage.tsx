@@ -135,12 +135,12 @@ function OrderCard({ order, from }: { order: OrderSummary; from: string }) {
           </div>
           <CardTitle>{formatPaymentMethod(order.paymentMethod)}</CardTitle>
           <CardDescription>
-            Pedido em {formatDateTime(order.orderDate)} para cliente #{order.customerId}
+            Compra em {formatDateTime(order.orderDate)} para cliente #{order.customerId}
           </CardDescription>
         </div>
         <div className="rounded-3xl bg-spanish-green-50 px-4 py-3 text-right">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-            Valor total
+            Total da compra
           </p>
           <p className="mt-2 text-2xl font-semibold text-spanish-green-950">
             {formatCurrency(order.totalValue)}
@@ -150,7 +150,7 @@ function OrderCard({ order, from }: { order: OrderSummary; from: string }) {
 
       <CardContent className="grid gap-4 md:grid-cols-4">
         <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">Itens</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">Itens da compra</p>
           <p className="mt-2 text-lg font-semibold text-spanish-green-950">{order.totalItems}</p>
         </div>
         <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
@@ -158,7 +158,7 @@ function OrderCard({ order, from }: { order: OrderSummary; from: string }) {
           <p className="mt-2 text-lg font-semibold text-spanish-green-950">#{order.orderId}</p>
         </div>
         <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">Carrinho</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">Carrinho de origem</p>
           <p className="mt-2 text-lg font-semibold text-spanish-green-950">#{order.cartId}</p>
         </div>
         <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
@@ -178,7 +178,7 @@ function OrderCard({ order, from }: { order: OrderSummary; from: string }) {
           state={{ from }}
           className="rounded-2xl bg-spanish-green-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-spanish-green-600"
         >
-          Ver pedido
+          Abrir pedido
         </Link>
       </CardFooter>
     </Card>
@@ -245,7 +245,7 @@ export function OrdersPage() {
 
         if (loadError instanceof ApiRequestError && loadError.status === 404) {
           setPageData(null);
-          setError("Nenhum pedido foi encontrado para o CPF informado.");
+          setError("Nenhuma compra foi encontrada para o CPF informado.");
         } else {
           setError(loadError instanceof Error ? loadError.message : "Não foi possível carregar os pedidos.");
         }
@@ -318,11 +318,11 @@ export function OrdersPage() {
         <Card className="overflow-hidden border-spanish-green-200 bg-white">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="success">Fase 6</Badge>
-              <Badge variant="info">Pedidos</Badge>
+              <Badge variant="success">Conta</Badge>
+              <Badge variant="info">Histórico</Badge>
               <Badge variant="neutral">CPF obrigatório</Badge>
             </div>
-            <CardTitle className="text-3xl sm:text-4xl">Busca de pedidos por CPF com paginação.</CardTitle>
+            <CardTitle className="text-3xl sm:text-4xl">Histórico de compras da sua conta.</CardTitle>
             <CardDescription className="max-w-3xl text-base">
               A consulta usa a API v1, permite filtrar por intervalo de datas e leva para o detalhe
               de cada pedido com a possibilidade de cancelamento.
@@ -331,7 +331,7 @@ export function OrdersPage() {
           <CardContent className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                CPF pesquisado
+                CPF da conta
               </p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                 {hasCpf ? formatCpf(formValues.cpf) : "Ainda não informado"}
@@ -339,7 +339,7 @@ export function OrdersPage() {
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Total encontrado
+                Compras encontradas
               </p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                 {pageData ? pageData.totalItems : "—"}
@@ -347,7 +347,7 @@ export function OrdersPage() {
             </div>
             <div className="rounded-3xl bg-spanish-green-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Página atual
+                Página do histórico
               </p>
               <p className="mt-2 text-lg font-semibold text-spanish-green-950">
                 {pageData ? `${pageData.currentPage}/${pageData.totalPages}` : "—"}
@@ -355,9 +355,9 @@ export function OrdersPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-wrap justify-between gap-3">
-            <p className="text-sm text-spanish-green-600">Baseado em {location.pathname}</p>
+            <p className="text-sm text-spanish-green-600">Em {location.pathname}</p>
             <Button variant="secondary" size="sm" onClick={handleClear}>
-              Limpar busca
+              Limpar campos filtros
             </Button>
           </CardFooter>
         </Card>
@@ -367,9 +367,9 @@ export function OrdersPage() {
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
               Filtros
             </Badge>
-            <CardTitle className="text-white">Localize pedidos rapidamente</CardTitle>
+            <CardTitle className="text-white">Buscar compras</CardTitle>
             <CardDescription className="text-spanish-green-100">
-              Informe o CPF, escolha o intervalo de datas opcional e ajuste o tamanho da página.
+              Use o CPF da conta e refine por intervalo de datas quando precisar.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -405,7 +405,7 @@ export function OrdersPage() {
               </div>
 
               <Select
-                label="Itens por página"
+                label="Itens da compra por página"
                 value={String(formValues.size)}
                 onChange={(event) =>
                   setFormValues((current) => ({ ...current, size: event.target.value, page: "1" }))
@@ -427,10 +427,10 @@ export function OrdersPage() {
 
               <div className="flex flex-wrap gap-3">
                 <Button type="submit" isLoading={isLoading}>
-                  Buscar pedidos
+                  Consultar compras
                 </Button>
                 <Button type="button" variant="secondary" onClick={handleClear}>
-                  Limpar
+                  Limpar campos
                 </Button>
               </div>
             </form>
@@ -442,18 +442,18 @@ export function OrdersPage() {
         {!hasCpf ? (
           <EmptyState
             tone="empty"
-            title="Informe um CPF para começar"
-            description="A listagem de pedidos é filtrada por CPF. Depois da busca, a paginação e o detalhe ficam disponíveis."
+            title="Informe o CPF da conta para começar"
+            description="O histórico de compras é filtrado por CPF. Depois da busca, a paginação e o detalhe ficam disponíveis."
           />
         ) : isLoading ? (
           <OrdersSkeleton />
         ) : error ? (
           <EmptyState
             tone="error"
-            title="Falha ao carregar os pedidos"
+            title="Falha ao carregar seu histórico"
             description={error}
             action={{
-              label: "Tentar novamente",
+              label: "Tentar outra vez",
               onClick: retrySearch,
               variant: "secondary",
             }}
@@ -461,10 +461,10 @@ export function OrdersPage() {
         ) : pageData && pageData.items.length === 0 ? (
           <EmptyState
             tone="empty"
-            title="Nenhum pedido encontrado"
+            title="Nenhuma compra encontrada"
             description="A API respondeu sem resultados para os filtros informados."
             action={{
-              label: "Ajustar busca",
+              label: "Ajustar filtros",
               onClick: () => setFormError(null),
               variant: "secondary",
             }}
@@ -492,6 +492,7 @@ export function OrdersPage() {
     </div>
   );
 }
+
 
 
 
