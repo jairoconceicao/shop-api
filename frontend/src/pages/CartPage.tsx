@@ -16,22 +16,8 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
 function formatCurrency(value: number) {
   return currencyFormatter.format(value);
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return dateFormatter.format(date);
 }
 
 function getStockLabel(stock?: number) {
@@ -173,7 +159,8 @@ export function CartPage() {
         return;
       }
 
-      const nextDetails: Record<number, CatalogProductDetail> = {};
+      const nextDetails: Record<number, CatalogProductDetail> = {}
+;
 
       results.forEach((result, index) => {
         if (result.status === "fulfilled") {
@@ -298,16 +285,15 @@ export function CartPage() {
   if (!currentCart || currentCart.items.length === 0) {
     return (
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-spanish-green-200 bg-white">
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="info">Fase 5</Badge>
-              <Badge variant="neutral">Carrinho</Badge>
+              <Badge variant="info">Carrinho</Badge>
+              <Badge variant="neutral">Vitrine pronta</Badge>
             </div>
             <CardTitle className="text-3xl sm:text-4xl">Seu carrinho está vazio</CardTitle>
             <CardDescription className="max-w-3xl text-base">
-              Adicione produtos pelo detalhe do item e depois volte aqui para revisar quantidades e seguir
-              para o checkout.
+              Explore o catálogo, abra um produto e adicione itens para começar a montar a compra.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
@@ -321,9 +307,9 @@ export function CartPage() {
         <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
-              Fluxo
+              Próximos passos
             </Badge>
-            <CardTitle className="text-white">Próximos passos</CardTitle>
+            <CardTitle className="text-white">Seu fluxo de compra começa no catálogo</CardTitle>
             <CardDescription className="text-spanish-green-100">
               O carrinho é criado automaticamente ao adicionar o primeiro item. Depois disso, ele passa a
               ser sincronizado pela API.
@@ -337,7 +323,7 @@ export function CartPage() {
               2. Abra o detalhe e adicione a quantidade desejada.
             </div>
             <div className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-spanish-green-50">
-              3. Volte aqui para revisar e seguir ao checkout.
+              3. Revise o carrinho e siga para o checkout.
             </div>
           </CardContent>
         </Card>
@@ -351,16 +337,16 @@ export function CartPage() {
         <Card>
           <CardHeader className="gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="info">Fase 5</Badge>
-              <Badge variant="neutral">Carrinho ativo</Badge>
+              <Badge variant="info">Carrinho</Badge>
+              <Badge variant="neutral">Compra em andamento</Badge>
               <Badge variant={detailsLoading ? "warning" : "success"}>
                 {detailsLoading ? "Atualizando produtos" : "Sincronizado"}
               </Badge>
             </div>
-            <CardTitle className="text-3xl sm:text-4xl">Carrinho atual</CardTitle>
+            <CardTitle className="text-3xl sm:text-4xl">Revise sua compra antes de fechar o pedido</CardTitle>
             <CardDescription className="max-w-3xl text-base">
-              Revise os itens antes de partir para o checkout. O carrinho é sincronizado com a API e o
-              resumo abaixo mostra o total da compra.
+              O carrinho é o ponto de revisão final. Ajuste quantidades, remova o que não quiser e avance
+              para o checkout com segurança.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-3">
@@ -407,7 +393,7 @@ export function CartPage() {
             const canIncrement = stock === undefined || item.quantity < stock;
 
             return (
-              <Card key={item.itemId}>
+              <Card key={item.itemId} className="overflow-hidden">
                 <CardContent className="grid gap-4 p-4 sm:grid-cols-[108px_1fr] sm:p-5">
                   <div className="overflow-hidden rounded-3xl bg-spanish-green-100">
                     <div className="aspect-square">
@@ -430,7 +416,7 @@ export function CartPage() {
                             "Produto adicionado ao carrinho aguardando mais informações do catálogo."}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="rounded-3xl bg-spanish-green-50 px-4 py-3 text-right">
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
                           Subtotal
                         </p>
@@ -503,7 +489,7 @@ export function CartPage() {
         </div>
       </section>
 
-      <aside className="space-y-4">
+      <aside className="space-y-4 lg:sticky lg:top-28 self-start">
         <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
@@ -511,28 +497,32 @@ export function CartPage() {
             </Badge>
             <CardTitle className="text-white">Fechamento do carrinho</CardTitle>
             <CardDescription className="text-spanish-green-100">
-              O checkout usa os itens e quantidades sincronizados aqui. Quanto antes revisar, menos atrito
-              no pagamento.
+              O checkout usa exatamente os itens e quantidades sincronizados aqui.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-2xl bg-white/10 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                Carrinho
-              </p>
-              <p className="mt-2 text-lg font-semibold text-white">#{currentCart.cartId}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                Criado em
-              </p>
-              <p className="mt-2 text-sm font-medium text-white">{formatDate(currentCart.createdAt)}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
                 Total atual
               </p>
               <p className="mt-2 text-3xl font-semibold text-white">{formatCurrency(totalValue)}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
+                  Itens
+                </p>
+                <p className="mt-2 text-lg font-semibold text-white">{currentCart.items.length}</p>
+              </div>
+              <div className="rounded-2xl bg-white/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
+                  Quantidade
+                </p>
+                <p className="mt-2 text-lg font-semibold text-white">{totalQuantity}</p>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-spanish-green-50">
+              Frete, prazo e pagamento são confirmados no checkout com o endereço do cliente.
             </div>
           </CardContent>
         </Card>
@@ -545,19 +535,29 @@ export function CartPage() {
               Quando estiver satisfeito com o carrinho, avance para informar endereço e forma de pagamento.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <Button variant="secondary" onClick={handleLoadCart} isLoading={isSubmitting}>
-              Atualizar carrinho
-            </Button>
+          <CardContent className="space-y-4">
             <Button onClick={() => navigate(checkoutFeature.routes.root)} disabled={currentCart.items.length === 0}>
               Ir para checkout
             </Button>
+            <Button variant="secondary" onClick={handleLoadCart} isLoading={isSubmitting}>
+              Atualizar carrinho
+            </Button>
+            <div className="space-y-2 text-sm leading-6 text-spanish-green-700">
+              {[
+                "Resumo de compra em destaque",
+                "Sem linguagem de revisão interna",
+                "CTA principal sempre visível no desktop",
+              ].map((item) => (
+                <div key={item} className="rounded-2xl bg-spanish-green-50 px-4 py-3">
+                  {item}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </aside>
     </div>
   );
 }
-
 
 
