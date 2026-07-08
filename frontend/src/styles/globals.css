@@ -17,6 +17,7 @@
 @layer base {
   :root {
     color-scheme: light;
+    background: #f8fbf9;
   }
 
   html {
@@ -33,6 +34,9 @@
 
   body {
     @apply min-h-screen bg-spanish-green-50 text-spanish-green-950 antialiased;
+    background-image:
+      radial-gradient(circle at top, rgba(76, 93, 72, 0.08), transparent 30%),
+      linear-gradient(180deg, #f8fbf9 0%, #eef3ee 55%, #e8eee6 100%);
   }
 
   ::selection {
