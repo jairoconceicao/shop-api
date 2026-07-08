@@ -235,7 +235,7 @@ export function ProductDetailPage() {
         title="Falha ao abrir o produto"
         description={error ?? "Não foi possível carregar os dados do produto."}
         action={{
-          label: "Voltar ao catálogo",
+          label: "Voltar aos produtos",
           onClick: () => navigate(backTarget, { replace: true }),
           variant: "secondary",
         }}
@@ -272,7 +272,7 @@ export function ProductDetailPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link className="text-sm font-semibold text-spanish-green-700 hover:text-spanish-green-900" to={backTarget}>
-          Voltar ao catálogo
+          Voltar aos produtos
         </Link>
         <Button variant="secondary" size="sm" onClick={() => navigate(cartFeature.routes.current)}>
           Ir ao carrinho
@@ -495,7 +495,7 @@ export function ProductDetailPage() {
               key={item.query}
               type="button"
               className="rounded-3xl border border-spanish-green-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-              onClick={() => navigate(`/catalogo?q=${encodeURIComponent(item.query)}&page=1`)}
+              onClick={() => navigate(`/products?q=${encodeURIComponent(item.query)}&page=1`)}
             >
               <Badge variant="info">Explorar</Badge>
               <p className="mt-3 text-lg font-semibold text-spanish-green-950">{item.label}</p>
@@ -509,3 +509,4 @@ export function ProductDetailPage() {
     </div>
   );
 }
+

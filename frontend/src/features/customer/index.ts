@@ -1,7 +1,7 @@
 export const customerFeature = {
   key: "customer",
   routes: {
-    root: "/cliente",
+    root: "/account/profile",
   },
 } as const;
 

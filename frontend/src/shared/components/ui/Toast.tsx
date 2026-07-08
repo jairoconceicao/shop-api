@@ -27,10 +27,7 @@ export function ToastViewport() {
         return (
           <article
             key={item.id}
-            className={cn(
-              "rounded-3xl border bg-white p-4 shadow-xl shadow-spanish-green-950/10",
-              styles.border,
-            )}
+            className={cn("rounded-3xl border bg-white p-4 shadow-xl shadow-spanish-green-950/10", styles.border)}
             role="status"
             aria-live="polite"
           >
@@ -41,9 +38,7 @@ export function ToastViewport() {
                 </Badge>
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-spanish-green-950">{item.title}</h3>
-                  {item.description ? (
-                    <p className="text-sm leading-6 text-spanish-green-700">{item.description}</p>
-                  ) : null}
+                  {item.description ? <p className="text-sm leading-6 text-spanish-green-700">{item.description}</p> : null}
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => dismissToast(item.id)} aria-label="Fechar toast">

@@ -12,7 +12,7 @@ type StepperProps = {
 
 export function Stepper({ steps, currentStep }: StepperProps) {
   return (
-    <ol className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <ol className="grid gap-3 lg:grid-cols-4">
       {steps.map((step, index) => {
         const stepState = index < currentStep ? "completed" : index === currentStep ? "active" : "pending";
 
@@ -20,7 +20,7 @@ export function Stepper({ steps, currentStep }: StepperProps) {
           <li
             key={step.title}
             className={cn(
-              "rounded-3xl border p-5 transition",
+              "rounded-3xl border p-4 transition",
               stepState === "completed"
                 ? "border-emerald-200 bg-emerald-50"
                 : stepState === "active"

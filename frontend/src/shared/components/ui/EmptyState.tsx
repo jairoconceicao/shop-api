@@ -8,7 +8,7 @@ type EmptyTone = "empty" | "error" | "success";
 type EmptyAction = {
   label: string;
   onClick: () => void;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "accent" | "outline";
 };
 
 type EmptyStateProps = {

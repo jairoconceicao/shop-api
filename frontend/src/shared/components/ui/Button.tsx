@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "accent" | "outline";
 type ButtonSize = "sm" | "md" | "lg";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -13,11 +13,14 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-spanish-green-700 text-white shadow-sm shadow-spanish-green-950/10 hover:bg-spanish-green-600",
+  primary:
+    "bg-spanish-green-700 text-white shadow-sm shadow-spanish-green-950/10 hover:bg-spanish-green-600",
   secondary:
     "border border-spanish-green-200 bg-white text-spanish-green-800 hover:border-spanish-green-300 hover:bg-spanish-green-50",
   ghost: "text-spanish-green-700 hover:bg-spanish-green-100",
   danger: "bg-red-600 text-white shadow-sm shadow-red-950/10 hover:bg-red-500",
+  accent: "bg-amber-500 text-white shadow-sm shadow-amber-950/10 hover:bg-amber-600",
+  outline: "border border-spanish-green-300 bg-transparent text-spanish-green-800 hover:bg-spanish-green-100",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -54,10 +57,7 @@ export function Button({
       {...props}
     >
       {isLoading ? (
-        <span
-          className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent"
-          aria-hidden="true"
-        />
+        <span className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
       ) : (
         leadingIcon
       )}

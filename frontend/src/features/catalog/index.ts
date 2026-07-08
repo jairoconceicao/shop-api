@@ -1,8 +1,8 @@
 export const catalogFeature = {
   key: "catalog",
   routes: {
-    list: "/catalogo",
-    detail: (id: string | number) => `/produto/${id}`,
+    list: "/products",
+    detail: (id: string | number) => `/products/${id}`,
   },
 } as const;
 
@@ -14,4 +14,3 @@ export type {
   CatalogSort,
   CatalogStockFilter,
 } from "./catalog.types";
-

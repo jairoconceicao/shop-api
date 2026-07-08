@@ -1,8 +1,8 @@
 export const ordersFeature = {
   key: "orders",
   routes: {
-    list: "/pedidos",
-    detail: (id: string) => `/pedidos/${id}`,
+    list: "/account/orders",
+    detail: (id: string) => `/account/orders/${id}`,
   },
 } as const;
 

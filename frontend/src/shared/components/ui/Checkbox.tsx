@@ -34,10 +34,7 @@ export function Checkbox({ label, hint, error, className, id, ...props }: Checkb
         <span className="flex-1">
           <span className="block text-sm font-medium text-spanish-green-900">{label}</span>
           {message ? (
-            <span
-              id={`${checkboxId}-message`}
-              className={cn("mt-1 block text-xs leading-5", error ? "text-red-600" : "text-spanish-green-600")}
-            >
+            <span id={`${checkboxId}-message`} className={cn("mt-1 block text-xs leading-5", error ? "text-red-600" : "text-spanish-green-600")}>
               {message}
             </span>
           ) : null}

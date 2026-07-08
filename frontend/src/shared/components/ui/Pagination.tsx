@@ -41,12 +41,7 @@ function buildPages(currentPage: number, totalPages: number, siblingCount: numbe
   return result;
 }
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  siblingCount = 1,
-}: PaginationProps) {
+export function Pagination({ currentPage, totalPages, onPageChange, siblingCount = 1 }: PaginationProps) {
   const pages = buildPages(currentPage, totalPages, siblingCount);
 
   if (totalPages <= 1) {
@@ -54,19 +49,14 @@ export function Pagination({
   }
 
   return (
-    <nav className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginação">
+    <nav className="flex flex-col gap-3 rounded-3xl border border-spanish-green-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginação">
       <p className="text-sm text-spanish-green-700">
         Página <span className="font-semibold text-spanish-green-950">{currentPage}</span> de{" "}
         <span className="font-semibold text-spanish-green-950">{totalPages}</span>
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage <= 1}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage <= 1}>
           Anterior
         </Button>
 
@@ -83,8 +73,8 @@ export function Pagination({
                 className={cn(
                   "min-w-10 rounded-xl px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200",
                   page === currentPage
-                    ? "bg-spanish-green-700 text-white"
-                    : "bg-white text-spanish-green-700 hover:bg-spanish-green-100",
+                    ? "bg-spanish-green-700 text-white shadow-sm"
+                    : "bg-spanish-green-50 text-spanish-green-700 hover:bg-spanish-green-100",
                 )}
                 aria-current={page === currentPage ? "page" : undefined}
                 onClick={() => onPageChange(page)}
@@ -95,12 +85,7 @@ export function Pagination({
           )}
         </div>
 
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage >= totalPages}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage >= totalPages}>
           Próxima
         </Button>
       </div>

@@ -2,16 +2,11 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("rounded-3xl border border-spanish-green-200 bg-white shadow-sm", className)}
-      {...props}
-    />
-  );
+  return <div className={cn("rounded-3xl border border-spanish-green-200 bg-white shadow-sm", className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-2 p-6 pb-4", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-2 p-5 pb-4 sm:p-6 sm:pb-5", className)} {...props} />;
 }
 
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
@@ -23,11 +18,11 @@ export function CardDescription({ className, ...props }: HTMLAttributes<HTMLPara
 }
 
 export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-6 pb-6", className)} {...props} />;
+  return <div className={cn("px-5 pb-5 sm:px-6 sm:pb-6", className)} {...props} />;
 }
 
 export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex items-center gap-3 border-t border-spanish-green-200/70 px-6 py-4", className)} {...props} />;
+  return <div className={cn("flex items-center gap-3 border-t border-spanish-green-200/70 px-5 py-4 sm:px-6", className)} {...props} />;
 }
 
 type CardStackProps = {

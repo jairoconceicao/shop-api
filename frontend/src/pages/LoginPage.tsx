@@ -24,7 +24,7 @@ export function LoginPage() {
 
   const from = useMemo(() => {
     const state = location.state as { from?: string } | null;
-    return state?.from ?? "/catalogo";
+    return state?.from ?? "/products";
   }, [location.state]);
 
   const [values, setValues] = useState({
@@ -179,7 +179,7 @@ export function LoginPage() {
         <CardStack
           eyebrow={<Badge variant="warning">Acesso</Badge>}
           title="Rotas protegidas"
-          description="Catálogo, carrinho, checkout, pedidos, detalhe de pedido e cliente só ficam visíveis com sessão ativa."
+          description="Produtos, carrinho, checkout, pedidos, detalhe de pedido e cliente só ficam visíveis com sessão ativa."
         >
           <p className="text-sm leading-6 text-spanish-green-700">
             Se você entrar diretamente em uma rota autenticada sem sessão válida, o app redireciona para esta tela.
@@ -189,4 +189,5 @@ export function LoginPage() {
     </section>
   );
 }
+
 

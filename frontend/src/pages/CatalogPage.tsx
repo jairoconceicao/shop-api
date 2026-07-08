@@ -232,7 +232,7 @@ export function CatalogPage() {
   const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
 
   useEffect(() => {
-    if (location.pathname === "/catalogo") {
+    if (location.pathname === "/products") {
       setQuery(searchParams.get("q") ?? "");
     }
   }, [location.pathname, searchParams]);
@@ -536,4 +536,5 @@ export function CatalogPage() {
     </div>
   );
 }
+
 

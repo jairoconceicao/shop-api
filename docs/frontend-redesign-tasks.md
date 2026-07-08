@@ -11,49 +11,49 @@ API.
 
 ### Fase 1. Fundacao visual e design system
 
-- [ ] [T-001] Mapear os tokens visuais do redesign para as variaveis globais do
+- [x] [T-001] Mapear os tokens visuais do redesign para as variaveis globais do
   Tailwind.
-- [ ] [T-002] Ajustar cores base de fundo, superficie, texto, borda e destaque
+- [x] [T-002] Ajustar cores base de fundo, superficie, texto, borda e destaque
   para a nova identidade.
-- [ ] [T-003] Revisar tipografia global, pesos, alturas de linha e escalas de
+- [x] [T-003] Revisar tipografia global, pesos, alturas de linha e escalas de
   titulo e corpo.
-- [ ] [T-004] Padronizar espacamento e densidade dos containers principais.
-- [ ] [T-005] Revisar radius, sombra e focus ring dos componentes base.
-- [ ] [T-006] Atualizar `Button` para suportar estados comerciais como destaque,
+- [x] [T-004] Padronizar espacamento e densidade dos containers principais.
+- [x] [T-005] Revisar radius, sombra e focus ring dos componentes base.
+- [x] [T-006] Atualizar `Button` para suportar estados comerciais como destaque,
   outline e loading.
-- [ ] [T-007] Atualizar `Input`, `Select` e `Checkbox` para a nova linguagem
+- [x] [T-007] Atualizar `Input`, `Select` e `Checkbox` para a nova linguagem
   visual.
-- [ ] [T-008] Revisar `Card`, `Badge` e elementos de preco para a vitrine e
+- [x] [T-008] Revisar `Card`, `Badge` e elementos de preco para a vitrine e
   paginas de detalhe.
-- [ ] [T-009] Consolidar estados globais de loading, vazio, erro e sucesso para
+- [x] [T-009] Consolidar estados globais de loading, vazio, erro e sucesso para
   uso consistente nas telas.
-- [ ] [T-010] Validar comportamento mobile first para todos os componentes
+- [x] [T-010] Validar comportamento mobile first para todos os componentes
   reutilizaveis.
 
 ### Fase 2. Shell da aplicacao e navegacao
 
-- [ ] [T-011] Reestruturar `AppLayout` para refletir o header comercial do
+- [x] [T-011] Reestruturar `AppLayout` para refletir o header comercial do
   redesign.
-- [ ] [T-012] Criar header mobile com logo, busca e acesso rapido ao carrinho.
-- [ ] [T-013] Criar header desktop com busca central, entrada de conta e
+- [x] [T-012] Criar header mobile com logo, busca e acesso rapido ao carrinho.
+- [x] [T-013] Criar header desktop com busca central, entrada de conta e
   carrinho.
-- [ ] [T-014] Incluir faixa superior ou banner de destaque comercial no shell.
-- [ ] [T-015] Adicionar navegacao inferior no mobile.
-- [ ] [T-016] Padronizar breadcrumbs, links e CTAs globais para a nova
+- [x] [T-014] Incluir faixa superior ou banner de destaque comercial no shell.
+- [x] [T-015] Adicionar navegacao inferior no mobile.
+- [x] [T-016] Padronizar breadcrumbs, links e CTAs globais para a nova
   nomenclatura.
-- [ ] [T-017] Garantir que `ToastViewport` e os feedbacks globais permaneçam
+- [x] [T-017] Garantir que `ToastViewport` e os feedbacks globais permaneçam
   acessiveis.
-- [ ] [T-018] Criar redirects e aliases entre rotas antigas e novas durante a
+- [x] [T-018] Criar redirects e aliases entre rotas antigas e novas durante a
   migracao.
-- [ ] [T-019] Atualizar estados de rota ativa e de navegacao contextual no
+- [x] [T-019] Atualizar estados de rota ativa e de navegacao contextual no
   layout.
 
 ### Fase 3. Home e catalogo
 
-- [ ] [T-020] Transformar a rota `/` em home comercial com banner principal.
-- [ ] [T-021] Criar bloco de ofertas em destaque para a home.
-- [ ] [T-022] Criar bloco de categorias em destaque para a home.
-- [ ] [T-023] Criar bloco de produtos em destaque para a home.
+- [x] [T-020] Transformar a rota `/` em home comercial com banner principal.
+- [x] [T-021] Criar bloco de ofertas em destaque para a home.
+- [x] [T-022] Criar bloco de categorias em destaque para a home.
+- [x] [T-023] Criar bloco de produtos em destaque para a home.
 - [ ] [T-024] Reaproveitar a listagem paginada atual como base do catalogo em
   `/products`.
 - [ ] [T-025] Refatorar `ProductCard` para exibir imagem, nome e preco de forma
@@ -163,3 +163,4 @@ O conjunto de tasks fica concluido quando:
 - Os fluxos existentes continuarem funcionando com os contratos atuais da API.
 - As sugestoes sem suporte de backend estiverem explicitamente registradas como
   `future`.
+

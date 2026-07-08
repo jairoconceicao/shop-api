@@ -13,11 +13,12 @@ export function NotFoundPage() {
         O endereço solicitado não existe nesta etapa da SPA.
       </p>
       <Link
-        to="/catalogo"
+        to="/products"
         className="mt-6 inline-flex items-center justify-center rounded-2xl bg-spanish-green-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-spanish-green-600"
       >
-        Voltar ao catálogo
+        Voltar aos produtos
       </Link>
     </section>
   );
 }
+

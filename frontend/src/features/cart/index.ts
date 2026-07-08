@@ -1,7 +1,7 @@
 export const cartFeature = {
   key: "cart",
   routes: {
-    current: "/carrinho",
+    current: "/cart",
   },
 } as const;
 

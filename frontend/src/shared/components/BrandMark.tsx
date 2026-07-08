@@ -8,7 +8,7 @@ export function BrandMark() {
       </div>
       <div>
         <p className="text-sm font-semibold tracking-wide text-spanish-green-950">{env.appName}</p>
-        <p className="text-xs text-spanish-green-600">Vitrine de compra e descoberta</p>
+        <p className="text-xs text-spanish-green-600">Loja comercial para descoberta e compra</p>
       </div>
     </div>
   );

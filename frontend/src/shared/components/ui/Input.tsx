@@ -63,11 +63,7 @@ export function Input({
           id={`${inputId}-message`}
           className={cn(
             "mt-2 text-xs leading-5",
-            error
-              ? "text-red-600"
-              : success
-                ? "text-emerald-700"
-                : "text-spanish-green-600",
+            error ? "text-red-600" : success ? "text-emerald-700" : "text-spanish-green-600",
           )}
         >
           {message}
