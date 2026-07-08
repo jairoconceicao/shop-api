@@ -194,6 +194,51 @@ paths:
                 "$ref": "#/components/schemas/ApiErrorResponse"
       security:
       - Bearer: []
+  "/api/v1/cliente/{clienteId}/senha":
+    put:
+      tags:
+      - Clientes
+      parameters:
+      - name: clienteId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ChangeClienteSenhaRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponseOfClienteIdResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
   "/api/v1/cliente/cpf/{cpf}":
     get:
       tags:
@@ -289,6 +334,10 @@ paths:
           - string
           format: int32
           default: 20
+      - name: searchword
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: OK
@@ -337,6 +386,39 @@ paths:
                 "$ref": "#/components/schemas/ApiErrorResponse"
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiErrorResponse"
+      security:
+      - Bearer: []
+  "/api/v1/produto/{categoriaId}":
+    get:
+      tags:
+      - Produtos
+      parameters:
+      - name: categoriaId
+        in: path
+        required: true
+        schema:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PagedResponseOfProdutoCatalogoItemResponse"
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -1411,6 +1493,8 @@ components:
           - number
           - string
           format: double
+        categoria:
+          "$ref": "#/components/schemas/CategoriaProdutoResponse"
     ProdutoDetalheResponse:
       type: object
       properties:
@@ -1446,6 +1530,19 @@ components:
           - number
           - string
           format: double
+        categoria:
+          "$ref": "#/components/schemas/CategoriaProdutoResponse"
+    CategoriaProdutoResponse:
+      type: object
+      properties:
+        id:
+          pattern: "^-?(?:0|[1-9]\\d*)$"
+          type:
+          - integer
+          - string
+          format: int64
+        titulo:
+          type: string
     UpdateCarrinhoItemRequest:
       type: object
       properties:
