@@ -1,5 +1,6 @@
 using aspnet_api.Api.Contracts.Responses.Pedidos;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
@@ -12,13 +13,16 @@ public sealed class PedidoConsultarPorIdQuery : IActionCommand<ConsultarPedidoPo
 {
     private readonly IValidator<ConsultarPedidoPorIdQuery> _validator;
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
 
     public PedidoConsultarPorIdQuery(
         IValidator<ConsultarPedidoPorIdQuery> validator,
-        IPedidoRepository pedidoRepository)
+        IPedidoRepository pedidoRepository,
+        ISessaoAtualProvider sessaoAtualProvider)
     {
         _validator = validator;
         _pedidoRepository = pedidoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
     }
 
     public async Task<Result<PedidoResponse>> Handle(ConsultarPedidoPorIdQuery command)
@@ -44,10 +48,14 @@ public sealed class PedidoConsultarPorIdQuery : IActionCommand<ConsultarPedidoPo
                 });
         }
 
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(pedido.ClienteId, nameof(command.PedidoId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<PedidoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+        }
+
         return Result<PedidoResponse>.Success(
             pedido.ToResponse(),
             "Pedido consultado com sucesso.");
     }
 }
-
-

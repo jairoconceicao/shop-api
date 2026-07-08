@@ -79,6 +79,13 @@ public static class ResultHttpExtensions
         }
 
         if (codes.Any(code =>
+                code.Contains("ACESSO_NEGADO", StringComparison.OrdinalIgnoreCase) ||
+                code.Contains("AUTH_", StringComparison.OrdinalIgnoreCase)))
+        {
+            return "AUTHORIZATION_ERROR";
+        }
+
+        if (codes.Any(code =>
                 code.Contains("NAO_ENCONTRADO", StringComparison.OrdinalIgnoreCase) ||
                 code.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase)))
         {
@@ -108,6 +115,13 @@ public static class ResultHttpExtensions
         }
 
         if (codes.Any(code =>
+                code.Contains("ACESSO_NEGADO", StringComparison.OrdinalIgnoreCase) ||
+                code.Contains("AUTH_", StringComparison.OrdinalIgnoreCase)))
+        {
+            return StatusCodes.Status403Forbidden;
+        }
+
+        if (codes.Any(code =>
                 code.Contains("NAO_ENCONTRADO", StringComparison.OrdinalIgnoreCase) ||
                 code.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase)))
         {
@@ -117,5 +131,3 @@ public static class ResultHttpExtensions
         return StatusCodes.Status422UnprocessableEntity;
     }
 }
-
-

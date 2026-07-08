@@ -2,6 +2,7 @@ using aspnet_api.Api.Contracts.Requests.Clientes;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.Domain.Entities;
 using aspnet_api.Domain.ValueObjects;
@@ -18,15 +19,18 @@ public sealed class ClienteAtualizarCommand : IActionCommand<AtualizarClienteCom
 {
     private readonly IValidator<AtualizarClienteCommand> _validator;
     private readonly IClienteRepository _clienteRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public ClienteAtualizarCommand(
         IValidator<AtualizarClienteCommand> validator,
         IClienteRepository clienteRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -40,6 +44,12 @@ public sealed class ClienteAtualizarCommand : IActionCommand<AtualizarClienteCom
             return Result<ClienteIdResponse>.Failure(
                 "Dados invalidos para a atualizacao do cliente.",
                 validationResult.Errors.ToNotifications());
+        }
+
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
         }
 
         var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);

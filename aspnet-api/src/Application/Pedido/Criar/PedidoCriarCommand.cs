@@ -2,6 +2,7 @@ using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.Domain.Entities;
 using aspnet_api.Domain.ValueObjects;
@@ -21,6 +22,7 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
     private readonly IClienteRepository _clienteRepository;
     private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public PedidoCriarCommand(
@@ -28,12 +30,14 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
         IClienteRepository clienteRepository,
         ICarrinhoRepository carrinhoRepository,
         IPedidoRepository pedidoRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
         _carrinhoRepository = carrinhoRepository;
         _pedidoRepository = pedidoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -47,6 +51,12 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
             return Result<PedidoCriadoResponse>.Failure(
                 "Dados invalidos para a criacao do pedido.",
                 validationResult.Errors.ToNotifications());
+        }
+
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<PedidoCriadoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
         }
 
         var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);
@@ -139,5 +149,3 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
         return items;
     }
 }
-
-

@@ -12,7 +12,10 @@ public sealed class CarregarCatalogoProdutosQueryValidator : AbstractValidator<P
 
         RuleFor(query => query.Size)
             .GreaterThan(0).WithMessage("Size deve ser maior que zero.");
+
+        RuleFor(query => query.CategoriaId)
+            .GreaterThan(0)
+            .When(query => query.CategoriaId.HasValue)
+            .WithMessage("CategoriaId deve ser maior que zero.");
     }
 }
-
-

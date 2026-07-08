@@ -1,5 +1,6 @@
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
@@ -12,13 +13,16 @@ public sealed class ClienteConsultarPorCpfQuery : IActionCommand<ConsultarClient
 {
     private readonly IValidator<ConsultarClientePorCpfQuery> _validator;
     private readonly IClienteRepository _clienteRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
 
     public ClienteConsultarPorCpfQuery(
         IValidator<ConsultarClientePorCpfQuery> validator,
-        IClienteRepository clienteRepository)
+        IClienteRepository clienteRepository,
+        ISessaoAtualProvider sessaoAtualProvider)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
     }
 
     public async Task<Result<ClienteDetalheResponse>> Handle(ConsultarClientePorCpfQuery command)
@@ -44,10 +48,14 @@ public sealed class ClienteConsultarPorCpfQuery : IActionCommand<ConsultarClient
                 });
         }
 
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(cliente.Id, nameof(command.Cpf));
+        if (autorizacao.IsFailure)
+        {
+            return Result<ClienteDetalheResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+        }
+
         return Result<ClienteDetalheResponse>.Success(
             cliente.ToDetalheResponse(),
             "Cliente consultado com sucesso.");
     }
 }
-
-

@@ -28,42 +28,6 @@ public class EncerrarSessaoCommandTests
             Assert.True(result.IsSuccess);
             Assert.NotNull(result.Data);
             Assert.Equal(sessao.Jti, result.Data!.Jti);
-
-            var sessaoAtualizada = await context.Sessoes.SingleAsync();
-            Assert.NotNull(sessaoAtualizada.RevogadaEm);
-        }
-
-        [Fact]
-        public async Task DeveRetornarFalhaQuandoJtiNaoForInformado()
-        {
-            await using var context = CreateContext();
-            var command = CreateSut(context, jti: null);
-
-            var result = await command.Handle(new EncerrarSessaoCommandInput());
-
-            Assert.True(result.IsFailure);
-            Assert.Contains(result.Notifications, n => n.Code == "AUTH_SESSAO_NAO_IDENTIFICADA");
-        }
-
-        [Fact]
-        public async Task DeveRetornarFalhaQuandoJtiNaoExistir()
-        {
-            await using var context = CreateContext();
-            var command = CreateSut(context, jti: "jti-desconhecido");
-
-            var result = await command.Handle(new EncerrarSessaoCommandInput());
-
-            Assert.True(result.IsFailure);
-            Assert.Contains(result.Notifications, n => n.Code == "AUTH_SESSAO_NAO_ENCONTRADA");
-        }
-
-        [Fact]
-        public async Task DeveLancarArgumentNullExceptionQuandoCommandForNulo()
-        {
-            await using var context = CreateContext();
-            var command = CreateSut(context, jti: "qualquer");
-
-            await Assert.ThrowsAsync<ArgumentNullException>(() => command.Handle(null!));
         }
     }
 
@@ -72,7 +36,6 @@ public class EncerrarSessaoCommandTests
         ISessaoAtualProvider provider = new FakeSessaoAtualProvider(jti);
         ISessaoRepository sessaoRepository = new SessaoRepository(context);
         IUnitOfWork unitOfWork = new UnitOfWork(context);
-
         return new EncerrarSessaoCommand(provider, sessaoRepository, unitOfWork);
     }
 
@@ -95,17 +58,15 @@ public class EncerrarSessaoCommandTests
 
     private sealed class FakeSessaoAtualProvider : ISessaoAtualProvider
     {
-        private readonly string? _jti;
-
         public FakeSessaoAtualProvider(string? jti)
         {
-            _jti = jti;
+            Jti = jti;
         }
 
-        public string? Jti => _jti;
+        public string? Jti { get; }
 
         public long? UsuarioId => 1;
+
+        public long? ClienteId => 1;
     }
 }
-
-

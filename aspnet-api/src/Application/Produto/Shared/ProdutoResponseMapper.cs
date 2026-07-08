@@ -15,7 +15,14 @@ public static class ProdutoResponseMapper
             Titulo = produto.Titulo,
             Thumb = produto.Thumb,
             Preco = produto.Preco,
-            Estoque = estoqueAtual
+            Estoque = estoqueAtual,
+            Categoria = produto.CategoriaProduto is null
+                ? null
+                : new CategoriaProdutoResponse
+                {
+                    Id = produto.CategoriaProduto.Id,
+                    Titulo = produto.CategoriaProduto.Titulo
+                }
         };
     }
 
@@ -31,9 +38,14 @@ public static class ProdutoResponseMapper
             Modelo = produto.Modelo,
             Foto = produto.Foto,
             Preco = produto.Preco,
-            Estoque = estoqueAtual
+            Estoque = estoqueAtual,
+            Categoria = produto.CategoriaProduto is null
+                ? null
+                : new CategoriaProdutoResponse
+                {
+                    Id = produto.CategoriaProduto.Id,
+                    Titulo = produto.CategoriaProduto.Titulo
+                }
         };
     }
 }
-
-

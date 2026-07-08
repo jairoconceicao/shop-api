@@ -5,7 +5,10 @@ namespace aspnet_api.Application.Abstractions.Repositories;
 
 public interface IProdutoRepository : IRepository<Produto>
 {
-    Task<PagedResult<Produto>> GetPagedAsync(int page, int size, CancellationToken cancellationToken = default);
+    Task<PagedResult<Produto>> GetPagedAsync(
+        int page,
+        int size,
+        string? searchword = null,
+        long? categoriaId = null,
+        CancellationToken cancellationToken = default);
 }
-
-

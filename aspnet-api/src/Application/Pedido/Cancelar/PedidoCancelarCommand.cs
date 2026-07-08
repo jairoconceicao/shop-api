@@ -2,6 +2,7 @@ using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
@@ -18,15 +19,18 @@ public sealed class PedidoCancelarCommand : IActionCommand<CancelarPedidoCommand
 {
     private readonly IValidator<CancelarPedidoCommand> _validator;
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public PedidoCancelarCommand(
         IValidator<CancelarPedidoCommand> validator,
         IPedidoRepository pedidoRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _pedidoRepository = pedidoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -53,6 +57,12 @@ public sealed class PedidoCancelarCommand : IActionCommand<CancelarPedidoCommand
                 });
         }
 
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(pedido.ClienteId, nameof(command.PedidoId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<PedidoCanceladoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+        }
+
         pedido.Cancelar();
         _pedidoRepository.Update(pedido);
         await _unitOfWork.SaveChangesAsync();
@@ -62,5 +72,3 @@ public sealed class PedidoCancelarCommand : IActionCommand<CancelarPedidoCommand
             "Pedido cancelado com sucesso.");
     }
 }
-
-

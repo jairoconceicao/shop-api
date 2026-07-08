@@ -1,8 +1,10 @@
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
+using aspnet_api.src.Application.Common;
 using FluentValidation;
 
 namespace aspnet_api.src.Application.Cliente.Excluir;
@@ -11,15 +13,18 @@ public sealed class ClienteExcluirCommand : IActionCommand<ExcluirClienteCommand
 {
     private readonly IValidator<ExcluirClienteCommand> _validator;
     private readonly IClienteRepository _clienteRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public ClienteExcluirCommand(
         IValidator<ExcluirClienteCommand> validator,
         IClienteRepository clienteRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -36,6 +41,12 @@ public sealed class ClienteExcluirCommand : IActionCommand<ExcluirClienteCommand
                     string.IsNullOrWhiteSpace(error.ErrorCode) ? "VALIDATION_ERROR" : error.ErrorCode,
                     error.ErrorMessage,
                     string.IsNullOrWhiteSpace(error.PropertyName) ? null : error.PropertyName)).ToArray());
+        }
+
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<ClienteIdResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
         }
 
         var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);
@@ -57,5 +68,3 @@ public sealed class ClienteExcluirCommand : IActionCommand<ExcluirClienteCommand
             "Cliente excluido com sucesso.");
     }
 }
-
-

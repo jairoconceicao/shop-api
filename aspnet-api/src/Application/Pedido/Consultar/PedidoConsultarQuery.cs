@@ -1,7 +1,7 @@
 using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
-using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Application.Common;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
@@ -17,15 +17,18 @@ public sealed class PedidoConsultarQuery : IActionCommand<PedidosQuery, Result<P
     private readonly IValidator<PedidosQuery> _validator;
     private readonly IClienteRepository _clienteRepository;
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
 
     public PedidoConsultarQuery(
         IValidator<PedidosQuery> validator,
         IClienteRepository clienteRepository,
-        IPedidoRepository pedidoRepository)
+        IPedidoRepository pedidoRepository,
+        ISessaoAtualProvider sessaoAtualProvider)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
         _pedidoRepository = pedidoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
     }
 
     public async Task<Result<PagedResult<PedidoResponse>>> Handle(PedidosQuery command)
@@ -49,6 +52,12 @@ public sealed class PedidoConsultarQuery : IActionCommand<PedidosQuery, Result<P
                 {
                     new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(command.Cpf))
                 });
+        }
+
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(cliente.Id, nameof(command.Cpf));
+        if (autorizacao.IsFailure)
+        {
+            return Result<PagedResult<PedidoResponse>>.Failure(autorizacao.Message, autorizacao.Notifications);
         }
 
         var pedidos = await _pedidoRepository.ListByClienteIdAsync(cliente.Id);
@@ -76,5 +85,3 @@ public sealed class PedidoConsultarQuery : IActionCommand<PedidosQuery, Result<P
             "Pedidos consultados com sucesso.");
     }
 }
-
-

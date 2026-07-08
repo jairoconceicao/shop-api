@@ -23,7 +23,7 @@ public class ClienteConsultarPorIdQueryTests
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
-            var query = CreateSut(context);
+            var query = CreateSut(context, 1);
             var cmd = new ConsultarClientePorIdQuery(1);
 
             var result = await query.Handle(cmd);
@@ -38,7 +38,7 @@ public class ClienteConsultarPorIdQueryTests
         public async Task DeveRetornarFalhaQuandoClienteNaoExistir()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var query = CreateSut(context, 999);
             var cmd = new ConsultarClientePorIdQuery(999);
 
             var result = await query.Handle(cmd);
@@ -51,7 +51,7 @@ public class ClienteConsultarPorIdQueryTests
         public async Task DeveRetornarFalhaQuandoClienteIdInvalido()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var query = CreateSut(context, 1);
             var cmd = new ConsultarClientePorIdQuery(0);
 
             var result = await query.Handle(cmd);
@@ -61,21 +61,24 @@ public class ClienteConsultarPorIdQueryTests
         }
 
         [Fact]
-        public async Task DeveLancarArgumentNullExceptionQuandoQueryForNula()
+        public async Task DeveRetornarFalhaQuandoClienteNaoForODonoDoRecurso()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var query = CreateSut(context, 2);
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => query.Handle(null!));
+            var result = await query.Handle(new ConsultarClientePorIdQuery(1));
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, n => n.Code == "AUTH_CLIENTE_ACESSO_NEGADO");
         }
     }
 
-    private static ClienteConsultarPorIdQuery CreateSut(ShopDbContext context)
+    private static ClienteConsultarPorIdQuery CreateSut(ShopDbContext context, long clienteId)
     {
         IValidator<ConsultarClientePorIdQuery> validator = new ConsultarClientePorIdQueryValidator();
         var clienteRepository = new ClienteRepository(context);
 
-        return new ClienteConsultarPorIdQuery(validator, clienteRepository);
+        return new ClienteConsultarPorIdQuery(validator, clienteRepository, new TestSessaoAtualProvider(clienteId));
     }
 
     private static ShopDbContext CreateContext()
@@ -100,7 +103,7 @@ public class ClienteConsultarPorCpfQueryTests
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
-            var query = CreateSut(context);
+            var query = CreateSut(context, 1);
             var cmd = new ConsultarClientePorCpfQuery("12345678901");
 
             var result = await query.Handle(cmd);
@@ -115,7 +118,7 @@ public class ClienteConsultarPorCpfQueryTests
         public async Task DeveRetornarFalhaQuandoClienteNaoExistirPorCpf()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var query = CreateSut(context, 1);
             var cmd = new ConsultarClientePorCpfQuery("99999999999");
 
             var result = await query.Handle(cmd);
@@ -128,7 +131,7 @@ public class ClienteConsultarPorCpfQueryTests
         public async Task DeveRetornarFalhaQuandoCpfInvalido()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var query = CreateSut(context, 1);
             var cmd = new ConsultarClientePorCpfQuery("");
 
             var result = await query.Handle(cmd);
@@ -138,21 +141,27 @@ public class ClienteConsultarPorCpfQueryTests
         }
 
         [Fact]
-        public async Task DeveLancarArgumentNullExceptionQuandoQueryForNula()
+        public async Task DeveRetornarFalhaQuandoClienteNaoForODonoDoCpfInformado()
         {
             await using var context = CreateContext();
-            var query = CreateSut(context);
+            var cliente = DomainCliente.Reconstituir(1, "Teste", "12345678901", DateOnly.FromDateTime(new DateTime(1990, 1, 1)), null, null, "teste@email.com");
+            context.Clientes.Add(cliente);
+            await context.SaveChangesAsync();
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => query.Handle(null!));
+            var query = CreateSut(context, 2);
+            var result = await query.Handle(new ConsultarClientePorCpfQuery("12345678901"));
+
+            Assert.True(result.IsFailure);
+            Assert.Contains(result.Notifications, n => n.Code == "AUTH_CLIENTE_ACESSO_NEGADO");
         }
     }
 
-    private static ClienteConsultarPorCpfQuery CreateSut(ShopDbContext context)
+    private static ClienteConsultarPorCpfQuery CreateSut(ShopDbContext context, long clienteId)
     {
         IValidator<ConsultarClientePorCpfQuery> validator = new ConsultarClientePorCpfQueryValidator();
         var clienteRepository = new ClienteRepository(context);
 
-        return new ClienteConsultarPorCpfQuery(validator, clienteRepository);
+        return new ClienteConsultarPorCpfQuery(validator, clienteRepository, new TestSessaoAtualProvider(clienteId));
     }
 
     private static ShopDbContext CreateContext()
@@ -164,6 +173,3 @@ public class ClienteConsultarPorCpfQueryTests
         return new ShopDbContext(options);
     }
 }
-
-
-

@@ -1,5 +1,6 @@
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Carrinho.Shared;
@@ -12,13 +13,16 @@ public sealed class CarrinhoObterQuery : IActionCommand<ObterCarrinhoQuery, Resu
 {
     private readonly IValidator<ObterCarrinhoQuery> _validator;
     private readonly ICarrinhoRepository _carrinhoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
 
     public CarrinhoObterQuery(
         IValidator<ObterCarrinhoQuery> validator,
-        ICarrinhoRepository carrinhoRepository)
+        ICarrinhoRepository carrinhoRepository,
+        ISessaoAtualProvider sessaoAtualProvider)
     {
         _validator = validator;
         _carrinhoRepository = carrinhoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
     }
 
     public async Task<Result<CarrinhoResponse>> Handle(ObterCarrinhoQuery command)
@@ -44,10 +48,14 @@ public sealed class CarrinhoObterQuery : IActionCommand<ObterCarrinhoQuery, Resu
                 });
         }
 
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(carrinho.ClienteId, nameof(command.CarrinhoId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<CarrinhoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+        }
+
         return Result<CarrinhoResponse>.Success(
             carrinho.ToResponse(),
             "Carrinho consultado com sucesso.");
     }
 }
-
-

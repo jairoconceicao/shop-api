@@ -2,6 +2,7 @@ using aspnet_api.Api.Contracts.Requests.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using DomainCarrinho = aspnet_api.Domain.Entities.Carrinho;
 using aspnet_api.src.Application.Abstractions.Commands;
@@ -15,17 +16,20 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
     private readonly IValidator<CreateCarrinhoRequest> _validator;
     private readonly IClienteRepository _clienteRepository;
     private readonly ICarrinhoRepository _carrinhoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public CarrinhoCriarCommand(
         IValidator<CreateCarrinhoRequest> validator,
         IClienteRepository clienteRepository,
         ICarrinhoRepository carrinhoRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _clienteRepository = clienteRepository;
         _carrinhoRepository = carrinhoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -39,6 +43,12 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
             return Result<CarrinhoCriadoResponse>.Failure(
                 "Dados invalidos para a criacao do carrinho.",
                 validationResult.Errors.ToNotifications());
+        }
+
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<CarrinhoCriadoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
         }
 
         var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);
@@ -65,5 +75,3 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
             "Carrinho criado com sucesso.");
     }
 }
-
-

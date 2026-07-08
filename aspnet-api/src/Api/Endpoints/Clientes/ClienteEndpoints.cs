@@ -6,6 +6,7 @@ using aspnet_api.Api.Endpoints.Shared;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Cliente.Atualizar;
+using aspnet_api.src.Application.Cliente.AtualizarSenha;
 using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
 using aspnet_api.src.Application.Cliente.Excluir;
@@ -34,6 +35,7 @@ public static class ClienteEndpoints
         group.MapGet("{clienteId:long}", ConsultarClientePorId)
             .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
@@ -41,6 +43,7 @@ public static class ClienteEndpoints
         group.MapGet("cpf/{cpf}", ConsultarClientePorCpf)
             .Produces<ApiResponse<ClienteDetalheResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
@@ -56,14 +59,24 @@ public static class ClienteEndpoints
         group.MapPut("{clienteId:long}", AtualizarCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
+
+        group.MapPut("{clienteId:long}/senha", AtualizarSenhaCliente)
+            .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden)
+            .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
         group.MapDelete("{clienteId:long}", ExcluirCliente)
             .Produces<ApiResponse<ClienteIdResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ApiErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
@@ -102,6 +115,15 @@ public static class ClienteEndpoints
         return result.ToHttpResult(StatusCodes.Status200OK);
     }
 
+    private static async Task<IResult> AtualizarSenhaCliente(
+        long clienteId,
+        UpdateClientePasswordRequest request,
+        IActionCommand<AtualizarSenhaClienteCommand, Result<ClienteIdResponse>> command)
+    {
+        var result = await command.Handle(new AtualizarSenhaClienteCommand(clienteId, request));
+        return result.ToHttpResult(StatusCodes.Status200OK);
+    }
+
     private static async Task<IResult> ExcluirCliente(
         long clienteId,
         IActionCommand<ExcluirClienteCommand, Result<ClienteIdResponse>> command)
@@ -110,5 +132,3 @@ public static class ClienteEndpoints
         return result.ToHttpResult(StatusCodes.Status200OK);
     }
 }
-
-

@@ -5,6 +5,6 @@ public interface ISessaoAtualProvider
     string? Jti { get; }
 
     long? UsuarioId { get; }
+
+    long? ClienteId { get; }
 }
-
-

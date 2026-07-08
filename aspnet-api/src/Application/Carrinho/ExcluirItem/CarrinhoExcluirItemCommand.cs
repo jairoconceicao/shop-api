@@ -1,6 +1,7 @@
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
@@ -14,15 +15,18 @@ public sealed class CarrinhoExcluirItemCommand : IActionCommand<ExcluirCarrinhoI
 {
     private readonly IValidator<ExcluirCarrinhoItemCommand> _validator;
     private readonly ICarrinhoRepository _carrinhoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public CarrinhoExcluirItemCommand(
         IValidator<ExcluirCarrinhoItemCommand> validator,
         ICarrinhoRepository carrinhoRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _carrinhoRepository = carrinhoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -49,6 +53,12 @@ public sealed class CarrinhoExcluirItemCommand : IActionCommand<ExcluirCarrinhoI
                 });
         }
 
+        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(carrinho.ClienteId, nameof(command.ItemId));
+        if (autorizacao.IsFailure)
+        {
+            return Result<CarrinhoItemIdResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+        }
+
         var item = carrinho.RemoverItem(command.ItemId);
         if (item is null)
         {
@@ -71,5 +81,3 @@ public sealed class CarrinhoExcluirItemCommand : IActionCommand<ExcluirCarrinhoI
             "Item excluido do carrinho com sucesso.");
     }
 }
-
-

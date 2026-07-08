@@ -27,6 +27,13 @@ public sealed class HttpContextSessaoAtualProvider : ISessaoAtualProvider
             return long.TryParse(value, out var id) ? id : null;
         }
     }
+
+    public long? ClienteId
+    {
+        get
+        {
+            var value = _httpContextAccessor.HttpContext?.User?.FindFirst("cliente_id")?.Value;
+            return long.TryParse(value, out var id) ? id : null;
+        }
+    }
 }
-
-

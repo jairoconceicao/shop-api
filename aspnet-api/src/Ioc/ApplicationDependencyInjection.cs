@@ -19,6 +19,7 @@ using aspnet_api.src.Application.Carrinho.Criar;
 using aspnet_api.src.Application.Carrinho.ExcluirItem;
 using aspnet_api.src.Application.Carrinho.Obter;
 using aspnet_api.src.Application.Cliente.Atualizar;
+using aspnet_api.src.Application.Cliente.AtualizarSenha;
 using aspnet_api.src.Application.Cliente.ConsultarPorCpf;
 using aspnet_api.src.Application.Cliente.ConsultarPorId;
 using aspnet_api.src.Application.Cliente.Excluir;
@@ -39,6 +40,7 @@ public static class ApplicationDependencyInjection
     {
         services.AddScoped<IValidator<CreateClienteRequest>, ClienteRegistrarCommandValidator>();
         services.AddScoped<IValidator<AtualizarClienteCommand>, AtualizarClienteCommandValidator>();
+        services.AddScoped<IValidator<AtualizarSenhaClienteCommand>, AtualizarSenhaClienteCommandValidator>();
         services.AddScoped<IValidator<ExcluirClienteCommand>, ExcluirClienteCommandValidator>();
         services.AddScoped<IValidator<ConsultarClientePorIdQuery>, ConsultarClientePorIdQueryValidator>();
         services.AddScoped<IValidator<ConsultarClientePorCpfQuery>, ConsultarClientePorCpfQueryValidator>();
@@ -57,6 +59,7 @@ public static class ApplicationDependencyInjection
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
+        services.AddScoped<IActionCommand<AtualizarSenhaClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarSenhaCommand>();
         services.AddScoped<IActionCommand<ExcluirClienteCommand, Result<ClienteIdResponse>>, ClienteExcluirCommand>();
         services.AddScoped<IActionCommand<ConsultarClientePorIdQuery, Result<ClienteDetalheResponse>>, ClienteConsultarPorIdQuery>();
         services.AddScoped<IActionCommand<ConsultarClientePorCpfQuery, Result<ClienteDetalheResponse>>, ClienteConsultarPorCpfQuery>();
@@ -77,5 +80,3 @@ public static class ApplicationDependencyInjection
         return services;
     }
 }
-
-

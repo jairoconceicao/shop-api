@@ -52,7 +52,7 @@ Fluxos incluidos na referencia:
 - [x] Validar email e senha no login.
 - [x] Emitir token, tipo, expiracao e identificadores do usuario no login.
 - [x] Registrar e invalidar `jti` no logout.
-- [ ] Criar testes de contrato para login e logout.
+- [x] Criar testes de contrato para login e logout.
 
 ### 3. Cliente
 
@@ -61,20 +61,20 @@ Fluxos incluidos na referencia:
 - [x] Implementar `GET /api/v1/cliente/cpf/{cpf}`.
 - [x] Implementar `PUT /api/v1/cliente/{clienteId}` para atualizacao cadastral.
 - [x] Implementar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
-- [ ] Implementar `PUT /api/v1/cliente/{clienteId}/senha` para troca de senha.
+- [x] Implementar `PUT /api/v1/cliente/{clienteId}/senha` para troca de senha.
 - [x] Validar CPF, email, data de nascimento, endereco e celular.
 - [x] Garantir que a criacao e a atualizacao retornem apenas o contrato previsto na referencia.
-- [ ] Cobrir os casos de cliente com testes unitarios e de integracao.
+- [x] Cobrir os casos de cliente com testes unitarios e de integracao.
 
 ### 4. Catalogo de produtos
 
 - [x] Implementar `GET /api/v1/produto` com paginação.
 - [x] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
-- [ ] Implementar `GET /api/v1/produto/categoria/{categoriaId}` para listagem de produtos por categoria.
-- [ ] Implementar busca textual por `searchword` no catalogo.
-- [ ] Expor `categoria` nos contratos de listagem e detalhe de produto.
+- [x] Implementar `GET /api/v1/produto/categoria/{categoriaId}` para listagem de produtos por categoria.
+- [x] Implementar busca textual por `searchword` no catalogo.
+- [x] Expor `categoria` nos contratos de listagem e detalhe de produto.
 - [x] Garantir que a paginação responda com `pages`, `size`, `totalItems` e `data`.
-- [ ] Cobrir filtros e mapeamento do catalogo com testes de integracao.
+- [x] Cobrir filtros e mapeamento do catalogo com testes de integracao.
 
 ### 5. Carrinho
 
@@ -85,7 +85,7 @@ Fluxos incluidos na referencia:
 - [x] Implementar `DELETE /api/v1/carrinho/items/{itemId}`.
 - [x] Validar produto, quantidade e valor unitario ao manipular itens.
 - [x] Garantir que as respostas de carrinho e item sigam os contratos da referencia.
-- [ ] Cobrir o fluxo completo do carrinho com testes de integracao.
+- [x] Cobrir o fluxo completo do carrinho com testes de integracao.
 
 ### 6. Pedidos
 
@@ -95,12 +95,12 @@ Fluxos incluidos na referencia:
 - [x] Implementar `PATCH /api/v1/pedido/{pedidoId}` para cancelamento.
 - [x] Validar forma de pagamento, endereco de entrega e items do pedido.
 - [x] Garantir que a listagem retorne `PagedResponse<T>`.
-- [ ] Cobrir criacao, consulta e cancelamento com testes de integracao.
+- [x] Cobrir criacao, consulta e cancelamento com testes de integracao.
 
 ### 7. Validacoes, autorizacao e integridade
 
 - [x] Garantir que rotas protegidas rejeitem chamadas sem token valido.
-- [ ] Garantir autorizacao por cliente quando aplicavel.
+- [x] Garantir autorizacao por cliente quando aplicavel.
 - [x] Aplicar FluentValidation nos requests expostos pela API.
 - [x] Tratar conflito, nao encontrado, validacao e regra de negocio com respostas consistentes.
 - [x] Revisar mensagens de erro para manter linguagem de dominio.
@@ -108,17 +108,17 @@ Fluxos incluidos na referencia:
 ### 8. Testes obrigatorios
 
 - [x] Criar testes unitarios para regras de dominio novas ou alteradas.
-- [ ] Criar fakes para casos de uso quando houver nova orquestracao na Application.
-- [ ] Criar testes de contrato para endpoints novos ou alterados.
-- [ ] Criar testes de integracao para os fluxos completos da API.
-- [ ] Garantir cobertura para os casos de erro relevantes.
+- [x] Criar fakes para casos de uso quando houver nova orquestracao na Application.
+- [x] Criar testes de contrato para endpoints novos ou alterados.
+- [x] Criar testes de integracao para os fluxos completos da API.
+- [x] Garantir cobertura para os casos de erro relevantes.
 
 ### 9. Documentacao e sincronizacao
 
-- [ ] Manter `docs/api-reference.md` sincronizado com o comportamento entregue.
-- [ ] Atualizar exemplos de request e response quando os contratos mudarem.
-- [ ] Revisar o status de endpoints pendentes somente quando a implementacao existir.
-- [ ] Garantir que a documentacao nao prometa rotas ou campos fora do contrato real.
+- [x] Manter `docs/api-reference.md` sincronizado com o comportamento entregue.
+- [x] Atualizar exemplos de request e response quando os contratos mudarem.
+- [x] Revisar o status de endpoints pendentes somente quando a implementacao existir.
+- [x] Garantir que a documentacao nao prometa rotas ou campos fora do contrato real.
 
 ## Ordem sugerida de entrega
 
@@ -138,6 +138,7 @@ Fluxos incluidos na referencia:
 - As rotas protegidas funcionam com autenticacao valida.
 - Os fluxos de cliente, catalogo, categoria, carrinho e pedidos possuem testes de integracao.
 - A documentacao reflete o comportamento real da API sem promessas fora do contrato.
+
 
 
 

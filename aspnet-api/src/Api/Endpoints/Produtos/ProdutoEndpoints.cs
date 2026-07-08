@@ -37,6 +37,12 @@ public static class ProdutoEndpoints
             .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
             .MapToApiVersion(V1);
 
+        group.MapGet("categoria/{categoriaId:long}", CarregarCatalogoProdutosPorCategoria)
+            .Produces<PagedResponse<ProdutoCatalogoItemResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
+            .Produces<ApiErrorResponse>(StatusCodes.Status422UnprocessableEntity)
+            .MapToApiVersion(V1);
+
         group.MapGet("{id:long}", ConsultarProdutoPorId)
             .Produces<ApiResponse<ProdutoDetalheResponse>>(StatusCodes.Status200OK)
             .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized)
@@ -47,11 +53,29 @@ public static class ProdutoEndpoints
 
     private static async Task<IResult> CarregarCatalogoProdutos(
         [FromServices] IActionCommand<ProdutosQuery, Result<PagedResult<ProdutoCatalogoItemResponse>>> command,
+        string? searchword = null,
         int page = 1,
         int size = 20)
     {
         var result = await command.Handle(new ProdutosQuery
         {
+            Page = page,
+            Size = size,
+            Searchword = searchword
+        });
+
+        return result.ToPagedHttpResult();
+    }
+
+    private static async Task<IResult> CarregarCatalogoProdutosPorCategoria(
+        long categoriaId,
+        [FromServices] IActionCommand<ProdutosQuery, Result<PagedResult<ProdutoCatalogoItemResponse>>> command,
+        int page = 1,
+        int size = 20)
+    {
+        var result = await command.Handle(new ProdutosQuery
+        {
+            CategoriaId = categoriaId,
             Page = page,
             Size = size
         });
@@ -67,5 +91,3 @@ public static class ProdutoEndpoints
         return result.ToHttpResult();
     }
 }
-
-

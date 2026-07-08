@@ -2,6 +2,7 @@ using aspnet_api.Api.Contracts.Requests.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Application.Abstractions.Persistence;
 using aspnet_api.Application.Abstractions.Repositories;
+using aspnet_api.Application.Abstractions.Security;
 using aspnet_api.Domain.Common;
 using aspnet_api.Domain.Entities;
 using aspnet_api.src.Application.Abstractions.Commands;
@@ -15,17 +16,20 @@ public sealed class CarrinhoAdicionarItemCommand : IActionCommand<AddCarrinhoIte
     private readonly IValidator<AddCarrinhoItemRequest> _validator;
     private readonly IProdutoRepository _produtoRepository;
     private readonly ICarrinhoRepository _carrinhoRepository;
+    private readonly ISessaoAtualProvider _sessaoAtualProvider;
     private readonly IUnitOfWork _unitOfWork;
 
     public CarrinhoAdicionarItemCommand(
         IValidator<AddCarrinhoItemRequest> validator,
         IProdutoRepository produtoRepository,
         ICarrinhoRepository carrinhoRepository,
+        ISessaoAtualProvider sessaoAtualProvider,
         IUnitOfWork unitOfWork)
     {
         _validator = validator;
         _produtoRepository = produtoRepository;
         _carrinhoRepository = carrinhoRepository;
+        _sessaoAtualProvider = sessaoAtualProvider;
         _unitOfWork = unitOfWork;
     }
 
@@ -41,7 +45,16 @@ public sealed class CarrinhoAdicionarItemCommand : IActionCommand<AddCarrinhoIte
                 validationResult.Errors.ToNotifications());
         }
 
-        var carrinho = await _carrinhoRepository.GetLatestAsync();
+        if (!_sessaoAtualProvider.ClienteId.HasValue)
+        {
+            return Result<AddCarrinhoItemResponse>.Failure(
+                "Cliente autenticado nao identificado.",
+                [
+                    new Notification("AUTH_CLIENTE_NAO_IDENTIFICADO", "Cliente autenticado nao identificado.", null)
+                ]);
+        }
+
+        var carrinho = await _carrinhoRepository.GetByClienteIdAsync(_sessaoAtualProvider.ClienteId.Value);
         if (carrinho is null)
         {
             return Result<AddCarrinhoItemResponse>.Failure(
@@ -84,5 +97,3 @@ public sealed class CarrinhoAdicionarItemCommand : IActionCommand<AddCarrinhoIte
             "Item adicionado ao carrinho com sucesso.");
     }
 }
-
-

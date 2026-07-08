@@ -38,7 +38,7 @@ public sealed class ProdutoCarregarCatalogoQuery : IActionCommand<ProdutosQuery,
                 validationResult.Errors.ToNotifications());
         }
 
-        var pagedProdutos = await _produtoRepository.GetPagedAsync(command.Page, command.Size);
+        var pagedProdutos = await _produtoRepository.GetPagedAsync(command.Page, command.Size, command.Searchword, command.CategoriaId);
         var items = new List<ProdutoCatalogoItemResponse>(pagedProdutos.Items.Count);
 
         foreach (var produto in pagedProdutos.Items)
@@ -52,5 +52,3 @@ public sealed class ProdutoCarregarCatalogoQuery : IActionCommand<ProdutosQuery,
             "Catalogo de produtos carregado com sucesso.");
     }
 }
-
-
