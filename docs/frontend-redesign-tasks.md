@@ -118,12 +118,12 @@ API.
 ### Fase 7. Qualidade, acessibilidade e validacao
 
 - [x] [T-057] Validar consistencia mobile first em todas as telas do redesign.
-- [ ] [T-058] Revisar contraste, foco e acessibilidade visual em componentes e
+- [x] [T-058] Revisar contraste, foco e acessibilidade visual em componentes e paginas.
   paginas.
-- [ ] [T-059] Revisar telas vazias, erros de API e feedback visual para todos
+- [x] [T-059] Revisar telas vazias, erros de API e feedback visual para todos os fluxos principais.
   os fluxos principais.
 - [x] [T-060] Cobrir os fluxos principais com testes apos a refatoracao.
-- [ ] [T-061] Validar consistencia entre rotas antigas e novas durante a
+- [x] [T-061] Validar consistencia entre rotas antigas e novas durante a migracao.
   migracao.
 
 ## Tasks Future
