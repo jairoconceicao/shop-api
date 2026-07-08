@@ -20,7 +20,7 @@ public static class ProdutoResponseMapper
                 ? null
                 : new CategoriaProdutoResponse
                 {
-                    Id = produto.CategoriaProduto.Id,
+                    CategoriaId = produto.CategoriaProduto.Id,
                     Titulo = produto.CategoriaProduto.Titulo
                 }
         };
@@ -43,7 +43,7 @@ public static class ProdutoResponseMapper
                 ? null
                 : new CategoriaProdutoResponse
                 {
-                    Id = produto.CategoriaProduto.Id,
+                    CategoriaId = produto.CategoriaProduto.Id,
                     Titulo = produto.CategoriaProduto.Titulo
                 }
         };

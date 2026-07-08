@@ -16,6 +16,7 @@ Fluxos incluidos na referencia:
 
 - Auth
 - Cliente
+- Categoria de produtos
 - Catalogo de produtos
 - Carrinho
 - Pedidos
@@ -28,11 +29,17 @@ Fluxos incluidos na referencia:
 - Datas sao serializadas em ISO 8601.
 - Enums sao serializados como string.
 
-## Pendencias de contrato a resolver antes da implementacao final
+## Decisoes de contrato resolvidas antes da implementacao final
 
-- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/categoria/{categoriaId}`. O roteamento e os contratos precisam ser mantidos consistentes na implementacao.
-- O exemplo de `PUT /api/v1/cliente/{clienteId}/senha` precisa de um contrato de request valido e consistente com a API.
-- Os exemplos de produto expostos em catalogo precisam manter `categoria` de forma consistente entre lista e detalhe.
+- `GET /api/v1/produto/{id}` e `GET /api/v1/produto/categoria/{categoriaId}` permanecem como rotas distintas. A rota por categoria continua paginada e nao conflita com a rota de detalhe por id.
+- `GET /api/v1/categoria` permanece como contrato dedicado com `ApiResponse<T[]>`, separado da paginacao do catalogo de produtos.
+- `PUT /api/v1/cliente/{clienteId}/senha` usa `clienteId` apenas na rota. O body valido do request contem `senhaAtual` e `senhaNova`.
+- Os contratos de produto em catalogo e detalhe expoem `categoria` com shape resumido e consistente: `categoriaId` e `titulo`.
+- O contrato de `GET /api/v1/categoria` expoe `categoriaId`, `titulo` e `descricao`.
+
+## Lacuna de implementacao ainda aberta
+
+- O endpoint `GET /api/v1/categoria` segue como contrato aprovado e documentado, mas ainda precisa existir em `aspnet-api/src/Api/Endpoints` para que a implementacao fique aderente a referencia.
 
 ## Tarefas
 
@@ -67,6 +74,10 @@ Fluxos incluidos na referencia:
 - [x] Cobrir os casos de cliente com testes unitarios e de integracao.
 
 ### 4. Catalogo de produtos
+
+- [ ] Implementar `GET /api/v1/categoria` para carregamento da lista de categorias.
+- [ ] Garantir que a resposta de categoria use `ApiResponse<T>` com uma colecao em `data`.
+- [ ] Cobrir a consulta de categorias com testes de integracao.
 
 - [x] Implementar `GET /api/v1/produto` com paginação.
 - [x] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
@@ -138,7 +149,3 @@ Fluxos incluidos na referencia:
 - As rotas protegidas funcionam com autenticacao valida.
 - Os fluxos de cliente, catalogo, categoria, carrinho e pedidos possuem testes de integracao.
 - A documentacao reflete o comportamento real da API sem promessas fora do contrato.
-
-
-
-

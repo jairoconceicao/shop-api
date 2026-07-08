@@ -229,8 +229,8 @@ PUT /api/v1/cliente/{clienteId}/senha
 ```jsonc
 // Request
 {
-  "clienteId": 9999,
-  "senhaNova": "",
+  "senhaAtual": "SenhaAtual123",
+  "senhaNova": "SenhaNova123"
 }
 
 // Response - 200 OK
@@ -264,6 +264,31 @@ DELETE /api/v1/cliente/{clienteId}
 
 ---
 
+## Categoria de Produto
+
+### Carregar lista de categorias
+
+```text
+GET /api/v1/categoria
+```
+
+```jsonc
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": [
+    {
+      "categoriaId": 9999,
+      "titulo": "Titulo Categoria",
+      "descricao": "Descricao Categoria"
+    }
+  ]
+}
+```
+
+---
+
 ## Catálogo
 
 ### Carregar catálogo de produtos
@@ -289,7 +314,7 @@ GET /api/v1/produto?page=1&size=20
         "preco": 9999.99,
         "estoque": 9999.9999,
         "categoria" : {
-          "id": 9999,
+          "categoriaId": 9999,
           "titulo": "Categoria Exemplo"
         }
       }
@@ -318,7 +343,7 @@ GET /api/v1/produto/{id}
     "preco": 9999.99,
     "estoque": 9999.9999,
     "categoria" : {
-      "id": 9999,
+      "categoriaId": 9999,
       "titulo": "Categoria Exemplo"
     }
   }
@@ -348,7 +373,7 @@ GET /api/v1/produto/categoria/{categoriaId}
         "preco": 9999.99,
         "estoque": 9999.9999,
         "categoria" : {
-          "id": 9999,
+          "categoriaId": 9999,
           "titulo": "Categoria Exemplo"
         }
       }
@@ -380,7 +405,7 @@ GET /api/v1/produto?searchword={searchword}&page=1&size=20
         "preco": 9999.99,
         "estoque": 9999.9999,
         "categoria" : {
-          "id": 9999,
+          "categoriaId": 9999,
           "titulo": "Categoria Exemplo"
         }
       }
