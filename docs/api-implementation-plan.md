@@ -38,76 +38,76 @@ Fluxos incluidos na referencia:
 
 ### 1. Base de contratos e padroes transversais
 
-- [ ] Confirmar e padronizar os contratos compartilhados `ApiResponse<T>`, `PagedResponse<T>` e `ApiErrorResponse`.
-- [ ] Definir o formato padrao de erros de validacao e de negocio.
-- [ ] Centralizar o mapeamento de erros de dominio para respostas HTTP.
-- [ ] Garantir serializacao de enums como string.
-- [ ] Garantir serializacao de datas em ISO 8601.
-- [ ] Revisar a estrutura de DTOs em `Contracts/Requests` e `Contracts/Responses`.
+- [x] Confirmar e padronizar os contratos compartilhados `ApiResponse<T>`, `PagedResponse<T>` e `ApiErrorResponse`.
+- [x] Definir o formato padrao de erros de validacao e de negocio.
+- [x] Centralizar o mapeamento de erros de dominio para respostas HTTP.
+- [x] Garantir serializacao de enums como string.
+- [x] Garantir serializacao de datas em ISO 8601.
+- [x] Revisar a estrutura de DTOs em `Contracts/Requests` e `Contracts/Responses`.
 
 ### 2. Auth
 
-- [ ] Implementar `POST /api/v1/auth/login`.
-- [ ] Implementar `POST /api/v1/auth/logout`.
-- [ ] Validar email e senha no login.
-- [ ] Emitir token, tipo, expiracao e identificadores do usuario no login.
-- [ ] Registrar e invalidar `jti` no logout.
+- [x] Implementar `POST /api/v1/auth/login`.
+- [x] Implementar `POST /api/v1/auth/logout`.
+- [x] Validar email e senha no login.
+- [x] Emitir token, tipo, expiracao e identificadores do usuario no login.
+- [x] Registrar e invalidar `jti` no logout.
 - [ ] Criar testes de contrato para login e logout.
 
 ### 3. Cliente
 
-- [ ] Implementar `POST /api/v1/cliente` para cadastro.
-- [ ] Implementar `GET /api/v1/cliente/{clienteId}`.
-- [ ] Implementar `GET /api/v1/cliente/cpf/{cpf}`.
-- [ ] Implementar `PUT /api/v1/cliente/{clienteId}` para atualizacao cadastral.
-- [ ] Implementar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
+- [x] Implementar `POST /api/v1/cliente` para cadastro.
+- [x] Implementar `GET /api/v1/cliente/{clienteId}`.
+- [x] Implementar `GET /api/v1/cliente/cpf/{cpf}`.
+- [x] Implementar `PUT /api/v1/cliente/{clienteId}` para atualizacao cadastral.
+- [x] Implementar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
 - [ ] Implementar `PUT /api/v1/cliente/{clienteId}/senha` para troca de senha.
-- [ ] Validar CPF, email, data de nascimento, endereco e celular.
-- [ ] Garantir que a criacao e a atualizacao retornem apenas o contrato previsto na referencia.
+- [x] Validar CPF, email, data de nascimento, endereco e celular.
+- [x] Garantir que a criacao e a atualizacao retornem apenas o contrato previsto na referencia.
 - [ ] Cobrir os casos de cliente com testes unitarios e de integracao.
 
 ### 4. Catalogo de produtos
 
-- [ ] Implementar `GET /api/v1/produto` com paginação.
-- [ ] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
+- [x] Implementar `GET /api/v1/produto` com paginação.
+- [x] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
 - [ ] Implementar `GET /api/v1/produto/categoria/{categoriaId}` para listagem de produtos por categoria.
 - [ ] Implementar busca textual por `searchword` no catalogo.
 - [ ] Expor `categoria` nos contratos de listagem e detalhe de produto.
-- [ ] Garantir que a paginação responda com `pages`, `size`, `totalItems` e `data`.
+- [x] Garantir que a paginação responda com `pages`, `size`, `totalItems` e `data`.
 - [ ] Cobrir filtros e mapeamento do catalogo com testes de integracao.
 
 ### 5. Carrinho
 
-- [ ] Implementar `GET /api/v1/carrinho/{carrinhoId}`.
-- [ ] Implementar `POST /api/v1/carrinho/criar`.
-- [ ] Implementar `POST /api/v1/carrinho/items`.
-- [ ] Implementar `PATCH /api/v1/carrinho/items/{itemId}`.
-- [ ] Implementar `DELETE /api/v1/carrinho/items/{itemId}`.
-- [ ] Validar produto, quantidade e valor unitario ao manipular itens.
-- [ ] Garantir que as respostas de carrinho e item sigam os contratos da referencia.
+- [x] Implementar `GET /api/v1/carrinho/{carrinhoId}`.
+- [x] Implementar `POST /api/v1/carrinho/criar`.
+- [x] Implementar `POST /api/v1/carrinho/items`.
+- [x] Implementar `PATCH /api/v1/carrinho/items/{itemId}`.
+- [x] Implementar `DELETE /api/v1/carrinho/items/{itemId}`.
+- [x] Validar produto, quantidade e valor unitario ao manipular itens.
+- [x] Garantir que as respostas de carrinho e item sigam os contratos da referencia.
 - [ ] Cobrir o fluxo completo do carrinho com testes de integracao.
 
 ### 6. Pedidos
 
-- [ ] Implementar `POST /api/v1/pedido`.
-- [ ] Implementar `GET /api/v1/pedido` com filtros `cpf`, `dataInicio`, `dataFim`, `page` e `size`.
-- [ ] Implementar `GET /api/v1/pedido/{pedidoId}`.
-- [ ] Implementar `PATCH /api/v1/pedido/{pedidoId}` para cancelamento.
-- [ ] Validar forma de pagamento, endereco de entrega e items do pedido.
-- [ ] Garantir que a listagem retorne `PagedResponse<T>`.
+- [x] Implementar `POST /api/v1/pedido`.
+- [x] Implementar `GET /api/v1/pedido` com filtros `cpf`, `dataInicio`, `dataFim`, `page` e `size`.
+- [x] Implementar `GET /api/v1/pedido/{pedidoId}`.
+- [x] Implementar `PATCH /api/v1/pedido/{pedidoId}` para cancelamento.
+- [x] Validar forma de pagamento, endereco de entrega e items do pedido.
+- [x] Garantir que a listagem retorne `PagedResponse<T>`.
 - [ ] Cobrir criacao, consulta e cancelamento com testes de integracao.
 
 ### 7. Validacoes, autorizacao e integridade
 
-- [ ] Garantir que rotas protegidas rejeitem chamadas sem token valido.
+- [x] Garantir que rotas protegidas rejeitem chamadas sem token valido.
 - [ ] Garantir autorizacao por cliente quando aplicavel.
-- [ ] Aplicar FluentValidation nos requests expostos pela API.
-- [ ] Tratar conflito, nao encontrado, validacao e regra de negocio com respostas consistentes.
-- [ ] Revisar mensagens de erro para manter linguagem de dominio.
+- [x] Aplicar FluentValidation nos requests expostos pela API.
+- [x] Tratar conflito, nao encontrado, validacao e regra de negocio com respostas consistentes.
+- [x] Revisar mensagens de erro para manter linguagem de dominio.
 
 ### 8. Testes obrigatorios
 
-- [ ] Criar testes unitarios para regras de dominio novas ou alteradas.
+- [x] Criar testes unitarios para regras de dominio novas ou alteradas.
 - [ ] Criar fakes para casos de uso quando houver nova orquestracao na Application.
 - [ ] Criar testes de contrato para endpoints novos ou alterados.
 - [ ] Criar testes de integracao para os fluxos completos da API.
@@ -138,5 +138,6 @@ Fluxos incluidos na referencia:
 - As rotas protegidas funcionam com autenticacao valida.
 - Os fluxos de cliente, catalogo, categoria, carrinho e pedidos possuem testes de integracao.
 - A documentacao reflete o comportamento real da API sem promessas fora do contrato.
+
 
 
