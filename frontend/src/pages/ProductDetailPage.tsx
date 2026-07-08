@@ -56,37 +56,87 @@ function getStockVariant(stock: number) {
 
 function getDecisionHint(stock: number) {
   if (stock <= 0) {
-    return "O item está fora de estoque e não pode ser comprado agora.";
+    return "O item está fora de estoque e não pode seguir para compra neste momento.";
   }
 
   if (stock <= 5) {
-    return "As últimas unidades pedem decisão rápida para evitar ruptura.";
+    return "As últimas unidades pedem decisão rápida para não perder disponibilidade.";
   }
 
-  return "Produto disponível para compra imediata com fluxo simples de checkout.";
+  return "Produto pronto para compra imediata com fluxo simples até o carrinho.";
+}
+
+function getShippingLabel(price: number) {
+  return price >= 250 ? "Frete grátis acima de R$ 250" : "Frete calculado no checkout";
 }
 
 function DetailSkeleton() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <Card className="overflow-hidden">
-        <Skeleton className="aspect-square w-full rounded-none" />
-      </Card>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-4/5" />
-          <Skeleton className="h-6 w-2/5" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-5 w-1/2" />
-          <Skeleton className="h-20 w-full" />
-          <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <Card className="overflow-hidden border-spanish-green-200 bg-white">
+          <Skeleton className="aspect-square w-full rounded-none" />
+          <div className="grid gap-3 border-t border-spanish-green-200/70 p-4 sm:grid-cols-3">
+            <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+
+        <Card className="border-spanish-green-200 bg-white">
+          <CardHeader className="gap-4">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-10 w-4/5" />
+            <Skeleton className="h-6 w-3/5" />
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Skeleton className="h-28 w-full rounded-3xl" />
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <Skeleton className="h-24 w-full rounded-3xl" />
+              <Skeleton className="h-24 w-full rounded-3xl" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-11 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <Card className="border-spanish-green-200 bg-white">
+          <CardHeader>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-5 w-full" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-28 w-full rounded-3xl" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton className="h-20 w-full rounded-3xl" />
+              <Skeleton className="h-20 w-full rounded-3xl" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
+          <CardHeader>
+            <Skeleton className="h-4 w-24 bg-white/15" />
+            <Skeleton className="h-8 w-2/3 bg-white/15" />
+            <Skeleton className="h-5 w-full bg-white/15" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-20 w-full rounded-3xl bg-white/15" />
+            <Skeleton className="h-20 w-full rounded-3xl bg-white/15" />
+            <Skeleton className="h-20 w-full rounded-3xl bg-white/15" />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -105,11 +155,20 @@ function DetailImage({ product }: { product: CatalogProductDetail }) {
   );
 }
 
-const relatedSearches = [
-  { label: "Oferta do dia", query: "oferta" },
-  { label: "Notebooks", query: "notebook" },
-  { label: "Smartphones", query: "smartphone" },
-];
+function RatingRow() {
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-sm text-spanish-green-600">
+      <div className="flex items-center gap-1 text-amber-500" aria-label="Avaliação da vitrine 4.8 de 5">
+        {Array.from({ length: 5 }, (_, index) => (
+          <span key={index}>★</span>
+        ))}
+      </div>
+      <span className="font-semibold text-spanish-green-900">4.8/5</span>
+      <span>•</span>
+      <span>Curadoria comercial da vitrine</span>
+    </div>
+  );
+}
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -183,7 +242,7 @@ export function ProductDetailPage() {
       };
     }
 
-    loadProduct(id);
+    void loadProduct(id);
 
     return () => {
       active = false;
@@ -193,6 +252,37 @@ export function ProductDetailPage() {
   const canAddToCart = Boolean(product && context && product.stock > 0);
   const canIncreaseQuantity = Boolean(product && product.stock > 0 && quantity < product.stock);
   const totalSelectedValue = product ? quantity * product.price : 0;
+
+  const handleRetry = async () => {
+    if (!id) {
+      setError("Produto inválido.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    if (!session?.token) {
+      setError("Sessão ausente.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await getProductById(id, session.token);
+      setProduct(data);
+      setQuantity(1);
+    } catch (retryError) {
+      if (retryError instanceof ApiRequestError && retryError.status === 404) {
+        setError("O produto solicitado não foi encontrado.");
+        return;
+      }
+
+      setError(retryError instanceof Error ? retryError.message : "Não foi possível carregar o produto.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddToCart = async () => {
     if (!product) {
@@ -224,6 +314,29 @@ export function ProductDetailPage() {
     }
   };
 
+  const specs = product
+    ? [
+        { label: "Código do produto", value: `#${product.id}` },
+        { label: "Modelo", value: product.model ?? "Sem modelo informado" },
+        { label: "Disponibilidade", value: getStockLabel(product.stock) },
+        { label: "Estoque", value: product.stock > 0 ? `${product.stock} unidades` : "Sem estoque" },
+        { label: "Parcelamento", value: `10x de ${formatInstallment(product.price / 10)} sem juros` },
+        { label: "Frete", value: getShippingLabel(product.price) },
+      ]
+    : [];
+
+  const trustPoints = [
+    "Compra protegida com sessão ativa e carrinho sincronizado.",
+    "Pedido rastreável do carrinho ao checkout.",
+    "Volta ao catálogo sem perder o contexto da navegação.",
+  ];
+
+  const purchaseSupport = [
+    { title: "Pagamento", description: "Fluxo guiado para conclusão no carrinho e checkout." },
+    { title: "Entrega", description: "Frete e prazo confirmados na próxima etapa." },
+    { title: "Trocas", description: "Processo acompanhado pela área do pedido." },
+  ];
+
   if (isLoading) {
     return <DetailSkeleton />;
   }
@@ -235,32 +348,14 @@ export function ProductDetailPage() {
         title="Falha ao abrir o produto"
         description={error ?? "Não foi possível carregar os dados do produto."}
         action={{
-          label: "Voltar aos produtos",
+          label: "Voltar ao catálogo",
           onClick: () => navigate(backTarget, { replace: true }),
           variant: "secondary",
         }}
         secondaryAction={{
           label: "Tentar novamente",
           onClick: () => {
-            if (!id) {
-              return;
-            }
-
-            setIsLoading(true);
-            setError(null);
-
-            if (!session?.token) {
-              setError("Sessão ausente.");
-              setIsLoading(false);
-              return;
-            }
-
-            void getProductById(id, session.token)
-              .then((data) => setProduct(data))
-              .catch((retryError) =>
-                setError(retryError instanceof Error ? retryError.message : "Não foi possível carregar o produto."),
-              )
-              .finally(() => setIsLoading(false));
+            void handleRetry();
           },
           variant: "secondary",
         }}
@@ -270,22 +365,52 @@ export function ProductDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link className="text-sm font-semibold text-spanish-green-700 hover:text-spanish-green-900" to={backTarget}>
-          Voltar aos produtos
-        </Link>
-        <Button variant="secondary" size="sm" onClick={() => navigate(cartFeature.routes.current)}>
-          Ir ao carrinho
-        </Button>
-      </div>
+      <nav aria-label="Breadcrumb" className="rounded-3xl border border-spanish-green-200 bg-white px-4 py-3 shadow-sm">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-spanish-green-600">
+          <li>
+            <Link className="font-medium text-spanish-green-700 hover:text-spanish-green-950" to="/">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link className="font-medium text-spanish-green-700 hover:text-spanish-green-950" to={catalogFeature.routes.list}>
+              Produtos
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="truncate font-semibold text-spanish-green-950" aria-current="page">
+            {product.title}
+          </li>
+        </ol>
+      </nav>
 
-      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <Card className="overflow-hidden">
+      <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <Card className="overflow-hidden border-spanish-green-200 bg-white">
           <div className="relative aspect-square bg-spanish-green-100">
             <DetailImage product={product} />
             <div className="absolute left-4 top-4 flex flex-wrap gap-2">
               <Badge variant={getStockVariant(product.stock)}>{getStockLabel(product.stock)}</Badge>
               {product.model ? <Badge variant="neutral">Modelo {product.model}</Badge> : null}
+              <Badge variant="info">Galeria principal</Badge>
+            </div>
+          </div>
+
+          <div className="grid gap-3 border-t border-spanish-green-200/70 p-4 sm:grid-cols-3">
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-3">
+              <div className="aspect-square overflow-hidden rounded-2xl bg-white shadow-sm">
+                <DetailImage product={product} />
+              </div>
+            </div>
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Produto</p>
+              <p className="mt-2 text-sm font-semibold text-spanish-green-950">{product.title}</p>
+              <p className="mt-1 text-sm leading-6 text-spanish-green-600">Imagem principal e leitura rápida do item.</p>
+            </div>
+            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Compra</p>
+              <p className="mt-2 text-sm font-semibold text-spanish-green-950">{getShippingLabel(product.price)}</p>
+              <p className="mt-1 text-sm leading-6 text-spanish-green-600">Confirmação completa no checkout.</p>
             </div>
           </div>
         </Card>
@@ -296,14 +421,14 @@ export function ProductDetailPage() {
               <Badge variant={getStockVariant(product.stock)}>{getStockLabel(product.stock)}</Badge>
               <Badge variant="info">Compra guiada</Badge>
             </div>
-            <CardTitle className="text-3xl sm:text-4xl">{product.title}</CardTitle>
+            <CardTitle className="text-3xl leading-tight sm:text-4xl">{product.title}</CardTitle>
             <CardDescription className="text-base">{getDecisionHint(product.stock)}</CardDescription>
+            <RatingRow />
           </CardHeader>
-          <CardContent className="space-y-6">
+
+          <CardContent className="space-y-5">
             <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Preço total
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Preço total</p>
               <p className="mt-3 text-4xl font-semibold tracking-tight text-spanish-green-950">
                 {formatCurrency(product.price)}
               </p>
@@ -312,88 +437,58 @@ export function ProductDetailPage() {
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Produto
-                </p>
-                <p className="mt-2 text-sm font-semibold text-spanish-green-950">#{product.id}</p>
-              </div>
-              <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Estoque
-                </p>
-                <p className="mt-2 text-sm font-semibold text-spanish-green-950">{product.stock}</p>
-              </div>
-              <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Compra
-                </p>
-                <p className="mt-2 text-sm font-semibold text-spanish-green-950">Rastreio no pedido</p>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-spanish-green-200 bg-spanish-green-50/70 p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                    Quantidade
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      -
-                    </Button>
-                    <div className="min-w-16 rounded-2xl border border-spanish-green-200 bg-white px-4 py-2 text-center text-sm font-semibold text-spanish-green-950">
-                      {quantity}
-                    </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() =>
-                        setQuantity((current) => (product.stock > 0 ? Math.min(product.stock, current + 1) : current))
-                      }
-                      disabled={!canIncreaseQuantity}
-                    >
-                      +
-                    </Button>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">Quantidade</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </Button>
+                  <div className="min-w-16 rounded-2xl border border-spanish-green-200 bg-spanish-green-50 px-4 py-2 text-center text-sm font-semibold text-spanish-green-950">
+                    {quantity}
                   </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setQuantity((current) => (product.stock > 0 ? Math.min(product.stock, current + 1) : current))
+                    }
+                    disabled={!canIncreaseQuantity}
+                  >
+                    +
+                  </Button>
                 </div>
+              </div>
 
-                <div className="rounded-2xl bg-white px-4 py-3 text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                    Seleção atual
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-spanish-green-950">
-                    {quantity} x {formatCurrency(product.price)}
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-spanish-green-950">
-                    {formatCurrency(totalSelectedValue)}
-                  </p>
-                </div>
+              <div className="rounded-3xl bg-spanish-green-900 px-4 py-4 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">Seleção atual</p>
+                <p className="mt-2 text-sm font-semibold text-spanish-green-50">
+                  {quantity} x {formatCurrency(product.price)}
+                </p>
+                <p className="mt-1 text-2xl font-semibold">{formatCurrency(totalSelectedValue)}</p>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Button onClick={handleAddToCart} disabled={!canAddToCart} isLoading={isSubmitting}>
+              <Button onClick={handleAddToCart} disabled={!canAddToCart} isLoading={isSubmitting} size="lg">
                 Adicionar ao carrinho
               </Button>
-              <Button variant="secondary" onClick={() => navigate(cartFeature.routes.current)}>
+              <Button variant="secondary" onClick={() => navigate(cartFeature.routes.current)} size="lg">
                 Revisar carrinho
               </Button>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                "Compra protegida com sessão ativa",
-                "Pagamento e pedido rastreáveis",
-                "Volte ao catálogo sem perder contexto",
-              ].map((item) => (
-                <div key={item} className="rounded-2xl bg-spanish-green-50 px-4 py-3 text-sm leading-6 text-spanish-green-700">
+              {trustPoints.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl bg-spanish-green-50 px-4 py-3 text-sm leading-6 text-spanish-green-700"
+                >
                   {item}
                 </div>
               ))}
@@ -402,38 +497,28 @@ export function ProductDetailPage() {
         </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
         <Card className="border-spanish-green-200 bg-white">
           <CardHeader>
             <Badge variant="neutral">Detalhes</Badge>
-            <CardTitle>Informações do produto</CardTitle>
+            <CardTitle>Especificações e descrição</CardTitle>
             <CardDescription>
-              Texto principal para apoiar a decisão de compra sem competir com o CTA.
+              Estrutura pensada para apoiar a decisão sem competir com o bloco de compra.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <div className="rounded-3xl bg-spanish-green-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">
-                Descrição
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-500">Descrição</p>
               <p className="mt-3 text-sm leading-7 text-spanish-green-800">{product.description}</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Modelo
-                </p>
-                <p className="mt-2 text-sm font-semibold text-spanish-green-950">
-                  {product.model ?? "Sem modelo informado"}
-                </p>
-              </div>
-              <div className="rounded-3xl border border-spanish-green-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">
-                  Confiança
-                </p>
-                <p className="mt-2 text-sm font-semibold text-spanish-green-950">Checkout com sessão ativa</p>
-              </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {specs.map((spec) => (
+                <div key={spec.label} className="rounded-3xl border border-spanish-green-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-spanish-green-500">{spec.label}</p>
+                  <p className="mt-2 text-sm font-semibold text-spanish-green-950">{spec.value}</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -441,34 +526,24 @@ export function ProductDetailPage() {
         <Card className="border-spanish-green-200 bg-spanish-green-900 text-spanish-green-50">
           <CardHeader>
             <Badge variant="neutral" className="bg-white/10 text-white ring-white/15">
-              Compra
+              Confiança
             </Badge>
-            <CardTitle className="text-white">Resumo para decidir agora</CardTitle>
+            <CardTitle className="text-white">Informações de apoio à compra</CardTitle>
             <CardDescription className="text-spanish-green-100">
-              O resumo ajuda a entender o custo final antes de sair para o carrinho.
+              Resumo dos pontos que ajudam a concluir a compra com menos atrito.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                Produto
-              </p>
-              <p className="mt-2 text-lg font-semibold text-white">{product.title}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                Quantidade escolhida
-              </p>
-              <p className="mt-2 text-lg font-semibold text-white">{quantity}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">
-                Total estimado
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-white">{formatCurrency(totalSelectedValue)}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-spanish-green-50">
-              Frete e prazo são confirmados no checkout com base no carrinho e no endereço do cliente.
+          <CardContent className="space-y-4">
+            {purchaseSupport.map((item) => (
+              <div key={item.title} className="rounded-3xl bg-white/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-spanish-green-100">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-spanish-green-50">{item.description}</p>
+              </div>
+            ))}
+
+            <div className="rounded-3xl bg-white/10 p-4 text-sm leading-6 text-spanish-green-50">
+              Frete, prazo, troca e acompanhamento seguem o fluxo do carrinho e do pedido. Isso mantém a página do
+              produto focada em conversão e reduz informação repetida.
             </div>
           </CardContent>
         </Card>
@@ -481,7 +556,7 @@ export function ProductDetailPage() {
               Continue explorando
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-spanish-green-950">
-              Produtos semelhantes e termos de busca rápidos
+              Produtos semelhantes e rotas de retorno
             </h2>
           </div>
           <Button variant="secondary" size="sm" onClick={() => navigate(catalogFeature.routes.list)}>
@@ -490,7 +565,11 @@ export function ProductDetailPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {relatedSearches.map((item) => (
+          {[
+            { label: "Oferta do dia", query: "oferta" },
+            { label: "Notebooks", query: "notebook" },
+            { label: "Smartphones", query: "smartphone" },
+          ].map((item) => (
             <button
               key={item.query}
               type="button"
@@ -509,4 +588,3 @@ export function ProductDetailPage() {
     </div>
   );
 }
-
