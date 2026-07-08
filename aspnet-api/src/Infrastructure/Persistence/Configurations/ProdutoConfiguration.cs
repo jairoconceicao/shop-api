@@ -11,13 +11,17 @@ public class ProdutoConfiguration : IEntityTypeConfiguration<Produto>
         builder.ToTable("Produtos");
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
+        builder.Property(p => p.CategoriaProdutoId).IsRequired().HasDefaultValue(1L);
         builder.Property(p => p.Titulo).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Descricao).HasMaxLength(2000);
         builder.Property(p => p.Modelo).HasMaxLength(200);
         builder.Property(p => p.Preco).HasColumnType("decimal(18,2)");
         builder.Property(p => p.Foto).HasMaxLength(2000);
         builder.Property(p => p.Thumb).HasMaxLength(2000);
+
+        builder.HasOne(p => p.CategoriaProduto)
+            .WithMany(c => c.Produtos)
+            .HasForeignKey(p => p.CategoriaProdutoId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
-
-

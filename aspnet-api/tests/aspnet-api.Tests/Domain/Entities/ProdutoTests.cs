@@ -10,9 +10,10 @@ public class ProdutoTests
         [Fact]
         public void DeveCriarProdutoComTodosOsCampos()
         {
-            var produto = Produto.Reconstituir(1, "Titulo", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
+            var produto = Produto.Reconstituir(1, 2, "Titulo", "Descricao", "Modelo", 99.99m, "foto.jpg", "thumb.jpg");
 
             Assert.Equal(1, produto.Id);
+            Assert.Equal(2, produto.CategoriaProdutoId);
             Assert.Equal("Titulo", produto.Titulo);
             Assert.Equal("Descricao", produto.Descricao);
             Assert.Equal("Modelo", produto.Modelo);
@@ -27,6 +28,7 @@ public class ProdutoTests
             var produto = new Produto();
 
             Assert.Equal(0, produto.Id);
+            Assert.Equal(1, produto.CategoriaProdutoId);
             Assert.Equal(string.Empty, produto.Titulo);
             Assert.Null(produto.Descricao);
             Assert.Null(produto.Modelo);
@@ -41,10 +43,8 @@ public class ProdutoTests
             var produto = Produto.Reconstituir(1, "Teste", null!, null!, 0m, null!, null!);
 
             Assert.Equal(1, produto.Id);
+            Assert.Equal(1, produto.CategoriaProdutoId);
             Assert.Equal("Teste", produto.Titulo);
         }
     }
 }
-
-
-

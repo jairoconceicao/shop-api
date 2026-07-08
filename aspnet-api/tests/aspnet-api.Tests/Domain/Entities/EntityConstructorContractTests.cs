@@ -10,6 +10,7 @@ public class EntityConstructorContractTests
     [
         [typeof(Carrinho)],
         [typeof(CarrinhoItem)],
+        [typeof(CategoriaProduto)],
         [typeof(Cliente)],
         [typeof(Estoque)],
         [typeof(MovimentoEstoque)],

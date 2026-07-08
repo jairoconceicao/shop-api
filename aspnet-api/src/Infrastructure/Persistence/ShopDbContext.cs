@@ -19,6 +19,7 @@ public class ShopDbContext : DbContext
         base.ConfigureConventions(configurationBuilder);
     }
 
+    public DbSet<CategoriaProduto> CategoriasProdutos => Set<CategoriaProduto>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<Estoque> Estoques => Set<Estoque>();
@@ -30,6 +31,7 @@ public class ShopDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new CategoriaProdutoConfiguration());
         modelBuilder.ApplyConfiguration(new ClienteConfiguration());
         modelBuilder.ApplyConfiguration(new ProdutoConfiguration());
         modelBuilder.ApplyConfiguration(new EstoqueConfiguration());
@@ -38,7 +40,7 @@ public class ShopDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PedidoConfiguration());
         modelBuilder.ApplyConfiguration(new UsuarioConfiguration());
         modelBuilder.ApplyConfiguration(new SessaoConfiguration());
-        
+
         base.OnModelCreating(modelBuilder);
     }
 }
