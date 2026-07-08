@@ -36,26 +36,38 @@ Dados de conexão para o banco de dados
 
 O Frontend deve serguir na linha de e-commerce populares como Mercado Livre, Kabum e Magazine Luiza e deve ser construído com a stack abaixo:
 
-- SPA, sem server-side pages
-- React + TailwindCss V4
-- Zod como validation library
-- Zustand como state management
-- Utilize este esquema de cores para o tailwindcss
-
 ```text
-'spanish-green': {
-  '50': '#f8fbf9',
-  '100': '#f3f6f4',
-  '200': '#e4e9e2',
-  '300': '#d1d9ce',
-  '400': '#869a7e',
-  '500': '#6c7f65',
-  '600': '#4b5d48',
-  '700': '#3a4937',
-  '800': '#262c21',
-  '900': '#171f14',
-  '950': '#090e07',
-}
+- Angular 22+
+- TypeScript
+- Tailwind CSS v4
+- Angular CDK
+
+Forms:
+- Signal Forms
+- ngx-mask
+- Validações por schema
+
+Auth:
+- AuthService
+- AuthGuard
+- HttpInterceptor
+- TokenStorageService
+- Preferência por cookie HttpOnly
+
+State:
+- NgRx SignalStore
+- Stores por domínio: Auth, Cart, Catalog, Customer, Checkout
+
+Testes:
+- Jest/Vitest
+- Testing Library Angular
+- Playwright
+
+Qualidade:
+- ESLint
+- Prettier
+- Husky
+- lint-staged
 ```
 
 Deve ser implementado na pasta `/frontend`
