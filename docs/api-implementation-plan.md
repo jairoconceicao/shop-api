@@ -1,153 +1,140 @@
-# Plano de implementação e alinhamento da API v1
+# Tarefas de implementacao da API v1
 
-**Tipo de conteúdo:** Reference
+**Tipo de conteudo:** Reference
 
-Este plano consolida a diferença entre o contrato em `openapi.yaml`, a documentação em `docs/api-reference.md` e os endpoints atualmente implementados no backend `aspnet-api/`.
+Este documento transforma `docs/api-reference.md` em uma lista de tarefas de backend para a API v1. A referencia em `docs/api-reference.md` e a fonte da verdade para rotas, envelopes e formatos de request/response.
 
 ## Objetivo
 
-Trazer contrato, documentação e implementação para o mesmo estado funcional, reduzindo divergência entre o que a API expõe, o que a documentação descreve e o que o frontend pode consumir.
+Entregar a API v1 com contratos consistentes, validacao, erros padronizados e cobertura de testes para todos os fluxos descritos em `docs/api-reference.md`.
 
-## Base analisada
+## Escopo
 
-- `openapi.yaml`
-- `docs/api-reference.md`
-- Endpoints do backend em `aspnet-api/src/Api/Endpoints/`
-- Contratos de request/response em `aspnet-api/src/Api/Contracts/`
+Este plano cobre apenas o backend da API.
 
-## Conclusão executiva
+Fluxos incluidos na referencia:
 
-O backend atual cobre a base principal do `openapi.yaml`, mas o documento agora também inclui endpoints futuros alinhados com `docs/api-reference.md`.
+- Auth
+- Cliente
+- Catalogo de produtos
+- Carrinho
+- Pedidos
 
-Os pontos futuros estão previstos em `openapi.yaml` e `docs/api-reference.md`, mas ainda não existem no backend:
+## Premissas de contrato
 
-- `PUT /api/v1/cliente/{clienteId}/senha`
-- `GET /api/v1/produto/{categoriaId}`
-- `GET /api/v1/produto?searchword=...`
+- Respostas de sucesso usam `ApiResponse<T>` ou `PagedResponse<T>`.
+- Respostas de erro usam `ApiErrorResponse`.
+- Rotas protegidas exigem `Authorization: Bearer <token>`.
+- Datas sao serializadas em ISO 8601.
+- Enums sao serializados como string.
 
-Além disso, os exemplos de produto em `docs/api-reference.md` mostram `categoria`, mas os contratos atuais de `ProdutoCatalogoItemResponse` e `ProdutoDetalheResponse` não têm esse campo.
+## Pendencias de contrato a resolver antes da implementacao final
 
-## Estado atual por área
+- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/{categoriaId}` com o mesmo formato de path. Isso precisa ser normalizado antes da codificacao final.
+- O exemplo de `PUT /api/v1/cliente/{clienteId}/senha` precisa de um contrato de request valido e consistente com a API.
+- Os exemplos de produto expostos em catalogo precisam manter `categoria` de forma consistente entre lista e detalhe.
 
-### Auth
+## Tarefas
 
-Implementado:
+### 1. Base de contratos e padroes transversais
 
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/logout`
+- [ ] Confirmar e padronizar os contratos compartilhados `ApiResponse<T>`, `PagedResponse<T>` e `ApiErrorResponse`.
+- [ ] Definir o formato padrao de erros de validacao e de negocio.
+- [ ] Centralizar o mapeamento de erros de dominio para respostas HTTP.
+- [ ] Garantir serializacao de enums como string.
+- [ ] Garantir serializacao de datas em ISO 8601.
+- [ ] Revisar a estrutura de DTOs em `Contracts/Requests` e `Contracts/Responses`.
 
-### Clientes
+### 2. Auth
 
-Implementado:
+- [ ] Implementar `POST /api/v1/auth/login`.
+- [ ] Implementar `POST /api/v1/auth/logout`.
+- [ ] Validar email e senha no login.
+- [ ] Emitir token, tipo, expiracao e identificadores do usuario no login.
+- [ ] Registrar e invalidar `jti` no logout.
+- [ ] Criar testes de contrato para login e logout.
 
-- `GET /api/v1/cliente/{clienteId}`
-- `GET /api/v1/cliente/cpf/{cpf}`
-- `POST /api/v1/cliente`
-- `PUT /api/v1/cliente/{clienteId}`
-- `DELETE /api/v1/cliente/{clienteId}`
+### 3. Cliente
 
-Não implementado:
+- [ ] Implementar `POST /api/v1/cliente` para cadastro.
+- [ ] Implementar `GET /api/v1/cliente/{clienteId}`.
+- [ ] Implementar `GET /api/v1/cliente/cpf/{cpf}`.
+- [ ] Implementar `PUT /api/v1/cliente/{clienteId}` para atualizacao cadastral.
+- [ ] Implementar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
+- [ ] Implementar `PUT /api/v1/cliente/{clienteId}/senha` para troca de senha.
+- [ ] Validar CPF, email, data de nascimento, endereco e celular.
+- [ ] Garantir que a criacao e a atualizacao retornem apenas o contrato previsto na referencia.
+- [ ] Cobrir os casos de cliente com testes unitarios e de integracao.
 
-- troca de senha dedicada
+### 4. Catalogo de produtos
 
-### Produtos
+- [ ] Implementar `GET /api/v1/produto` com paginação.
+- [ ] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
+- [ ] Definir a rota final para consulta por categoria sem conflito com o detalhe por id.
+- [ ] Implementar busca textual por `searchword` no catalogo.
+- [ ] Expor `categoria` nos contratos de listagem e detalhe de produto.
+- [ ] Garantir que a paginação responda com `pages`, `size`, `totalItems` e `data`.
+- [ ] Cobrir filtros e mapeamento do catalogo com testes de integracao.
 
-Implementado:
+### 5. Carrinho
 
-- `GET /api/v1/produto`
-- `GET /api/v1/produto/{id}`
+- [ ] Implementar `GET /api/v1/carrinho/{carrinhoId}`.
+- [ ] Implementar `POST /api/v1/carrinho/criar`.
+- [ ] Implementar `POST /api/v1/carrinho/items`.
+- [ ] Implementar `PATCH /api/v1/carrinho/items/{itemId}`.
+- [ ] Implementar `DELETE /api/v1/carrinho/items/{itemId}`.
+- [ ] Validar produto, quantidade e valor unitario ao manipular itens.
+- [ ] Garantir que as respostas de carrinho e item sigam os contratos da referencia.
+- [ ] Cobrir o fluxo completo do carrinho com testes de integracao.
 
-Não implementado:
+### 6. Pedidos
 
-- busca textual por `searchword`
-- listagem por categoria
-- endpoint dedicado de categorias
+- [ ] Implementar `POST /api/v1/pedido`.
+- [ ] Implementar `GET /api/v1/pedido` com filtros `cpf`, `dataInicio`, `dataFim`, `page` e `size`.
+- [ ] Implementar `GET /api/v1/pedido/{pedidoId}`.
+- [ ] Implementar `PATCH /api/v1/pedido/{pedidoId}` para cancelamento.
+- [ ] Validar forma de pagamento, endereco de entrega e items do pedido.
+- [ ] Garantir que a listagem retorne `PagedResponse<T>`.
+- [ ] Cobrir criacao, consulta e cancelamento com testes de integracao.
 
-### Carrinhos
+### 7. Validacoes, autorizacao e integridade
 
-Implementado:
+- [ ] Garantir que rotas protegidas rejeitem chamadas sem token valido.
+- [ ] Garantir autorizacao por cliente quando aplicavel.
+- [ ] Aplicar FluentValidation nos requests expostos pela API.
+- [ ] Tratar conflito, nao encontrado, validacao e regra de negocio com respostas consistentes.
+- [ ] Revisar mensagens de erro para manter linguagem de dominio.
 
-- `GET /api/v1/carrinho/{carrinhoId}`
-- `POST /api/v1/carrinho/criar`
-- `POST /api/v1/carrinho/items`
-- `PATCH /api/v1/carrinho/items/{itemId}`
-- `DELETE /api/v1/carrinho/items/{itemId}`
+### 8. Testes obrigatorios
 
-### Pedidos
+- [ ] Criar testes unitarios para regras de dominio novas ou alteradas.
+- [ ] Criar fakes para casos de uso quando houver nova orquestracao na Application.
+- [ ] Criar testes de contrato para endpoints novos ou alterados.
+- [ ] Criar testes de integracao para os fluxos completos da API.
+- [ ] Garantir cobertura para os casos de erro relevantes.
 
-Implementado:
+### 9. Documentacao e sincronizacao
 
-- `POST /api/v1/pedido`
-- `GET /api/v1/pedido`
-- `GET /api/v1/pedido/{pedidoId}`
-- `PATCH /api/v1/pedido/{pedidoId}`
+- [ ] Manter `docs/api-reference.md` sincronizado com o comportamento entregue.
+- [ ] Atualizar exemplos de request e response quando os contratos mudarem.
+- [ ] Revisar o status de endpoints pendentes somente quando a implementacao existir.
+- [ ] Garantir que a documentacao nao prometa rotas ou campos fora do contrato real.
 
-## Lacunas e ajustes necessários
+## Ordem sugerida de entrega
 
-| Prioridade | Área | Gap | Fonte da divergência | Ação recomendada |
-| --- | --- | --- | --- | --- |
-| P0 | Documentação | `docs/api-reference.md` descreve rotas que não existem | `docs/api-reference.md` | Marcar como `future` ou remover até a implementação existir |
-| P0 | Documentação | Exemplos de produto usam `categoria` que não existe nos contratos | `docs/api-reference.md`, contratos de produto | Ajustar exemplos para refletir o DTO real ou expandir o contrato |
-| P0 | OpenAPI | Manter o OpenAPI sincronizado com os endpoints futuros e com os contratos do backend | `openapi.yaml`, `docs/api-reference.md`, backend | Atualizar o OpenAPI junto da implementação e manter os schemas coerentes com o frontend |
-| P1 | Backend | Troca de senha não existe | `docs/api-reference.md` | Implementar `PUT /api/v1/cliente/{clienteId}/senha` se esse fluxo for requisito |
-| P1 | Backend | Busca textual de produto não existe | `docs/api-reference.md` | Implementar filtro `searchword` no catálogo se esse fluxo for requisito |
-| P1 | Backend | Navegação por categoria não existe | `docs/api-reference.md` | Criar endpoint de categoria ou suportar filtro por categoria no catálogo |
-| P1 | Contrato | Produto ainda não expõe categoria nos contratos C# | `aspnet-api/src/Api/Contracts/` | Adicionar `categoria` aos DTOs e mapeadores se os endpoints futuros permanecerem no plano |
-| P2 | Testes | Falta cobertura explícita para as novas rotas planejadas | backend | Criar testes de integração/contrato para qualquer endpoint novo |
+1. Base de contratos e padroes transversais
+2. Auth
+3. Cliente
+4. Catalogo de produtos
+5. Carrinho
+6. Pedidos
+7. Testes e refinamento final
+8. Documentacao e sincronizacao
 
-## Plano de implementação
+## Criterios de aceite
 
-### Fase 1: alinhar documentação ao que já existe
-
-- Atualizar `docs/api-reference.md` para refletir apenas as rotas efetivamente entregues.
-- Mover para seção `future` os fluxos ainda não implementados.
-- Atualizar os contratos C# e os mapeadores de produto para expor `categoria`, caso os endpoints futuros permaneçam no plano.
-- Revisar o texto introdutório do documento, que hoje afirma que os contratos refletem as rotas implementadas, mas mistura rotas reais com rotas planejadas.
-
-### Fase 2: decidir a estratégia para produto e categoria
-
-- Definir se o catálogo vai suportar busca textual no backend.
-- Definir se a navegação por categoria será um filtro no catálogo ou um recurso dedicado.
-- Se a categoria for parte do produto exibido ao frontend, expandir os contratos e o OpenAPI antes de implementar a UI dependente.
-
-### Fase 3: implementar os itens `future`
-
-- Adicionar endpoint de troca de senha do cliente.
-- Adicionar busca no catálogo por texto.
-- Adicionar navegação por categoria.
-- Garantir validação, mensagens de erro e testes para cada novo endpoint.
-
-### Fase 4: reforçar consistência entre contrato e implementação
-
-- Gerar ou revisar o OpenAPI a partir dos contratos C#.
-- Validar status codes e envelopes de resposta contra os métodos reais.
-- Garantir que mudanças futuras sejam sempre acompanhadas de atualização do OpenAPI e da referência em `docs/`.
-
-## Itens já prontos para consumo
-
-O frontend já pode depender com segurança destas rotas:
-
-- autenticação
-- cadastro e manutenção de cliente
-- catálogo básico de produtos
-- carrinho
-- criação e consulta de pedidos
-
-## Itens que entram no plano como próximas entregas
-
-- alteração de senha
-- busca textual de produtos
-- navegação por categoria
-- qualquer expansão de catálogo que dependa de novos filtros ou recursos
-
-## Critérios de aceite
-
-- `openapi.yaml`, `docs/api-reference.md` e backend descrevem o mesmo subconjunto implementado, com os endpoints futuros explicitamente marcados.
-- `docs/api-reference.md` não promete rotas inexistentes sem marcação de `future`.
-- Exemplos de request/response batem com os contratos reais.
-- Qualquer nova rota planejada vem com testes de integração e contrato.
-
-## Observação final
-
-Se a intenção do projeto for manter `docs/api-reference.md` como fonte de verdade funcional, então as rotas de senha, busca e categoria precisam entrar no backend.
-Se a intenção for tratar o backend atual como fonte de verdade, então a documentação deve ser reduzida para o conjunto já implementado e os demais fluxos devem ser explicitamente marcados como futuros.
+- Todos os endpoints descritos em `docs/api-reference.md` estao implementados ou tiveram sua divergencia explicitamente resolvida no contrato.
+- As respostas seguem os envelopes padrao da API.
+- As rotas protegidas funcionam com autenticacao valida.
+- Os fluxos de cliente, catalogo, carrinho e pedidos possuem testes de integracao.
+- A documentacao reflete o comportamento real da API sem promessas fora do contrato.
