@@ -20,6 +20,7 @@ As rotas atuais do backend v1 cobrem estes fluxos.
 
 - `POST /api/v1/auth/login`
 - `POST /api/v1/cliente`
+- `GET /api/v1/categoria`
 - `GET /api/v1/produto?searchword=&page=&size=`
 - `GET /api/v1/produto/categoria/{categoriaId}?page=&size=`
 - `GET /api/v1/produto/{id}`
@@ -47,8 +48,8 @@ As rotas atuais do backend v1 cobrem estes fluxos.
 O frontend precisa considerar estas regras de integração desde o começo.
 
 - O catálogo, a busca por texto, a navegação por categoria e o detalhe de produto agora são públicos. A home pública com vitrine real já é suportada pelo backend atual.
-- Não existe endpoint dedicado para listar categorias. O frontend consegue navegar por categoria usando `categoriaId`, mas precisa obter as opções a partir dos produtos retornados ou de configuração local.
-- Produto de catálogo e detalhe já retornam `categoria` embutida com `id` e `titulo`.
+- Existe endpoint dedicado para listar categorias via `GET /api/v1/categoria`. O frontend já pode montar navegação, filtros e menus sem derivar categorias a partir dos produtos.
+- Produto de catálogo e detalhe já retornam `categoria` embutida com `categoriaId` e `titulo`.
 - As respostas paginadas vêm no formato `pagination.data`, com metadados `pages`, `size` e `totalItems`.
 - As respostas não paginadas vêm envelopadas em `data`, com `status` e `message` no nível raiz.
 - O login retorna `token`, `tipo`, `expiraEm`, `usuarioId`, `clienteId` e `email`. A sessão do frontend deve ser montada com esses campos.
@@ -69,7 +70,7 @@ O frontend precisa considerar estas regras de integração desde o começo.
 | Cadastro de cliente | Tela de criação de conta | `POST /api/v1/cliente` | now |
 | Home pública | Banner, atalhos e vitrine usando catálogo aberto | `GET /api/v1/produto` | now |
 | Busca no catálogo | Campo de busca com `searchword` | `GET /api/v1/produto?searchword={searchword}` | now |
-| Navegação por categoria | Landing e filtros por `categoriaId` conhecido | `GET /api/v1/produto/categoria/{categoriaId}` | now-with-constraint |
+| Navegação por categoria | Landing, menu e filtros por categorias vindas da API | `GET /api/v1/categoria`, `GET /api/v1/produto/categoria/{categoriaId}` | now |
 | Produto | Página de detalhes, preço, estoque e CTA de compra | `GET /api/v1/produto/{id}` | now |
 | Carrinho | Lista de itens, ajuste de quantidade, remoção e resumo | `GET /api/v1/carrinho/{carrinhoId}`, `POST /api/v1/carrinho/criar`, `POST /api/v1/carrinho/items`, `PATCH /api/v1/carrinho/items/{itemId}`, `DELETE /api/v1/carrinho/items/{itemId}` | now |
 | Checkout | Criação do pedido a partir do carrinho | `POST /api/v1/pedido` | now |
@@ -78,7 +79,7 @@ O frontend precisa considerar estas regras de integração desde o começo.
 | Meus pedidos | Lista de pedidos, detalhe e cancelamento | `GET /api/v1/pedido`, `GET /api/v1/pedido/{pedidoId}`, `PATCH /api/v1/pedido/{pedidoId}` | now |
 | Endereços salvos | Gestão dedicada de múltiplos endereços | Não existe rota dedicada | future |
 | Ofertas e promoções | Blocos promocionais dinâmicos e campanhas | Não existe rota específica de ofertas | future |
-| Categorias administráveis | Menu de categorias vindo de recurso próprio | Não existe rota dedicada de categorias | future |
+| Categorias administráveis | Gestão editorial, ordenação e curadoria de categorias | Não existe rota administrativa dedicada | future |
 
 ## Fase 1: fundação do frontend
 
@@ -100,8 +101,9 @@ Entregue as telas e integrações que já têm contrato pronto.
 - Implementar a home pública consumindo `GET /api/v1/produto`
 - Implementar a tela de login com validação por schema e estado de erro
 - Implementar o cadastro de cliente como criação de conta pública
+- Implementar carregamento da lista de categorias usando `GET /api/v1/categoria`
 - Implementar busca textual no catálogo usando `searchword`
-- Implementar navegação por categoria com base em `categoriaId` e categorias embutidas nos produtos
+- Implementar navegação por categoria com base em `GET /api/v1/categoria` e filtro em `GET /api/v1/produto/categoria/{categoriaId}`
 - Construir a página de detalhes do produto
 - Construir o carrinho com criação automática quando necessário, atualização de quantidade e remoção de item
 - Construir o checkout enviando os campos obrigatórios reais do backend
@@ -113,7 +115,7 @@ Entregue as telas e integrações que já têm contrato pronto.
 
 Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou de expansão do modelo atual do backend.
 
-- Recurso dedicado para listar e ordenar categorias
+- Recurso administrativo para listar, ordenar e curar categorias
 - Blocos promocionais, campanhas e ofertas relâmpago orientadas por API
 - Gestão dedicada de múltiplos endereços salvos
 - Recursos de curadoria comercial como coleções, vitrines temáticas e destaques sazonais
@@ -125,7 +127,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - Tratar catálogo, categoria e detalhe de produto como áreas públicas
 - Tratar carrinho, checkout, conta, logout e pedidos como áreas autenticadas
 - Buscar os dados do cliente autenticado cedo no fluxo privado para recuperar o `cpf` necessário na listagem de pedidos
-- Derivar opções de categorias a partir dos produtos retornados até existir um recurso próprio de categorias
+- Carregar opções de categorias a partir de `GET /api/v1/categoria` e usar `categoriaId` como chave estável no frontend
 - Ao adicionar item ao carrinho, não enviar `carrinhoId`; o backend associa o item ao carrinho do cliente autenticado
 - Ao criar pedido, enviar `clienteId`, `carrinhoId`, `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` exatamente como o backend espera hoje
 - Tratar `PATCH /pedido/{pedidoId}` como cancelamento explícito, enviando apenas `status: "Cancelado"`
@@ -137,8 +139,9 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - O catálogo público abre sem autenticação
 - O login autentica e protege apenas as rotas privadas
 - O cadastro de cliente cria conta sem autenticação prévia
+- A navegação principal de categorias usa `GET /api/v1/categoria`
 - A busca textual usa `searchword` e reflete paginação do backend
-- O filtro por categoria funciona quando o frontend conhece o `categoriaId`
+- O filtro por categoria funciona a partir das categorias carregadas da API
 - O detalhe do produto abre por `produtoId`
 - O carrinho altera itens sem quebrar o resumo
 - O checkout cria pedido com os campos obrigatórios reais do backend atual
@@ -148,8 +151,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 
 ## Perguntas em aberto
 
-- O backend vai expor um recurso dedicado para listar categorias, ou o frontend deve manter a derivação local por mais tempo?
 - `POST /api/v1/carrinho/criar` vai continuar exigindo `clienteId` no payload mesmo com sessão autenticada?
 - `POST /api/v1/pedido` também vai manter `clienteId` e `carrinhoId` explícitos no payload na próxima versão?
 - O backend vai suportar múltiplos endereços salvos antes da primeira versão pública?
-- O `openapi.yaml` será atualizado para refletir que os endpoints de produto agora são públicos?
+
