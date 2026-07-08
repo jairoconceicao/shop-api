@@ -398,7 +398,7 @@ paths:
                 "$ref": "#/components/schemas/ApiErrorResponse"
       security:
       - Bearer: []
-  "/api/v1/produto/{categoriaId}":
+  "/api/v1/produto/categoria/{categoriaId}":
     get:
       tags:
       - Produtos
@@ -1585,3 +1585,4 @@ tags:
 - name: Produtos
 - name: Carrinhos
 - name: Pedidos
+
