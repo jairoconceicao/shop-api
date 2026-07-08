@@ -31,7 +31,7 @@ public class ProdutoEndpointsIntegrationTests : IClassFixture<TestApiFactory>
             await Task.CompletedTask;
         });
 
-        var client = await ApiTestSupport.CreateAuthenticatedClientAsync(_factory);
+        var client = _factory.CreateClient();
 
         var buscaResponse = await client.GetAsync("/api/v1/produto?searchword=Fone&page=1&size=10");
         Assert.Equal(HttpStatusCode.OK, buscaResponse.StatusCode);
@@ -48,3 +48,4 @@ public class ProdutoEndpointsIntegrationTests : IClassFixture<TestApiFactory>
         Assert.Equal("Audio", detalheDocument.RootElement.GetProperty("data").GetProperty("categoria").GetProperty("titulo").GetString());
     }
 }
+
