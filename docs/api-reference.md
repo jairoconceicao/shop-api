@@ -328,7 +328,7 @@ GET /api/v1/produto/{id}
 ### Consultar produto por CategoriaId
 
 ```text
-GET /api/v1/produto/{categoriaId}
+GET /api/v1/produto/categoria/{categoriaId}
 ```
 
 ```jsonc
@@ -671,3 +671,4 @@ PATCH /api/v1/pedido/{pedidoId}
   }
 }
 ```
+

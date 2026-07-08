@@ -30,7 +30,7 @@ Fluxos incluidos na referencia:
 
 ## Pendencias de contrato a resolver antes da implementacao final
 
-- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/{categoriaId}` com o mesmo formato de path. Isso precisa ser normalizado antes da codificacao final.
+- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/categoria/{categoriaId}`. Isso precisa ser mantido consistente na implementacao e no contrato.
 - O exemplo de `PUT /api/v1/cliente/{clienteId}/senha` precisa de um contrato de request valido e consistente com a API.
 - Os exemplos de produto expostos em catalogo precisam manter `categoria` de forma consistente entre lista e detalhe.
 
@@ -138,3 +138,4 @@ Fluxos incluidos na referencia:
 - As rotas protegidas funcionam com autenticacao valida.
 - Os fluxos de cliente, catalogo, carrinho e pedidos possuem testes de integracao.
 - A documentacao reflete o comportamento real da API sem promessas fora do contrato.
+
