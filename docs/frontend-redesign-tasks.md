@@ -86,20 +86,20 @@ API.
 
 ### Fase 5. Carrinho e checkout
 
-- [ ] [T-039] Refatorar a tela de carrinho para um layout mais visual e
+- [x] [T-039] Refatorar a tela de carrinho para um layout mais visual e
   objetivo.
-- [ ] [T-040] Melhorar exibicao de itens com imagem, nome, preco e subtotal.
-- [ ] [T-041] Manter edicao de quantidade com interacao clara e responsiva.
-- [ ] [T-042] Manter remocao de item com confirmacao visual adequada.
-- [ ] [T-043] Reforcar o resumo de valores com melhor hierarquia visual.
-- [ ] [T-044] Garantir resumo sempre visivel no desktop para carrinho e
+- [x] [T-040] Melhorar exibicao de itens com imagem, nome, preco e subtotal.
+- [x] [T-041] Manter edicao de quantidade com interacao clara e responsiva.
+- [x] [T-042] Manter remocao de item com confirmacao visual adequada.
+- [x] [T-043] Reforcar o resumo de valores com melhor hierarquia visual.
+- [x] [T-044] Garantir resumo sempre visivel no desktop para carrinho e
   checkout.
-- [ ] [T-045] Reestruturar o checkout com stepper de progresso.
-- [ ] [T-046] Organizar o checkout em endereco de entrega, pagamento e resumo
+- [x] [T-045] Reestruturar o checkout com stepper de progresso.
+- [x] [T-046] Organizar o checkout em endereco de entrega, pagamento e resumo
   fixo.
-- [ ] [T-047] Validar que o fluxo continue usando os endpoints existentes de
+- [x] [T-047] Validar que o fluxo continue usando os endpoints existentes de
   carrinho e pedido.
-- [ ] [T-048] Revisar estados de erro e recuperacao no fluxo de finalizacao.
+- [x] [T-048] Revisar estados de erro e recuperacao no fluxo de finalizacao.
 
 ### Fase 6. Conta e pedidos
 
@@ -163,6 +163,7 @@ O conjunto de tasks fica concluido quando:
 - Os fluxos existentes continuarem funcionando com os contratos atuais da API.
 - As sugestoes sem suporte de backend estiverem explicitamente registradas como
   `future`.
+
 
 
 
