@@ -82,7 +82,7 @@ POST /api/v1/cliente
   "nome": "Fulano de Tal",
   "dataNascimento": "1990-01-31",
   "email": "fulano@exemplo.com",
-  "senha": "123456",
+  "senha": "12345678",
   "endereco": {
     "logradouro": "Rua Exemplo",
     "numero": "123",
@@ -218,6 +218,33 @@ PUT /api/v1/cliente/{clienteId}
 }
 ```
 
+---
+
+### Alterar Senha do cliente
+
+```text
+PUT /api/v1/cliente/{clienteId}/senha
+```
+
+```jsonc
+// Request
+{
+  "clienteId": 9999,
+  "senhaNova": "",
+}
+
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "data": {
+    "clienteId": 9999
+  }
+}
+```
+
+---
+
 ### Cancelar conta do cliente
 
 ```text
@@ -260,7 +287,11 @@ GET /api/v1/produto?page=1&size=20
         "titulo": "Produto exemplo",
         "thumb": null,
         "preco": 9999.99,
-        "estoque": 9999.9999
+        "estoque": 9999.9999,
+        "categoria" : {
+          "id": 9999,
+          "titulo": "Categoria Exemplo"
+        }
       }
     ]
   }
@@ -285,7 +316,75 @@ GET /api/v1/produto/{id}
     "modelo": "Modelo X",
     "foto": null,
     "preco": 9999.99,
-    "estoque": 9999.9999
+    "estoque": 9999.9999,
+    "categoria" : {
+      "id": 9999,
+      "titulo": "Categoria Exemplo"
+    }
+  }
+}
+```
+
+### Consultar produto por CategoriaId
+
+```text
+GET /api/v1/produto/{categoriaId}
+```
+
+```jsonc
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "pagination": {
+    "pages": 99,
+    "size": 20,
+    "totalItems": 99,
+    "data": [
+      {
+        "produtoId": 9999,
+        "titulo": "Produto exemplo",
+        "thumb": null,
+        "preco": 9999.99,
+        "estoque": 9999.9999,
+        "categoria" : {
+          "id": 9999,
+          "titulo": "Categoria Exemplo"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Consultar produto por searchword
+
+```text
+GET /api/v1/produto?searchword={searchword}&page=1&size=20
+```
+
+```jsonc
+// Response - 200 OK
+{
+  "status": true,
+  "message": "",
+  "pagination": {
+    "pages": 99,
+    "size": 20,
+    "totalItems": 99,
+    "data": [
+      {
+        "produtoId": 9999,
+        "titulo": "Produto exemplo",
+        "thumb": null,
+        "preco": 9999.99,
+        "estoque": 9999.9999,
+        "categoria" : {
+          "id": 9999,
+          "titulo": "Categoria Exemplo"
+        }
+      }
+    ]
   }
 }
 ```

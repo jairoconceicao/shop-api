@@ -48,12 +48,26 @@ Cliente
 
 ---
 
+## Categoria de Produtos
+
+```text
+CategoriaProduto
+{
+  id: Long
+  titulo: String
+  descricao: String
+}
+```
+
+---
+
 ## Catálogo de Produtos
 
 ```text
 Produto
 {
   id: Long
+  categoriaProdutoId: Long
   titulo: String
   descricao: String
   modelo: String
