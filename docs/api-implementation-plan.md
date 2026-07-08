@@ -30,7 +30,7 @@ Fluxos incluidos na referencia:
 
 ## Pendencias de contrato a resolver antes da implementacao final
 
-- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/categoria/{categoriaId}`. Isso precisa ser mantido consistente na implementacao e no contrato.
+- A referencia define `GET /api/v1/produto/{id}` e `GET /api/v1/produto/categoria/{categoriaId}`. O roteamento e os contratos precisam ser mantidos consistentes na implementacao.
 - O exemplo de `PUT /api/v1/cliente/{clienteId}/senha` precisa de um contrato de request valido e consistente com a API.
 - Os exemplos de produto expostos em catalogo precisam manter `categoria` de forma consistente entre lista e detalhe.
 
@@ -70,7 +70,7 @@ Fluxos incluidos na referencia:
 
 - [ ] Implementar `GET /api/v1/produto` com paginação.
 - [ ] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.
-- [ ] Definir a rota final para consulta por categoria sem conflito com o detalhe por id.
+- [ ] Implementar `GET /api/v1/produto/categoria/{categoriaId}` para listagem de produtos por categoria.
 - [ ] Implementar busca textual por `searchword` no catalogo.
 - [ ] Expor `categoria` nos contratos de listagem e detalhe de produto.
 - [ ] Garantir que a paginação responda com `pages`, `size`, `totalItems` e `data`.
@@ -136,6 +136,7 @@ Fluxos incluidos na referencia:
 - Todos os endpoints descritos em `docs/api-reference.md` estao implementados ou tiveram sua divergencia explicitamente resolvida no contrato.
 - As respostas seguem os envelopes padrao da API.
 - As rotas protegidas funcionam com autenticacao valida.
-- Os fluxos de cliente, catalogo, carrinho e pedidos possuem testes de integracao.
+- Os fluxos de cliente, catalogo, categoria, carrinho e pedidos possuem testes de integracao.
 - A documentacao reflete o comportamento real da API sem promessas fora do contrato.
+
 
