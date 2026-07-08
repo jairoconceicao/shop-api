@@ -19,7 +19,7 @@ const variantClasses: Record<ButtonVariant, string> = {
     "border border-spanish-green-200 bg-white text-spanish-green-800 hover:border-spanish-green-300 hover:bg-spanish-green-50",
   ghost: "text-spanish-green-700 hover:bg-spanish-green-100",
   danger: "bg-red-600 text-white shadow-sm shadow-red-950/10 hover:bg-red-500",
-  accent: "bg-amber-500 text-white shadow-sm shadow-amber-950/10 hover:bg-amber-600",
+  accent: "bg-amber-600 text-white shadow-sm shadow-amber-950/10 hover:bg-amber-500",
   outline: "border border-spanish-green-300 bg-transparent text-spanish-green-800 hover:bg-spanish-green-100",
 };
 
@@ -47,7 +47,7 @@ export function Button({
     <button
       type={type ?? "button"}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60",
         variantClasses[variant],
         sizeClasses[size],
         className,

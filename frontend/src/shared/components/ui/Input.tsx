@@ -38,7 +38,7 @@ export function Input({
         <input
           id={inputId}
           className={cn(
-            "h-12 w-full rounded-2xl border bg-white px-4 text-sm text-spanish-green-950 placeholder:text-spanish-green-400 transition focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:bg-spanish-green-100",
+            "h-12 w-full rounded-2xl border bg-white px-4 text-sm text-spanish-green-950 placeholder:text-spanish-green-400 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:bg-spanish-green-100",
             leadingIcon ? "pl-11" : "",
             trailingIcon ? "pr-11" : "",
             error

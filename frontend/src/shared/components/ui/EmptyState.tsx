@@ -37,7 +37,7 @@ export function EmptyState({
   const meta = toneMeta[tone];
 
   return (
-    <Card className="border-dashed border-spanish-green-300 bg-spanish-green-50/70">
+    <Card role={tone === "error" ? "alert" : "status"} aria-live={tone === "error" ? "assertive" : "polite"} className="border-dashed border-spanish-green-300 bg-spanish-green-50/70">
       <div className="flex flex-col items-start gap-5 p-6 sm:p-8">
         <Badge variant={tone === "error" ? "danger" : tone === "success" ? "success" : "neutral"}>
           {meta.badge}

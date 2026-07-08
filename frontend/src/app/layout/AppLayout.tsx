@@ -33,14 +33,14 @@ const searchSuggestions = [
 
 function navClassName({ isActive }: { isActive: boolean }) {
   return [
-    "inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold transition",
+    "inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     isActive ? "bg-spanish-green-700 text-white shadow-sm" : "text-spanish-green-600 hover:bg-spanish-green-50 hover:text-spanish-green-900",
   ].join(" ");
 }
 
 function mobileNavClassName({ isActive }: { isActive: boolean }) {
   return [
-    "flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold transition",
+    "flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     isActive ? "text-spanish-green-900" : "text-spanish-green-500 hover:text-spanish-green-800",
   ].join(" ");
 }
@@ -116,6 +116,14 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(76,93,72,0.12),_transparent_34%),linear-gradient(180deg,#f8fbf9_0%,#eef3ee_55%,#e8eee6_100%)] text-spanish-green-950">
+      {showShell ? (
+        <a
+          href="#main-content"
+          className="sr-only z-50 rounded-full bg-white px-4 py-2 text-sm font-semibold text-spanish-green-900 shadow-lg focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+        >
+          Pular para o conteúdo principal
+        </a>
+      ) : null}
       {showShell ? (
         <header className="sticky top-0 z-40 border-b border-spanish-green-200/80 bg-white/90 backdrop-blur">
           <div className="border-b border-spanish-green-200/60 bg-spanish-green-950 text-white">
@@ -205,7 +213,7 @@ export function AppLayout() {
             </div>
 
             <div className="hidden flex-wrap items-center justify-between gap-3 rounded-3xl border border-spanish-green-200 bg-white px-4 py-3 shadow-sm xl:flex">
-              <nav className="flex flex-wrap gap-2">
+              <nav className="flex flex-wrap gap-2" aria-label="Navegação principal">
                 {quickLinks.map((item) => (
                   <NavLink key={item.to} to={item.to} className={navClassName}>
                     {item.label}
@@ -221,7 +229,7 @@ export function AppLayout() {
         </header>
       ) : null}
 
-      <main className={showShell ? "mx-auto flex min-h-[calc(100vh-220px)] max-w-7xl flex-col px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8" : "mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-8 sm:px-6 lg:px-8"}>
+      <main id="main-content" className={showShell ? "mx-auto flex min-h-[calc(100vh-220px)] max-w-7xl flex-col px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8" : "mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-8 sm:px-6 lg:px-8"}>
         <Outlet />
       </main>
 
@@ -235,7 +243,7 @@ export function AppLayout() {
             </div>
           </footer>
 
-          <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-spanish-green-200 bg-white/95 shadow-[0_-10px_30px_rgba(9,14,7,0.08)] backdrop-blur md:hidden">
+          <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-spanish-green-200 bg-white/95 shadow-[0_-10px_30px_rgba(9,14,7,0.08)] backdrop-blur md:hidden" aria-label="Navegação inferior">
             <div className="mx-auto grid max-w-7xl grid-cols-4 gap-1 px-2 py-2">
               {mobileNav.map((item) => (
                 <NavLink key={item.to} to={item.to} className={mobileNavClassName}>

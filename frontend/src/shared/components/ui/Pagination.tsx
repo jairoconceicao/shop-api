@@ -71,7 +71,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, siblingCount
                 key={page}
                 type="button"
                 className={cn(
-                  "min-w-10 rounded-xl px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200",
+                  "min-w-10 rounded-xl px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
                   page === currentPage
                     ? "bg-spanish-green-700 text-white shadow-sm"
                     : "bg-spanish-green-50 text-spanish-green-700 hover:bg-spanish-green-100",

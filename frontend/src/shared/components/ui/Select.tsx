@@ -21,7 +21,7 @@ export function Select({ label, hint, error, success, children, className, id, .
       <select
         id={selectId}
         className={cn(
-          "h-12 w-full appearance-none rounded-2xl border bg-white px-4 text-sm text-spanish-green-950 transition focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:bg-spanish-green-100",
+          "h-12 w-full appearance-none rounded-2xl border bg-white px-4 text-sm text-spanish-green-950 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:bg-spanish-green-100",
           error
             ? "border-red-300 focus-visible:border-red-400 focus-visible:ring-red-100"
             : success

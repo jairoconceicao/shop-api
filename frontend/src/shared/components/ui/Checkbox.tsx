@@ -26,7 +26,7 @@ export function Checkbox({ label, hint, error, className, id, ...props }: Checkb
         <input
           id={checkboxId}
           type="checkbox"
-          className="mt-1 size-4 rounded border-spanish-green-300 text-spanish-green-700 focus-visible:ring-4 focus-visible:ring-spanish-green-200"
+          className="mt-1 size-4 rounded border-spanish-green-300 text-spanish-green-700 focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           aria-invalid={error ? true : undefined}
           aria-describedby={message ? `${checkboxId}-message` : undefined}
           {...props}

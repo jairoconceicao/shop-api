@@ -64,8 +64,9 @@ export function ProductCard({ product, to, from, className, ctaLabel = "Comprar 
     <Link
       to={to}
       state={from ? { from } : undefined}
+      aria-label={`${product.title} por ${formatCurrency(product.price)}. Abrir detalhes do produto.`}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-3xl border border-spanish-green-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200",
+        "group flex h-full flex-col overflow-hidden rounded-3xl border border-spanish-green-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-spanish-green-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         className,
       )}
     >
