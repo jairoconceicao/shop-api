@@ -210,7 +210,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/ChangeClienteSenhaRequest"
+              "$ref": "#/components/schemas/UpdateClientePasswordRequest"
         required: true
       responses:
         '200':
@@ -345,20 +345,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/PagedResponseOfProdutoCatalogoItemResponse"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ApiErrorResponse"
         '422':
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ApiErrorResponse"
-      security:
-      - Bearer: []
   "/api/v1/produto/{id}":
     get:
       tags:
@@ -378,12 +370,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ApiResponseOfProdutoDetalheResponse"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ApiErrorResponse"
         '404':
           description: Not Found
           content:
@@ -396,8 +382,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ApiErrorResponse"
-      security:
-      - Bearer: []
   "/api/v1/produto/categoria/{categoriaId}":
     get:
       tags:
@@ -417,20 +401,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/PagedResponseOfProdutoCatalogoItemResponse"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/ApiErrorResponse"
         '422':
           description: Unprocessable Entity
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/ApiErrorResponse"
-      security:
-      - Bearer: []
   "/api/v1/carrinho/{carrinhoId}":
     get:
       tags:
@@ -1568,6 +1544,13 @@ components:
           "$ref": "#/components/schemas/EnderecoRequest"
         celular:
           "$ref": "#/components/schemas/CelularRequest"
+    UpdateClientePasswordRequest:
+      type: object
+      properties:
+        senhaAtual:
+          type: string
+        senhaNova:
+          type: string
     UpdatePedidoStatusRequest:
       type: object
       properties:
