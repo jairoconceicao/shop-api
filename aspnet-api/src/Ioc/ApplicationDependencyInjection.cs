@@ -4,6 +4,7 @@ using aspnet_api.Api.Contracts.Requests.Carrinhos;
 using aspnet_api.Api.Contracts.Requests.Pedidos;
 using aspnet_api.Api.Contracts.Requests.Produtos;
 using aspnet_api.Api.Contracts.Responses.Auth;
+using aspnet_api.Api.Contracts.Responses.Categorias;
 using aspnet_api.Api.Contracts.Responses.Clientes;
 using aspnet_api.Api.Contracts.Responses.Carrinhos;
 using aspnet_api.Api.Contracts.Responses.Pedidos;
@@ -13,6 +14,7 @@ using aspnet_api.Domain.Common;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Auth.Autenticar;
 using aspnet_api.src.Application.Auth.Encerrar;
+using aspnet_api.src.Application.Categoria.Carregar;
 using aspnet_api.src.Application.Carrinho.AdicionarItem;
 using aspnet_api.src.Application.Carrinho.AtualizarItem;
 using aspnet_api.src.Application.Carrinho.Criar;
@@ -58,6 +60,7 @@ public static class ApplicationDependencyInjection
         services.AddScoped<IValidator<LoginRequest>, AutenticarCommandValidator>();
 
         services.AddScoped<IActionCommand<CreateClienteRequest, Result<ClienteIdResponse>>, ClienteRegistrarCommand>();
+        services.AddScoped<IActionCommand<CarregarCategoriasQuery, Result<IReadOnlyCollection<CategoriaResponse>>>, CategoriaCarregarQuery>();
         services.AddScoped<IActionCommand<AtualizarClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarCommand>();
         services.AddScoped<IActionCommand<AtualizarSenhaClienteCommand, Result<ClienteIdResponse>>, ClienteAtualizarSenhaCommand>();
         services.AddScoped<IActionCommand<ExcluirClienteCommand, Result<ClienteIdResponse>>, ClienteExcluirCommand>();

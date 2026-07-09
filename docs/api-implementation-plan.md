@@ -37,10 +37,6 @@ Fluxos incluidos na referencia:
 - Os contratos de produto em catalogo e detalhe expoem `categoria` com shape resumido e consistente: `categoriaId` e `titulo`.
 - O contrato de `GET /api/v1/categoria` expoe `categoriaId`, `titulo` e `descricao`.
 
-## Lacuna de implementacao ainda aberta
-
-- O endpoint `GET /api/v1/categoria` segue como contrato aprovado e documentado, mas ainda precisa existir em `aspnet-api/src/Api/Endpoints` para que a implementacao fique aderente a referencia.
-
 ## Tarefas
 
 ### 1. Base de contratos e padroes transversais
@@ -75,9 +71,9 @@ Fluxos incluidos na referencia:
 
 ### 4. Catalogo de produtos
 
-- [ ] Implementar `GET /api/v1/categoria` para carregamento da lista de categorias.
-- [ ] Garantir que a resposta de categoria use `ApiResponse<T>` com uma colecao em `data`.
-- [ ] Cobrir a consulta de categorias com testes de integracao.
+- [x] Implementar `GET /api/v1/categoria` para carregamento da lista de categorias.
+- [x] Garantir que a resposta de categoria use `ApiResponse<T>` com uma colecao em `data`.
+- [x] Cobrir a consulta de categorias com testes de integracao.
 
 - [x] Implementar `GET /api/v1/produto` com paginação.
 - [x] Implementar `GET /api/v1/produto/{id}` para detalhe do produto.

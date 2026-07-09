@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Routing;
 using aspnet_api.Api.Endpoints.Auth;
 using aspnet_api.Api.Endpoints.Carrinhos;
+using aspnet_api.Api.Endpoints.Categorias;
 using aspnet_api.Api.Endpoints.Clientes;
 using aspnet_api.Api.Endpoints.Pedidos;
 using aspnet_api.Api.Endpoints.Produtos;
@@ -13,6 +14,7 @@ public static class EndpointRouteBuilderExtensions
     {
         app.MapAuthEndpoints();
         app.MapClienteEndpoints();
+        app.MapCategoriaEndpoints();
         app.MapProdutoEndpoints();
         app.MapCarrinhoEndpoints();
         app.MapPedidoEndpoints();
