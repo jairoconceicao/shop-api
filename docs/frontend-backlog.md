@@ -111,7 +111,7 @@ Entregue ate aqui:
 - Estrutura responsiva inicial para mobile e desktop.
 
 [x] TASK-010: Definir tokens de cor, tipografia, espacamento, bordas e sombras.
-[ ] TASK-011: Criar componentes base de `Button`, `Input`, `Checkbox`, `Alert` e `FormError`.
+[x] TASK-011: Criar componentes base de `Button`, `Input`, `Checkbox`, `Alert` e `FormError`.
 [ ] TASK-012: Criar estados padrao de loading, skeleton, vazio, sucesso e erro.
 [x] TASK-013: Criar componentes de layout `AppShell`, `PageContainer`, `Header`, `MobileBottomNavigation` e `Footer`.
 [x] TASK-014: Garantir layout mobile first e adaptacao para desktop.
