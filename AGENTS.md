@@ -105,4 +105,4 @@ Required for every changed behavior. Domain → unit; Application → fakes; API
 ## Tarefas
 
 - **SEMPRE** separe tarefas de backend e frontend.
-- Para cada tarefa solicitada via prompt, ao finalizá-la se for realizado alteração ou criação de código, crie um commit conforme a Skill `commit-mesages`.
+- Toda tarefa deve ser pequena e rastreável.
