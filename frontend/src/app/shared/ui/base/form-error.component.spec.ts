@@ -5,11 +5,17 @@ import { FormErrorComponent } from './form-error.component';
 
 describe('FormErrorComponent', () => {
   it('renders multiple validation messages', async () => {
-    await render(FormErrorComponent, {
-      componentProperties: {
-        error: ['Email obrigatorio', 'Email invalido'],
+    await render(
+      `
+        <app-form-error [error]="error" />
+      `,
+      {
+        imports: [FormErrorComponent],
+        componentProperties: {
+          error: ['Email obrigatorio', 'Email invalido'],
+        },
       },
-    });
+    );
 
     const alert = screen.getByRole('alert');
 

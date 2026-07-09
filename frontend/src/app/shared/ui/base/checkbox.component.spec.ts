@@ -5,24 +5,34 @@ import { CheckboxComponent } from './checkbox.component';
 
 describe('CheckboxComponent', () => {
   it('renders the checkbox and emits checked changes', async () => {
-    const { fixture } = await render(CheckboxComponent, {
-      componentProperties: {
-        label: 'Lembrar-me',
-        checked: false,
-        hint: 'Mantem a sessao ativa neste dispositivo.',
-      },
-    });
-
-    const checkbox = screen.getByLabelText('Lembrar-me') as HTMLInputElement;
     const emittedValues: boolean[] = [];
 
-    fixture.componentInstance.checkedChange.subscribe((value) => emittedValues.push(value));
+    const { fixture } = await render(
+      `
+        <app-checkbox
+          label="Lembrar-me"
+          [checked]="checked"
+          hint="Mantem a sessao ativa neste dispositivo."
+          (checkedChange)="onChecked($event)"
+        />
+      `,
+      {
+        imports: [CheckboxComponent],
+        componentProperties: {
+          checked: false,
+          onChecked: (value: boolean) => emittedValues.push(value),
+        },
+      },
+    );
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
 
     expect(checkbox).not.toBeChecked();
     expect(screen.getByText('Mantem a sessao ativa neste dispositivo.')).toBeVisible();
 
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
 
     expect(emittedValues).toEqual([true]);
   });

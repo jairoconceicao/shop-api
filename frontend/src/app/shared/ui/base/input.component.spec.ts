@@ -5,19 +5,28 @@ import { InputComponent } from './input.component';
 
 describe('InputComponent', () => {
   it('renders label, hint and validation message and emits value changes', async () => {
-    const { fixture } = await render(InputComponent, {
-      componentProperties: {
-        label: 'E-mail',
-        value: 'cliente@shopapi.dev',
-        hint: 'Use um e-mail valido para acesso.',
-        error: 'E-mail obrigatorio',
-      },
-    });
-
-    const input = screen.getByLabelText('E-mail') as HTMLInputElement;
     const emittedValues: string[] = [];
 
-    fixture.componentInstance.valueChange.subscribe((value) => emittedValues.push(value));
+    const { fixture } = await render(
+      `
+        <app-input
+          label="E-mail"
+          [value]="value"
+          hint="Use um e-mail valido para acesso."
+          error="E-mail obrigatorio"
+          (valueChange)="onValueChange($event)"
+        />
+      `,
+      {
+        imports: [InputComponent],
+        componentProperties: {
+          value: 'cliente@shopapi.dev',
+          onValueChange: (val: string) => emittedValues.push(val),
+        },
+      },
+    );
+
+    const input = screen.getByRole('textbox') as HTMLInputElement;
 
     expect(input).toHaveValue('cliente@shopapi.dev');
     expect(screen.getByText('Use um e-mail valido para acesso.')).toBeVisible();
@@ -25,6 +34,7 @@ describe('InputComponent', () => {
 
     input.value = 'novo@shopapi.dev';
     input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     expect(emittedValues).toEqual(['novo@shopapi.dev']);
   });
