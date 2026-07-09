@@ -401,14 +401,14 @@ def run_codex(
     prompt_file.write_text(prompt, encoding="utf-8")
 
     command = [
-        codex_bin,
+        f"{codex_bin} -a {approval_policy}",
         "exec",
         "--cd",
         str(repo_dir),
         "--sandbox",
         sandbox,
-        "-- --ask-for-approval",
-        approval_policy,
+        # "--ask-for-approval",
+        # approval_policy,
     ]
 
     if use_json:
