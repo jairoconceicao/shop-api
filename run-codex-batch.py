@@ -379,7 +379,34 @@ def run_validations(repo_dir: Path, commands: List[str], log_file: Path) -> None
         return
 
     for command in commands:
-        run_command(split_shell_command(command), cwd=repo_dir, log_file=log_file)
+        try:
+            run_command(split_shell_command(command), cwd=repo_dir, log_file=log_file)
+        except Exception as error:
+            print(error)
+            if command.find("test"):
+                run_fix_tests(repo_dir)
+
+
+def run_fix_tests(repo_dir: Path) -> None:
+    logs_dir = repo_dir / ".codex-runs"
+    output_file = logs_dir / "fix-testes.codex.err.log"
+
+    prompt = "Verifique os erros dos testes unitários e faça as correções necessárias."
+
+    command = [
+        "codex",
+        "exec",
+        "--cd",
+        str(repo_dir),
+        "--sandbox",
+        "workspace-write",
+        "--json",
+        "--ephemeral",
+    ]
+
+    command.append(prompt)
+
+    run_command(command, cwd=repo_dir, log_file=output_file)
 
 
 def run_codex(
