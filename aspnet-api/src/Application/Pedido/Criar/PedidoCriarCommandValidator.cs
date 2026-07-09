@@ -11,12 +11,6 @@ public sealed class PedidoCriarCommandValidator : AbstractValidator<CreatePedido
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
-        RuleFor(request => request.ClienteId)
-            .GreaterThan(0).WithMessage("ClienteId e obrigatorio.");
-
-        RuleFor(request => request.CarrinhoId)
-            .GreaterThan(0).WithMessage("CarrinhoId e obrigatorio.");
-
         RuleFor(request => request.EnderecoEntrega)
             .NotNull().WithMessage("EnderecoEntrega e obrigatorio.")
             .SetValidator(new EnderecoRequestValidator());
@@ -34,5 +28,3 @@ public sealed class PedidoCriarCommandValidator : AbstractValidator<CreatePedido
             .SetValidator(new PedidoItemRequestValidator());
     }
 }
-
-

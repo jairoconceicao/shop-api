@@ -101,8 +101,6 @@ internal static class PedidoTestSupport
     {
         return new CreatePedidoRequest
         {
-            ClienteId = 1,
-            CarrinhoId = 1,
             DataPedido = DateTime.Now,
             FormaPagamento = FormaPagamento.Pix,
             EnderecoEntrega = new EnderecoRequest

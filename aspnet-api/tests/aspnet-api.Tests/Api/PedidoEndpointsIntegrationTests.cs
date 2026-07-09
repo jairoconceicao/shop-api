@@ -30,8 +30,6 @@ public class PedidoEndpointsIntegrationTests : IClassFixture<TestApiFactory>
         var client = await ApiTestSupport.CreateAuthenticatedClientAsync(_factory);
         var criarResponse = await client.PostAsJsonAsync("/api/v1/pedido", new
         {
-            clienteId = 1,
-            carrinhoId = 1,
             formaPagamento = "Pix",
             dataPedido = DateTime.Now,
             enderecoEntrega = new { logradouro = "Rua Teste", numero = "123", complemento = "Apto", cep = "12345678", bairro = "Centro", cidade = "Sao Paulo", uf = "SP" },

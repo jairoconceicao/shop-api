@@ -56,7 +56,7 @@ O frontend precisa considerar estas regras de integração desde o começo.
 - `GET /api/v1/pedido` exige `cpf` na query. O frontend precisa obter esse valor do perfil do cliente antes de listar pedidos.
 - `POST /api/v1/carrinho/items` não recebe `carrinhoId`. O backend resolve o carrinho pelo cliente autenticado, mas o frontend ainda precisa conhecer o `carrinhoId` para consultar o carrinho depois.
 - `POST /api/v1/carrinho/criar` não exige payload. O backend deriva o `clienteId` exclusivamente da sessão autenticada.
-- `POST /api/v1/pedido` também exige `clienteId` e `carrinhoId` no payload, além de `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items`.
+- `POST /api/v1/pedido` não exige `clienteId` nem `carrinhoId`. O backend deriva o cliente da sessão autenticada e resolve o carrinho ativo desse cliente.
 - `PATCH /api/v1/pedido/{pedidoId}` aceita `UpdatePedidoStatusRequest`, mas o validator atual só permite `status = Cancelado`. No frontend, esse endpoint deve ser tratado como ação de cancelamento, não como edição genérica de status.
 - Não existe endpoint dedicado para múltiplos endereços salvos. Hoje o endereço do cliente fica embutido no recurso de cliente e o pedido recebe `enderecoEntrega` no payload.
 
@@ -118,8 +118,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - Recurso administrativo para listar, ordenar e curar categorias
 - Blocos promocionais, campanhas e ofertas relâmpago orientadas por API
 - Gestão dedicada de múltiplos endereços salvos
-- Recursos de curadoria comercial como coleções, vitrines temáticas e destaques sazonais
-- Simplificação dos payloads autenticados para eliminar `clienteId` e `carrinhoId` redundantes em pedido
+- Simplificação dos payloads autenticados de pedido já concluída em v1
 
 ## Decisões de integração
 
@@ -130,7 +129,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - Carregar opções de categorias a partir de `GET /api/v1/categoria` e usar `categoriaId` como chave estável no frontend
 - Ao adicionar item ao carrinho, não enviar `carrinhoId`; o backend associa o item ao carrinho do cliente autenticado
 - Ao criar carrinho, não enviar payload; o backend deriva o cliente da sessão autenticada
-- Ao criar pedido, enviar `clienteId`, `carrinhoId`, `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` exatamente como o backend espera hoje
+- Ao criar pedido, enviar apenas `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items`; o backend deriva o cliente da sessão e resolve o carrinho ativo
 - Tratar `PATCH /pedido/{pedidoId}` como cancelamento explícito, enviando apenas `status: "Cancelado"`
 - Manter o frontend preparado para migrar de bearer token para cookie `HttpOnly` se o backend evoluir esse fluxo
 
@@ -152,7 +151,6 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 
 ## Perguntas em aberto
 
-- `POST /api/v1/pedido` também vai manter `clienteId` e `carrinhoId` explícitos no payload na próxima versão?
 - O backend vai suportar múltiplos endereços salvos antes da primeira versão pública?
 
 

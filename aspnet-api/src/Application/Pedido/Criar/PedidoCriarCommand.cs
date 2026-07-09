@@ -53,53 +53,36 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
                 validationResult.Errors.ToNotifications());
         }
 
-        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
-        if (autorizacao.IsFailure)
+        if (!_sessaoAtualProvider.ClienteId.HasValue)
         {
-            return Result<PedidoCriadoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+            return Result<PedidoCriadoResponse>.Failure(
+                "Cliente autenticado nao identificado.",
+                [new Notification("AUTH_CLIENTE_NAO_IDENTIFICADO", "Cliente autenticado nao identificado.", nameof(CreatePedidoRequest))]);
         }
 
-        var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);
+        var clienteId = _sessaoAtualProvider.ClienteId.Value;
+        var cliente = await _clienteRepository.GetByIdAsync(clienteId);
         if (cliente is null)
         {
             return Result<PedidoCriadoResponse>.Failure(
                 "Cliente nao encontrado.",
-                new[]
-                {
-                    new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(command.ClienteId))
-                });
+                [new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(CreatePedidoRequest))]);
         }
 
-        var carrinho = await _carrinhoRepository.GetByIdAsync(command.CarrinhoId);
+        var carrinho = await _carrinhoRepository.GetByClienteIdAsync(clienteId);
         if (carrinho is null)
         {
             return Result<PedidoCriadoResponse>.Failure(
-                "Carrinho nao encontrado.",
-                new[]
-                {
-                    new Notification("CARRINHO_NAO_ENCONTRADO", "Carrinho nao encontrado.", nameof(command.CarrinhoId))
-                });
+                "Carrinho nao encontrado para o cliente autenticado.",
+                [new Notification("CARRINHO_NAO_ENCONTRADO", "Carrinho nao encontrado para o cliente autenticado.", nameof(CreatePedidoRequest))]);
         }
 
-        if (carrinho.ClienteId != command.ClienteId)
-        {
-            return Result<PedidoCriadoResponse>.Failure(
-                "Carrinho nao pertence ao cliente informado.",
-                new[]
-                {
-                    new Notification("PEDIDO_CARRINHO_CLIENTE_INVALIDO", "Carrinho nao pertence ao cliente informado.", nameof(command.ClienteId))
-                });
-        }
-
-        var pedidoExistente = await _pedidoRepository.GetByCarrinhoIdAsync(command.CarrinhoId);
+        var pedidoExistente = await _pedidoRepository.GetByCarrinhoIdAsync(carrinho.Id);
         if (pedidoExistente is not null)
         {
             return Result<PedidoCriadoResponse>.Failure(
-                "Ja existe pedido para o carrinho informado.",
-                new[]
-                {
-                    new Notification("PEDIDO_CONFLITO_CARRINHO", "Ja existe pedido para o carrinho informado.", nameof(command.CarrinhoId))
-                });
+                "Ja existe pedido para o carrinho ativo do cliente.",
+                [new Notification("PEDIDO_CONFLITO_CARRINHO", "Ja existe pedido para o carrinho ativo do cliente.", nameof(CreatePedidoRequest))]);
         }
 
         var enderecoResult = Endereco.Create(
@@ -121,8 +104,8 @@ public sealed class PedidoCriarCommand : IActionCommand<CreatePedidoRequest, Res
         var nextItemId = await _pedidoRepository.GetNextItemIdAsync();
         var items = CreateItems(command.Items, nextItemId);
         var pedido = DomainPedido.Create(
-            command.ClienteId,
-            command.CarrinhoId,
+            clienteId,
+            carrinho.Id,
             enderecoResult.Data,
             command.DataPedido,
             command.FormaPagamento.ToDomain(),
