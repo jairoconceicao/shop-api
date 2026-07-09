@@ -7,6 +7,8 @@ import {
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { environment } from '@env/environment';
+
 import { normalizeApiError } from './api-error.normalizers';
 
 export type ApiPrimitive = string | number | boolean;
@@ -91,7 +93,20 @@ export function normalizeApiUrl(url: string): string {
     return normalizedUrl;
   }
 
-  return normalizedUrl.startsWith('/') ? normalizedUrl : `/${normalizedUrl}`;
+  const baseUrl = normalizeBaseUrl(environment.apiBaseUrl);
+  const relativeUrl = normalizedUrl.startsWith('/') ? normalizedUrl.slice(1) : normalizedUrl;
+
+  return new URL(relativeUrl, baseUrl).toString();
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  const normalizedBaseUrl = baseUrl.trim();
+
+  if (!normalizedBaseUrl) {
+    throw new Error('API base URL cannot be empty.');
+  }
+
+  return normalizedBaseUrl.endsWith('/') ? normalizedBaseUrl : `${normalizedBaseUrl}/`;
 }
 
 function normalizeHeaders(headers?: HttpHeaders | ApiHeaders): HttpHeaders | undefined {

@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { environment } from '@env/environment';
+
 import { ApiClientService, normalizeApiUrl } from './api-client.service';
 import { NormalizedApiError } from './api-error.model';
 
@@ -11,8 +13,12 @@ describe('normalizeApiUrl', () => {
     expect(normalizeApiUrl('https://api.example.com/products')).toBe('https://api.example.com/products');
   });
 
-  it('prefixes relative urls with a slash', () => {
-    expect(normalizeApiUrl('api/v1/products')).toBe('/api/v1/products');
+  it('prefixes relative urls with the environment base url', () => {
+    expect(normalizeApiUrl('api/v1/products')).toBe(`${environment.apiBaseUrl}/api/v1/products`);
+  });
+
+  it('normalizes leading slash urls with the environment base url', () => {
+    expect(normalizeApiUrl('/api/v1/products')).toBe(`${environment.apiBaseUrl}/api/v1/products`);
   });
 
   it('rejects empty urls', () => {
@@ -66,7 +72,7 @@ describe('ApiClientService', () => {
 
     expect(httpClientMock.request).toHaveBeenCalledWith(
       'GET',
-      '/api/v1/produto',
+      `${environment.apiBaseUrl}/api/v1/produto`,
       expect.objectContaining({
         body: undefined,
         headers: expect.any(HttpHeaders),
@@ -92,7 +98,7 @@ describe('ApiClientService', () => {
 
     expect(httpClientMock.request).toHaveBeenCalledWith(
       'POST',
-      '/api/v1/carrinho/items',
+      `${environment.apiBaseUrl}/api/v1/carrinho/items`,
       expect.objectContaining({
         body: {
           produtoId: 1,
