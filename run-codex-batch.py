@@ -407,7 +407,7 @@ def run_codex(
         str(repo_dir),
         "--sandbox",
         sandbox,
-        "--ask-for-approval",
+        "-- --ask-for-approval",
         approval_policy,
     ]
 
