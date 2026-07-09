@@ -450,6 +450,18 @@ def merge_branch(repo_dir: Path, branch_name: str, task_id: str) -> None:
         cwd=repo_dir,
     )
 
+def rebase_branch(repo_dir: Path, base_branch: str) -> None:
+    run_command(
+        ["git", "rebase", base_branch],
+        cwd=repo_dir,
+    )
+
+def merge_ffonly(repo_dir: Path, branch_name: str) -> None:
+    run_command(
+        ["git", "merge", "--ff-only", branch_name],
+        cwd=repo_dir,
+    )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -577,8 +589,9 @@ def main() -> int:
                 )
 
             if not args.no_merge:
+                rebase_branch(repo_dir, args.base_branch)
                 checkout_branch(repo_dir, args.base_branch)
-                merge_branch(repo_dir, branch_name, task.id)
+                merge_ffonly(repo_dir, branch_name)
 
                 if not args.keep_branches:
                     delete_branch(repo_dir, branch_name)
