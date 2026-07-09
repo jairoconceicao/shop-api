@@ -23,4 +23,28 @@ describe('FormErrorComponent', () => {
     expect(screen.getByText('Email obrigatorio')).toBeVisible();
     expect(screen.getByText('Email invalido')).toBeVisible();
   });
+
+  it('renders a single validation message and stays hidden without errors', async () => {
+    const { rerender } = await render(
+      `
+        <app-form-error [error]="error" />
+      `,
+      {
+        imports: [FormErrorComponent],
+        componentProperties: {
+          error: 'Senha obrigatoria',
+        },
+      },
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Senha obrigatoria');
+
+    await rerender({
+      componentProperties: {
+        error: null,
+      },
+    });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });
