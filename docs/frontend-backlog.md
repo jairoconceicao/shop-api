@@ -130,7 +130,7 @@ normalizadores e tratamento padrao de erros.
 [x] TASK-020: Implementar normalizadores para `data` e `pagination.data`.
 [x] TASK-021: Implementar tratamento padrao de erros da API.
 [x] TASK-022: Implementar configuracao de URL base por ambiente.
-[ ] TASK-023: Criar testes unitarios para normalizacao de respostas e erros.
+[x] TASK-023: Criar testes unitarios para normalizacao de respostas e erros.
 
 ### 4. Autenticacao e sessao
 

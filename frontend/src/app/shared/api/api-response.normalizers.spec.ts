@@ -21,6 +21,7 @@ describe('API response normalizers', () => {
 
     const data = normalizeResponseData(response);
 
+    expect(data).toBe(response.data);
     expect(data).toEqual(response.data);
     expect(data.titulo).toBe('Notebook Gamer');
   });
@@ -44,6 +45,7 @@ describe('API response normalizers', () => {
 
     const pagination = normalizePaginationData(response);
 
+    expect(pagination).toBe(response.pagination);
     expect(pagination).toEqual(response.pagination);
     expect(pagination.data).toHaveLength(1);
   });
