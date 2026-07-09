@@ -29,7 +29,7 @@ public class CarrinhoEndpointsIntegrationTests : IClassFixture<TestApiFactory>
         });
 
         var client = await ApiTestSupport.CreateAuthenticatedClientAsync(_factory);
-        var criarResponse = await client.PostAsJsonAsync("/api/v1/carrinho/criar", new { clienteId = 1 });
+        var criarResponse = await client.PostAsync("/api/v1/carrinho/criar", JsonContent.Create(new { }));
         Assert.Equal(HttpStatusCode.Created, criarResponse.StatusCode);
         using var criarDocument = JsonDocument.Parse(await criarResponse.Content.ReadAsStringAsync());
         var carrinhoId = criarDocument.RootElement.GetProperty("data").GetProperty("carrinhoId").GetInt64();

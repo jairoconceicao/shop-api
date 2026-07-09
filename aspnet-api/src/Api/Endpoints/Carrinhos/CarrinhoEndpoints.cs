@@ -73,10 +73,9 @@ public static class CarrinhoEndpoints
     }
 
     private static async Task<IResult> CriarCarrinho(
-        CreateCarrinhoRequest request,
         [FromServices] IActionCommand<CreateCarrinhoRequest, Result<CarrinhoCriadoResponse>> command)
     {
-        var result = await command.Handle(request);
+        var result = await command.Handle(new CreateCarrinhoRequest());
         return result.ToHttpResult(StatusCodes.Status201Created);
     }
 
@@ -105,5 +104,3 @@ public static class CarrinhoEndpoints
         return result.ToHttpResult();
     }
 }
-
-

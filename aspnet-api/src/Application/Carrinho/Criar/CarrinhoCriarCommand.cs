@@ -45,24 +45,23 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
                 validationResult.Errors.ToNotifications());
         }
 
-        var autorizacao = _sessaoAtualProvider.ValidarAcessoAoCliente(command.ClienteId, nameof(command.ClienteId));
-        if (autorizacao.IsFailure)
+        if (!_sessaoAtualProvider.ClienteId.HasValue)
         {
-            return Result<CarrinhoCriadoResponse>.Failure(autorizacao.Message, autorizacao.Notifications);
+            return Result<CarrinhoCriadoResponse>.Failure(
+                "Cliente autenticado nao identificado.",
+                [new Notification("AUTH_CLIENTE_NAO_IDENTIFICADO", "Cliente autenticado nao identificado.", nameof(CreateCarrinhoRequest))]);
         }
 
-        var cliente = await _clienteRepository.GetByIdAsync(command.ClienteId);
+        var clienteId = _sessaoAtualProvider.ClienteId.Value;
+        var cliente = await _clienteRepository.GetByIdAsync(clienteId);
         if (cliente is null)
         {
             return Result<CarrinhoCriadoResponse>.Failure(
                 "Cliente nao encontrado.",
-                new[]
-                {
-                    new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(command.ClienteId))
-                });
+                [new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(CreateCarrinhoRequest))]);
         }
 
-        var carrinho = DomainCarrinho.Create(command.ClienteId, null, DateTime.Now, null);
+        var carrinho = DomainCarrinho.Create(clienteId, null, DateTime.Now, null);
         await _carrinhoRepository.AddAsync(carrinho);
         await _unitOfWork.SaveChangesAsync();
 

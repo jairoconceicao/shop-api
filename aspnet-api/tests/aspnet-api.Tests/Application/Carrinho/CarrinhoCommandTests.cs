@@ -25,7 +25,7 @@ public class CarrinhoCriarCommandTests
         await context.SaveChangesAsync();
 
         var command = new CarrinhoCriarCommand(new CarrinhoCriarCommandValidator(), new ClienteRepository(context), new CarrinhoRepository(context), new TestSessaoAtualProvider(1), new UnitOfWork(context));
-        var result = await command.Handle(new CreateCarrinhoRequest { ClienteId = 1 });
+        var result = await command.Handle(new CreateCarrinhoRequest());
 
         Assert.True(result.IsSuccess);
     }

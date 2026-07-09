@@ -467,12 +467,6 @@ paths:
     post:
       tags:
       - Carrinhos
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/CreateCarrinhoRequest"
-        required: true
       responses:
         '201':
           description: Created
@@ -1130,15 +1124,6 @@ components:
         celular:
           "$ref": "#/components/schemas/CelularResponse"
     ClienteIdResponse:
-      type: object
-      properties:
-        clienteId:
-          pattern: "^-?(?:0|[1-9]\\d*)$"
-          type:
-          - integer
-          - string
-          format: int64
-    CreateCarrinhoRequest:
       type: object
       properties:
         clienteId:

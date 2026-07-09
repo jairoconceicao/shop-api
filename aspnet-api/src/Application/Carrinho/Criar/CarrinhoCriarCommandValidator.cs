@@ -7,9 +7,5 @@ public sealed class CarrinhoCriarCommandValidator : AbstractValidator<CreateCarr
 {
     public CarrinhoCriarCommandValidator()
     {
-        RuleFor(request => request.ClienteId)
-            .GreaterThan(0).WithMessage("ClienteId e obrigatorio.");
     }
 }
-
-
