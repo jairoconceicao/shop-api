@@ -400,8 +400,9 @@ def run_codex(
 
     prompt_file.write_text(prompt, encoding="utf-8")
 
+    # f"{codex_bin} -a {approval_policy}",
     command = [
-        f"{codex_bin} -a {approval_policy}",
+        codex_bin,
         "exec",
         "--cd",
         str(repo_dir),
