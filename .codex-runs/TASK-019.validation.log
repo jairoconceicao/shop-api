@@ -1,0 +1,82 @@
+
+> frontend@0.0.0 build
+> ng build
+
+> Building...
+√ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+main-3BWXOZPW.js    | main          | 255.31 kB |                68.65 kB
+styles-NBV2FCGB.css | styles        |  30.06 kB |                 5.19 kB
+
+                    | Initial total | 285.37 kB |                73.84 kB
+
+Application bundle generation complete. [2.149 seconds] - 2026-07-09T19:23:18.891Z
+
+Output location: E:\CodeRepo\shop-api\frontend\dist\frontend
+
+
+> frontend@0.0.0 test
+> ng test --watch=false
+
+> Building...
+√ Building...
+Application bundle generation complete. [1.915 seconds] - 2026-07-09T19:23:22.644Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mE:/CodeRepo/shop-api/frontend[39m
+
+ [31m❯[39m [30m[43m frontend [49m[39m src/app/shared/api/api-client.service.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 40[2mms[22m[39m
+     [32m✓[39m keeps absolute urls intact[32m 3[2mms[22m[39m
+     [32m✓[39m prefixes relative urls with a slash[32m 0[2mms[22m[39m
+     [32m✓[39m rejects empty urls[32m 1[2mms[22m[39m
+[31m     [31m×[31m normalizes request options and forwards them to HttpClient[39m[32m 29[2mms[22m[39m
+     [32m✓[39m supports request bodies for mutating calls[32m 4[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/empty-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 368[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a descriptive empty state with optional action content [33m 368[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/models/api-contracts.model.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/api/api-response.model.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/loading-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 434[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the loading state with accessible status text [33m 431[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/skeleton-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 428[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the requested amount of skeleton lines [33m 426[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/error-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 444[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the error details and projected recovery action [33m 437[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/form-error.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 465[2mms[22m[39m
+     [33m[2m✓[22m[39m renders multiple validation messages [33m 404[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/success-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 489[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a success message and projected actions [33m 487[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/button.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 492[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the button with the requested variant and size [33m 414[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/input.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 515[2mms[22m[39m
+     [33m[2m✓[22m[39m renders label, hint and validation message and emits value changes [33m 404[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/alert.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 510[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the alert content with the selected variant [33m 428[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/checkbox.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 524[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the checkbox and emits checked changes [33m 446[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/app.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 546[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the storefront shell [33m 544[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m [30m[43m frontend [49m[39m src/app/shared/api/api-client.service.spec.ts[2m > [22mApiClientService[2m > [22mnormalizes request options and forwards them to HttpClient
+[31m[1mAssertionError[22m: expected 'B' to be 'Bearer token' // Object.is equality[39m
+
+Expected: [32m"B[7mearer token[27m"[39m
+Received: [31m"B"[39m
+
+[36m [2m❯[22m src/app/shared/api/api-client.service.spec.ts:[2m79:57[22m[39m
+    [90m 77|[39m     [35mconst[39m requestOptions [33m=[39m httpClientMock[33m.[39mrequest[33m.[39mmock[33m.[39mcalls[[34m0[39m][[34m2[39m][33m;[39m
+    [90m 78|[39m
+    [90m 79|[39m     expect(requestOptions.headers.get('Authorization')).toBe('Bearer t…
+    [90m   |[39m                                                         [31m^[39m
+    [90m 80|[39m     expect(requestOptions.headers.getAll('Accept')).toEqual(['applicat…
+    [90m 81|[39m     [34mexpect[39m(requestOptions[33m.[39mparams[33m.[39m[34mtoString[39m())[33m.[39m[34mtoBe[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m27 passed[39m[22m[90m (28)[39m
+[2m   Start at [22m 16:23:23
+[2m   Duration [22m 4.62s[2m (transform 1.57s, setup 8.80s, import 9.79s, tests 5.26s, environment 27.91s)[22m
+

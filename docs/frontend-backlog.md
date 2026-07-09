@@ -126,7 +126,7 @@ normalizadores e tratamento padrao de erros.
 
 [x] TASK-017: Definir modelos TypeScript para envelopes `ApiResponse<T>` e `PagedResponse<T>`.
 [x] TASK-018: Definir modelos TypeScript para auth, cliente, categoria, produto, carrinho e pedido.
-[ ] TASK-019: Implementar cliente HTTP centralizado.
+[x] TASK-019: Implementar cliente HTTP centralizado.
 [ ] TASK-020: Implementar normalizadores para `data` e `pagination.data`.
 [ ] TASK-021: Implementar tratamento padrao de erros da API.
 [ ] TASK-022: Implementar configuracao de URL base por ambiente.
