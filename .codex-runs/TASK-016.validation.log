@@ -1,0 +1,55 @@
+
+> frontend@0.0.0 build
+> ng build
+
+> Building...
+√ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+main-3BWXOZPW.js    | main          | 255.31 kB |                68.65 kB
+styles-YFZTUNH4.css | styles        |  30.03 kB |                 5.21 kB
+
+                    | Initial total | 285.34 kB |                73.86 kB
+
+Application bundle generation complete. [2.402 seconds] - 2026-07-09T18:46:29.290Z
+
+Output location: E:\CodeRepo\shop-api\frontend\dist\frontend
+
+
+> frontend@0.0.0 test
+> ng test --watch=false
+
+> Building...
+√ Building...
+Application bundle generation complete. [1.903 seconds] - 2026-07-09T18:46:33.196Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mE:/CodeRepo/shop-api/frontend[39m
+
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/skeleton-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 509[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the requested amount of skeleton lines [33m 507[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/loading-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 527[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the loading state with accessible status text [33m 526[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/empty-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 529[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a descriptive empty state with optional action content [33m 527[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/success-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 547[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a success message and projected actions [33m 545[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/error-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 562[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the error details and projected recovery action [33m 560[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/alert.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 579[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the alert content with the selected variant [33m 492[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/form-error.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 604[2mms[22m[39m
+     [33m[2m✓[22m[39m renders multiple validation messages [33m 520[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/button.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 627[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the button with the requested variant and size [33m 542[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/input.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 646[2mms[22m[39m
+     [33m[2m✓[22m[39m renders label, hint and validation message and emits value changes [33m 568[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/checkbox.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 670[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the checkbox and emits checked changes [33m 591[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/app.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 673[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the storefront shell [33m 671[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 15:46:33
+[2m   Duration [22m 5.43s[2m (transform 1.85s, setup 10.34s, import 11.72s, tests 6.47s, environment 25.38s)[22m
+

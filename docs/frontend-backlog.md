@@ -116,7 +116,7 @@ Entregue ate aqui:
 [x] TASK-013: Criar componentes de layout `AppShell`, `PageContainer`, `Header`, `MobileBottomNavigation` e `Footer`.
 [x] TASK-014: Garantir layout mobile first e adaptacao para desktop.
 [x] TASK-015: Garantir busca e carrinho sempre acessiveis no header.
-[ ] TASK-016: Criar testes de componentes para os elementos base.
+[x] TASK-016: Criar testes de componentes para os elementos base.
 
 ### 3. Camada HTTP e contratos da API
 

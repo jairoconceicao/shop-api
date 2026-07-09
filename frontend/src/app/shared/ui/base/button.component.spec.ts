@@ -22,4 +22,23 @@ describe('ButtonComponent', () => {
     expect(button).toHaveClass('bg-shop-secondary');
     expect(button).toHaveClass('px-6');
   });
+
+  it('applies block and disabled state styles and attributes', async () => {
+    await render(
+      `
+        <app-button [block]="true" [disabled]="true">
+          Comprar agora
+        </app-button>
+      `,
+      {
+        imports: [ButtonComponent],
+      },
+    );
+
+    const button = screen.getByRole('button', { name: 'Comprar agora' });
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).toHaveClass('w-full');
+  });
 });

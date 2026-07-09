@@ -22,4 +22,23 @@ describe('AlertComponent', () => {
     expect(screen.getByText('Atenção')).toBeVisible();
     expect(screen.getByText('Não foi possível salvar sua alteração.')).toBeVisible();
   });
+
+  it('renders the default info variant without a title', async () => {
+    await render(
+      `
+        <app-alert>
+          Seu cadastro foi atualizado.
+        </app-alert>
+      `,
+      {
+        imports: [AlertComponent],
+      },
+    );
+
+    const alert = screen.getByRole('alert');
+
+    expect(alert).toHaveClass('bg-shop-primary-soft');
+    expect(screen.getByText('Seu cadastro foi atualizado.')).toBeVisible();
+    expect(screen.queryByText('Atenção')).not.toBeInTheDocument();
+  });
 });

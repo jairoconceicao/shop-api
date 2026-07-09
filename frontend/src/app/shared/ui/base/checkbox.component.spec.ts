@@ -36,4 +36,37 @@ describe('CheckboxComponent', () => {
 
     expect(emittedValues).toEqual([true]);
   });
+
+  it('links hint and error messages and emits blur events', async () => {
+    const blurredEvents: number[] = [];
+
+    await render(
+      `
+        <app-checkbox
+          label="Aceito os termos"
+          [required]="true"
+          hint="Leia os termos antes de continuar."
+          error="Aceite os termos para seguir."
+          (blurred)="onBlur()"
+        />
+      `,
+      {
+        imports: [CheckboxComponent],
+        componentProperties: {
+          onBlur: () => blurredEvents.push(1),
+        },
+      },
+    );
+
+    const checkbox = screen.getByRole('checkbox');
+
+    expect(checkbox).toBeRequired();
+    expect(checkbox).toHaveAttribute('aria-describedby');
+    expect(screen.getByText('Leia os termos antes de continuar.')).toBeVisible();
+    expect(screen.getByRole('alert')).toHaveTextContent('Aceite os termos para seguir.');
+
+    checkbox.dispatchEvent(new Event('blur'));
+
+    expect(blurredEvents).toEqual([1]);
+  });
 });

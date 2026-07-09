@@ -38,4 +38,29 @@ describe('InputComponent', () => {
 
     expect(emittedValues).toEqual(['novo@shopapi.dev']);
   });
+
+  it('marks required fields and associates hint and error descriptions', async () => {
+    await render(
+      `
+        <app-input
+          label="Nome"
+          [required]="true"
+          hint="Use o nome cadastrado."
+          error="Nome obrigatorio"
+        />
+      `,
+      {
+        imports: [InputComponent],
+      },
+    );
+
+    const input = screen.getByRole('textbox');
+
+    expect(screen.getByText('Nome')).toBeVisible();
+    expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true');
+    expect(input).toBeRequired();
+    expect(input).toHaveAttribute('aria-describedby');
+    expect(screen.getByText('Use o nome cadastrado.')).toBeVisible();
+    expect(screen.getByRole('alert')).toHaveTextContent('Nome obrigatorio');
+  });
 });
