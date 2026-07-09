@@ -1,0 +1,66 @@
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "lint": "eslint .",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test --watch=false",
+    "e2e": "playwright test",
+    "prepare": "git config core.hooksPath frontend/.husky"
+  },
+  "private": true,
+  "packageManager": "npm@11.16.0",
+  "lint-staged": {
+    "*.{css,html,json,md}": "prettier --write",
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@angular/cdk": "^22.0.4",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-eslint/builder": "^22.0.0",
+    "@angular-eslint/eslint-plugin": "^22.0.0",
+    "@angular-eslint/eslint-plugin-template": "^22.0.0",
+    "@angular-eslint/schematics": "^22.0.0",
+    "@angular-eslint/template-parser": "^22.0.0",
+    "@angular/build": "^22.0.5",
+    "@angular/cli": "^22.0.5",
+    "@angular/compiler-cli": "^22.0.0",
+    "@eslint/js": "^9.31.0",
+    "@playwright/test": "^1.54.1",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@testing-library/angular": "^18.1.1",
+    "@testing-library/jest-dom": "^6.8.0",
+    "angular-eslint": "^22.0.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^28.0.0",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "tailwindcss": "^4.1.11",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.37.0",
+    "vitest": "^4.0.8"
+  }
+}
+
+
+
+

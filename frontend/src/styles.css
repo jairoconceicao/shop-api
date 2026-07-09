@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Segoe UI Variable', 'Trebuchet MS', sans-serif;
+  --font-body: 'Segoe UI Variable', 'Trebuchet MS', sans-serif;
+  --color-shop-primary: #2563eb;
+  --color-shop-primary-hover: #1d4ed8;
+  --color-shop-primary-soft: #dbeafe;
+  --color-shop-secondary: #f97316;
+  --color-shop-secondary-hover: #ea580c;
+  --color-shop-secondary-soft: #ffedd5;
+  --color-shop-background: #f8fafc;
+  --color-shop-surface: #ffffff;
+  --color-shop-surface-muted: #f1f5f9;
+  --color-shop-border: #e2e8f0;
+  --color-shop-text: #0f172a;
+  --color-shop-text-muted: #64748b;
+  --color-shop-text-light: #94a3b8;
+  --color-shop-text-inverted: #ffffff;
+  --color-shop-success: #16a34a;
+  --color-shop-warning: #f59e0b;
+  --color-shop-danger: #dc2626;
+  --shadow-soft: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    background: var(--color-shop-background);
+    color: var(--color-shop-text);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top, rgba(37, 99, 235, 0.06), transparent 30%),
+      var(--color-shop-background);
+  }
+
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  ul,
+  ol,
+  dl {
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
+
