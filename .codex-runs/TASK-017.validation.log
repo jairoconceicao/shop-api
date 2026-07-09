@@ -1,0 +1,56 @@
+
+> frontend@0.0.0 build
+> ng build
+
+> Building...
+√ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+main-3BWXOZPW.js    | main          | 255.31 kB |                68.65 kB
+styles-YFZTUNH4.css | styles        |  30.03 kB |                 5.21 kB
+
+                    | Initial total | 285.34 kB |                73.86 kB
+
+Application bundle generation complete. [2.371 seconds] - 2026-07-09T18:49:40.303Z
+
+Output location: E:\CodeRepo\shop-api\frontend\dist\frontend
+
+
+> frontend@0.0.0 test
+> ng test --watch=false
+
+> Building...
+√ Building...
+Application bundle generation complete. [1.893 seconds] - 2026-07-09T18:49:44.251Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mE:/CodeRepo/shop-api/frontend[39m
+
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/api/api-response.model.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/skeleton-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 447[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the requested amount of skeleton lines [33m 446[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/error-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 475[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the error details and projected recovery action [33m 470[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/success-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 479[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a success message and projected actions [33m 477[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/empty-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 595[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a descriptive empty state with optional action content [33m 592[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/button.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 570[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the button with the requested variant and size [33m 462[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/alert.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 588[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the alert content with the selected variant [33m 486[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/form-error.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 536[2mms[22m[39m
+     [33m[2m✓[22m[39m renders multiple validation messages [33m 477[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/checkbox.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 564[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the checkbox and emits checked changes [33m 445[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/states/loading-state.component.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 521[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the loading state with accessible status text [33m 519[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/shared/ui/base/input.component.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 604[2mms[22m[39m
+     [33m[2m✓[22m[39m renders label, hint and validation message and emits value changes [33m 516[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/app.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 616[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the storefront shell [33m 614[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 15:49:44
+[2m   Duration [22m 4.51s[2m (transform 883ms, setup 8.69s, import 9.14s, tests 6.00s, environment 21.83s)[22m
+
