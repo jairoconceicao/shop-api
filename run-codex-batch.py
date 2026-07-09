@@ -573,7 +573,7 @@ def main() -> int:
             if not args.no_commit:
                 create_commit(
                     repo_dir,
-                    f"feat({task.id}): implementar tarefa do backlog",
+                    f"feat({task.id}): {task.title}",
                 )
 
             if not args.no_merge:
