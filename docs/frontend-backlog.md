@@ -128,7 +128,7 @@ normalizadores e tratamento padrao de erros.
 [x] TASK-018: Definir modelos TypeScript para auth, cliente, categoria, produto, carrinho e pedido.
 [x] TASK-019: Implementar cliente HTTP centralizado.
 [x] TASK-020: Implementar normalizadores para `data` e `pagination.data`.
-[ ] TASK-021: Implementar tratamento padrao de erros da API.
+[x] TASK-021: Implementar tratamento padrao de erros da API.
 [ ] TASK-022: Implementar configuracao de URL base por ambiente.
 [ ] TASK-023: Criar testes unitarios para normalizacao de respostas e erros.
 

@@ -5,7 +5,9 @@ import {
   HttpParams,
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
+
+import { normalizeApiError } from './api-error.normalizers';
 
 export type ApiPrimitive = string | number | boolean;
 export type ApiParamValue = ApiPrimitive | readonly ApiPrimitive[] | null | undefined;
@@ -74,7 +76,7 @@ export class ApiClientService {
       reportProgress: options.reportProgress,
       responseType: 'json',
       withCredentials: options.withCredentials,
-    });
+    }).pipe(catchError((error) => throwError(() => normalizeApiError(error))));
   }
 }
 

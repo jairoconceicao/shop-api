@@ -1,9 +1,10 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiClientService, normalizeApiUrl } from './api-client.service';
+import { NormalizedApiError } from './api-error.model';
 
 describe('normalizeApiUrl', () => {
   it('keeps absolute urls intact', () => {
@@ -100,5 +101,46 @@ describe('ApiClientService', () => {
         responseType: 'json',
       }),
     );
+  });
+
+  it('normalizes HttpErrorResponse failures before rethrowing them', () => {
+    httpClientMock.request.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 422,
+            statusText: 'Unprocessable Entity',
+            error: {
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: 'Email invalido.',
+                details: {
+                  email: ['Email invalido.'],
+                },
+              },
+            },
+          }),
+      ),
+    );
+
+    const receivedErrors: unknown[] = [];
+
+    service.get('/api/v1/cliente').subscribe({
+      error: (error) => {
+        receivedErrors.push(error);
+      },
+    });
+
+    expect(receivedErrors).toHaveLength(1);
+    expect(receivedErrors[0]).toBeInstanceOf(NormalizedApiError);
+
+    const error = receivedErrors[0] as NormalizedApiError;
+
+    expect(error.status).toBe(422);
+    expect(error.code).toBe('VALIDATION_ERROR');
+    expect(error.message).toBe('Email invalido.');
+    expect(error.details).toEqual({
+      email: ['Email invalido.'],
+    });
   });
 });
