@@ -1147,6 +1147,7 @@ components:
         email:
           type: string
         endereco:
+          description: Endereco unico do cliente em v1. Multiplos enderecos salvos nao sao suportados.
           "$ref": "#/components/schemas/EnderecoRequest"
         celular:
           "$ref": "#/components/schemas/CelularRequest"
@@ -1154,6 +1155,7 @@ components:
       type: object
       properties:
         enderecoEntrega:
+          description: Endereco de entrega informado no checkout. Em v1 nao existe selecao de enderecos salvos.
           "$ref": "#/components/schemas/EnderecoRequest"
         formaPagamento:
           "$ref": "#/components/schemas/FormaPagamento"
@@ -1165,6 +1167,7 @@ components:
           items:
             "$ref": "#/components/schemas/PedidoItemRequest"
     EnderecoRequest:
+      description: Estrutura de endereco usada no perfil do cliente e no checkout. Em v1 nao ha recurso de multiplos enderecos salvos.
       type: object
       properties:
         logradouro:
@@ -1184,6 +1187,7 @@ components:
         uf:
           type: string
     EnderecoResponse:
+      description: Endereco retornado pelo backend. Em v1 representa um unico endereco associado ao cliente ou ao pedido.
       type: object
       properties:
         logradouro:

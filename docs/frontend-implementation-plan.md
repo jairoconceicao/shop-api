@@ -58,7 +58,7 @@ O frontend precisa considerar estas regras de integração desde o começo.
 - `POST /api/v1/carrinho/criar` não exige payload. O backend deriva o `clienteId` exclusivamente da sessão autenticada.
 - `POST /api/v1/pedido` não exige `clienteId` nem `carrinhoId`. O backend deriva o cliente da sessão autenticada e resolve o carrinho ativo desse cliente.
 - `PATCH /api/v1/pedido/{pedidoId}` aceita `UpdatePedidoStatusRequest`, mas o validator atual só permite `status = Cancelado`. No frontend, esse endpoint deve ser tratado como ação de cancelamento, não como edição genérica de status.
-- Não existe endpoint dedicado para múltiplos endereços salvos. Hoje o endereço do cliente fica embutido no recurso de cliente e o pedido recebe `enderecoEntrega` no payload.
+- Múltiplos endereços salvos ficam fora da v1 pública. O cliente mantém um único endereço no perfil e o checkout envia `enderecoEntrega` explicitamente.
 
 ## Mapa de implementação
 
@@ -106,7 +106,7 @@ Entregue as telas e integrações que já têm contrato pronto.
 - Implementar navegação por categoria com base em `GET /api/v1/categoria` e filtro em `GET /api/v1/produto/categoria/{categoriaId}`
 - Construir a página de detalhes do produto
 - Construir o carrinho com criação automática quando necessário, atualização de quantidade e remoção de item
-- Construir o checkout enviando os campos obrigatórios reais do backend
+- Construir o checkout com preenchimento explícito do `enderecoEntrega`, sem seleção de endereços salvos
 - Construir a área do cliente com edição de dados, alteração de senha e listagem de pedidos
 - Integrar todos os fluxos com estados de carregamento, vazio, sucesso e erro
 - Normalizar no frontend os envelopes `data` e `pagination` para evitar tratamento duplicado por tela
@@ -117,8 +117,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 
 - Recurso administrativo para listar, ordenar e curar categorias
 - Blocos promocionais, campanhas e ofertas relâmpago orientadas por API
-- Gestão dedicada de múltiplos endereços salvos
-- Simplificação dos payloads autenticados de pedido já concluída em v1
+- Gestão dedicada de múltiplos endereços salvos, incluindo seleção de endereço no checkout
 
 ## Decisões de integração
 
@@ -129,7 +128,7 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - Carregar opções de categorias a partir de `GET /api/v1/categoria` e usar `categoriaId` como chave estável no frontend
 - Ao adicionar item ao carrinho, não enviar `carrinhoId`; o backend associa o item ao carrinho do cliente autenticado
 - Ao criar carrinho, não enviar payload; o backend deriva o cliente da sessão autenticada
-- Ao criar pedido, enviar apenas `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items`; o backend deriva o cliente da sessão e resolve o carrinho ativo
+- Ao criar pedido, enviar apenas `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items`; o backend deriva o cliente da sessão, resolve o carrinho ativo e não oferece catálogo de endereços salvos em v1
 - Tratar `PATCH /pedido/{pedidoId}` como cancelamento explícito, enviando apenas `status: "Cancelado"`
 - Manter o frontend preparado para migrar de bearer token para cookie `HttpOnly` se o backend evoluir esse fluxo
 
@@ -144,13 +143,8 @@ Estas entregas continuam planejadas no frontend, mas dependem de novas rotas ou 
 - O filtro por categoria funciona a partir das categorias carregadas da API
 - O detalhe do produto abre por `produtoId`
 - O carrinho altera itens sem quebrar o resumo
-- O checkout cria pedido com os campos obrigatórios reais do backend atual
+- O checkout cria pedido com os campos obrigatórios reais do backend atual e sem depender de endereços salvos
 - A área do cliente mostra dados reais, permite alterar senha e lista pedidos reais
 - O cancelamento de pedido usa `status = Cancelado`
 - As tarefas `future` aparecem documentadas e não bloqueiam a entrega inicial
-
-## Perguntas em aberto
-
-- O backend vai suportar múltiplos endereços salvos antes da primeira versão pública?
-
 
