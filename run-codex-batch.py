@@ -586,7 +586,6 @@ def main() -> int:
 
         except Exception as error:
             print(f"\nErro ao executar {task.id}: {error}", file=sys.stderr)
-            print(error)
             print("A branch da task foi preservada para investigação.")
             return 1
 
