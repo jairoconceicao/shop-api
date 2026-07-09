@@ -407,8 +407,6 @@ def run_codex(
         str(repo_dir),
         "--sandbox",
         sandbox,
-        # "--ask-for-approval",
-        # approval_policy,
     ]
 
     if use_json:
@@ -588,6 +586,7 @@ def main() -> int:
 
         except Exception as error:
             print(f"\nErro ao executar {task.id}: {error}", file=sys.stderr)
+            print(error)
             print("A branch da task foi preservada para investigação.")
             return 1
 
