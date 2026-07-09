@@ -125,7 +125,7 @@ aplicacao, mas ainda nao existe uma camada HTTP compartilhada com contratos,
 normalizadores e tratamento padrao de erros.
 
 [x] TASK-017: Definir modelos TypeScript para envelopes `ApiResponse<T>` e `PagedResponse<T>`.
-[ ] TASK-018: Definir modelos TypeScript para auth, cliente, categoria, produto, carrinho e pedido.
+[x] TASK-018: Definir modelos TypeScript para auth, cliente, categoria, produto, carrinho e pedido.
 [ ] TASK-019: Implementar cliente HTTP centralizado.
 [ ] TASK-020: Implementar normalizadores para `data` e `pagination.data`.
 [ ] TASK-021: Implementar tratamento padrao de erros da API.
