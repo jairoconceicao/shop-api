@@ -14,6 +14,27 @@ Entregar uma loja virtual mobile first em Angular 22+, TypeScript, Tailwind CSS
 v4 e Angular CDK, com fluxos completos para catalogo, autenticacao, carrinho,
 checkout e area do cliente.
 
+## Status atual
+
+Implementacao ja identificada em `/frontend`:
+
+- Fundacao do projeto Angular criada e operacional.
+- Tailwind CSS v4, Angular CDK, ESLint, Prettier, Husky, lint-staged,
+  Testing Library Angular e Playwright configurados.
+- Tema global, `AppShell`, `Header`, `Footer`, `MobileBottomNavigation`,
+  `PageContainer` e paginas placeholder criados.
+- Rotas base para `/`, `/login`, `/products`, `/cart` e `/account` criadas.
+- Home visual inicial, tela-base de login e um smoke test de componente/e2e
+  implementados.
+
+Ainda pendente no frontend atual:
+
+- Integracoes reais com a API.
+- Autenticacao, sessao, guard, interceptor e stores de dominio.
+- Formularios com schema, mascaras e estados completos.
+- Catalogo, detalhe de produto, carrinho, checkout, conta e pedidos com
+  comportamento funcional.
+
 ## Escopo
 
 Este backlog cobre apenas o frontend.
@@ -61,206 +82,241 @@ Nenhuma tarefa de backend faz parte da entrega inicial deste backlog.
 
 Dependencias futuras para evolucao do frontend:
 
-- [ ] Expor rotas para multiplos enderecos salvos.
-- [ ] Expor rotas para ofertas, campanhas e promocoes dinamicas.
-- [ ] Expor rotas administrativas para ordenar e curar categorias.
-- [ ] Evoluir autenticacao para cookie `HttpOnly`, se definido como direcao do
+- [DEP-01] [ ] Expor rotas para multiplos enderecos salvos.
+- [DEP-02] [ ] Expor rotas para ofertas, campanhas e promocoes dinamicas.
+- [DEP-03] [ ] Expor rotas administrativas para ordenar e curar categorias.
+- [DEP-04] [ ] Evoluir autenticacao para cookie `HttpOnly`, se definido como direcao do
       produto.
 
 ## Frontend
 
 ### 1. Fundacao do projeto
 
-- [ ] Criar o projeto Angular 22+ em `/frontend`.
-- [ ] Configurar TypeScript, estrutura de paths e organizacao por dominio.
-- [ ] Configurar Tailwind CSS v4 com tokens globais da Shop API.
-- [ ] Configurar Angular CDK.
-- [ ] Configurar ESLint, Prettier, Husky e lint-staged.
-- [ ] Configurar Jest ou Vitest para testes unitarios.
-- [ ] Configurar Testing Library Angular para testes de componentes.
-- [ ] Configurar Playwright para testes end-to-end.
-- [ ] Criar scripts de `lint`, `test`, `build` e `e2e`.
+- [T-001] [x] Criar o projeto Angular 22+ em `/frontend`.
+- [T-002] [x] Configurar TypeScript, estrutura de paths e organizacao por dominio.
+- [T-003] [x] Configurar Tailwind CSS v4 com tokens globais da Shop API.
+- [T-004] [x] Configurar Angular CDK.
+- [T-005] [x] Configurar ESLint, Prettier, Husky e lint-staged.
+- [T-006] [x] Configurar Jest ou Vitest para testes unitarios.
+- [T-007] [x] Configurar Testing Library Angular para testes de componentes.
+- [T-008] [x] Configurar Playwright para testes end-to-end.
+- [T-009] [x] Criar scripts de `lint`, `test`, `build` e `e2e`.
 
 ### 2. Design system e componentes base
 
-- [ ] Definir tokens de cor, tipografia, espacamento, bordas e sombras.
-- [ ] Criar componentes base de `Button`, `Input`, `Checkbox`, `Alert` e
+Entregue ate aqui:
+
+- Tokens globais do tema.
+- Layout base com `AppShell`, `PageContainer`, `Header`,
+  `MobileBottomNavigation` e `Footer`.
+- Estrutura responsiva inicial para mobile e desktop.
+
+- [T-010] [x] Definir tokens de cor, tipografia, espacamento, bordas e sombras.
+- [T-011] [ ] Criar componentes base de `Button`, `Input`, `Checkbox`, `Alert` e
       `FormError`.
-- [ ] Criar estados padrao de loading, skeleton, vazio, sucesso e erro.
-- [ ] Criar componentes de layout `AppShell`, `PageContainer`, `Header`,
+- [T-012] [ ] Criar estados padrao de loading, skeleton, vazio, sucesso e erro.
+- [T-013] [x] Criar componentes de layout `AppShell`, `PageContainer`, `Header`,
       `MobileBottomNavigation` e `Footer`.
-- [ ] Garantir layout mobile first e adaptacao para desktop.
-- [ ] Garantir busca e carrinho sempre acessiveis no header.
-- [ ] Criar testes de componentes para os elementos base.
+- [T-014] [x] Garantir layout mobile first e adaptacao para desktop.
+- [T-015] [x] Garantir busca e carrinho sempre acessiveis no header.
+- [T-016] [ ] Criar testes de componentes para os elementos base.
 
 ### 3. Camada HTTP e contratos da API
 
-- [ ] Definir modelos TypeScript para envelopes `ApiResponse<T>` e
+Observacao: `provideHttpClient(withFetch())` ja foi registrado na composicao da
+aplicacao, mas ainda nao existe uma camada HTTP compartilhada com contratos,
+normalizadores e tratamento padrao de erros.
+
+- [T-017] [ ] Definir modelos TypeScript para envelopes `ApiResponse<T>` e
       `PagedResponse<T>`.
-- [ ] Definir modelos TypeScript para auth, cliente, categoria, produto,
+- [T-018] [ ] Definir modelos TypeScript para auth, cliente, categoria, produto,
       carrinho e pedido.
-- [ ] Implementar cliente HTTP centralizado.
-- [ ] Implementar normalizadores para `data` e `pagination.data`.
-- [ ] Implementar tratamento padrao de erros da API.
-- [ ] Implementar configuracao de URL base por ambiente.
-- [ ] Criar testes unitarios para normalizacao de respostas e erros.
+- [T-019] [ ] Implementar cliente HTTP centralizado.
+- [T-020] [ ] Implementar normalizadores para `data` e `pagination.data`.
+- [T-021] [ ] Implementar tratamento padrao de erros da API.
+- [T-022] [ ] Implementar configuracao de URL base por ambiente.
+- [T-023] [ ] Criar testes unitarios para normalizacao de respostas e erros.
 
 ### 4. Autenticacao e sessao
 
-- [ ] Implementar `TokenStorageService`.
-- [ ] Implementar `AuthService` com login e logout.
-- [ ] Implementar `HttpInterceptor` para `Authorization: Bearer <token>`.
-- [ ] Implementar `AuthGuard` para rotas privadas.
-- [ ] Persistir dados de sessao com `token`, `tipo`, `expiraEm`, `usuarioId`,
+Observacao: existe apenas a tela visual base de `/login`; a autenticacao ainda
+nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
+
+- [T-024] [ ] Implementar `TokenStorageService`.
+- [T-025] [ ] Implementar `AuthService` com login e logout.
+- [T-026] [ ] Implementar `HttpInterceptor` para `Authorization: Bearer <token>`.
+- [T-027] [ ] Implementar `AuthGuard` para rotas privadas.
+- [T-028] [ ] Persistir dados de sessao com `token`, `tipo`, `expiraEm`, `usuarioId`,
       `clienteId` e `email`.
-- [ ] Tratar expiracao de token e redirecionamento para login.
-- [ ] Preparar a abstracao para migracao futura para cookie `HttpOnly`.
-- [ ] Implementar tela de login com validacao por schema.
-- [ ] Implementar estados de erro, carregamento e sucesso no login.
-- [ ] Criar testes unitarios e de componente para login e sessao.
+- [T-029] [ ] Tratar expiracao de token e redirecionamento para login.
+- [T-030] [ ] Preparar a abstracao para migracao futura para cookie `HttpOnly`.
+- [T-031] [ ] Implementar tela de login com validacao por schema.
+- [T-032] [ ] Implementar estados de erro, carregamento e sucesso no login.
+- [T-033] [ ] Criar testes unitarios e de componente para login e sessao.
 
 ### 5. Cadastro de cliente
 
-- [ ] Implementar tela publica de criacao de conta.
-- [ ] Implementar formulario com dados pessoais, endereco e celular.
-- [ ] Aplicar mascaras para CPF, CEP, DDD e telefone com `ngx-mask`.
-- [ ] Aplicar validacoes por schema.
-- [ ] Integrar `POST /api/v1/cliente`.
-- [ ] Tratar erros de validacao e conflitos retornados pela API.
-- [ ] Redirecionar para login ou iniciar fluxo definido apos cadastro.
-- [ ] Criar testes de componente e integracao do formulario.
+- [T-034] [ ] Implementar tela publica de criacao de conta.
+- [T-035] [ ] Implementar formulario com dados pessoais, endereco e celular.
+- [T-036] [ ] Aplicar mascaras para CPF, CEP, DDD e telefone com `ngx-mask`.
+- [T-037] [ ] Aplicar validacoes por schema.
+- [T-038] [ ] Integrar `POST /api/v1/cliente`.
+- [T-039] [ ] Tratar erros de validacao e conflitos retornados pela API.
+- [T-040] [ ] Redirecionar para login ou iniciar fluxo definido apos cadastro.
+- [T-041] [ ] Criar testes de componente e integracao do formulario.
 
 ### 6. Home publica
 
-- [ ] Implementar home mobile first com banner, atalhos, categorias e vitrine.
-- [ ] Carregar produtos publicos via `GET /api/v1/produto`.
-- [ ] Carregar categorias via `GET /api/v1/categoria`.
-- [ ] Implementar cards de produto com imagem, titulo, preco, estoque e CTA.
-- [ ] Implementar estados de loading, vazio e erro.
-- [ ] Implementar paginacao ou carregamento incremental conforme UX definida.
-- [ ] Criar testes de componente para home, vitrine e card de produto.
+Observacao: a home visual inicial ja existe, mas ainda usa conteudo estatico e
+nao consome categorias nem produtos da API.
+
+- [T-042] [ ] Implementar home mobile first com banner, atalhos, categorias e vitrine.
+- [T-043] [ ] Carregar produtos publicos via `GET /api/v1/produto`.
+- [T-044] [ ] Carregar categorias via `GET /api/v1/categoria`.
+- [T-045] [ ] Implementar cards de produto com imagem, titulo, preco, estoque e CTA.
+- [T-046] [ ] Implementar estados de loading, vazio e erro.
+- [T-047] [ ] Implementar paginacao ou carregamento incremental conforme UX definida.
+- [T-048] [ ] Criar testes de componente para home, vitrine e card de produto.
 
 ### 7. Catalogo, busca e categorias
 
-- [ ] Implementar rota `/products`.
-- [ ] Implementar campo de busca usando query `searchword`.
-- [ ] Implementar filtro por categoria usando `GET /api/v1/categoria`.
-- [ ] Integrar listagem por categoria com
+Observacao: a rota `/products` ja existe como placeholder dentro do shell, mas
+o catalogo funcional ainda nao foi implementado.
+
+- [T-049] [ ] Implementar rota `/products`.
+- [T-050] [ ] Implementar campo de busca usando query `searchword`.
+- [T-051] [ ] Implementar filtro por categoria usando `GET /api/v1/categoria`.
+- [T-052] [ ] Integrar listagem por categoria com
       `GET /api/v1/produto/categoria/{categoriaId}`.
-- [ ] Refletir pagina, tamanho e total de itens retornados pelo backend.
-- [ ] Preservar filtros e busca na URL.
-- [ ] Implementar estados de resultado vazio e erro recuperavel.
-- [ ] Criar testes de integracao para busca e filtro por categoria.
+- [T-053] [ ] Refletir pagina, tamanho e total de itens retornados pelo backend.
+- [T-054] [ ] Preservar filtros e busca na URL.
+- [T-055] [ ] Implementar estados de resultado vazio e erro recuperavel.
+- [T-056] [ ] Criar testes de integracao para busca e filtro por categoria.
 
 ### 8. Detalhe do produto
 
-- [ ] Implementar rota `/products/:id`.
-- [ ] Integrar `GET /api/v1/produto/{id}`.
-- [ ] Exibir imagem, titulo, descricao, modelo, categoria, preco e estoque.
-- [ ] Exibir CTA de comprar agora e adicionar ao carrinho.
-- [ ] Tratar produto indisponivel ou sem estoque.
-- [ ] Redirecionar usuarios nao autenticados para login ao iniciar compra.
-- [ ] Criar testes de componente e fluxo para detalhe de produto.
+- [T-057] [ ] Implementar rota `/products/:id`.
+- [T-058] [ ] Integrar `GET /api/v1/produto/{id}`.
+- [T-059] [ ] Exibir imagem, titulo, descricao, modelo, categoria, preco e estoque.
+- [T-060] [ ] Exibir CTA de comprar agora e adicionar ao carrinho.
+- [T-061] [ ] Tratar produto indisponivel ou sem estoque.
+- [T-062] [ ] Redirecionar usuarios nao autenticados para login ao iniciar compra.
+- [T-063] [ ] Criar testes de componente e fluxo para detalhe de produto.
 
 ### 9. Carrinho
 
-- [ ] Criar store de dominio `Cart` com NgRx SignalStore.
-- [ ] Implementar criacao automatica de carrinho quando necessario.
-- [ ] Integrar `POST /api/v1/carrinho/criar`.
-- [ ] Integrar `GET /api/v1/carrinho/{carrinhoId}`.
-- [ ] Integrar `POST /api/v1/carrinho/items` sem enviar `carrinhoId`.
-- [ ] Integrar `PATCH /api/v1/carrinho/items/{itemId}` para quantidade.
-- [ ] Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
-- [ ] Implementar rota `/cart`.
-- [ ] Implementar componentes `CartButton`, `CartItem`, `CartSummary` e
+Observacao: a rota `/cart` ja existe como placeholder, sem store nem
+integracao com a API.
+
+- [T-064] [ ] Criar store de dominio `Cart` com NgRx SignalStore.
+- [T-065] [ ] Implementar criacao automatica de carrinho quando necessario.
+- [T-066] [ ] Integrar `POST /api/v1/carrinho/criar`.
+- [T-067] [ ] Integrar `GET /api/v1/carrinho/{carrinhoId}`.
+- [T-068] [ ] Integrar `POST /api/v1/carrinho/items` sem enviar `carrinhoId`.
+- [T-069] [ ] Integrar `PATCH /api/v1/carrinho/items/{itemId}` para quantidade.
+- [T-070] [ ] Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
+- [T-071] [ ] Implementar rota `/cart`.
+- [T-072] [ ] Implementar componentes `CartButton`, `CartItem`, `CartSummary` e
       `QuantitySelector`.
-- [ ] Manter resumo de valores consistente apos alteracoes.
-- [ ] Criar testes unitarios da store e testes de fluxo do carrinho.
+- [T-073] [ ] Manter resumo de valores consistente apos alteracoes.
+- [T-074] [ ] Criar testes unitarios da store e testes de fluxo do carrinho.
 
 ### 10. Checkout
 
-- [ ] Implementar rota protegida de checkout.
-- [ ] Reutilizar dados do carrinho ativo.
-- [ ] Carregar perfil do cliente para preencher endereco base.
-- [ ] Permitir edicao explicita de `enderecoEntrega` no checkout.
-- [ ] Implementar selecao de `formaPagamento`.
-- [ ] Integrar `POST /api/v1/pedido`.
-- [ ] Enviar somente os campos suportados pelo backend atual.
-- [ ] Tratar sucesso com confirmacao do pedido.
-- [ ] Tratar erro de carrinho vazio, produto indisponivel e falha de validacao.
-- [ ] Criar teste end-to-end do fluxo adicionar ao carrinho e finalizar pedido.
+- [T-075] [ ] Implementar rota protegida de checkout.
+- [T-076] [ ] Reutilizar dados do carrinho ativo.
+- [T-077] [ ] Carregar perfil do cliente para preencher endereco base.
+- [T-078] [ ] Permitir edicao explicita de `enderecoEntrega` no checkout.
+- [T-079] [ ] Implementar selecao de `formaPagamento`.
+- [T-080] [ ] Integrar `POST /api/v1/pedido`.
+- [T-081] [ ] Enviar somente os campos suportados pelo backend atual.
+- [T-082] [ ] Tratar sucesso com confirmacao do pedido.
+- [T-083] [ ] Tratar erro de carrinho vazio, produto indisponivel e falha de validacao.
+- [T-084] [ ] Criar teste end-to-end do fluxo adicionar ao carrinho e finalizar pedido.
 
 ### 11. Area do cliente
 
-- [ ] Criar store de dominio `Customer` com NgRx SignalStore.
-- [ ] Implementar rota `/account`.
-- [ ] Implementar rota `/account/profile`.
-- [ ] Integrar `GET /api/v1/cliente/{clienteId}`.
-- [ ] Integrar `PUT /api/v1/cliente/{clienteId}`.
-- [ ] Integrar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
-- [ ] Implementar menu lateral no desktop e navegacao simples no mobile.
-- [ ] Criar formulario de perfil com validacao por schema.
-- [ ] Criar confirmacao explicita antes de cancelar conta.
-- [ ] Criar testes de componente e integracao da area do cliente.
+Observacao: a rota `/account` ja existe como placeholder, sem fluxo funcional
+de perfil.
+
+- [T-085] [ ] Criar store de dominio `Customer` com NgRx SignalStore.
+- [T-086] [ ] Implementar rota `/account`.
+- [T-087] [ ] Implementar rota `/account/profile`.
+- [T-088] [ ] Integrar `GET /api/v1/cliente/{clienteId}`.
+- [T-089] [ ] Integrar `PUT /api/v1/cliente/{clienteId}`.
+- [T-090] [ ] Integrar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
+- [T-091] [ ] Implementar menu lateral no desktop e navegacao simples no mobile.
+- [T-092] [ ] Criar formulario de perfil com validacao por schema.
+- [T-093] [ ] Criar confirmacao explicita antes de cancelar conta.
+- [T-094] [ ] Criar testes de componente e integracao da area do cliente.
 
 ### 12. Alteracao de senha
 
-- [ ] Implementar rota `/account/password`.
-- [ ] Criar formulario com senha atual, nova senha e confirmacao.
-- [ ] Aplicar validacoes por schema.
-- [ ] Integrar `PUT /api/v1/cliente/{clienteId}/senha`.
-- [ ] Exibir estados de sucesso, erro de validacao e erro de senha atual.
-- [ ] Criar testes do formulario de alteracao de senha.
+- [T-095] [ ] Implementar rota `/account/password`.
+- [T-096] [ ] Criar formulario com senha atual, nova senha e confirmacao.
+- [T-097] [ ] Aplicar validacoes por schema.
+- [T-098] [ ] Integrar `PUT /api/v1/cliente/{clienteId}/senha`.
+- [T-099] [ ] Exibir estados de sucesso, erro de validacao e erro de senha atual.
+- [T-100] [ ] Criar testes do formulario de alteracao de senha.
 
 ### 13. Pedidos
 
-- [ ] Criar store de dominio `Checkout` ou `Orders`, conforme organizacao final.
-- [ ] Implementar rota `/account/orders`.
-- [ ] Antes da listagem, garantir que o perfil do cliente com `cpf` foi
+- [T-101] [ ] Criar store de dominio `Checkout` ou `Orders`, conforme organizacao final.
+- [T-102] [ ] Implementar rota `/account/orders`.
+- [T-103] [ ] Antes da listagem, garantir que o perfil do cliente com `cpf` foi
       carregado.
-- [ ] Integrar `GET /api/v1/pedido?cpf={cpf}&page=&size=`.
-- [ ] Implementar filtros opcionais por `dataInicio` e `dataFim`.
-- [ ] Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.
-- [ ] Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando
+- [T-104] [ ] Integrar `GET /api/v1/pedido?cpf={cpf}&page=&size=`.
+- [T-105] [ ] Implementar filtros opcionais por `dataInicio` e `dataFim`.
+- [T-106] [ ] Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.
+- [T-107] [ ] Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando
       `status: "Cancelado"`.
-- [ ] Exibir status com `OrderStatusBadge`.
-- [ ] Criar testes de listagem, detalhe e cancelamento de pedido.
+- [T-108] [ ] Exibir status com `OrderStatusBadge`.
+- [T-109] [ ] Criar testes de listagem, detalhe e cancelamento de pedido.
 
 ### 14. Roteamento e stores de dominio
 
-- [ ] Definir rotas publicas: `/`, `/login`, `/products`, `/products/:id` e
+Entregue ate aqui:
+
+- Shell com rotas publicas base para `/`, `/login`, `/products`, `/cart` e
+  `/account`.
+- Separacao inicial por `core`, `shared` e `domains`.
+
+- [T-110] [ ] Definir rotas publicas: `/`, `/login`, `/products`, `/products/:id` e
       cadastro.
-- [ ] Definir rotas protegidas: `/cart`, checkout, `/account`,
+- [T-111] [ ] Definir rotas protegidas: `/cart`, checkout, `/account`,
       `/account/profile`, `/account/password` e `/account/orders`.
-- [ ] Criar stores por dominio: `Auth`, `Cart`, `Catalog`, `Customer` e
+- [T-112] [ ] Criar stores por dominio: `Auth`, `Cart`, `Catalog`, `Customer` e
       `Checkout`.
-- [ ] Garantir que stores nao dupliquem normalizacao de envelope HTTP.
-- [ ] Garantir redirecionamentos coerentes apos login, logout e expiracao de
+- [T-113] [ ] Garantir que stores nao dupliquem normalizacao de envelope HTTP.
+- [T-114] [ ] Garantir redirecionamentos coerentes apos login, logout e expiracao de
       sessao.
-- [ ] Criar testes unitarios dos reducers/actions/metodos de store.
+- [T-115] [ ] Criar testes unitarios dos reducers/actions/metodos de store.
 
 ### 15. Acessibilidade, responsividade e qualidade visual
 
-- [ ] Validar navegacao por teclado nos fluxos principais.
-- [ ] Garantir labels, descricoes de erro e foco visivel nos formularios.
-- [ ] Garantir contraste adequado para tokens do tema.
-- [ ] Validar layout em mobile pequeno, mobile grande, tablet e desktop.
-- [ ] Evitar sobreposicao de textos e componentes em breakpoints suportados.
-- [ ] Garantir que botoes e alvos de toque sejam confortaveis no mobile.
-- [ ] Revisar consistencia visual com `docs/frontend-specs.md`.
+- [T-116] [ ] Validar navegacao por teclado nos fluxos principais.
+- [T-117] [ ] Garantir labels, descricoes de erro e foco visivel nos formularios.
+- [T-118] [ ] Garantir contraste adequado para tokens do tema.
+- [T-119] [ ] Validar layout em mobile pequeno, mobile grande, tablet e desktop.
+- [T-120] [ ] Evitar sobreposicao de textos e componentes em breakpoints suportados.
+- [T-121] [ ] Garantir que botoes e alvos de toque sejam confortaveis no mobile.
+- [T-122] [ ] Revisar consistencia visual com `docs/frontend-specs.md`.
 
 ### 16. Testes end-to-end e aceite
 
-- [ ] Criar e2e para catalogo publico sem autenticacao.
-- [ ] Criar e2e para login e acesso a rota protegida.
-- [ ] Criar e2e para cadastro de cliente.
-- [ ] Criar e2e para busca textual e filtro por categoria.
-- [ ] Criar e2e para detalhe do produto e adicionar ao carrinho.
-- [ ] Criar e2e para alterar quantidade e remover item do carrinho.
-- [ ] Criar e2e para checkout com criacao de pedido.
-- [ ] Criar e2e para area do cliente e alteracao de senha.
-- [ ] Criar e2e para listagem, detalhe e cancelamento de pedido.
-- [ ] Garantir que `lint`, `test`, `build` e `e2e` passam antes da entrega.
+Observacao: existe um e2e inicial de smoke test para a home, mas os fluxos de
+negocio ainda nao estao cobertos.
+
+- [T-123] [ ] Criar e2e para catalogo publico sem autenticacao.
+- [T-124] [ ] Criar e2e para login e acesso a rota protegida.
+- [T-125] [ ] Criar e2e para cadastro de cliente.
+- [T-126] [ ] Criar e2e para busca textual e filtro por categoria.
+- [T-127] [ ] Criar e2e para detalhe do produto e adicionar ao carrinho.
+- [T-128] [ ] Criar e2e para alterar quantidade e remover item do carrinho.
+- [T-129] [ ] Criar e2e para checkout com criacao de pedido.
+- [T-130] [ ] Criar e2e para area do cliente e alteracao de senha.
+- [T-131] [ ] Criar e2e para listagem, detalhe e cancelamento de pedido.
+- [T-132] [ ] Garantir que `lint`, `test`, `build` e `e2e` passam antes da entrega.
 
 ## Ordem sugerida de entrega
 
