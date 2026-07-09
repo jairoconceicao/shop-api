@@ -9,7 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
     "e2e": "playwright test",
-    "prepare": "git config core.hooksPath frontend/.husky"
+    "prepare": "git config core.hooksPath .husky"
   },
   "private": true,
   "packageManager": "npm@11.16.0",
