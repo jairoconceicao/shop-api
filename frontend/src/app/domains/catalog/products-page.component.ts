@@ -11,6 +11,7 @@ import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
 import { createProductsPageFiltersState } from './products-page-filters.context';
+import { createProductsPageResultState } from './products-page-result.context';
 import { createProductsPagePaginationState } from './products-page-pagination.context';
 import { createProductsCatalogState } from './products-page.context';
 
@@ -161,7 +162,9 @@ import { createProductsCatalogState } from './products-page.context';
             class="block"
             eyebrow="Falha no catalogo"
             title="Nao foi possivel carregar os produtos"
-            description="Tente novamente para atualizar a listagem publica."
+            [description]="resultState.hasAppliedFilters()
+              ? 'Tente novamente ou limpe os filtros para atualizar a listagem publica.'
+              : 'Tente novamente para atualizar a listagem publica.'"
             [details]="productsState.error() ?? ''"
           >
             <button
@@ -171,6 +174,15 @@ import { createProductsCatalogState } from './products-page.context';
             >
               Recarregar catalogo
             </button>
+            @if (resultState.hasAppliedFilters()) {
+              <button
+                type="button"
+                class="border-shop-border bg-shop-background text-shop-text hover:border-shop-primary/30 hover:text-shop-primary rounded-2xl border px-5 py-3 text-sm font-bold transition"
+                (click)="clearCatalogFilters()"
+              >
+                Limpar filtros
+              </button>
+            }
           </app-error-state>
         } @else if (isFilteredEmpty()) {
           <app-empty-state
@@ -179,12 +191,22 @@ import { createProductsCatalogState } from './products-page.context';
             [title]="emptyStateTitle()"
             [description]="emptyStateDescription()"
           >
-            <a
-              routerLink="/"
-              class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
-            >
-              Voltar para home
-            </a>
+            @if (resultState.hasAppliedFilters()) {
+              <button
+                type="button"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+                (click)="clearCatalogFilters()"
+              >
+                Limpar filtros
+              </button>
+            } @else {
+              <a
+                routerLink="/"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+              >
+                Voltar para home
+              </a>
+            }
           </app-empty-state>
         } @else {
           <section class="space-y-4">
@@ -296,29 +318,14 @@ export class ProductsPageComponent {
 
     return this.categories().find((category) => category.categoriaId === categoryId)?.titulo ?? null;
   });
-  protected readonly hasSearchword = computed(() => this.searchword().trim().length > 0);
-  protected readonly emptyStateEyebrow = computed(() =>
-    this.hasSearchword()
-      ? 'Busca vazia'
-      : this.selectedCategoryLabel()
-        ? 'Categoria vazia'
-        : 'Catalogo vazio',
+  protected readonly resultState = createProductsPageResultState(
+    this.productsState.searchword,
+    this.selectedCategoryId,
+    this.selectedCategoryLabel,
   );
-  protected readonly emptyStateTitle = computed(() =>
-    this.hasSearchword()
-      ? `Nenhum resultado para "${this.searchword().trim()}"`
-      : this.selectedCategoryLabel()
-        ? `Nenhum produto em ${this.selectedCategoryLabel()}`
-        : 'Nenhum produto disponivel',
-  );
-  protected readonly emptyStateDescription = computed(() =>
-    this.hasSearchword()
-      ? 'Tente usar outro termo ou limpe a busca para voltar ao catalogo completo.'
-      : this.selectedCategoryLabel()
-        ? 'Essa categoria ainda nao retornou produtos publicos. Tente outra categoria ou volte para todas.'
-      : 'Assim que a API retornar produtos publicos, eles aparecerao aqui.',
-  );
-
+  protected readonly emptyStateEyebrow = this.resultState.emptyStateEyebrow;
+  protected readonly emptyStateTitle = this.resultState.emptyStateTitle;
+  protected readonly emptyStateDescription = this.resultState.emptyStateDescription;
   protected readonly metrics = this.paginationState.metrics;
 
   protected handleSearch(event: Event): void {
@@ -353,6 +360,16 @@ export class ProductsPageComponent {
 
   protected loadMoreProducts(): void {
     this.productsState.loadMore();
+  }
+
+  protected clearCatalogFilters(): void {
+    this.categoriesState.selectCategory(null);
+    this.productsState.setSearchword('');
+    void this.router.navigate(['/products'], {
+      queryParams: buildCatalogQueryParams('', null),
+      queryParamsHandling: 'merge',
+    });
+    this.productsState.reload();
   }
 }
 
