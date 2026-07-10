@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+import { ButtonComponent } from '@shared/ui/base/button.component';
 import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
@@ -10,7 +11,13 @@ import { createProductDetailsState } from './product-details.context';
 
 @Component({
   selector: 'app-product-details-page',
-  imports: [RouterLink, PageContainerComponent, LoadingStateComponent, ErrorStateComponent],
+  imports: [
+    RouterLink,
+    PageContainerComponent,
+    ButtonComponent,
+    LoadingStateComponent,
+    ErrorStateComponent,
+  ],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-8">
@@ -124,6 +131,15 @@ import { createProductDetailsState } from './product-details.context';
                     </dd>
                   </div>
                 </dl>
+
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <app-button type="button" size="lg" [block]="true">
+                    Comprar agora
+                  </app-button>
+                  <app-button type="button" variant="outline" size="lg" [block]="true">
+                    Adicionar ao carrinho
+                  </app-button>
+                </div>
 
                 <div class="flex flex-wrap gap-3">
                   <a

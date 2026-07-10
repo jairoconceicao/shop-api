@@ -67,6 +67,8 @@ describe('ProductDetailsPageComponent', () => {
     expect(screen.getByText('Notebook para jogos')).toBeVisible();
     expect(screen.getByText('RTX')).toBeVisible();
     expect(screen.getByText('12 em estoque')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Comprar agora' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar ao catalogo' })).toHaveAttribute(
       'href',
       '/products',
