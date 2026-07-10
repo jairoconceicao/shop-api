@@ -75,6 +75,46 @@ describe('ProductDetailsPageComponent', () => {
     );
   });
 
+  it('renders the unavailable state when the product has no stock', async () => {
+    catalogServiceMock.getPublicProductById.mockReturnValue(
+      of({
+        produtoId: 101,
+        titulo: 'Notebook Gamer',
+        descricao: 'Notebook para jogos',
+        modelo: 'RTX',
+        foto: null,
+        preco: 5999.9,
+        estoque: 0,
+        categoria: {
+          categoriaId: 1,
+          titulo: 'Informática',
+        },
+      }),
+    );
+
+    await render(ProductDetailsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+      ],
+    });
+
+    expect(catalogServiceMock.getPublicProductById).toHaveBeenCalledWith(101);
+    expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
+    expect(screen.getAllByText('Sem estoque').length).toBeGreaterThan(0);
+    expect(screen.getByText('Produto sem estoque.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Avise-me quando chegar' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Comprar agora' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Adicionar ao carrinho' })).toBeNull();
+  });
+
   it('renders an error state when the API fails', async () => {
     catalogServiceMock.getPublicProductById.mockReturnValue(
       throwError(() => new Error('failed to load product')),

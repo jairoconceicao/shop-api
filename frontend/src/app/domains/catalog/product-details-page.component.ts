@@ -7,6 +7,7 @@ import { ButtonComponent } from '@shared/ui/base/button.component';
 import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
+import { createProductDetailsAvailabilityState } from './product-details-availability.context';
 import { createProductDetailsState } from './product-details.context';
 
 @Component({
@@ -72,7 +73,7 @@ import { createProductDetailsState } from './product-details.context';
                     {{ product.categoria?.titulo ?? 'Produto' }}
                   </span>
                   <span class="bg-shop-text/85 rounded-full px-3 py-1 text-xs font-bold text-white">
-                    {{ stockLabel(product.estoque) }}
+                    {{ stockLabel() }}
                   </span>
                 </div>
               </div>
@@ -127,19 +128,32 @@ import { createProductDetailsState } from './product-details.context';
                       Estoque
                     </dt>
                     <dd class="text-shop-text mt-2 text-sm font-semibold">
-                      {{ stockLabel(product.estoque) }}
+                      {{ stockLabel() }}
                     </dd>
                   </div>
                 </dl>
 
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <app-button type="button" size="lg" [block]="true">
-                    Comprar agora
-                  </app-button>
-                  <app-button type="button" variant="outline" size="lg" [block]="true">
-                    Adicionar ao carrinho
-                  </app-button>
-                </div>
+                @if (isUnavailable()) {
+                  <div class="rounded-xl bg-shop-warning-soft p-4 text-shop-warning">
+                    <p class="font-semibold">Produto sem estoque.</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="mt-3 rounded-xl border border-shop-warning px-4 py-3 font-semibold text-shop-warning"
+                  >
+                    Avise-me quando chegar
+                  </button>
+                } @else {
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <app-button type="button" size="lg" [block]="true">
+                      Comprar agora
+                    </app-button>
+                    <app-button type="button" variant="outline" size="lg" [block]="true">
+                      Adicionar ao carrinho
+                    </app-button>
+                  </div>
+                }
 
                 <div class="flex flex-wrap gap-3">
                   <a
@@ -174,8 +188,11 @@ export class ProductDetailsPageComponent {
   protected readonly state = createProductDetailsState(this.productId);
 
   protected readonly product = this.state.product;
+  protected readonly availabilityState = createProductDetailsAvailabilityState(this.product);
   protected readonly isLoading = this.state.isLoading;
   protected readonly error = this.state.error;
+  protected readonly isUnavailable = this.availabilityState.isUnavailable;
+  protected readonly stockLabel = this.availabilityState.stockLabel;
 
   protected reload(): void {
     this.state.reload();
@@ -192,18 +209,6 @@ export class ProductDetailsPageComponent {
       style: 'currency',
       currency: 'BRL',
     }).format(numericValue);
-  }
-
-  protected stockLabel(value: number | string): string {
-    const numericValue = typeof value === 'string' ? Number(value) : value;
-
-    if (!Number.isFinite(numericValue)) {
-      return '0 em estoque';
-    }
-
-    return `${new Intl.NumberFormat('pt-BR', {
-      maximumFractionDigits: 0,
-    }).format(numericValue)} em estoque`;
   }
 }
 

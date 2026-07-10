@@ -192,7 +192,7 @@ o catalogo funcional ainda nao foi implementado.
 [x] TASK-058: Integrar `GET /api/v1/produto/{id}`.
 [x] TASK-059: Exibir imagem, titulo, descricao, modelo, categoria, preco e estoque.
 [x] TASK-060: Exibir CTA de comprar agora e adicionar ao carrinho.
-[ ] TASK-061: Tratar produto indisponivel ou sem estoque.
+[x] TASK-061: Tratar produto indisponivel ou sem estoque.
 [ ] TASK-062: Redirecionar usuarios nao autenticados para login ao iniciar compra.
 [ ] TASK-063: Criar testes de componente e fluxo para detalhe de produto.
 
