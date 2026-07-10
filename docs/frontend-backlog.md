@@ -184,7 +184,7 @@ o catalogo funcional ainda nao foi implementado.
 [x] TASK-053: Refletir pagina, tamanho e total de itens retornados pelo backend.
 [x] TASK-054: Preservar filtros e busca na URL.
 [x] TASK-055: Implementar estados de resultado vazio e erro recuperavel.
-[ ] TASK-056: Criar testes de integracao para busca e filtro por categoria.
+[x] TASK-056: Criar testes de integracao para busca e filtro por categoria.
 
 ### 8. Detalhe do produto
 
