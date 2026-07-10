@@ -247,7 +247,7 @@ de perfil.
 [x] TASK-095: Implementar rota `/account/password`.
 [x] TASK-096: Criar formulario com senha atual, nova senha e confirmacao.
 [x] TASK-097: Aplicar validacoes por schema.
-[ ] TASK-098: Integrar `PUT /api/v1/cliente/{clienteId}/senha`.
+[x] TASK-098: Integrar `PUT /api/v1/cliente/{clienteId}/senha`.
 [ ] TASK-099: Exibir estados de sucesso, erro de validacao e erro de senha atual.
 [ ] TASK-100: Criar testes do formulario de alteracao de senha.
 

@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize, Subscription } from 'rxjs';
 
+import { CustomerService } from '@core/customer/customer.service';
+import { TokenStorageService } from '@core/auth/token-storage.service';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { FormErrorComponent } from '@shared/ui/base/form-error.component';
 import { InputComponent } from '@shared/ui/base/input.component';
@@ -93,7 +96,11 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswordPageComponent {
+export class PasswordPageComponent implements OnDestroy {
+  private readonly customerService = inject(CustomerService);
+  private readonly tokenStorage = inject(TokenStorageService);
+  private passwordUpdateSubscription: Subscription | null = null;
+
   readonly formErrors = signal<PasswordFormErrors>(createEmptyPasswordFormErrors());
   readonly form = signal<PasswordFormValue>(createEmptyPasswordFormValue());
 
@@ -102,6 +109,40 @@ export class PasswordPageComponent {
 
     const result = passwordFormSchema.validate(this.form());
     this.formErrors.set(result.errors);
+
+    if (!result.success) {
+      return;
+    }
+
+    const session = this.tokenStorage.getSession();
+    const customerId = Number(session?.clienteId);
+
+    if (!Number.isFinite(customerId)) {
+      return;
+    }
+
+    this.passwordUpdateSubscription?.unsubscribe();
+    this.passwordUpdateSubscription = this.customerService
+      .updatePassword(customerId, {
+        senhaAtual: this.form().senhaAtual,
+        senhaNova: this.form().senhaNova,
+      })
+      .pipe(
+        finalize(() => {
+          this.passwordUpdateSubscription = null;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.form.set(createEmptyPasswordFormValue());
+          this.formErrors.set(createEmptyPasswordFormErrors());
+        },
+        error: () => undefined,
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.passwordUpdateSubscription?.unsubscribe();
   }
 
   setField(field: keyof PasswordFormValue, value: string): void {

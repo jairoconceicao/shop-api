@@ -3,7 +3,13 @@ import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiClientService, type ApiResponse } from '@shared/api';
-import type { CustomerCreateRequest, CustomerDetails, CustomerIdResponse, CustomerUpdateRequest } from '@shared/models';
+import type {
+  CustomerCreateRequest,
+  CustomerDetails,
+  CustomerIdResponse,
+  CustomerUpdatePasswordRequest,
+  CustomerUpdateRequest,
+} from '@shared/models';
 
 import { CustomerService } from './customer.service';
 
@@ -161,6 +167,33 @@ describe('CustomerService', () => {
     });
 
     expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20', request, undefined);
+    expect(receivedResponses).toEqual([response.data]);
+  });
+
+  it('updates a customer password through PUT /api/v1/cliente/{clienteId}/senha', () => {
+    const request: CustomerUpdatePasswordRequest = {
+      senhaAtual: '12345678',
+      senhaNova: '87654321',
+    };
+
+    const response = {
+      status: true,
+      message: '',
+      data: {
+        clienteId: 20,
+      },
+    } satisfies ApiResponse<CustomerIdResponse>;
+
+    apiClientMock.put.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CustomerService);
+    const receivedResponses: CustomerIdResponse[] = [];
+
+    service.updatePassword(20, request).subscribe((result) => {
+      receivedResponses.push(result);
+    });
+
+    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20/senha', request, undefined);
     expect(receivedResponses).toEqual([response.data]);
   });
 
