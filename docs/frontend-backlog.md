@@ -238,7 +238,7 @@ de perfil.
 [x] TASK-089: Integrar `PUT /api/v1/cliente/{clienteId}`.
 [x] TASK-090: Integrar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
 [x] TASK-091: Implementar menu lateral no desktop e navegacao simples no mobile.
-[ ] TASK-092: Criar formulario de perfil com validacao por schema.
+[x] TASK-092: Criar formulario de perfil com validacao por schema.
 [ ] TASK-093: Criar confirmacao explicita antes de cancelar conta.
 [ ] TASK-094: Criar testes de componente e integracao da area do cliente.
 

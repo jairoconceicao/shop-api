@@ -2,73 +2,20 @@ import { ChangeDetectionStrategy, Component, OnInit, effect, inject, signal } fr
 import { RouterLink } from '@angular/router';
 
 import { CustomerStore } from './customer.store';
+import {
+  createEmptyProfileFormErrors,
+  createEmptyProfileFormValue,
+  normalizeProfileFormValue,
+  profileFormSchema,
+  type ProfileFormErrors,
+  type ProfileFormField,
+  type ProfileFormValue,
+} from './profile-form.schema';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { CheckboxComponent } from '@shared/ui/base/checkbox.component';
 import { FormErrorComponent } from '@shared/ui/base/form-error.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
-import type { CustomerUpdateRequest } from '@shared/models';
-
-interface ProfileFormValue {
-  cpf: string;
-  nome: string;
-  dataNascimento: string;
-  email: string;
-  endereco: {
-    logradouro: string;
-    numero: string;
-    complemento: string;
-    cep: string;
-    bairro: string;
-    cidade: string;
-    uf: string;
-  };
-  celular: {
-    ddd: string;
-    numero: string;
-    whatsApp: boolean;
-  };
-}
-
-type ProfileField = keyof Omit<ProfileFormValue, 'endereco' | 'celular'> | 'logradouro' | 'numero' | 'complemento' | 'cep' | 'bairro' | 'cidade' | 'uf' | 'ddd' | 'telefone';
-type ProfileFieldErrors = Record<ProfileField, string[]>;
-
-const emptyProfileErrors = (): ProfileFieldErrors => ({
-  cpf: [],
-  nome: [],
-  dataNascimento: [],
-  email: [],
-  logradouro: [],
-  numero: [],
-  complemento: [],
-  cep: [],
-  bairro: [],
-  cidade: [],
-  uf: [],
-  ddd: [],
-  telefone: [],
-});
-
-const emptyProfileFormValue = (): ProfileFormValue => ({
-  cpf: '',
-  nome: '',
-  dataNascimento: '',
-  email: '',
-  endereco: {
-    logradouro: '',
-    numero: '',
-    complemento: '',
-    cep: '',
-    bairro: '',
-    cidade: '',
-    uf: '',
-  },
-  celular: {
-    ddd: '',
-    numero: '',
-    whatsApp: false,
-  },
-});
 
 @Component({
   selector: 'app-profile-page',
@@ -306,9 +253,9 @@ const emptyProfileFormValue = (): ProfileFormValue => ({
 })
 export class ProfilePageComponent implements OnInit {
   protected readonly customerStore = inject(CustomerStore);
-  protected readonly form = signal<ProfileFormValue>(emptyProfileFormValue());
+  protected readonly form = signal<ProfileFormValue>(createEmptyProfileFormValue());
   private readonly submitAttempted = signal(false);
-  private readonly validationErrors = signal<ProfileFieldErrors>(emptyProfileErrors());
+  private readonly validationErrors = signal<ProfileFormErrors>(createEmptyProfileFormErrors());
   protected readonly ufOptions = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
   constructor() {
@@ -351,35 +298,15 @@ export class ProfilePageComponent implements OnInit {
     this.submitAttempted.set(true);
 
     const candidate = this.form();
-    const errors = validateProfileForm(candidate);
+    const result = profileFormSchema.validate(candidate);
+    const errors = result.errors;
     this.validationErrors.set(errors);
 
-    if (hasProfileErrors(errors)) {
+    if (!result.success) {
       return;
     }
 
-    const request: CustomerUpdateRequest = {
-      cpf: normalizeValue(candidate.cpf),
-      nome: normalizeValue(candidate.nome),
-      dataNascimento: normalizeValue(candidate.dataNascimento),
-      email: normalizeValue(candidate.email),
-      endereco: {
-        logradouro: normalizeValue(candidate.endereco.logradouro),
-        numero: normalizeValue(candidate.endereco.numero),
-        complemento: normalizeNullableValue(candidate.endereco.complemento),
-        cep: normalizeValue(candidate.endereco.cep),
-        bairro: normalizeValue(candidate.endereco.bairro),
-        cidade: normalizeValue(candidate.endereco.cidade),
-        uf: normalizeValue(candidate.endereco.uf).toUpperCase(),
-      },
-      celular: {
-        ddd: normalizeValue(candidate.celular.ddd),
-        numero: normalizeValue(candidate.celular.numero),
-        whatsApp: candidate.celular.whatsApp,
-      },
-    };
-
-    this.customerStore.updateProfile(request);
+    this.customerStore.updateProfile(normalizeProfileFormValue(candidate));
   }
 
   setField(field: 'cpf' | 'nome' | 'dataNascimento' | 'email', value: string): void {
@@ -426,7 +353,7 @@ export class ProfilePageComponent implements OnInit {
     return (event.target as HTMLSelectElement).value;
   }
 
-  protected getFieldErrors(field: ProfileField): readonly string[] | null {
+  protected getFieldErrors(field: ProfileFormField): readonly string[] | null {
     if (!this.submitAttempted()) {
       return null;
     }
@@ -434,75 +361,4 @@ export class ProfilePageComponent implements OnInit {
     const messages = this.validationErrors()[field];
     return messages.length > 0 ? messages : null;
   }
-}
-
-function validateProfileForm(form: ProfileFormValue): ProfileFieldErrors {
-  const errors = emptyProfileErrors();
-
-  if (!normalizeValue(form.nome)) {
-    errors.nome.push('Informe o nome completo.');
-  }
-
-  if (!normalizeValue(form.cpf)) {
-    errors.cpf.push('Informe o CPF.');
-  }
-
-  if (!normalizeValue(form.dataNascimento)) {
-    errors.dataNascimento.push('Informe a data de nascimento.');
-  }
-
-  if (!isValidEmail(normalizeValue(form.email))) {
-    errors.email.push('Informe um e-mail valido.');
-  }
-
-  if (!normalizeValue(form.endereco.logradouro)) {
-    errors.logradouro.push('Informe o logradouro.');
-  }
-
-  if (!normalizeValue(form.endereco.numero)) {
-    errors.numero.push('Informe o numero.');
-  }
-
-  if (!normalizeValue(form.endereco.cep)) {
-    errors.cep.push('Informe o CEP.');
-  }
-
-  if (!normalizeValue(form.endereco.bairro)) {
-    errors.bairro.push('Informe o bairro.');
-  }
-
-  if (!normalizeValue(form.endereco.cidade)) {
-    errors.cidade.push('Informe a cidade.');
-  }
-
-  if (!normalizeValue(form.endereco.uf)) {
-    errors.uf.push('Informe a UF.');
-  }
-
-  if (!normalizeValue(form.celular.ddd)) {
-    errors.ddd.push('Informe o DDD.');
-  }
-
-  if (!normalizeValue(form.celular.numero)) {
-    errors.telefone.push('Informe o telefone celular.');
-  }
-
-  return errors;
-}
-
-function hasProfileErrors(errors: ProfileFieldErrors): boolean {
-  return Object.values(errors).some((messages) => messages.length > 0);
-}
-
-function normalizeValue(value: string): string {
-  return value.trim();
-}
-
-function normalizeNullableValue(value: string): string | null {
-  const normalized = value.trim();
-  return normalized ? normalized : null;
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }

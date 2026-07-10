@@ -72,4 +72,24 @@ describe('ProfilePageComponent', () => {
     expect(screen.getByText('Nao foi possivel atualizar os dados do cliente.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Salvar alteracoes' })).toBeDisabled();
   });
+
+  it('shows schema validation feedback before submitting invalid data', async () => {
+    const customerStoreMock = createStoreMock({
+      profile: vi.fn(() => null),
+    });
+
+    await render(ProfilePageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerStore, useValue: customerStoreMock },
+      ],
+    });
+
+    await screen.getByRole('button', { name: 'Salvar alteracoes' }).click();
+
+    expect(screen.getByText('Informe o nome completo.')).toBeVisible();
+    expect(screen.getByText('Informe o CPF.')).toBeVisible();
+    expect(screen.getByText('Informe um e-mail valido.')).toBeVisible();
+    expect(customerStoreMock.updateProfile).not.toHaveBeenCalled();
+  });
 });
