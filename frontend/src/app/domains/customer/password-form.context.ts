@@ -1,13 +1,2 @@
-export interface PasswordFormValue {
-  senhaAtual: string;
-  senhaNova: string;
-  confirmacaoSenha: string;
-}
-
-export function createEmptyPasswordFormValue(): PasswordFormValue {
-  return {
-    senhaAtual: '',
-    senhaNova: '',
-    confirmacaoSenha: '',
-  };
-}
+export type { PasswordFormValue } from './password-form.schema';
+export { createEmptyPasswordFormValue } from './password-form.schema';

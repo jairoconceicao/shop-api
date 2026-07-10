@@ -18,4 +18,17 @@ describe('PasswordPageComponent', () => {
     expect(screen.getByLabelText('Confirmacao da senha')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Salvar senha' })).toBeVisible();
   });
+
+  it('renders schema validation feedback on submit', async () => {
+    await render(PasswordPageComponent, {
+      providers: [provideRouter([])],
+    });
+
+    const submitButton = screen.getByRole('button', { name: 'Salvar senha' });
+    submitButton.click();
+
+    expect(screen.getByText('Informe sua senha atual.')).toBeVisible();
+    expect(screen.getByText('Informe a nova senha.')).toBeVisible();
+    expect(screen.getByText('Confirme a nova senha.')).toBeVisible();
+  });
 });

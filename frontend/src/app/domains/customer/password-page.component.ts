@@ -2,14 +2,21 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ButtonComponent } from '@shared/ui/base/button.component';
+import { FormErrorComponent } from '@shared/ui/base/form-error.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
-import { createEmptyPasswordFormValue, type PasswordFormValue } from './password-form.context';
+import {
+  createEmptyPasswordFormErrors,
+  createEmptyPasswordFormValue,
+  passwordFormSchema,
+  type PasswordFormErrors,
+  type PasswordFormValue,
+} from './password-form.schema';
 
 @Component({
   selector: 'app-password-page',
-  imports: [RouterLink, ButtonComponent, InputComponent, PageContainerComponent],
+  imports: [RouterLink, ButtonComponent, FormErrorComponent, InputComponent, PageContainerComponent],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -46,6 +53,7 @@ import { createEmptyPasswordFormValue, type PasswordFormValue } from './password
               placeholder="Digite sua senha atual"
               [required]="true"
               [value]="form().senhaAtual"
+              [error]="getFieldError('senhaAtual')"
               (valueChange)="setField('senhaAtual', $event)"
             />
 
@@ -56,6 +64,7 @@ import { createEmptyPasswordFormValue, type PasswordFormValue } from './password
               placeholder="Crie uma nova senha"
               [required]="true"
               [value]="form().senhaNova"
+              [error]="getFieldError('senhaNova')"
               (valueChange)="setField('senhaNova', $event)"
             />
 
@@ -66,9 +75,12 @@ import { createEmptyPasswordFormValue, type PasswordFormValue } from './password
               placeholder="Repita a nova senha"
               [required]="true"
               [value]="form().confirmacaoSenha"
+              [error]="getFieldError('confirmacaoSenha')"
               (valueChange)="setField('confirmacaoSenha', $event)"
             />
           </div>
+
+          <app-form-error class="mt-6 block" [error]="formErrorMessages()" />
 
           <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <app-button type="submit" size="lg" [block]="true">
@@ -82,10 +94,14 @@ import { createEmptyPasswordFormValue, type PasswordFormValue } from './password
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PasswordPageComponent {
+  readonly formErrors = signal<PasswordFormErrors>(createEmptyPasswordFormErrors());
   readonly form = signal<PasswordFormValue>(createEmptyPasswordFormValue());
 
   handleSubmit(event: Event): void {
     event.preventDefault();
+
+    const result = passwordFormSchema.validate(this.form());
+    this.formErrors.set(result.errors);
   }
 
   setField(field: keyof PasswordFormValue, value: string): void {
@@ -93,5 +109,13 @@ export class PasswordPageComponent {
       ...current,
       [field]: value,
     }));
+  }
+
+  protected getFieldError(field: keyof PasswordFormErrors): string[] {
+    return this.formErrors()[field];
+  }
+
+  protected formErrorMessages(): string[] {
+    return Object.values(this.formErrors()).flat();
   }
 }
