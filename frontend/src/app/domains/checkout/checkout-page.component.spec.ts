@@ -84,6 +84,9 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByLabelText('Bairro')).toHaveValue('Centro');
     expect(screen.getByLabelText('Cidade')).toHaveValue('Sao Paulo');
     expect(screen.getByLabelText('UF')).toHaveValue('SP');
+    expect(screen.getByRole('heading', { name: 'Selecione a forma de pagamento' })).toBeVisible();
+    expect(screen.getByLabelText('Forma de pagamento')).toHaveValue('Pix');
+    expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Pix');
     expect(screen.getByRole('button', { name: 'Continuar checkout' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Revisar carrinho' })).toHaveAttribute('href', '/cart');
     expect(screen.getByRole('link', { name: 'Continuar comprando' })).toHaveAttribute(
@@ -183,5 +186,62 @@ describe('CheckoutPageComponent', () => {
     expect(deliveryUf).toHaveValue('RJ');
     expect(screen.getByText('Rua Central')).toBeVisible();
     expect(screen.getByText('100')).toBeVisible();
+  });
+
+  it('allows selecting a payment method during checkout', async () => {
+    const cartStore = TestBed.inject(CartStore);
+    const customerService = {
+      getById: vi.fn().mockReturnValue(
+        of({
+          clienteId: 20,
+          cpf: '12345678901',
+          nome: 'Cliente Shop',
+          dataNascimento: '1990-01-01',
+          email: 'cliente@shopapi.dev',
+          endereco: {
+            logradouro: 'Rua Central',
+            numero: '100',
+            complemento: 'Apto 12',
+            cep: '01001000',
+            bairro: 'Centro',
+            cidade: 'Sao Paulo',
+            uf: 'SP',
+          },
+          celular: {
+            ddd: '11',
+            numero: '999999999',
+            whatsApp: true,
+          },
+        }),
+      ),
+    };
+    const tokenStorage = {
+      getSession: vi.fn().mockReturnValue({
+        token: 'jwt-token',
+        tipo: 'Bearer',
+        expiraEm: '2026-07-09T12:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@shopapi.dev',
+      }),
+    };
+
+    cartStore.setItems([item()]);
+
+    await render(CheckoutPageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerService, useValue: customerService },
+        { provide: TokenStorageService, useValue: tokenStorage },
+      ],
+    });
+
+    const paymentMethod = screen.getByLabelText('Forma de pagamento') as HTMLSelectElement;
+
+    paymentMethod.value = 'Boleto';
+    paymentMethod.dispatchEvent(new Event('change'));
+
+    expect(paymentMethod).toHaveValue('Boleto');
+    expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Boleto');
   });
 });

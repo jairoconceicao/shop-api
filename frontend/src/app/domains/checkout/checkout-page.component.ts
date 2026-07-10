@@ -3,12 +3,14 @@ import { RouterLink } from '@angular/router';
 
 import { createCheckoutAddressState } from './checkout-address.context';
 import { createCheckoutCustomerState } from './checkout-customer.context';
+import { createCheckoutPaymentState } from './checkout-payment.context';
 import { createCheckoutState } from './checkout.context';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
 import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+import type { PaymentMethod } from '@shared/models';
 
 @Component({
   selector: 'app-checkout-page',
@@ -71,6 +73,39 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
                   @for (item of items(); track item.itemId) {
                     <app-cart-item [item]="item" />
                   }
+                </div>
+              </section>
+
+              <section class="rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft" aria-labelledby="checkout-payment-title">
+                <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                  Pagamento
+                </p>
+                <h2 id="checkout-payment-title" class="text-shop-text mt-2 text-xl font-black tracking-tight">
+                  Selecione a forma de pagamento
+                </h2>
+                <p class="text-shop-text-muted mt-3 text-sm leading-7">
+                  A escolha fica registrada no checkout para ser enviada ao pedido em uma etapa posterior.
+                </p>
+
+                <label class="mt-5 block">
+                  <span class="mb-2 block text-sm font-semibold text-shop-text">
+                    Forma de pagamento
+                    <span class="ml-1 text-shop-danger" aria-hidden="true">*</span>
+                  </span>
+                  <select
+                    class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus:border-shop-primary focus:bg-white focus:ring-2 focus:ring-shop-primary/10"
+                    [value]="paymentMethod()"
+                    (change)="setPaymentMethod(getSelectValue($event))"
+                  >
+                    @for (option of paymentOptions; track option) {
+                      <option [value]="option">{{ paymentLabel(option) }}</option>
+                    }
+                  </select>
+                </label>
+
+                <div class="mt-4 rounded-2xl bg-shop-background p-4 text-sm text-shop-text-muted">
+                  Selecionado:
+                  <span class="font-semibold text-shop-text">{{ paymentLabel(paymentMethod()) }}</span>
                 </div>
               </section>
 
@@ -235,6 +270,7 @@ export class CheckoutPageComponent {
   private readonly checkoutState = createCheckoutState();
   private readonly checkoutCustomerState = createCheckoutCustomerState();
   private readonly checkoutAddressState = createCheckoutAddressState(this.checkoutCustomerState.baseAddress);
+  private readonly checkoutPaymentState = createCheckoutPaymentState();
 
   protected readonly items = this.checkoutState.items;
   protected readonly subtotal = this.checkoutState.subtotal;
@@ -242,10 +278,26 @@ export class CheckoutPageComponent {
   protected readonly isEmpty = this.checkoutState.isEmpty;
   protected readonly baseAddress = this.checkoutCustomerState.baseAddress;
   protected readonly deliveryAddress = this.checkoutAddressState.deliveryAddress;
+  protected readonly paymentMethod = this.checkoutPaymentState.paymentMethod;
+  protected readonly paymentOptions = this.checkoutPaymentState.paymentOptions;
   protected readonly ufOptions = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
   protected setDeliveryAddressField(field: 'logradouro' | 'numero' | 'complemento' | 'cep' | 'bairro' | 'cidade' | 'uf', value: string): void {
     this.checkoutAddressState.setDeliveryAddressField(field, value);
+  }
+
+  protected setPaymentMethod(paymentMethod: string): void {
+    if (paymentMethod === 'Pix' || paymentMethod === 'Cartao' || paymentMethod === 'Boleto') {
+      this.checkoutPaymentState.setPaymentMethod(paymentMethod);
+    }
+  }
+
+  protected paymentLabel(paymentMethod: PaymentMethod): string {
+    if (paymentMethod === 'Cartao') {
+      return 'Cartão';
+    }
+
+    return paymentMethod;
   }
 
   protected getSelectValue(event: Event): string {
