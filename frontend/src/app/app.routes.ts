@@ -3,6 +3,7 @@ import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
 import { CartPageComponent } from '@domains/cart/cart-page.component';
+import { CheckoutPageComponent } from '@domains/checkout/checkout-page.component';
 import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
@@ -44,6 +45,12 @@ export const routes: Routes = [
         component: CartPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Carrinho',
+      },
+      {
+        path: 'checkout',
+        component: CheckoutPageComponent,
+        canActivate: [authGuard],
+        title: 'Shop API | Checkout',
       },
       {
         path: 'account',
