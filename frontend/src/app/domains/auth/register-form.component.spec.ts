@@ -2,17 +2,15 @@ import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 
-import { RegisterPageComponent } from './register-page.component';
+import { RegisterFormComponent } from './register-form.component';
 
-describe('RegisterPageComponent', () => {
-  it('renders the public account creation screen', async () => {
-    await render(RegisterPageComponent, {
+describe('RegisterFormComponent', () => {
+  it('renders the registration form groups', async () => {
+    await render(RegisterFormComponent, {
       providers: [provideRouter([])],
     });
 
-    expect(screen.getByRole('heading', { name: 'Crie sua conta e comece a comprar.' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Dados pessoais, endereco e celular' })).toBeVisible();
-    expect(screen.getByText('Cadastro publico')).toBeVisible();
     expect(screen.getByText('Dados pessoais', { selector: 'legend' })).toBeVisible();
     expect(screen.getByText('Endereco', { selector: 'legend' })).toBeVisible();
     expect(screen.getByText('Celular', { selector: 'legend' })).toBeVisible();
@@ -33,6 +31,5 @@ describe('RegisterPageComponent', () => {
     expect(screen.getByRole('checkbox', { name: 'Este numero usa WhatsApp' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Criar conta' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ja tenho conta' })).toHaveAttribute('href', '/login');
-    expect(screen.getByRole('link', { name: 'Explorar catalogo' })).toHaveAttribute('href', '/products');
   });
 });

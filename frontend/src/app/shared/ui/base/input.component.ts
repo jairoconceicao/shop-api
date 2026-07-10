@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inp
 import { createUiId } from './ui-id';
 import { FormErrorComponent } from './form-error.component';
 
-type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
+type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number' | 'date';
 
 @Component({
   selector: 'app-input',

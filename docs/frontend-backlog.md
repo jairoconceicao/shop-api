@@ -151,7 +151,7 @@ nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
 ### 5. Cadastro de cliente
 
 [x] TASK-034: Implementar tela publica de criacao de conta.
-[ ] TASK-035: Implementar formulario com dados pessoais, endereco e celular.
+[x] TASK-035: Implementar formulario com dados pessoais, endereco e celular.
 [ ] TASK-036: Aplicar mascaras para CPF, CEP, DDD e telefone com `ngx-mask`.
 [ ] TASK-037: Aplicar validacoes por schema.
 [ ] TASK-038: Integrar `POST /api/v1/cliente`.
