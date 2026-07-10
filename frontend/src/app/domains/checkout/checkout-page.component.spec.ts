@@ -76,6 +76,14 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByRole('heading', { name: 'Dados carregados do perfil do cliente' })).toBeVisible();
     expect(screen.getByText('Rua Central')).toBeVisible();
     expect(screen.getByText('Centro')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Endereco de entrega' })).toBeVisible();
+    expect(screen.getByLabelText('Logradouro')).toHaveValue('Rua Central');
+    expect(screen.getByLabelText('Numero')).toHaveValue('100');
+    expect(screen.getByLabelText('Complemento')).toHaveValue('Apto 12');
+    expect(screen.getByLabelText('CEP')).toHaveValue('01001000');
+    expect(screen.getByLabelText('Bairro')).toHaveValue('Centro');
+    expect(screen.getByLabelText('Cidade')).toHaveValue('Sao Paulo');
+    expect(screen.getByLabelText('UF')).toHaveValue('SP');
     expect(screen.getByRole('button', { name: 'Continuar checkout' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Revisar carrinho' })).toHaveAttribute('href', '/cart');
     expect(screen.getByRole('link', { name: 'Continuar comprando' })).toHaveAttribute(
@@ -109,5 +117,71 @@ describe('CheckoutPageComponent', () => {
       screen.getByRole('heading', { name: 'Adicione produtos ao carrinho antes de continuar' }),
     ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ir para o carrinho' })).toHaveAttribute('href', '/cart');
+  });
+
+  it('allows explicit editing of the delivery address without changing the customer profile address', async () => {
+    const cartStore = TestBed.inject(CartStore);
+    const customerService = {
+      getById: vi.fn().mockReturnValue(
+        of({
+          clienteId: 20,
+          cpf: '12345678901',
+          nome: 'Cliente Shop',
+          dataNascimento: '1990-01-01',
+          email: 'cliente@shopapi.dev',
+          endereco: {
+            logradouro: 'Rua Central',
+            numero: '100',
+            complemento: 'Apto 12',
+            cep: '01001000',
+            bairro: 'Centro',
+            cidade: 'Sao Paulo',
+            uf: 'SP',
+          },
+          celular: {
+            ddd: '11',
+            numero: '999999999',
+            whatsApp: true,
+          },
+        }),
+      ),
+    };
+    const tokenStorage = {
+      getSession: vi.fn().mockReturnValue({
+        token: 'jwt-token',
+        tipo: 'Bearer',
+        expiraEm: '2026-07-09T12:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@shopapi.dev',
+      }),
+    };
+
+    cartStore.setItems([item()]);
+
+    await render(CheckoutPageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerService, useValue: customerService },
+        { provide: TokenStorageService, useValue: tokenStorage },
+      ],
+    });
+
+    const deliveryLogradouro = screen.getByLabelText('Logradouro') as HTMLInputElement;
+    const deliveryNumero = screen.getByLabelText('Numero') as HTMLInputElement;
+    const deliveryUf = screen.getByLabelText('UF') as HTMLSelectElement;
+
+    deliveryLogradouro.value = '  Rua Nova ';
+    deliveryLogradouro.dispatchEvent(new Event('input'));
+    deliveryNumero.value = ' 250 ';
+    deliveryNumero.dispatchEvent(new Event('input'));
+    deliveryUf.value = 'RJ';
+    deliveryUf.dispatchEvent(new Event('change'));
+
+    expect(deliveryLogradouro).toHaveValue('Rua Nova');
+    expect(deliveryNumero).toHaveValue('250');
+    expect(deliveryUf).toHaveValue('RJ');
+    expect(screen.getByText('Rua Central')).toBeVisible();
+    expect(screen.getByText('100')).toBeVisible();
   });
 });

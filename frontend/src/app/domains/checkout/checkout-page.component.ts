@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { createCheckoutAddressState } from './checkout-address.context';
 import { createCheckoutCustomerState } from './checkout-customer.context';
 import { createCheckoutState } from './checkout.context';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
 import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
+import { InputComponent } from '@shared/ui/base/input.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
@@ -16,6 +18,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
     EmptyStateComponent,
     CartItemComponent,
     CartSummaryComponent,
+    InputComponent,
   ],
   template: `
     <app-page-container [wide]="true">
@@ -92,55 +95,133 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 
           @if (baseAddress()) {
             <div class="border-t border-shop-border bg-shop-background px-5 py-6 lg:px-10">
-              <div class="max-w-3xl rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft">
-                <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
-                  Endereco base
-                </p>
-                <h2 class="text-shop-text mt-2 text-xl font-black tracking-tight">
-                  Dados carregados do perfil do cliente
-                </h2>
-                <dl class="text-shop-text-muted mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      Logradouro
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.logradouro }}</dd>
+              <div class="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                <div class="rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft">
+                  <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                    Endereco base
+                  </p>
+                  <h2 class="text-shop-text mt-2 text-xl font-black tracking-tight">
+                    Dados carregados do perfil do cliente
+                  </h2>
+                  <dl class="text-shop-text-muted mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        Logradouro
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.logradouro }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        Numero
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.numero }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        Bairro
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.bairro }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        Cidade / UF
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">
+                        {{ baseAddress()?.cidade }} / {{ baseAddress()?.uf }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        CEP
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.cep }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                        Complemento
+                      </dt>
+                      <dd class="mt-1 font-medium text-shop-text">
+                        {{ baseAddress()?.complemento ?? '-' }}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <form class="rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft" novalidate>
+                  <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                    Endereco de entrega
+                  </p>
+                  <h2 class="text-shop-text mt-2 text-xl font-black tracking-tight">
+                    Edite os dados antes de finalizar
+                  </h2>
+                  <p class="text-shop-text-muted mt-3 text-sm leading-7">
+                    O checkout permite ajustar explicitamente o endereco de entrega sem alterar o cadastro do cliente.
+                  </p>
+
+                  <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                      <app-input
+                        label="Logradouro"
+                        autocomplete="address-line1"
+                        [required]="true"
+                        [value]="deliveryAddress().logradouro"
+                        (valueChange)="setDeliveryAddressField('logradouro', $event)"
+                      />
+                    </div>
+                    <app-input
+                      label="Numero"
+                      autocomplete="address-line2"
+                      inputMode="numeric"
+                      [required]="true"
+                      [value]="deliveryAddress().numero"
+                      (valueChange)="setDeliveryAddressField('numero', $event)"
+                    />
+                    <app-input
+                      label="Complemento"
+                      autocomplete="address-line2"
+                      [value]="deliveryAddress().complemento"
+                      (valueChange)="setDeliveryAddressField('complemento', $event)"
+                    />
+                    <app-input
+                      label="CEP"
+                      autocomplete="postal-code"
+                      inputMode="numeric"
+                      [required]="true"
+                      [value]="deliveryAddress().cep"
+                      (valueChange)="setDeliveryAddressField('cep', $event)"
+                    />
+                    <app-input
+                      label="Bairro"
+                      autocomplete="address-level2"
+                      [required]="true"
+                      [value]="deliveryAddress().bairro"
+                      (valueChange)="setDeliveryAddressField('bairro', $event)"
+                    />
+                    <app-input
+                      label="Cidade"
+                      autocomplete="address-level2"
+                      [required]="true"
+                      [value]="deliveryAddress().cidade"
+                      (valueChange)="setDeliveryAddressField('cidade', $event)"
+                    />
+                    <label class="block">
+                      <span class="mb-2 block text-sm font-semibold text-shop-text">
+                        UF
+                        <span class="ml-1 text-shop-danger" aria-hidden="true">*</span>
+                      </span>
+                      <select
+                        class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus:border-shop-primary focus:bg-white focus:ring-2 focus:ring-shop-primary/10"
+                        [value]="deliveryAddress().uf"
+                        (change)="setDeliveryAddressField('uf', getSelectValue($event))"
+                      >
+                        <option value="">Selecione</option>
+                        @for (uf of ufOptions; track uf) {
+                          <option [value]="uf">{{ uf }}</option>
+                        }
+                      </select>
+                    </label>
                   </div>
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      Numero
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.numero }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      Bairro
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.bairro }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      Cidade / UF
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">
-                      {{ baseAddress()?.cidade }} / {{ baseAddress()?.uf }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      CEP
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.cep }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
-                      Complemento
-                    </dt>
-                    <dd class="mt-1 font-medium text-shop-text">
-                      {{ baseAddress()?.complemento ?? '-' }}
-                    </dd>
-                  </div>
-                </dl>
+                </form>
               </div>
             </div>
           }
@@ -153,10 +234,21 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 export class CheckoutPageComponent {
   private readonly checkoutState = createCheckoutState();
   private readonly checkoutCustomerState = createCheckoutCustomerState();
+  private readonly checkoutAddressState = createCheckoutAddressState(this.checkoutCustomerState.baseAddress);
 
   protected readonly items = this.checkoutState.items;
   protected readonly subtotal = this.checkoutState.subtotal;
   protected readonly shipping = this.checkoutState.shipping;
   protected readonly isEmpty = this.checkoutState.isEmpty;
   protected readonly baseAddress = this.checkoutCustomerState.baseAddress;
+  protected readonly deliveryAddress = this.checkoutAddressState.deliveryAddress;
+  protected readonly ufOptions = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+  protected setDeliveryAddressField(field: 'logradouro' | 'numero' | 'complemento' | 'cep' | 'bairro' | 'cidade' | 'uf', value: string): void {
+    this.checkoutAddressState.setDeliveryAddressField(field, value);
+  }
+
+  protected getSelectValue(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
+  }
 }

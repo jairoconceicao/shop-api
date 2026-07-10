@@ -218,7 +218,7 @@ integracao com a API.
 [x] TASK-075: Implementar rota protegida de checkout.
 [x] TASK-076: Reutilizar dados do carrinho ativo.
 [x] TASK-077: Carregar perfil do cliente para preencher endereco base.
-[ ] TASK-078: Permitir edicao explicita de `enderecoEntrega` no checkout.
+[x] TASK-078: Permitir edicao explicita de `enderecoEntrega` no checkout.
 [ ] TASK-079: Implementar selecao de `formaPagamento`.
 [ ] TASK-080: Integrar `POST /api/v1/pedido`.
 [ ] TASK-081: Enviar somente os campos suportados pelo backend atual.
