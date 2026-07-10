@@ -4,9 +4,10 @@ import '@testing-library/jest-dom/vitest';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
 import type { PagedResponse } from '@shared/api';
-import type { ProductCatalogItem } from '@shared/models';
+import type { Category, ProductCatalogItem } from '@shared/models';
 
 import { HomePageComponent } from './home-page.component';
 
@@ -15,8 +16,13 @@ describe('HomePageComponent', () => {
     listPublicProducts: vi.fn(),
   };
 
+  const categoryServiceMock = {
+    listPublicCategories: vi.fn(),
+  };
+
   beforeEach(() => {
     catalogServiceMock.listPublicProducts.mockReset();
+    categoryServiceMock.listPublicCategories.mockReset();
   });
 
   afterEach(() => {
@@ -47,7 +53,21 @@ describe('HomePageComponent', () => {
       },
     } satisfies PagedResponse<ProductCatalogItem>;
 
+    const categories = [
+      {
+        categoriaId: 1,
+        titulo: 'Informática',
+        descricao: 'Produtos de tecnologia',
+      },
+      {
+        categoriaId: 2,
+        titulo: 'Celulares',
+        descricao: 'Smartphones e acessórios',
+      },
+    ] satisfies Category[];
+
     catalogServiceMock.listPublicProducts.mockReturnValue(of(response));
+    categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
 
     await render(HomePageComponent, {
       providers: [
@@ -55,6 +75,10 @@ describe('HomePageComponent', () => {
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
         },
       ],
     });
@@ -67,11 +91,14 @@ describe('HomePageComponent', () => {
     );
     expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/login');
     expect(catalogServiceMock.listPublicProducts).toHaveBeenCalledWith();
+    expect(categoryServiceMock.listPublicCategories).toHaveBeenCalledWith();
     expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
     expect(screen.getAllByText('Informática')).toHaveLength(2);
     expect(screen.getByText('R$ 5.999,90')).toBeVisible();
     expect(screen.getByText('12 em estoque')).toBeVisible();
     expect(screen.getAllByRole('link', { name: 'Comprar' })).toHaveLength(1);
     expect(screen.getByText('Produtos em destaque')).toBeVisible();
+    expect(screen.getByText('Produtos de tecnologia')).toBeVisible();
+    expect(screen.getByText('Smartphones e acessórios')).toBeVisible();
   });
 });

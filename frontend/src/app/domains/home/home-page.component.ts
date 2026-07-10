@@ -3,7 +3,9 @@ import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 
+import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
+import type { Category } from '@shared/models';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
 @Component({
@@ -94,7 +96,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
         </article>
 
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          @for (category of categories; track category.title) {
+          @for (category of categories(); track category.title) {
             <a
               [routerLink]="category.link"
               class="border-shop-border shadow-soft hover:border-shop-primary/30 rounded-[1.5rem] border bg-white p-4 transition hover:-translate-y-0.5"
@@ -190,6 +192,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 })
 export class HomePageComponent {
   private readonly catalogService = inject(CatalogService);
+  private readonly categoryService = inject(CategoryService);
 
   readonly shortcuts = [
     {
@@ -222,32 +225,44 @@ export class HomePageComponent {
     },
   ] as const;
 
-  readonly categories = [
+  private readonly fallbackCategories: Category[] = [
     {
-      tag: 'Top 1',
-      title: 'Informática',
-      description: 'Notebooks, monitores, periféricos e acessórios para produção e lazer.',
-      link: '/products',
+      categoriaId: 1,
+      titulo: 'Informática',
+      descricao: 'Notebooks, monitores, periféricos e acessórios para produção e lazer.',
     },
     {
-      tag: 'Top 2',
-      title: 'Celulares',
-      description: 'Smartphones, capas, películas, cabos e carregadores para o dia a dia.',
-      link: '/products',
+      categoriaId: 2,
+      titulo: 'Celulares',
+      descricao: 'Smartphones, capas, películas, cabos e carregadores para o dia a dia.',
     },
     {
-      tag: 'Top 3',
-      title: 'Casa',
-      description: 'Organização, cozinha e pequenos eletros para agilizar a rotina.',
-      link: '/products',
+      categoriaId: 3,
+      titulo: 'Casa',
+      descricao: 'Organização, cozinha e pequenos eletros para agilizar a rotina.',
     },
     {
-      tag: 'Top 4',
-      title: 'Games',
-      description: 'Consoles, headsets, controles e tudo para jogar melhor.',
-      link: '/products',
+      categoriaId: 4,
+      titulo: 'Games',
+      descricao: 'Consoles, headsets, controles e tudo para jogar melhor.',
     },
-  ] as const;
+  ];
+
+  private readonly categoriesResponse = toSignal(
+    this.categoryService.listPublicCategories().pipe(catchError(() => of(this.fallbackCategories))),
+    {
+      initialValue: this.fallbackCategories,
+    },
+  );
+
+  protected readonly categories = computed(() =>
+    this.categoriesResponse().map((category, index) => ({
+      tag: `Top ${index + 1}`,
+      title: category.titulo,
+      description: category.descricao,
+      link: '/products',
+    })),
+  );
 
   private readonly featuredProductsResponse = toSignal(
     this.catalogService.listPublicProducts().pipe(
