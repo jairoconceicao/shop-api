@@ -9,6 +9,7 @@ import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
+import { createProductsPageFiltersState } from './products-page-filters.context';
 import { createProductsCatalogState } from './products-page.context';
 
 @Component({
@@ -75,6 +76,74 @@ import { createProductsCatalogState } from './products-page.context';
           </div>
         </article>
 
+        <section class="space-y-4">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                Categorias
+              </p>
+              <h2 class="text-shop-text mt-2 text-2xl font-black tracking-tight sm:text-3xl">
+                Filtrar por categoria
+              </h2>
+            </div>
+
+            @if (selectedCategoryLabel()) {
+              <span class="text-shop-text-muted hidden text-sm font-medium sm:inline-flex">
+                Filtrando por {{ selectedCategoryLabel() }}
+              </span>
+            }
+          </div>
+
+          @if (categoriesState.isLoadingCategories()) {
+            <div class="border-shop-border rounded-[1.5rem] border bg-white p-4">
+              <p class="text-shop-text font-bold">Carregando categorias...</p>
+              <p class="text-shop-text-muted mt-1 text-sm">
+                Buscando as categorias publicas para montar os filtros do catalogo.
+              </p>
+            </div>
+          } @else if (categoriesState.categoriesError()) {
+            <div class="border-shop-border rounded-[1.5rem] border bg-white p-4">
+              <p class="text-shop-text font-bold">Nao foi possivel carregar as categorias.</p>
+              <p class="text-shop-text-muted mt-1 text-sm">
+                {{ categoriesState.categoriesError() }}
+              </p>
+              <button
+                type="button"
+                class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover mt-4 inline-flex rounded-2xl px-5 py-3 text-sm font-bold transition"
+                (click)="reloadCategories()"
+              >
+                Recarregar categorias
+              </button>
+            </div>
+          } @else {
+            <div class="flex flex-wrap gap-3">
+              <button
+                type="button"
+                [class]="selectedCategoryId() === null
+                  ? 'bg-shop-primary text-shop-text-inverted shadow-soft inline-flex rounded-full px-4 py-2 text-sm font-bold transition'
+                  : 'border-shop-border bg-shop-background text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex rounded-full border px-4 py-2 text-sm font-bold transition'"
+                [attr.aria-pressed]="selectedCategoryId() === null"
+                (click)="selectCategory(null)"
+              >
+                Todas
+              </button>
+
+              @for (category of categories(); track category.categoriaId) {
+                <button
+                  type="button"
+                  [class]="selectedCategoryId() === category.categoriaId
+                    ? 'bg-shop-primary text-shop-text-inverted shadow-soft inline-flex rounded-full px-4 py-2 text-sm font-bold transition'
+                    : 'border-shop-border bg-shop-background text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex rounded-full border px-4 py-2 text-sm font-bold transition'"
+                  [attr.aria-pressed]="selectedCategoryId() === category.categoriaId"
+                  (click)="selectCategory(category.categoriaId)"
+                >
+                  {{ category.titulo }}
+                </button>
+              }
+            </div>
+          }
+        </section>
+
         @if (productsState.isLoading()) {
           <app-loading-state
             class="block"
@@ -98,7 +167,7 @@ import { createProductsCatalogState } from './products-page.context';
               Recarregar catalogo
             </button>
           </app-error-state>
-        } @else if (productsState.isEmpty()) {
+        } @else if (isFilteredEmpty()) {
           <app-empty-state
             class="block"
             [eyebrow]="emptyStateEyebrow()"
@@ -126,7 +195,7 @@ import { createProductsCatalogState } from './products-page.context';
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              @for (product of products(); track product.produtoId) {
+              @for (product of filteredProducts(); track product.produtoId) {
                 <app-product-card [product]="product" ctaLabel="Ver produto" />
               }
             </div>
@@ -169,27 +238,61 @@ import { createProductsCatalogState } from './products-page.context';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsPageComponent {
+  private readonly categoriesState = createProductsPageFiltersState();
   private readonly productsState = createProductsCatalogState();
 
   protected readonly products = computed(() => this.productsState.items());
+  protected readonly categories = this.categoriesState.categories;
   protected readonly searchword = this.productsState.searchword;
+  protected readonly selectedCategoryId = this.categoriesState.selectedCategoryId;
+  protected readonly filteredProducts = computed(() => {
+    const categoryId = this.selectedCategoryId();
+
+    if (categoryId === null) {
+      return this.products();
+    }
+
+    return this.products().filter((product) => product.categoria?.categoriaId === categoryId);
+  });
+  protected readonly isFilteredEmpty = computed(
+    () => !this.productsState.isLoading() && !this.productsState.error() && this.filteredProducts().length === 0,
+  );
+  protected readonly selectedCategoryLabel = computed(() => {
+    const categoryId = this.selectedCategoryId();
+
+    if (categoryId === null) {
+      return null;
+    }
+
+    return this.categories().find((category) => category.categoriaId === categoryId)?.titulo ?? null;
+  });
   protected readonly hasSearchword = computed(() => this.searchword().trim().length > 0);
   protected readonly emptyStateEyebrow = computed(() =>
-    this.hasSearchword() ? 'Busca vazia' : 'Catalogo vazio',
+    this.hasSearchword()
+      ? 'Busca vazia'
+      : this.selectedCategoryLabel()
+        ? 'Categoria vazia'
+        : 'Catalogo vazio',
   );
   protected readonly emptyStateTitle = computed(() =>
-    this.hasSearchword() ? `Nenhum resultado para "${this.searchword().trim()}"` : 'Nenhum produto disponivel',
+    this.hasSearchword()
+      ? `Nenhum resultado para "${this.searchword().trim()}"`
+      : this.selectedCategoryLabel()
+        ? `Nenhum produto em ${this.selectedCategoryLabel()}`
+        : 'Nenhum produto disponivel',
   );
   protected readonly emptyStateDescription = computed(() =>
     this.hasSearchword()
       ? 'Tente usar outro termo ou limpe a busca para voltar ao catalogo completo.'
+      : this.selectedCategoryLabel()
+        ? 'Essa categoria ainda nao retornou produtos publicos. Tente outra categoria ou volte para todas.'
       : 'Assim que a API retornar produtos publicos, eles aparecerao aqui.',
   );
 
   protected readonly metrics = [
     {
       label: 'Itens carregados',
-      value: () => `${this.products().length}`,
+      value: () => `${this.filteredProducts().length}`,
     },
     {
       label: 'Página',
@@ -210,8 +313,16 @@ export class ProductsPageComponent {
     this.productsState.setSearchword(value);
   }
 
+  protected selectCategory(categoryId: number | null): void {
+    this.categoriesState.selectCategory(categoryId);
+  }
+
   protected reloadProducts(): void {
     this.productsState.reload();
+  }
+
+  protected reloadCategories(): void {
+    this.categoriesState.reloadCategories();
   }
 
   protected loadMoreProducts(): void {
