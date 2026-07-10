@@ -1,11 +1,21 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { createCheckoutState } from './checkout.context';
+import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
+import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
+import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
 @Component({
   selector: 'app-checkout-page',
-  imports: [RouterLink, PageContainerComponent],
+  imports: [
+    RouterLink,
+    PageContainerComponent,
+    EmptyStateComponent,
+    CartItemComponent,
+    CartSummaryComponent,
+  ],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -24,32 +34,59 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
           </div>
 
           <div class="grid gap-4 px-5 py-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-10 lg:py-10">
-            <div class="rounded-[1.5rem] bg-shop-background p-5">
-              <p class="text-shop-text-light text-xs font-bold uppercase tracking-[0.24em]">Estado atual</p>
-              <h2 class="mt-3 text-2xl font-black tracking-tight text-shop-text">Checkout pronto para evolucao.</h2>
-              <p class="mt-3 max-w-2xl text-sm leading-7 text-shop-text-muted">
-                A rota existe para receber carrinho, endereco e pagamento nas proximas tarefas, mantendo o acesso
-                restrito a usuarios autenticados.
-              </p>
-            </div>
-
-            <aside class="rounded-[1.5rem] border border-shop-border bg-shop-surface-muted p-5">
-              <h2 class="text-lg font-bold text-shop-text">Navegacao</h2>
-              <div class="mt-4 space-y-3">
-                <a
-                  routerLink="/cart"
-                  class="block rounded-2xl bg-white px-4 py-3 text-center text-sm font-bold text-shop-text transition hover:text-shop-primary"
+            @if (isEmpty()) {
+              <div class="rounded-[1.5rem] bg-shop-background p-5">
+                <app-empty-state
+                  eyebrow="Carrinho ativo"
+                  title="Adicione produtos ao carrinho antes de continuar"
+                  description="O checkout reutiliza os dados do carrinho ativo para manter o fluxo de compra consistente."
                 >
-                  Voltar ao carrinho
-                </a>
-                <a
-                  routerLink="/products"
-                  class="block rounded-2xl border border-shop-border px-4 py-3 text-center text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
-                >
-                  Continuar comprando
-                </a>
+                  <a
+                    routerLink="/cart"
+                    class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+                  >
+                    Ir para o carrinho
+                  </a>
+                </app-empty-state>
               </div>
-            </aside>
+            } @else {
+              <section class="space-y-4" aria-labelledby="checkout-items-title">
+                <div>
+                  <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                    Carrinho ativo
+                  </p>
+                  <h2 id="checkout-items-title" class="text-shop-text mt-2 text-2xl font-black tracking-tight">
+                    Itens prontos para o pedido
+                  </h2>
+                  <p class="text-shop-text-muted mt-3 text-sm leading-7">
+                    O checkout reaproveita os itens, quantidades e valores atuais do carrinho ativo.
+                  </p>
+                </div>
+
+                <div class="space-y-3">
+                  @for (item of items(); track item.itemId) {
+                    <app-cart-item [item]="item" />
+                  }
+                </div>
+              </section>
+
+              <app-cart-summary [subtotal]="subtotal()" [shipping]="shipping()" ctaLabel="Continuar checkout">
+                <div class="mt-3 space-y-3">
+                  <a
+                    routerLink="/cart"
+                    class="border-shop-border text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-bold transition"
+                  >
+                    Revisar carrinho
+                  </a>
+                  <a
+                    routerLink="/products"
+                    class="border-shop-border text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-bold transition"
+                  >
+                    Continuar comprando
+                  </a>
+                </div>
+              </app-cart-summary>
+            }
           </div>
         </article>
       </section>
@@ -57,4 +94,11 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CheckoutPageComponent {}
+export class CheckoutPageComponent {
+  private readonly checkoutState = createCheckoutState();
+
+  protected readonly items = this.checkoutState.items;
+  protected readonly subtotal = this.checkoutState.subtotal;
+  protected readonly shipping = this.checkoutState.shipping;
+  protected readonly isEmpty = this.checkoutState.isEmpty;
+}
