@@ -27,4 +27,19 @@ export class CatalogService {
       },
     });
   }
+
+  listPublicProductsByCategory(
+    categoryId: number,
+    query: Pick<PublicProductCatalogQuery, 'page' | 'size'> = {},
+  ): Observable<PagedResponse<ProductCatalogItem>> {
+    return this.apiClient.get<PagedResponse<ProductCatalogItem>>(
+      `/api/v1/produto/categoria/${categoryId}`,
+      {
+        params: {
+          page: query.page ?? 1,
+          size: query.size ?? 4,
+        },
+      },
+    );
+  }
 }

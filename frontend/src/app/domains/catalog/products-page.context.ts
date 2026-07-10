@@ -20,18 +20,28 @@ export interface ProductsCatalogState {
   setSearchword(value: string): void;
 }
 
-export function createProductsCatalogState(): ProductsCatalogState {
+export function createProductsCatalogState(
+  selectedCategoryId: Signal<number | null>,
+): ProductsCatalogState {
   const catalogService = inject(CatalogService);
   const searchword = signal('');
   const normalizedSearchword = computed(() => normalizeSearchword(searchword()));
 
   const incrementalState = createIncrementalSectionState(
-    ({ page, size }) =>
-      catalogService.listPublicProducts({
-        page,
-        size,
-        searchword: normalizedSearchword(),
-      }),
+    ({ page, size }) => {
+      const categoryId = selectedCategoryId();
+
+      return categoryId === null
+        ? catalogService.listPublicProducts({
+            page,
+            size,
+            searchword: normalizedSearchword(),
+          })
+        : catalogService.listPublicProductsByCategory(categoryId, {
+            page,
+            size,
+          });
+    },
     'Nao foi possivel carregar o catalogo de produtos. Tente novamente.',
     8,
   );
