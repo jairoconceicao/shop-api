@@ -1,5 +1,5 @@
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 import { of, throwError } from 'rxjs';
@@ -112,6 +112,8 @@ describe('RegisterFormComponent', () => {
         },
       ],
     });
+    const router = fixture.debugElement.injector.get(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fixture.componentInstance.form.set({
       ...createEmptyRegisterFormValue(),
@@ -159,6 +161,7 @@ describe('RegisterFormComponent', () => {
         whatsApp: true,
       },
     });
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
   it('renders API validation feedback when the backend rejects the registration', async () => {

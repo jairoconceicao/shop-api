@@ -156,7 +156,7 @@ nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
 [x] TASK-037: Aplicar validacoes por schema.
 [x] TASK-038: Integrar `POST /api/v1/cliente`.
 [x] TASK-039: Tratar erros de validacao e conflitos retornados pela API.
-[ ] TASK-040: Redirecionar para login ou iniciar fluxo definido apos cadastro.
+[x] TASK-040: Redirecionar para login ou iniciar fluxo definido apos cadastro.
 [ ] TASK-041: Criar testes de componente e integracao do formulario.
 
 ### 6. Home publica

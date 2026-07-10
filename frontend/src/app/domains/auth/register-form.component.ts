@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { CustomerService } from '@core/customer/customer.service';
@@ -18,6 +18,7 @@ import {
   registerFormUfOptions,
   type RegisterFormValue,
 } from './register-form.context';
+import { registerPostSubmitRedirectCommands } from './register-post-submit.context';
 import {
   createEmptyRegisterFormErrors,
   normalizeRegisterFormValue,
@@ -253,6 +254,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterFormComponent {
+  private readonly router = inject(Router);
   private readonly customerService = inject(CustomerService);
   readonly form = signal<RegisterFormValue>(createEmptyRegisterFormValue());
   private readonly submitAttempted = signal(false);
@@ -309,6 +311,7 @@ export class RegisterFormComponent {
         next: () => {
           this.apiErrors.set(createEmptyRegisterFormErrors());
           this.submissionError.set(null);
+          void this.router.navigate(registerPostSubmitRedirectCommands);
         },
         error: (error: unknown) => {
           if (!isNormalizedApiError(error)) {
