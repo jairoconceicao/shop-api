@@ -204,7 +204,7 @@ integracao com a API.
 [x] TASK-064: Criar store de dominio `Cart` com NgRx SignalStore.
 [x] TASK-065: Implementar criacao automatica de carrinho quando necessario.
 [x] TASK-066: Integrar `POST /api/v1/carrinho/criar`.
-[ ] TASK-067: Integrar `GET /api/v1/carrinho/{carrinhoId}`.
+[x] TASK-067: Integrar `GET /api/v1/carrinho/{carrinhoId}`.
 [ ] TASK-068: Integrar `POST /api/v1/carrinho/items` sem enviar `carrinhoId`.
 [ ] TASK-069: Integrar `PATCH /api/v1/carrinho/items/{itemId}` para quantidade.
 [ ] TASK-070: Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
