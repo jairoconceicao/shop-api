@@ -3,6 +3,7 @@ import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
 import { RegisterPageComponent } from '@domains/auth/register-page.component';
+import { ProductsPageComponent } from '@domains/catalog/products-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 import { PlaceholderPageComponent } from '@shared/ui/placeholder-page.component';
 
@@ -28,14 +29,8 @@ export const routes: Routes = [
       },
       {
         path: 'products',
-        component: PlaceholderPageComponent,
+        component: ProductsPageComponent,
         title: 'Shop API | Catalogo',
-        data: {
-          eyebrow: 'Catalogo',
-          title: 'Base pronta para o catalogo.',
-          description:
-            'A estrutura de dominio, o tema global e as rotas publicas ja estao preparadas para conectar produtos, categorias e busca.',
-        },
       },
       {
         path: 'cart',

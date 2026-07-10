@@ -177,7 +177,7 @@ nao consome categorias nem produtos da API.
 Observacao: a rota `/products` ja existe como placeholder dentro do shell, mas
 o catalogo funcional ainda nao foi implementado.
 
-[ ] TASK-049: Implementar rota `/products`.
+[x] TASK-049: Implementar rota `/products`.
 [ ] TASK-050: Implementar campo de busca usando query `searchword`.
 [ ] TASK-051: Implementar filtro por categoria usando `GET /api/v1/categoria`.
 [ ] TASK-052: Integrar listagem por categoria com `GET /api/v1/produto/categoria/{categoriaId}`.
