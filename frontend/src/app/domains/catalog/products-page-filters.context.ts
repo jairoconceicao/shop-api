@@ -15,9 +15,11 @@ export interface ProductsPageFiltersState {
   selectCategory(categoryId: number | null): void;
 }
 
-export function createProductsPageFiltersState(): ProductsPageFiltersState {
+export function createProductsPageFiltersState(
+  initialCategoryId: number | null = null,
+): ProductsPageFiltersState {
   const categoryService = inject(CategoryService);
-  const selectedCategoryId = signal<number | null>(null);
+  const selectedCategoryId = signal<number | null>(initialCategoryId);
 
   const categoriesState = createRemoteSectionState<Category>(
     () => categoryService.listPublicCategories(),

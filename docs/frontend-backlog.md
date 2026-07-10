@@ -182,7 +182,7 @@ o catalogo funcional ainda nao foi implementado.
 [x] TASK-051: Implementar filtro por categoria usando `GET /api/v1/categoria`.
 [x] TASK-052: Integrar listagem por categoria com `GET /api/v1/produto/categoria/{categoriaId}`.
 [x] TASK-053: Refletir pagina, tamanho e total de itens retornados pelo backend.
-[ ] TASK-054: Preservar filtros e busca na URL.
+[x] TASK-054: Preservar filtros e busca na URL.
 [ ] TASK-055: Implementar estados de resultado vazio e erro recuperavel.
 [ ] TASK-056: Criar testes de integracao para busca e filtro por categoria.
 
