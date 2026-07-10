@@ -64,4 +64,26 @@ describe('CartStore', () => {
     expect(store.isEmpty()).toBe(true);
     expect(store.hasCart()).toBe(true);
   });
+
+  it('clears the cart state and resets the active cart flag', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.setItems([item()]);
+    store.clear();
+
+    expect(store.items()).toEqual([]);
+    expect(store.isEmpty()).toBe(true);
+    expect(store.hasCart()).toBe(false);
+    expect(store.itemCount()).toBe(0);
+    expect(store.subtotal()).toBe(0);
+  });
+
+  it('ignores invalid quantities when updating items', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.setItems([item(), item({ itemId: 2, produtoId: 20, valorUnitario: 10 })]);
+    store.updateQuantity(10, Number.NaN);
+
+    expect(store.items()).toEqual([item({ itemId: 2, produtoId: 20, valorUnitario: 10 })]);
+  });
 });

@@ -211,7 +211,7 @@ integracao com a API.
 [x] TASK-071: Implementar rota `/cart`.
 [x] TASK-072: Implementar componentes `CartButton`, `CartItem`, `CartSummary` e `QuantitySelector`.
 [x] TASK-073: Manter resumo de valores consistente apos alteracoes.
-[ ] TASK-074: Criar testes unitarios da store e testes de fluxo do carrinho.
+[x] TASK-074: Criar testes unitarios da store e testes de fluxo do carrinho.
 
 ### 10. Checkout
 
