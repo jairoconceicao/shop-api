@@ -101,7 +101,7 @@ describe('RegisterFormComponent', () => {
     expect(screen.getByText('Numero de celular e obrigatorio.')).toBeVisible();
   });
 
-  it('submits a normalized customer creation payload to the API', async () => {
+  it('submits a normalized customer creation payload to the API through user interactions', async () => {
     const { fixture } = await render(RegisterFormComponent, {
       providers: [
         provideRouter([]),
@@ -115,28 +115,52 @@ describe('RegisterFormComponent', () => {
     const router = fixture.debugElement.injector.get(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    fixture.componentInstance.form.set({
-      ...createEmptyRegisterFormValue(),
-      nome: '  Cliente Shop  ',
-      cpf: '123.456.789-01',
-      dataNascimento: '1990-01-01',
-      email: ' cliente@shopapi.dev ',
-      senha: '12345678',
-      endereco: {
-        logradouro: '  Rua Central ',
-        numero: ' 100 ',
-        complemento: ' Apt 10 ',
-        cep: '01001-000',
-        bairro: ' Centro ',
-        cidade: ' Sao Paulo ',
-        uf: 'sp',
-      },
-      celular: {
-        ddd: '(11)',
-        numero: '99999-9999',
-        whatsApp: true,
-      },
-    });
+    const nomeInput = screen.getByLabelText('Nome completo') as HTMLInputElement;
+    const cpfInput = screen.getByLabelText('CPF') as HTMLInputElement;
+    const dataNascimentoInput = screen.getByLabelText('Data de nascimento') as HTMLInputElement;
+    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
+    const senhaInput = screen.getByLabelText('Senha') as HTMLInputElement;
+    const logradouroInput = screen.getByLabelText('Logradouro') as HTMLInputElement;
+    const numeroInput = screen.getByLabelText('Numero') as HTMLInputElement;
+    const complementoInput = screen.getByLabelText('Complemento') as HTMLInputElement;
+    const cepInput = screen.getByLabelText('CEP') as HTMLInputElement;
+    const bairroInput = screen.getByLabelText('Bairro') as HTMLInputElement;
+    const cidadeInput = screen.getByLabelText('Cidade') as HTMLInputElement;
+    const ufSelect = screen.getByLabelText('UF') as HTMLSelectElement;
+    const dddInput = screen.getByLabelText('DDD') as HTMLInputElement;
+    const celularInput = screen.getByLabelText('Telefone celular') as HTMLInputElement;
+    const whatsappCheckbox = screen.getByRole('checkbox', { name: 'Este numero usa WhatsApp' }) as HTMLInputElement;
+
+    nomeInput.value = '  Cliente Shop  ';
+    nomeInput.dispatchEvent(new Event('input'));
+    cpfInput.value = '123.456.789-01';
+    cpfInput.dispatchEvent(new Event('input'));
+    dataNascimentoInput.value = '1990-01-01';
+    dataNascimentoInput.dispatchEvent(new Event('input'));
+    emailInput.value = ' cliente@shopapi.dev ';
+    emailInput.dispatchEvent(new Event('input'));
+    senhaInput.value = '12345678';
+    senhaInput.dispatchEvent(new Event('input'));
+    logradouroInput.value = '  Rua Central ';
+    logradouroInput.dispatchEvent(new Event('input'));
+    numeroInput.value = ' 100 ';
+    numeroInput.dispatchEvent(new Event('input'));
+    complementoInput.value = ' Apt 10 ';
+    complementoInput.dispatchEvent(new Event('input'));
+    cepInput.value = '01001-000';
+    cepInput.dispatchEvent(new Event('input'));
+    bairroInput.value = ' Centro ';
+    bairroInput.dispatchEvent(new Event('input'));
+    cidadeInput.value = ' Sao Paulo ';
+    cidadeInput.dispatchEvent(new Event('input'));
+    ufSelect.value = 'SP';
+    ufSelect.dispatchEvent(new Event('change'));
+    dddInput.value = '(11)';
+    dddInput.dispatchEvent(new Event('input'));
+    celularInput.value = '99999-9999';
+    celularInput.dispatchEvent(new Event('input'));
+    whatsappCheckbox.checked = true;
+    whatsappCheckbox.dispatchEvent(new Event('change'));
 
     fixture.componentInstance.handleSubmit(new Event('submit'));
 
