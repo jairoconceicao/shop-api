@@ -170,7 +170,7 @@ nao consome categorias nem produtos da API.
 [x] TASK-045: Implementar cards de produto com imagem, titulo, preco, estoque e CTA.
 [x] TASK-046: Implementar estados de loading, vazio e erro.
 [x] TASK-047: Implementar paginacao ou carregamento incremental conforme UX definida.
-[ ] TASK-048: Criar testes de componente para home, vitrine e card de produto.
+[x] TASK-048: Criar testes de componente para home, vitrine e card de produto.
 
 ### 7. Catalogo, busca e categorias
 
