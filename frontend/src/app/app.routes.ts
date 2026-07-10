@@ -33,6 +33,17 @@ export const routes: Routes = [
         title: 'Shop API | Catalogo',
       },
       {
+        path: 'products/:id',
+        component: PlaceholderPageComponent,
+        title: 'Shop API | Detalhe do produto',
+        data: {
+          eyebrow: 'Produto',
+          title: 'Detalhe do produto em preparo.',
+          description:
+            'A rota dedicada ao produto ja existe no shell para receber as proximas etapas do backlog.',
+        },
+      },
+      {
         path: 'cart',
         component: PlaceholderPageComponent,
         canActivate: [authGuard],
