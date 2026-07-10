@@ -194,7 +194,7 @@ o catalogo funcional ainda nao foi implementado.
 [x] TASK-060: Exibir CTA de comprar agora e adicionar ao carrinho.
 [x] TASK-061: Tratar produto indisponivel ou sem estoque.
 [x] TASK-062: Redirecionar usuarios nao autenticados para login ao iniciar compra.
-[ ] TASK-063: Criar testes de componente e fluxo para detalhe de produto.
+[x] TASK-063: Criar testes de componente e fluxo para detalhe de produto.
 
 ### 9. Carrinho
 
