@@ -13,6 +13,9 @@ describe('PasswordPageComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Alterar senha' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar para conta' })).toHaveAttribute('href', '/account');
-    expect(screen.getByText(/campos de senha, validacoes e envio para a API/)).toBeVisible();
+    expect(screen.getByLabelText('Senha atual')).toBeVisible();
+    expect(screen.getByLabelText('Nova senha')).toBeVisible();
+    expect(screen.getByLabelText('Confirmacao da senha')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Salvar senha' })).toBeVisible();
   });
 });

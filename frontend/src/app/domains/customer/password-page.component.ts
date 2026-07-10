@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { ButtonComponent } from '@shared/ui/base/button.component';
+import { InputComponent } from '@shared/ui/base/input.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+
+import { createEmptyPasswordFormValue, type PasswordFormValue } from './password-form.context';
 
 @Component({
   selector: 'app-password-page',
-  imports: [RouterLink, PageContainerComponent],
+  imports: [RouterLink, ButtonComponent, InputComponent, PageContainerComponent],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -20,7 +24,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
                 Alterar senha
               </h1>
               <p class="mt-3 max-w-2xl text-sm leading-6 text-shop-text-muted lg:text-base">
-                A rota para troca de senha ja esta disponivel. O formulario e a integracao com a API serao adicionados nesta etapa seguinte da area do cliente.
+                Atualize sua senha de acesso informando a senha atual, a nova senha e a confirmacao.
               </p>
             </div>
 
@@ -33,16 +37,61 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
           </div>
         </div>
 
-        <article class="rounded-[2rem] border border-shop-border bg-white p-6 shadow-soft lg:p-8">
-          <p class="text-xs font-black uppercase tracking-[0.24em] text-shop-text-light">Progresso da tarefa</p>
+        <form class="rounded-[2rem] border border-shop-border bg-white p-6 shadow-soft lg:p-8" (submit)="handleSubmit($event)" novalidate>
+          <div class="grid gap-4 lg:grid-cols-3">
+            <app-input
+              label="Senha atual"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Digite sua senha atual"
+              [required]="true"
+              [value]="form().senhaAtual"
+              (valueChange)="setField('senhaAtual', $event)"
+            />
 
-          <div class="mt-4 rounded-2xl bg-shop-surface-muted px-4 py-4 text-sm leading-6 text-shop-text-muted">
-            Nesta entrega, a pagina existe e esta protegida por autenticacao. Os campos de senha, validacoes e envio para a API serao implementados na proxima tarefa do backlog.
+            <app-input
+              label="Nova senha"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Crie uma nova senha"
+              [required]="true"
+              [value]="form().senhaNova"
+              (valueChange)="setField('senhaNova', $event)"
+            />
+
+            <app-input
+              label="Confirmacao da senha"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Repita a nova senha"
+              [required]="true"
+              [value]="form().confirmacaoSenha"
+              (valueChange)="setField('confirmacaoSenha', $event)"
+            />
           </div>
-        </article>
+
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <app-button type="submit" size="lg" [block]="true">
+              Salvar senha
+            </app-button>
+          </div>
+        </form>
       </section>
     </app-page-container>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswordPageComponent {}
+export class PasswordPageComponent {
+  readonly form = signal<PasswordFormValue>(createEmptyPasswordFormValue());
+
+  handleSubmit(event: Event): void {
+    event.preventDefault();
+  }
+
+  setField(field: keyof PasswordFormValue, value: string): void {
+    this.form.update((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+}
