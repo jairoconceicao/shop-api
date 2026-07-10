@@ -41,4 +41,33 @@ describe('CartService', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('/api/v1/carrinho/42');
   });
+
+  it('adds an item without sending carrinhoId and normalizes the response', () => {
+    const apiClient = {
+      post: vi.fn().mockReturnValue(
+        of({
+          data: { itemId: 99 },
+          status: 201,
+          message: 'Item adicionado',
+        }),
+      ),
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: ApiClientService, useValue: apiClient }] });
+
+    TestBed.inject(CartService)
+      .addItem({
+        produtoId: 101,
+        quantidade: 1,
+        valorUnitario: 2999.95,
+      })
+      .subscribe((response) => {
+        expect(response).toEqual({ itemId: 99 });
+      });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/api/v1/carrinho/items', {
+      produtoId: 101,
+      quantidade: 1,
+      valorUnitario: 2999.95,
+    });
+  });
 });

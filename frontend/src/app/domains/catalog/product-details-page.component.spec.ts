@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import { CatalogService } from '@core/catalog/catalog.service';
+import { CartService } from '@core/cart/cart.service';
 
 import { ProductDetailsPageComponent } from './product-details-page.component';
 
@@ -14,12 +15,16 @@ describe('ProductDetailsPageComponent', () => {
   const catalogServiceMock = {
     getPublicProductById: vi.fn(),
   };
+  const cartServiceMock = {
+    addItem: vi.fn(),
+  };
   const tokenStorageMock = {
     hasToken: vi.fn(),
   };
 
   beforeEach(() => {
     catalogServiceMock.getPublicProductById.mockReset();
+    cartServiceMock.addItem.mockReset();
     tokenStorageMock.hasToken.mockReset();
   });
 
@@ -61,6 +66,10 @@ describe('ProductDetailsPageComponent', () => {
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
+        },
+        {
+          provide: CartService,
+          useValue: cartServiceMock,
         },
         {
           provide: TokenStorageService,
@@ -114,6 +123,10 @@ describe('ProductDetailsPageComponent', () => {
           useValue: catalogServiceMock,
         },
         {
+          provide: CartService,
+          useValue: cartServiceMock,
+        },
+        {
           provide: TokenStorageService,
           useValue: tokenStorageMock,
         },
@@ -144,6 +157,10 @@ describe('ProductDetailsPageComponent', () => {
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
+        },
+        {
+          provide: CartService,
+          useValue: cartServiceMock,
         },
         {
           provide: TokenStorageService,
@@ -189,6 +206,10 @@ describe('ProductDetailsPageComponent', () => {
           useValue: catalogServiceMock,
         },
         {
+          provide: CartService,
+          useValue: cartServiceMock,
+        },
+        {
           provide: TokenStorageService,
           useValue: tokenStorageMock,
         },
@@ -204,6 +225,56 @@ describe('ProductDetailsPageComponent', () => {
       queryParams: {
         returnUrl: '/products/101',
       },
+    });
+  });
+
+  it('adds the current product to cart without carrinhoId', async () => {
+    tokenStorageMock.hasToken.mockReturnValue(true);
+    catalogServiceMock.getPublicProductById.mockReturnValue(
+      of({
+        produtoId: 101,
+        titulo: 'Notebook Gamer',
+        descricao: 'Notebook para jogos',
+        modelo: 'RTX',
+        foto: 'https://cdn.shopapi.dev/notebook.jpg',
+        preco: 5999.9,
+        estoque: 12,
+        categoria: {
+          categoriaId: 1,
+          titulo: 'Informática',
+        },
+      }),
+    );
+    cartServiceMock.addItem.mockReturnValue(of({ itemId: 55 }));
+
+    await render(ProductDetailsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CartService,
+          useValue: cartServiceMock,
+        },
+        {
+          provide: TokenStorageService,
+          useValue: tokenStorageMock,
+        },
+      ],
+    });
+
+    screen.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
+
+    expect(cartServiceMock.addItem).toHaveBeenCalledWith({
+      produtoId: 101,
+      quantidade: 1,
+      valorUnitario: 5999.9,
     });
   });
 });

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ApiClientService, normalizeResponseData, type ApiResponse } from '@shared/api';
-import type { Cart, CartCreated, EntityId } from '@shared/models';
+import type { AddCartItemRequest, AddCartItemResponse, Cart, CartCreated, EntityId } from '@shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -17,6 +17,12 @@ export class CartService {
   getById(carrinhoId: EntityId): Observable<Cart> {
     return this.apiClient
       .get<ApiResponse<Cart>>(`/api/v1/carrinho/${carrinhoId}`)
+      .pipe(map((response) => normalizeResponseData(response)));
+  }
+
+  addItem(request: AddCartItemRequest): Observable<AddCartItemResponse> {
+    return this.apiClient
+      .post<ApiResponse<AddCartItemResponse>, AddCartItemRequest>('/api/v1/carrinho/items', request)
       .pipe(map((response) => normalizeResponseData(response)));
   }
 }

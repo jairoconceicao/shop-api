@@ -8,6 +8,7 @@ import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
 import { createProductDetailsAvailabilityState } from './product-details-availability.context';
+import { createProductDetailsAddToCartState } from './product-details-add-to-cart.context';
 import { createProductDetailsPurchaseState } from './product-details-purchase.context';
 import { createProductDetailsState } from './product-details.context';
 
@@ -155,7 +156,14 @@ import { createProductDetailsState } from './product-details.context';
                     >
                       Comprar agora
                     </app-button>
-                    <app-button type="button" variant="outline" size="lg" [block]="true">
+                    <app-button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      [block]="true"
+                      [disabled]="addToCartState.isAdding() || !addToCartState.canAddToCart()"
+                      (click)="addToCartState.addToCart()"
+                    >
                       Adicionar ao carrinho
                     </app-button>
                   </div>
@@ -195,6 +203,7 @@ export class ProductDetailsPageComponent {
 
   protected readonly product = this.state.product;
   protected readonly availabilityState = createProductDetailsAvailabilityState(this.product);
+  protected readonly addToCartState = createProductDetailsAddToCartState(this.product);
   protected readonly purchaseState = createProductDetailsPurchaseState(this.productId);
   protected readonly isLoading = this.state.isLoading;
   protected readonly error = this.state.error;
