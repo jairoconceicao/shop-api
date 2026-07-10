@@ -432,9 +432,9 @@ def run_codex(
     if use_opencode:
         command = [
             "opencode",
+            "run"
             "--model",
             "opencode-go/qwen3.7-plus",
-            "run"
         ]
     else:
         command = [
