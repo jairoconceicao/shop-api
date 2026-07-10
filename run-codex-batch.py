@@ -422,33 +422,40 @@ def run_codex(
     profile: Optional[str],
     use_json: bool,
     ephemeral: bool,
+    use_opencode: bool
 ) -> None:
     prompt_file = logs_dir / f"{task.id}.prompt.md"
     output_file = logs_dir / f"{task.id}.codex.log"
 
     prompt_file.write_text(prompt, encoding="utf-8")
 
-    # f"{codex_bin} -a {approval_policy}",
-    command = [
-        codex_bin,
-        "exec",
-        "--cd",
-        str(repo_dir),
-        "--sandbox",
-        sandbox,
-    ]
+    if use_opencode:
+        command = [
+            "opencode",
+            "--model",
+            "opencode-go/qwen3.7-plus",
+            "run"
+        ]
+    else:
+        command = [
+            codex_bin,
+            "exec",
+            "--cd",
+            str(repo_dir),
+            "--sandbox",
+            sandbox,
+        ]
+        if use_json:
+            command.append("--json")
 
-    if use_json:
-        command.append("--json")
+        if ephemeral:
+            command.append("--ephemeral")
 
-    if ephemeral:
-        command.append("--ephemeral")
+        if model:
+            command.extend(["--model", model])
 
-    if model:
-        command.extend(["--model", model])
-
-    if profile:
-        command.extend(["--profile", profile])
+        if profile:
+            command.extend(["--profile", profile])
 
     command.append(prompt)
 
@@ -521,6 +528,7 @@ def main() -> int:
     parser.add_argument("--no-commit", action="store_true", help="Não criar commit.")
     parser.add_argument("--no-merge", action="store_true", help="Não fazer merge para a branch base.")
     parser.add_argument("--keep-branches", action="store_true", help="Não remover branches após merge.")
+    parser.add_argument("--use-opencode", action="store_true", help="Usar opencode no lugar do Codex.")
 
     args = parser.parse_args()
 
@@ -600,6 +608,7 @@ def main() -> int:
                 profile=args.profile,
                 use_json=not args.no_json,
                 ephemeral=not args.no_ephemeral,
+                use_opencode=args.use_opencode
             )
 
             if not args.skip_validations:
