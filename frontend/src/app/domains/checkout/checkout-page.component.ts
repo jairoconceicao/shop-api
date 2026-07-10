@@ -8,6 +8,7 @@ import { createCheckoutSubmitState } from './checkout-submit.context';
 import { createCheckoutState } from './checkout.context';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
 import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
+import { FormErrorComponent } from '@shared/ui/base/form-error.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
@@ -22,6 +23,7 @@ import type { PaymentMethod } from '@shared/models';
     EmptyStateComponent,
     CartItemComponent,
     CartSummaryComponent,
+    FormErrorComponent,
     InputComponent,
     SuccessStateComponent,
   ],
@@ -173,6 +175,17 @@ import type { PaymentMethod } from '@shared/models';
                   Selecionado:
                   <span class="font-semibold text-shop-text">{{ paymentLabel(paymentMethod()) }}</span>
                 </div>
+
+                @if (submitError() || submitFieldErrors().length > 0) {
+                  <div class="mt-4">
+                    <app-form-error [error]="submitFieldErrors()" />
+                    @if (submitError()) {
+                      <div class="mt-3 rounded-2xl border border-shop-danger/20 bg-shop-danger/10 px-4 py-3 text-sm text-shop-danger">
+                        {{ submitError() }}
+                      </div>
+                    }
+                  </div>
+                }
               </section>
 
               <app-cart-summary
@@ -356,6 +369,8 @@ export class CheckoutPageComponent {
   protected readonly isSubmitting = this.checkoutSubmitState.isSubmitting;
   protected readonly orderSuccess = this.checkoutSubmitState.success;
   protected readonly createdOrder = this.checkoutSubmitState.createdOrder;
+  protected readonly submitError = this.checkoutSubmitState.error;
+  protected readonly submitFieldErrors = this.checkoutSubmitState.fieldErrors;
   protected readonly ufOptions = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
   protected setDeliveryAddressField(field: 'logradouro' | 'numero' | 'complemento' | 'cep' | 'bairro' | 'cidade' | 'uf', value: string): void {

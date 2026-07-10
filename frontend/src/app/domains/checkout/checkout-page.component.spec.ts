@@ -2,12 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import { CustomerService } from '@core/customer/customer.service';
 import { OrderService } from '@core/order/order.service';
+import { NormalizedApiError } from '@shared/api/api-error.model';
 import type { CartItem } from '@shared/models';
 
 import { CartStore } from '@domains/cart/cart.store';
@@ -366,5 +367,76 @@ describe('CheckoutPageComponent', () => {
       '/account/orders',
     );
     expect(screen.getByRole('link', { name: 'Ir para a home' })).toHaveAttribute('href', '/');
+  });
+
+  it('shows validation feedback when the backend rejects the checkout submission', async () => {
+    const cartStore = TestBed.inject(CartStore);
+    const customerService = {
+      getById: vi.fn().mockReturnValue(
+        of({
+          clienteId: 20,
+          cpf: '12345678901',
+          nome: 'Cliente Shop',
+          dataNascimento: '1990-01-01',
+          email: 'cliente@shopapi.dev',
+          endereco: {
+            logradouro: 'Rua Central',
+            numero: '100',
+            complemento: 'Apto 12',
+            cep: '01001000',
+            bairro: 'Centro',
+            cidade: 'Sao Paulo',
+            uf: 'SP',
+          },
+          celular: {
+            ddd: '11',
+            numero: '999999999',
+            whatsApp: true,
+          },
+        }),
+      ),
+    };
+    const orderService = {
+      create: vi.fn(),
+    };
+    const tokenStorage = {
+      getSession: vi.fn().mockReturnValue({
+        token: 'jwt-token',
+        tipo: 'Bearer',
+        expiraEm: '2026-07-09T12:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@shopapi.dev',
+      }),
+    };
+
+    cartStore.setItems([item({ itemId: 11, produtoId: 10, quantidade: 2, valorUnitario: 199.95 })]);
+    orderService.create.mockReturnValue(
+      throwError(
+        () =>
+          new NormalizedApiError({
+            status: 422,
+            code: 'VALIDATION_ERROR',
+            message: 'Campos invalidos no pedido.',
+            details: {
+              enderecoEntrega: ['CEP invalido.'],
+            },
+          }),
+      ),
+    );
+
+    await render(CheckoutPageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerService, useValue: customerService },
+        { provide: OrderService, useValue: orderService },
+        { provide: TokenStorageService, useValue: tokenStorage },
+      ],
+    });
+
+    await screen.getByRole('button', { name: 'Finalizar pedido' }).click();
+
+    expect(await screen.findByText('Revise os campos destacados e tente novamente.')).toBeVisible();
+    expect(await screen.findByText('CEP invalido.')).toBeVisible();
   });
 });
