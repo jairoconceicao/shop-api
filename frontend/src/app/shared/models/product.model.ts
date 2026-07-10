@@ -7,7 +7,7 @@ export interface ProductCatalogItem {
   thumb: string | null;
   preco: number | string;
   estoque: number | string;
-  categoria: ProductCategory;
+  categoria: ProductCategory | null;
 }
 
 export interface ProductDetails {
@@ -18,6 +18,6 @@ export interface ProductDetails {
   foto: string | null;
   preco: number | string;
   estoque: number | string;
-  categoria: ProductCategory;
+  categoria: ProductCategory | null;
 }
 

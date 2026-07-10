@@ -1,5 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
+
+import { CatalogService } from '@core/catalog/catalog.service';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
 @Component({
@@ -125,45 +129,47 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
           </div>
 
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            @for (product of featuredProducts; track product.title) {
+            @for (product of featuredProducts(); track product.produtoId) {
               <article
                 class="border-shop-border shadow-soft overflow-hidden rounded-[1.5rem] border bg-white"
               >
                 <div
                   class="relative flex h-40 items-end overflow-hidden bg-[linear-gradient(135deg,#e0f2fe_0%,#bae6fd_45%,#0f172a_100%)] p-4"
+                  [style.background-image]="product.thumb ? 'none' : null"
                 >
+                  @if (product.thumb) {
+                    <img
+                      [src]="product.thumb"
+                      [alt]="product.titulo"
+                      class="absolute inset-0 h-full w-full object-cover"
+                    />
+                  }
                   <span
                     class="text-shop-text rounded-full bg-white/90 px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
                   >
-                    {{ product.badge }}
+                    {{ product.categoria?.titulo ?? 'Produto' }}
                   </span>
                   <div
                     class="bg-shop-text/85 absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-bold text-white"
                   >
-                    {{ product.stock }}
+                    {{ formatStock(product.estoque) }} em estoque
                   </div>
                 </div>
                 <div class="space-y-3 p-4">
                   <div class="flex items-start justify-between gap-3">
                     <div>
                       <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">
-                        {{ product.category }}
+                        {{ product.categoria?.titulo ?? 'Catálogo público' }}
                       </p>
-                      <h3 class="text-shop-text mt-1 text-base font-bold">{{ product.title }}</h3>
+                      <h3 class="text-shop-text mt-1 text-base font-bold">{{ product.titulo }}</h3>
                     </div>
-                    <span
-                      class="bg-shop-surface-muted text-shop-text rounded-full px-2.5 py-1 text-xs font-bold"
-                    >
-                      {{ product.rating }}
-                    </span>
                   </div>
-                  <p class="text-shop-text-muted text-sm leading-6">{{ product.description }}</p>
                   <div class="flex items-end justify-between gap-3">
                     <div>
                       <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">
                         Preço
                       </p>
-                      <p class="text-shop-text text-xl font-black">{{ product.price }}</p>
+                      <p class="text-shop-text text-xl font-black">{{ formatPrice(product.preco) }}</p>
                     </div>
                     <a
                       routerLink="/products"
@@ -183,6 +189,8 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
+  private readonly catalogService = inject(CatalogService);
+
   readonly shortcuts = [
     {
       badge: '1',
@@ -241,42 +249,59 @@ export class HomePageComponent {
     },
   ] as const;
 
-  readonly featuredProducts = [
+  private readonly featuredProductsResponse = toSignal(
+    this.catalogService.listPublicProducts().pipe(
+      catchError(() =>
+        of({
+          status: true,
+          message: '',
+          pagination: {
+            pages: 0,
+            size: 4,
+            totalItems: 0,
+            data: [],
+          },
+        }),
+      ),
+    ),
     {
-      badge: 'Novo',
-      category: 'Notebook',
-      title: 'Notebook Slim 15',
-      description: 'Leve para transportar, forte para produtividade e com visual premium.',
-      price: 'R$ 4.299,90',
-      rating: '4.9',
-      stock: '12 em estoque',
+      initialValue: {
+        status: true,
+        message: '',
+        pagination: {
+          pages: 0,
+          size: 4,
+          totalItems: 0,
+          data: [],
+        },
+      },
     },
-    {
-      badge: 'Oferta',
-      category: 'Smartphone',
-      title: 'Smartphone Pro 5G',
-      description: 'Tela ampla, câmera versátil e bateria para o dia inteiro.',
-      price: 'R$ 2.199,90',
-      rating: '4.8',
-      stock: '24 em estoque',
-    },
-    {
-      badge: 'Kit',
-      category: 'Acessórios',
-      title: 'Combo home office',
-      description: 'Mouse, teclado e headset para montar o setup sem perder tempo.',
-      price: 'R$ 399,90',
-      rating: '4.7',
-      stock: '18 em estoque',
-    },
-    {
-      badge: 'Frete',
-      category: 'Casa',
-      title: 'Air fryer compacta',
-      description: 'Mais agilidade na cozinha com espaço pensado para apartamentos.',
-      price: 'R$ 489,90',
-      rating: '4.9',
-      stock: '9 em estoque',
-    },
-  ] as const;
+  );
+
+  protected readonly featuredProducts = computed(() => this.featuredProductsResponse().pagination.data);
+
+  protected formatPrice(value: number | string): string {
+    const numericValue = typeof value === 'string' ? Number(value) : value;
+
+    if (!Number.isFinite(numericValue)) {
+      return 'R$ 0,00';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(numericValue);
+  }
+
+  protected formatStock(value: number | string): string {
+    const numericValue = typeof value === 'string' ? Number(value) : value;
+
+    if (!Number.isFinite(numericValue)) {
+      return '0';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      maximumFractionDigits: 0,
+    }).format(numericValue);
+  }
 }

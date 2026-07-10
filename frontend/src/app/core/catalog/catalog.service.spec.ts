@@ -1,0 +1,75 @@
+import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ApiClientService, type PagedResponse } from '@shared/api';
+import type { ProductCatalogItem } from '@shared/models';
+
+import { CatalogService } from './catalog.service';
+
+describe('CatalogService', () => {
+  const apiClientMock = {
+    get: vi.fn(),
+  };
+
+  beforeEach(() => {
+    apiClientMock.get.mockReset();
+
+    TestBed.configureTestingModule({
+      providers: [
+        CatalogService,
+        {
+          provide: ApiClientService,
+          useValue: apiClientMock,
+        },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('lists public products through GET /api/v1/produto', () => {
+    const response = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 4,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 101,
+            titulo: 'Notebook Gamer',
+            thumb: null,
+            preco: 5999.9,
+            estoque: 12,
+            categoria: {
+              categoriaId: 1,
+              titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    apiClientMock.get.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CatalogService);
+    const receivedResponses: PagedResponse<ProductCatalogItem>[] = [];
+
+    service.listPublicProducts().subscribe((catalog) => {
+      receivedResponses.push(catalog);
+    });
+
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/produto', {
+      params: {
+        page: 1,
+        size: 4,
+        searchword: undefined,
+      },
+    });
+    expect(receivedResponses).toEqual([response]);
+  });
+});

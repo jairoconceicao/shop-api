@@ -165,7 +165,7 @@ Observacao: a home visual inicial ja existe, mas ainda usa conteudo estatico e
 nao consome categorias nem produtos da API.
 
 [x] TASK-042: Implementar home mobile first com banner, atalhos, categorias e vitrine.
-[ ] TASK-043: Carregar produtos publicos via `GET /api/v1/produto`.
+[x] TASK-043: Carregar produtos publicos via `GET /api/v1/produto`.
 [ ] TASK-044: Carregar categorias via `GET /api/v1/categoria`.
 [ ] TASK-045: Implementar cards de produto com imagem, titulo, preco, estoque e CTA.
 [ ] TASK-046: Implementar estados de loading, vazio e erro.

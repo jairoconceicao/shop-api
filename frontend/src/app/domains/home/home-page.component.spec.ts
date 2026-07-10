@@ -1,13 +1,62 @@
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { of } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { CatalogService } from '@core/catalog/catalog.service';
+import type { PagedResponse } from '@shared/api';
+import type { ProductCatalogItem } from '@shared/models';
 
 import { HomePageComponent } from './home-page.component';
 
 describe('HomePageComponent', () => {
+  const catalogServiceMock = {
+    listPublicProducts: vi.fn(),
+  };
+
+  beforeEach(() => {
+    catalogServiceMock.listPublicProducts.mockReset();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders the mobile first storefront sections', async () => {
+    const response = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 4,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 101,
+            titulo: 'Notebook Gamer',
+            thumb: null,
+            preco: 5999.9,
+            estoque: 12,
+            categoria: {
+              categoriaId: 1,
+              titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    catalogServiceMock.listPublicProducts.mockReturnValue(of(response));
+
     await render(HomePageComponent, {
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+      ],
     });
 
     expect(screen.getByRole('heading', { name: /Sua vitrine mobile first/i })).toBeVisible();
@@ -17,9 +66,12 @@ describe('HomePageComponent', () => {
       '/products',
     );
     expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/login');
-    expect(screen.getByRole('heading', { name: 'Celulares e acessórios' })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Notebook Slim 15' })).toBeVisible();
-    expect(screen.getAllByRole('link', { name: 'Comprar' })).toHaveLength(4);
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenCalledWith();
+    expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
+    expect(screen.getAllByText('Informática')).toHaveLength(2);
+    expect(screen.getByText('R$ 5.999,90')).toBeVisible();
+    expect(screen.getByText('12 em estoque')).toBeVisible();
+    expect(screen.getAllByRole('link', { name: 'Comprar' })).toHaveLength(1);
     expect(screen.getByText('Produtos em destaque')).toBeVisible();
   });
 });
