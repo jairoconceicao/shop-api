@@ -1,12 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AuthService } from '@core/auth/auth.service';
+import { type NormalizedApiError } from '@shared/api';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { CheckboxComponent } from '@shared/ui/base/checkbox.component';
 import { FormErrorComponent } from '@shared/ui/base/form-error.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
+import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
+import { SuccessStateComponent } from '@shared/ui/states/success-state.component';
 
 import {
   createEmptyLoginFormErrors,
@@ -25,6 +30,9 @@ import {
     CheckboxComponent,
     ButtonComponent,
     FormErrorComponent,
+    LoadingStateComponent,
+    ErrorStateComponent,
+    SuccessStateComponent,
   ],
   template: `
     <app-page-container>
@@ -44,40 +52,90 @@ import {
             Use o e-mail cadastrado e a senha da conta para acessar sua area do cliente.
           </p>
 
-          <form class="mt-8 space-y-4" (submit)="handleSubmit($event)">
-            <app-input
-              label="E-mail"
-              type="email"
-              autocomplete="email"
-              placeholder="cliente@shopapi.dev"
-              [value]="email()"
-              [error]="emailError()"
-              (valueChange)="email.set($event)"
-            />
-
-            <app-input
-              label="Senha"
-              type="password"
-              autocomplete="current-password"
-              placeholder="Sua senha"
-              [value]="senha()"
-              [error]="senhaError()"
-              (valueChange)="senha.set($event)"
-            />
-
-            <app-checkbox
-              label="Manter-me conectado"
-              hint="Mantem a sessao ativa neste dispositivo."
-              [checked]="rememberMe()"
-              (checkedChange)="rememberMe.set($event)"
-            />
-
-            @if (formError()) {
-              <app-form-error [error]="formError()" />
+          @if (loginSuccess()) {
+            <app-success-state
+              class="mt-8 block"
+              eyebrow="Login realizado"
+              title="Sessao iniciada"
+              [description]="successDescription()"
+            >
+              <a
+                routerLink="/"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+              >
+                Ir para home
+              </a>
+              <a
+                routerLink="/products"
+                class="rounded-2xl border border-shop-border px-5 py-3 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
+              >
+                Explorar catalogo
+              </a>
+            </app-success-state>
+          } @else {
+            @if (isLoading()) {
+              <app-loading-state
+                class="mt-8 block"
+                eyebrow="Autenticando"
+                title="Entrando na sua conta"
+                description="Estamos validando seus dados e preparando sua sessao."
+              />
             }
 
-            <app-button type="submit" size="lg" block>Entrar</app-button>
-          </form>
+            @if (loginError()) {
+              <app-error-state
+                class="mt-8 block"
+                eyebrow="Falha no login"
+                title="Nao foi possivel entrar"
+                description="Confira seus dados e tente novamente."
+                [details]="loginError() ?? ''"
+              />
+            }
+
+            <form class="mt-8 space-y-4" (submit)="handleSubmit($event)">
+              <app-input
+                label="E-mail"
+                type="email"
+                autocomplete="email"
+                placeholder="cliente@shopapi.dev"
+                [value]="email()"
+                [error]="emailError()"
+                [disabled]="isLoading()"
+                (valueChange)="email.set($event)"
+              />
+
+              <app-input
+                label="Senha"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Sua senha"
+                [value]="senha()"
+                [error]="senhaError()"
+                [disabled]="isLoading()"
+                (valueChange)="senha.set($event)"
+              />
+
+              <app-checkbox
+                label="Manter-me conectado"
+                hint="Mantem a sessao ativa neste dispositivo."
+                [checked]="rememberMe()"
+                [disabled]="isLoading()"
+                (checkedChange)="rememberMe.set($event)"
+              />
+
+              @if (formError()) {
+                <app-form-error [error]="formError()" />
+              }
+
+              <app-button type="submit" size="lg" [block]="true" [disabled]="isLoading()">
+                @if (isLoading()) {
+                  Entrando...
+                } @else {
+                  Entrar
+                }
+              </app-button>
+            </form>
+          }
 
           <div class="mt-6 flex flex-wrap gap-3 text-sm font-semibold">
             <a routerLink="/" class="text-shop-primary transition hover:text-shop-primary-hover">Voltar para home</a>
@@ -95,9 +153,15 @@ export class LoginPageComponent {
   readonly email = signal('');
   readonly senha = signal('');
   readonly rememberMe = signal(false);
+  readonly isLoading = signal(false);
+  readonly loginSuccess = signal(false);
 
   private readonly submitAttempted = signal(false);
   private readonly validationErrors = signal<LoginFormErrors>(createEmptyLoginFormErrors());
+  protected readonly loginError = signal<string | null>(null);
+  private readonly successSession = signal<{
+    email: string;
+  } | null>(null);
 
   protected readonly emailError = computed(() => {
     if (!this.submitAttempted()) {
@@ -125,8 +189,22 @@ export class LoginPageComponent {
     return messages.length > 0 ? messages : null;
   });
 
+  protected readonly successDescription = computed(() => {
+    const session = this.successSession();
+
+    if (!session) {
+      return 'Sua conta foi autenticada com sucesso.';
+    }
+
+    return `A conta ${session.email} foi autenticada com sucesso. Sua sessao ja esta pronta para continuar a navegacao.`;
+  });
+
   handleSubmit(event: Event): void {
     event.preventDefault();
+    if (this.isLoading() || this.loginSuccess()) {
+      return;
+    }
+
     this.submitAttempted.set(true);
 
     const candidate: LoginFormValue = {
@@ -142,6 +220,49 @@ export class LoginPageComponent {
       return;
     }
 
-    this.authService.login(normalizeLoginFormValue(candidate)).subscribe();
+    this.isLoading.set(true);
+    this.loginError.set(null);
+    this.loginSuccess.set(false);
+    this.successSession.set(null);
+
+    this.authService
+      .login(normalizeLoginFormValue(candidate))
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (session) => {
+          this.successSession.set({
+            email: session.email,
+          });
+          this.loginSuccess.set(true);
+        },
+        error: (error: unknown) => {
+          this.loginError.set(resolveLoginErrorMessage(error));
+        },
+      });
   }
+}
+
+function resolveLoginErrorMessage(error: unknown): string {
+  if (isNormalizedApiError(error)) {
+    if (error.status === 401 || error.status === 403) {
+      return 'E-mail ou senha invalidos. Verifique seus dados e tente novamente.';
+    }
+
+    return error.message;
+  }
+
+  return 'Nao foi possivel entrar. Tente novamente.';
+}
+
+function isNormalizedApiError(error: unknown): error is NormalizedApiError {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      'status' in error &&
+      'code' in error &&
+      'message' in error &&
+      typeof (error as { status?: unknown }).status === 'number' &&
+      typeof (error as { code?: unknown }).code === 'string' &&
+      typeof (error as { message?: unknown }).message === 'string',
+  );
 }

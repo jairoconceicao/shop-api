@@ -145,7 +145,7 @@ nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
 [x] TASK-029: Tratar expiracao de token e redirecionamento para login.
 [x] TASK-030: Preparar a abstracao para migracao futura para cookie `HttpOnly`.
 [x] TASK-031: Implementar tela de login com validacao por schema.
-[ ] TASK-032: Implementar estados de erro, carregamento e sucesso no login.
+[x] TASK-032: Implementar estados de erro, carregamento e sucesso no login.
 [ ] TASK-033: Criar testes unitarios e de componente para login e sessao.
 
 ### 5. Cadastro de cliente
