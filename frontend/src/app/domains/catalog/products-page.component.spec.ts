@@ -14,6 +14,7 @@ import { ProductsPageComponent } from './products-page.component';
 describe('ProductsPageComponent', () => {
   const catalogServiceMock = {
     listPublicProducts: vi.fn(),
+    listPublicProductsByCategory: vi.fn(),
   };
 
   const categoryServiceMock = {
@@ -22,6 +23,7 @@ describe('ProductsPageComponent', () => {
 
   beforeEach(() => {
     catalogServiceMock.listPublicProducts.mockReset();
+    catalogServiceMock.listPublicProductsByCategory.mockReset();
     categoryServiceMock.listPublicCategories.mockReset();
   });
 
@@ -132,7 +134,7 @@ describe('ProductsPageComponent', () => {
     expect(await screen.findByRole('heading', { name: 'Mouse Gamer' })).toBeVisible();
   });
 
-  it('filters the catalog by category', async () => {
+  it('loads the catalog by category through the dedicated endpoint', async () => {
     const categories = [
       {
         categoriaId: 1,
@@ -180,7 +182,31 @@ describe('ProductsPageComponent', () => {
       },
     } satisfies PagedResponse<ProductCatalogItem>;
 
+    const categoryPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 202,
+            titulo: 'Smartphone Gamer',
+            thumb: null,
+            preco: 3999.9,
+            estoque: 7,
+            categoria: {
+              categoriaId: 2,
+              titulo: 'Celulares',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
     catalogServiceMock.listPublicProducts.mockReturnValueOnce(of(initialPage));
+    catalogServiceMock.listPublicProductsByCategory.mockReturnValueOnce(of(categoryPage));
     categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
 
     await render(ProductsPageComponent, {
@@ -199,7 +225,10 @@ describe('ProductsPageComponent', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Celulares' }));
 
-    expect(catalogServiceMock.listPublicProducts).toHaveBeenCalledTimes(1);
+    expect(catalogServiceMock.listPublicProductsByCategory).toHaveBeenCalledWith(2, {
+      page: 1,
+      size: 8,
+    });
     expect(screen.getByRole('heading', { name: 'Smartphone Gamer' })).toBeVisible();
     expect(screen.queryByRole('heading', { name: 'Notebook Gamer' })).not.toBeInTheDocument();
     expect(screen.getByText('Filtrando por Celulares')).toBeVisible();

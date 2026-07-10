@@ -72,4 +72,46 @@ describe('CatalogService', () => {
     });
     expect(receivedResponses).toEqual([response]);
   });
+
+  it('lists public products by category through GET /api/v1/produto/categoria/{categoriaId}', () => {
+    const response = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 4,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 202,
+            titulo: 'Smartphone Gamer',
+            thumb: null,
+            preco: 3999.9,
+            estoque: 7,
+            categoria: {
+              categoriaId: 2,
+              titulo: 'Celulares',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    apiClientMock.get.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CatalogService);
+    const receivedResponses: PagedResponse<ProductCatalogItem>[] = [];
+
+    service.listPublicProductsByCategory(2).subscribe((catalog) => {
+      receivedResponses.push(catalog);
+    });
+
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/produto/categoria/2', {
+      params: {
+        page: 1,
+        size: 4,
+      },
+    });
+    expect(receivedResponses).toEqual([response]);
+  });
 });

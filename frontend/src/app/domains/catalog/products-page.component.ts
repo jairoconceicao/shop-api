@@ -239,23 +239,15 @@ import { createProductsCatalogState } from './products-page.context';
 })
 export class ProductsPageComponent {
   private readonly categoriesState = createProductsPageFiltersState();
-  private readonly productsState = createProductsCatalogState();
+  private readonly productsState = createProductsCatalogState(this.categoriesState.selectedCategoryId);
 
   protected readonly products = computed(() => this.productsState.items());
   protected readonly categories = this.categoriesState.categories;
   protected readonly searchword = this.productsState.searchword;
   protected readonly selectedCategoryId = this.categoriesState.selectedCategoryId;
-  protected readonly filteredProducts = computed(() => {
-    const categoryId = this.selectedCategoryId();
-
-    if (categoryId === null) {
-      return this.products();
-    }
-
-    return this.products().filter((product) => product.categoria?.categoriaId === categoryId);
-  });
+  protected readonly filteredProducts = this.products;
   protected readonly isFilteredEmpty = computed(
-    () => !this.productsState.isLoading() && !this.productsState.error() && this.filteredProducts().length === 0,
+    () => !this.productsState.isLoading() && !this.productsState.error() && this.products().length === 0,
   );
   protected readonly selectedCategoryLabel = computed(() => {
     const categoryId = this.selectedCategoryId();
@@ -292,7 +284,7 @@ export class ProductsPageComponent {
   protected readonly metrics = [
     {
       label: 'Itens carregados',
-      value: () => `${this.filteredProducts().length}`,
+      value: () => `${this.products().length}`,
     },
     {
       label: 'Página',
@@ -315,6 +307,7 @@ export class ProductsPageComponent {
 
   protected selectCategory(categoryId: number | null): void {
     this.categoriesState.selectCategory(categoryId);
+    this.productsState.reload();
   }
 
   protected reloadProducts(): void {

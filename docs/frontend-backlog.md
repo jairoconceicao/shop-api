@@ -180,7 +180,7 @@ o catalogo funcional ainda nao foi implementado.
 [x] TASK-049: Implementar rota `/products`.
 [x] TASK-050: Implementar campo de busca usando query `searchword`.
 [x] TASK-051: Implementar filtro por categoria usando `GET /api/v1/categoria`.
-[ ] TASK-052: Integrar listagem por categoria com `GET /api/v1/produto/categoria/{categoriaId}`.
+[x] TASK-052: Integrar listagem por categoria com `GET /api/v1/produto/categoria/{categoriaId}`.
 [ ] TASK-053: Refletir pagina, tamanho e total de itens retornados pelo backend.
 [ ] TASK-054: Preservar filtros e busca na URL.
 [ ] TASK-055: Implementar estados de resultado vazio e erro recuperavel.
