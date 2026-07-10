@@ -60,7 +60,7 @@ describe('CartStore', () => {
 
     store.updateQuantity(10, 0);
     expect(store.items()).toHaveLength(1);
-    store.removeItem(20);
+    store.removeItem(2);
     expect(store.isEmpty()).toBe(true);
     expect(store.hasCart()).toBe(true);
   });

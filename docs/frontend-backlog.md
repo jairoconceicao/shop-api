@@ -207,7 +207,7 @@ integracao com a API.
 [x] TASK-067: Integrar `GET /api/v1/carrinho/{carrinhoId}`.
 [x] TASK-068: Integrar `POST /api/v1/carrinho/items` sem enviar `carrinhoId`.
 [x] TASK-069: Integrar `PATCH /api/v1/carrinho/items/{itemId}` para quantidade.
-[ ] TASK-070: Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
+[x] TASK-070: Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
 [ ] TASK-071: Implementar rota `/cart`.
 [ ] TASK-072: Implementar componentes `CartButton`, `CartItem`, `CartSummary` e `QuantitySelector`.
 [ ] TASK-073: Manter resumo de valores consistente apos alteracoes.

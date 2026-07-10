@@ -41,4 +41,10 @@ export class CartService {
       )
       .pipe(map((response) => normalizeResponseData(response)));
   }
+
+  deleteItem(itemId: EntityId): Observable<void> {
+    return this.apiClient.delete<ApiResponse<void>>(`/api/v1/carrinho/items/${itemId}`).pipe(
+      map((response) => normalizeResponseData(response)),
+    );
+  }
 }

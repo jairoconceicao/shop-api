@@ -72,8 +72,8 @@ export const CartStore = signalStore(
       });
     },
 
-    removeItem(produtoId: EntityId): void {
-      patchState(store, { items: store.items().filter((item) => item.produtoId !== produtoId) });
+    removeItem(itemId: EntityId): void {
+      patchState(store, { items: store.items().filter((item) => item.itemId !== itemId) });
     },
 
     clear(): void {

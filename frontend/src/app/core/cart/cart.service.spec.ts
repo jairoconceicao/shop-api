@@ -93,4 +93,23 @@ describe('CartService', () => {
       quantidade: 3,
     });
   });
+
+  it('deletes a cart item by item id and normalizes the response', () => {
+    const apiClient = {
+      delete: vi.fn().mockReturnValue(
+        of({
+          data: undefined,
+          status: 204,
+          message: 'Item removido',
+        }),
+      ),
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: ApiClientService, useValue: apiClient }] });
+
+    TestBed.inject(CartService).deleteItem(99).subscribe((response) => {
+      expect(response).toBeUndefined();
+    });
+
+    expect(apiClient.delete).toHaveBeenCalledWith('/api/v1/carrinho/items/99');
+  });
 });
