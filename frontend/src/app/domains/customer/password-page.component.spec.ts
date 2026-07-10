@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { render, screen } from '@testing-library/angular';
+import { fireEvent } from '@testing-library/dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CustomerService } from '@core/customer/customer.service';
@@ -55,12 +56,12 @@ describe('PasswordPageComponent', () => {
       providers: [provideRouter([])],
     });
 
-    const submitButton = screen.getByRole('button', { name: 'Salvar senha' });
-    submitButton.click();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
 
     expect(screen.getByText('Informe sua senha atual.')).toBeVisible();
     expect(screen.getByText('Informe a nova senha.')).toBeVisible();
     expect(screen.getByText('Confirme a nova senha.')).toBeVisible();
+    expect(screen.queryByText('Verifique os dados informados')).not.toBeInTheDocument();
   });
 
   it('submits password changes for the customer from the active session', async () => {
@@ -84,25 +85,54 @@ describe('PasswordPageComponent', () => {
       providers: [provideRouter([])],
     });
 
-    const currentPassword = screen.getByLabelText('Senha atual') as HTMLInputElement;
-    const newPassword = screen.getByLabelText('Nova senha') as HTMLInputElement;
-    const confirmPassword = screen.getByLabelText('Confirmacao da senha') as HTMLInputElement;
+    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
+    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
+    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
 
-    currentPassword.value = '12345678';
-    currentPassword.dispatchEvent(new Event('input'));
-    newPassword.value = '87654321';
-    newPassword.dispatchEvent(new Event('input'));
-    confirmPassword.value = '87654321';
-    confirmPassword.dispatchEvent(new Event('input'));
-
-    screen.getByRole('button', { name: 'Salvar senha' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
 
     expect(customerServiceMock.updatePassword).toHaveBeenCalledWith(20, {
       senhaAtual: '12345678',
       senhaNova: '87654321',
     });
+    expect(screen.getByText('Sua senha foi atualizada com sucesso. Use a nova senha no próximo acesso.')).toBeVisible();
+    expect(screen.getByText('Sua senha foi alterada')).toBeVisible();
     expect(screen.getByLabelText('Senha atual')).toHaveValue('');
     expect(screen.getByLabelText('Nova senha')).toHaveValue('');
     expect(screen.getByLabelText('Confirmacao da senha')).toHaveValue('');
+  });
+
+  it('shows the current password error returned by the API', async () => {
+    const session = {
+      token: 'jwt-token',
+      tipo: 'Bearer',
+      expiraEm: '2026-07-09T12:00:00Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@shopapi.dev',
+    } satisfies AuthSession;
+
+    tokenStorageMock.getSession.mockReturnValue(session);
+    customerServiceMock.updatePassword.mockReturnValue(
+      throwError(() => ({
+        status: 401,
+        code: 'UNAUTHORIZED',
+        message: 'Senha atual invalida.',
+        details: null,
+      })),
+    );
+
+    await render(PasswordPageComponent, {
+      providers: [provideRouter([])],
+    });
+
+    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
+    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
+    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+
+    expect(screen.getByText('A senha atual informada esta incorreta.')).toBeVisible();
+    expect(screen.getByText('A senha atual informada esta incorreta. Verifique os dados e tente novamente.')).toBeVisible();
+    expect(screen.queryByText('Sua senha foi alterada')).not.toBeInTheDocument();
   });
 });
