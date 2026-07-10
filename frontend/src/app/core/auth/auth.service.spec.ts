@@ -16,6 +16,7 @@ describe('AuthService', () => {
 
   const tokenStorageMock = {
     getToken: vi.fn(),
+    setSession: vi.fn(),
     setToken: vi.fn(),
     clearToken: vi.fn(),
   };
@@ -23,6 +24,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     apiClientMock.post.mockReset();
     tokenStorageMock.getToken.mockReset();
+    tokenStorageMock.setSession.mockReset();
     tokenStorageMock.setToken.mockReset();
     tokenStorageMock.clearToken.mockReset();
 
@@ -81,7 +83,7 @@ describe('AuthService', () => {
     );
     expect(receivedSessions).toHaveLength(1);
     expect(receivedSessions[0]).toEqual(response.data);
-    expect(tokenStorageMock.setToken).toHaveBeenCalledWith('jwt-token');
+    expect(tokenStorageMock.setSession).toHaveBeenCalledWith(response.data);
   });
 
   it('logs out through the API and clears the stored token', () => {

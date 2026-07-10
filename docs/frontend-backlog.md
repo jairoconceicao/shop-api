@@ -141,7 +141,7 @@ nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
 [x] TASK-025: Implementar `AuthService` com login e logout.
 [x] TASK-026: Implementar `HttpInterceptor` para `Authorization: Bearer <token>`.
 [x] TASK-027: Implementar `AuthGuard` para rotas privadas.
-[ ] TASK-028: Persistir dados de sessao com `token`, `tipo`, `expiraEm`, `usuarioId`, `clienteId` e `email`.
+[x] TASK-028: Persistir dados de sessao com `token`, `tipo`, `expiraEm`, `usuarioId`, `clienteId` e `email`.
 [ ] TASK-029: Tratar expiracao de token e redirecionamento para login.
 [ ] TASK-030: Preparar a abstracao para migracao futura para cookie `HttpOnly`.
 [ ] TASK-031: Implementar tela de login com validacao por schema.

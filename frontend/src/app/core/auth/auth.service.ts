@@ -25,7 +25,7 @@ export class AuthService {
       .pipe(
         map((response: ApiResponse<AuthLoginResponse>) => normalizeResponseData(response)),
         tap((session) => {
-          this.tokenStorage.setToken(session.token);
+          this.tokenStorage.setSession(session);
         }),
       );
   }
