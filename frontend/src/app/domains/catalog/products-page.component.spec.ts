@@ -332,6 +332,145 @@ describe('ProductsPageComponent', () => {
     expect(await screen.findByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();
   });
 
+  it('keeps the search term when the user searches and then applies a category filter', async () => {
+    const categories = [
+      {
+        categoriaId: 1,
+        titulo: 'Informática',
+        descricao: 'Produtos de tecnologia',
+      },
+      {
+        categoriaId: 2,
+        titulo: 'Celulares',
+        descricao: 'Smartphones e acessórios',
+      },
+    ] satisfies Category[];
+
+    const initialPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 101,
+            titulo: 'Notebook Gamer',
+            thumb: null,
+            preco: 5999.9,
+            estoque: 12,
+            categoria: {
+              categoriaId: 1,
+              titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    const searchedPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 202,
+            titulo: 'Notebook Gamer Pro',
+            thumb: null,
+            preco: 7999.9,
+            estoque: 4,
+            categoria: {
+              categoriaId: 1,
+              titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    const categoryPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 303,
+            titulo: 'Smartphone Gamer',
+            thumb: null,
+            preco: 4999.9,
+            estoque: 9,
+            categoria: {
+              categoriaId: 2,
+              titulo: 'Celulares',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    catalogServiceMock.listPublicProducts
+      .mockReturnValueOnce(of(initialPage))
+      .mockReturnValueOnce(of(searchedPage));
+    catalogServiceMock.listPublicProductsByCategory.mockReturnValueOnce(of(categoryPage));
+    categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
+
+    await render(ProductsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const searchInput = screen.getByLabelText('Buscar produtos');
+    fireEvent.input(searchInput, { target: { value: 'notebook gamer' } });
+    fireEvent.submit(searchInput.closest('form') as HTMLFormElement);
+
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenNthCalledWith(2, {
+      page: 1,
+      size: 8,
+      searchword: 'notebook gamer',
+    });
+    expect(await screen.findByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Celulares' }));
+
+    expect(navigateSpy).toHaveBeenLastCalledWith(['/products'], {
+      queryParams: {
+        searchword: 'notebook gamer',
+        categoriaId: 2,
+      },
+      queryParamsHandling: 'merge',
+    });
+    expect(catalogServiceMock.listPublicProductsByCategory).toHaveBeenCalledWith(2, {
+      page: 1,
+      size: 8,
+    });
+    expect(await screen.findByRole('heading', { name: 'Smartphone Gamer' })).toBeVisible();
+    expect(screen.getByLabelText('Buscar produtos')).toHaveValue('notebook gamer');
+    expect(screen.getByText('Filtrando por Celulares')).toBeVisible();
+  });
+
   it('restores the catalog state from the URL query params on load', async () => {
     const categories = [
       {
