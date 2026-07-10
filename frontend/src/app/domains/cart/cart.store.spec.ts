@@ -17,8 +17,27 @@ describe('CartStore', () => {
     const store = TestBed.inject(CartStore);
 
     expect(store.isEmpty()).toBe(true);
+    expect(store.hasCart()).toBe(false);
     expect(store.itemCount()).toBe(0);
     expect(store.subtotal()).toBe(0);
+  });
+
+  it('creates the active cart automatically and keeps creation idempotent', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.ensureCart();
+    store.ensureCart();
+
+    expect(store.hasCart()).toBe(true);
+    expect(store.items()).toEqual([]);
+  });
+
+  it('creates the active cart when the first item is added', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.addItem(item());
+
+    expect(store.hasCart()).toBe(true);
   });
 
   it('adds items and merges quantities for the same product', () => {
@@ -43,5 +62,6 @@ describe('CartStore', () => {
     expect(store.items()).toHaveLength(1);
     store.removeItem(20);
     expect(store.isEmpty()).toBe(true);
+    expect(store.hasCart()).toBe(true);
   });
 });

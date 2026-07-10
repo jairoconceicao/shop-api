@@ -5,14 +5,15 @@ import type { CartItem, EntityId } from '@shared/models';
 
 interface CartState {
   readonly items: readonly CartItem[];
+  readonly hasActiveCart: boolean;
 }
 
-const initialState: CartState = { items: [] };
+const initialState: CartState = { items: [], hasActiveCart: false };
 
 export const CartStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ items }) => ({
+  withComputed(({ items, hasActiveCart }) => ({
     itemCount: computed(() =>
       items().reduce((total, item) => total + toNumber(item.quantidade), 0),
     ),
@@ -23,13 +24,23 @@ export const CartStore = signalStore(
       ),
     ),
     isEmpty: computed(() => items().length === 0),
+    hasCart: computed(() => hasActiveCart()),
   })),
   withMethods((store) => ({
+    ensureCart(): void {
+      if (!store.hasActiveCart()) {
+        patchState(store, { hasActiveCart: true });
+      }
+    },
+
     setItems(items: readonly CartItem[]): void {
-      patchState(store, { items: [...items] });
+      patchState(store, { items: [...items], hasActiveCart: true });
     },
 
     addItem(item: CartItem): void {
+      if (!store.hasActiveCart()) {
+        patchState(store, { hasActiveCart: true });
+      }
       const existingItem = store.items().find((current) => current.produtoId === item.produtoId);
 
       if (!existingItem) {
