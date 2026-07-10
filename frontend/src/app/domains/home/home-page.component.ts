@@ -7,10 +7,11 @@ import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
 import type { Category } from '@shared/models';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+import { ProductCardComponent } from '@shared/ui/product-card.component';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, PageContainerComponent],
+  imports: [RouterLink, PageContainerComponent, ProductCardComponent],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-8">
@@ -132,56 +133,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @for (product of featuredProducts(); track product.produtoId) {
-              <article
-                class="border-shop-border shadow-soft overflow-hidden rounded-[1.5rem] border bg-white"
-              >
-                <div
-                  class="relative flex h-40 items-end overflow-hidden bg-[linear-gradient(135deg,#e0f2fe_0%,#bae6fd_45%,#0f172a_100%)] p-4"
-                  [style.background-image]="product.thumb ? 'none' : null"
-                >
-                  @if (product.thumb) {
-                    <img
-                      [src]="product.thumb"
-                      [alt]="product.titulo"
-                      class="absolute inset-0 h-full w-full object-cover"
-                    />
-                  }
-                  <span
-                    class="text-shop-text rounded-full bg-white/90 px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
-                  >
-                    {{ product.categoria?.titulo ?? 'Produto' }}
-                  </span>
-                  <div
-                    class="bg-shop-text/85 absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-bold text-white"
-                  >
-                    {{ formatStock(product.estoque) }} em estoque
-                  </div>
-                </div>
-                <div class="space-y-3 p-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">
-                        {{ product.categoria?.titulo ?? 'Catálogo público' }}
-                      </p>
-                      <h3 class="text-shop-text mt-1 text-base font-bold">{{ product.titulo }}</h3>
-                    </div>
-                  </div>
-                  <div class="flex items-end justify-between gap-3">
-                    <div>
-                      <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">
-                        Preço
-                      </p>
-                      <p class="text-shop-text text-xl font-black">{{ formatPrice(product.preco) }}</p>
-                    </div>
-                    <a
-                      routerLink="/products"
-                      class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover inline-flex rounded-full px-4 py-2 text-sm font-bold transition"
-                    >
-                      Comprar
-                    </a>
-                  </div>
-                </div>
-              </article>
+              <app-product-card [product]="product" />
             }
           </div>
         </section>
@@ -294,29 +246,4 @@ export class HomePageComponent {
   );
 
   protected readonly featuredProducts = computed(() => this.featuredProductsResponse().pagination.data);
-
-  protected formatPrice(value: number | string): string {
-    const numericValue = typeof value === 'string' ? Number(value) : value;
-
-    if (!Number.isFinite(numericValue)) {
-      return 'R$ 0,00';
-    }
-
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(numericValue);
-  }
-
-  protected formatStock(value: number | string): string {
-    const numericValue = typeof value === 'string' ? Number(value) : value;
-
-    if (!Number.isFinite(numericValue)) {
-      return '0';
-    }
-
-    return new Intl.NumberFormat('pt-BR', {
-      maximumFractionDigits: 0,
-    }).format(numericValue);
-  }
 }
