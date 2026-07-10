@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
+import { CartPageComponent } from '@domains/cart/cart-page.component';
 import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
@@ -40,15 +41,9 @@ export const routes: Routes = [
       },
       {
         path: 'cart',
-        component: PlaceholderPageComponent,
+        component: CartPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Carrinho',
-        data: {
-          eyebrow: 'Carrinho',
-          title: 'Fluxo protegido separado do catalogo.',
-          description:
-            'Esta rota ja existe no shell da aplicacao para receber a store de carrinho, o guard e as integracoes autenticadas.',
-        },
       },
       {
         path: 'account',
