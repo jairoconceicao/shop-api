@@ -136,7 +136,7 @@ describe('ProductsPageComponent', () => {
     expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ver produto' })).toHaveAttribute(
       'href',
-      '/products',
+      '/products/101',
     );
     expect(screen.getByRole('button', { name: 'Ver mais produtos' })).toBeVisible();
     expect(categoryServiceMock.listPublicCategories).toHaveBeenCalledWith();

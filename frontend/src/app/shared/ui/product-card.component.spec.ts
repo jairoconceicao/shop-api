@@ -61,5 +61,6 @@ describe('ProductCardComponent', () => {
     expect(screen.queryByRole('img')).toBeNull();
     expect(screen.getByText('R$ 129,90')).toBeVisible();
     expect(screen.getByText('0 em estoque')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Comprar' })).toHaveAttribute('href', '/products/102');
   });
 });

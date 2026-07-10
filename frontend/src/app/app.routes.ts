@@ -3,6 +3,7 @@ import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
 import { RegisterPageComponent } from '@domains/auth/register-page.component';
+import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 import { PlaceholderPageComponent } from '@shared/ui/placeholder-page.component';
@@ -34,14 +35,8 @@ export const routes: Routes = [
       },
       {
         path: 'products/:id',
-        component: PlaceholderPageComponent,
+        component: ProductDetailsPageComponent,
         title: 'Shop API | Detalhe do produto',
-        data: {
-          eyebrow: 'Produto',
-          title: 'Detalhe do produto em preparo.',
-          description:
-            'A rota dedicada ao produto ja existe no shell para receber as proximas etapas do backlog.',
-        },
       },
       {
         path: 'cart',

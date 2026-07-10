@@ -3,7 +3,7 @@ import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiClientService, type PagedResponse } from '@shared/api';
-import type { ProductCatalogItem } from '@shared/models';
+import type { ProductCatalogItem, ProductDetails } from '@shared/models';
 
 import { CatalogService } from './catalog.service';
 
@@ -113,5 +113,37 @@ describe('CatalogService', () => {
       },
     });
     expect(receivedResponses).toEqual([response]);
+  });
+
+  it('loads a public product by id through GET /api/v1/produto/{id}', () => {
+    const response = {
+      status: true,
+      message: 'Produto carregado com sucesso.',
+      data: {
+        produtoId: 101,
+        titulo: 'Notebook Gamer',
+        descricao: 'Notebook para jogos',
+        modelo: 'RTX',
+        foto: null,
+        preco: 5999.9,
+        estoque: 12,
+        categoria: {
+          categoriaId: 1,
+          titulo: 'Informática',
+        },
+      },
+    } satisfies { status: boolean; message: string; data: ProductDetails };
+
+    apiClientMock.get.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CatalogService);
+    const receivedResponses: ProductDetails[] = [];
+
+    service.getPublicProductById(101).subscribe((product) => {
+      receivedResponses.push(product);
+    });
+
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/produto/101');
+    expect(receivedResponses).toEqual([response.data]);
   });
 });

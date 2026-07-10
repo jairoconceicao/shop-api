@@ -1,8 +1,13 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
-import { ApiClientService, type PagedResponse } from '@shared/api';
-import type { ProductCatalogItem } from '@shared/models';
+import {
+  ApiClientService,
+  normalizeResponseData,
+  type ApiResponse,
+  type PagedResponse,
+} from '@shared/api';
+import type { ProductCatalogItem, ProductDetails } from '@shared/models';
 
 export interface PublicProductCatalogQuery {
   page?: number;
@@ -41,5 +46,11 @@ export class CatalogService {
         },
       },
     );
+  }
+
+  getPublicProductById(productId: number): Observable<ProductDetails> {
+    return this.apiClient
+      .get<ApiResponse<ProductDetails>>(`/api/v1/produto/${productId}`)
+      .pipe(map((response: ApiResponse<ProductDetails>) => normalizeResponseData(response)));
   }
 }

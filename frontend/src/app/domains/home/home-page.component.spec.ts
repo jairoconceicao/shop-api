@@ -125,6 +125,10 @@ describe('HomePageComponent', () => {
     expect(screen.getByText('R$ 5.999,90')).toBeVisible();
     expect(screen.getByText('12 em estoque')).toBeVisible();
     expect(screen.getAllByRole('link', { name: 'Comprar' })).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: 'Comprar' })[0]).toHaveAttribute(
+      'href',
+      '/products/101',
+    );
     expect(screen.getByText('Produtos em destaque')).toBeVisible();
     expect(screen.getByText('Produtos de tecnologia')).toBeVisible();
     expect(screen.getByText('Smartphones e acessórios')).toBeVisible();

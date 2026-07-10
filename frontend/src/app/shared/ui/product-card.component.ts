@@ -31,9 +31,7 @@ import type { ProductCatalogItem } from '@shared/models';
           >
             {{ product().categoria?.titulo ?? 'Produto' }}
           </span>
-          <span
-            class="bg-shop-text/85 rounded-full px-3 py-1 text-xs font-bold text-white"
-          >
+          <span class="bg-shop-text/85 rounded-full px-3 py-1 text-xs font-bold text-white">
             {{ stockLabel() }}
           </span>
         </div>
@@ -51,14 +49,12 @@ import type { ProductCatalogItem } from '@shared/models';
 
         <div class="flex items-end justify-between gap-3">
           <div>
-            <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">
-              Preço
-            </p>
+            <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">Preço</p>
             <p class="text-shop-text text-xl font-black">{{ priceLabel() }}</p>
           </div>
 
           <a
-            [attr.href]="ctaLink()"
+            [attr.href]="resolvedCtaLink()"
             class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover inline-flex rounded-full px-4 py-2 text-sm font-bold transition"
           >
             {{ ctaLabel() }}
@@ -72,10 +68,15 @@ import type { ProductCatalogItem } from '@shared/models';
 export class ProductCardComponent {
   readonly product = input.required<ProductCatalogItem>();
   readonly ctaLabel = input('Comprar');
-  readonly ctaLink = input('/products');
+  readonly ctaLink = input<string>();
 
   protected readonly priceLabel = computed(() => this.formatCurrency(this.product().preco));
-  protected readonly stockLabel = computed(() => `${this.formatStock(this.product().estoque)} em estoque`);
+  protected readonly stockLabel = computed(
+    () => `${this.formatStock(this.product().estoque)} em estoque`,
+  );
+  protected readonly resolvedCtaLink = computed(
+    () => this.ctaLink() ?? `/products/${this.product().produtoId}`,
+  );
 
   private formatCurrency(value: number | string): string {
     const numericValue = typeof value === 'string' ? Number(value) : value;
