@@ -135,4 +135,42 @@ describe('PasswordPageComponent', () => {
     expect(screen.getByText('A senha atual informada esta incorreta. Verifique os dados e tente novamente.')).toBeVisible();
     expect(screen.queryByText('Sua senha foi alterada')).not.toBeInTheDocument();
   });
+
+  it('shows validation errors returned by the API on the relevant fields', async () => {
+    const session = {
+      token: 'jwt-token',
+      tipo: 'Bearer',
+      expiraEm: '2026-07-09T12:00:00Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@shopapi.dev',
+    } satisfies AuthSession;
+
+    tokenStorageMock.getSession.mockReturnValue(session);
+    customerServiceMock.updatePassword.mockReturnValue(
+      throwError(() => ({
+        status: 422,
+        code: 'VALIDATION_ERROR',
+        message: 'Revise os campos informados.',
+        details: {
+          senhaAtual: ['Informe a senha atual correta.'],
+          senhaNova: ['A nova senha deve conter ao menos 8 caracteres.'],
+        },
+      })),
+    );
+
+    await render(PasswordPageComponent, {
+      providers: [provideRouter([])],
+    });
+
+    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
+    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
+    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+
+    expect(screen.getByText('Revise os campos destacados e tente novamente.')).toBeVisible();
+    expect(screen.getByText('Informe a senha atual correta.')).toBeVisible();
+    expect(screen.getByText('A nova senha deve conter ao menos 8 caracteres.')).toBeVisible();
+    expect(screen.queryByText('Sua senha foi alterada')).not.toBeInTheDocument();
+  });
 });

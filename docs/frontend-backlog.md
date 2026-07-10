@@ -249,7 +249,7 @@ de perfil.
 [x] TASK-097: Aplicar validacoes por schema.
 [x] TASK-098: Integrar `PUT /api/v1/cliente/{clienteId}/senha`.
 [x] TASK-099: Exibir estados de sucesso, erro de validacao e erro de senha atual.
-[ ] TASK-100: Criar testes do formulario de alteracao de senha.
+[x] TASK-100: Criar testes do formulario de alteracao de senha.
 
 ### 13. Pedidos
 
