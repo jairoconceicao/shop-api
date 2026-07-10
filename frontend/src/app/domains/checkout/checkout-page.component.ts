@@ -11,6 +11,7 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
 import { InputComponent } from '@shared/ui/base/input.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
+import { SuccessStateComponent } from '@shared/ui/states/success-state.component';
 import type { PaymentMethod } from '@shared/models';
 
 @Component({
@@ -22,6 +23,7 @@ import type { PaymentMethod } from '@shared/models';
     CartItemComponent,
     CartSummaryComponent,
     InputComponent,
+    SuccessStateComponent,
   ],
   template: `
     <app-page-container [wide]="true">
@@ -57,14 +59,67 @@ import type { PaymentMethod } from '@shared/models';
                 </app-empty-state>
               </div>
             } @else if (orderSuccess()) {
-              <div class="rounded-[1.5rem] border border-shop-success/20 bg-shop-success-soft p-5">
-                <h2 class="text-shop-success text-2xl font-black tracking-tight">
-                  Pedido criado com sucesso
-                </h2>
-                <p class="text-shop-text-muted mt-3 text-sm leading-7">
-                  O pedido #{{ createdOrder()?.pedidoId }} foi enviado com a forma de pagamento
-                  {{ paymentLabel(createdOrder()?.formaPagamento ?? paymentMethod()) }}.
-                </p>
+              <div class="space-y-5">
+                <app-success-state
+                  eyebrow="Pedido confirmado"
+                  title="Seu pedido foi criado com sucesso"
+                  [description]="successDescription()"
+                >
+                  <a
+                    routerLink="/account/orders"
+                    class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+                  >
+                    Ver meus pedidos
+                  </a>
+                  <a
+                    routerLink="/"
+                    class="rounded-2xl border border-shop-border px-5 py-3 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
+                  >
+                    Ir para a home
+                  </a>
+                </app-success-state>
+
+                @if (createdOrder()) {
+                  <section class="rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft" aria-labelledby="order-confirmation-title">
+                    <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                      Confirmação do pedido
+                    </p>
+                    <h2 id="order-confirmation-title" class="text-shop-text mt-2 text-xl font-black tracking-tight">
+                      Dados do pedido criado
+                    </h2>
+
+                    <dl class="text-shop-text-muted mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                          Numero do pedido
+                        </dt>
+                        <dd class="mt-1 font-medium text-shop-text">#{{ createdOrder()?.pedidoId }}</dd>
+                      </div>
+                      <div>
+                        <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                          Forma de pagamento
+                        </dt>
+                        <dd class="mt-1 font-medium text-shop-text">
+                          {{ paymentLabel(createdOrder()?.formaPagamento ?? paymentMethod()) }}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                          Status
+                        </dt>
+                        <dd class="mt-1 font-medium text-shop-success">{{ createdOrder()?.status }}</dd>
+                      </div>
+                      <div>
+                        <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                          Valor total
+                        </dt>
+                        <dd class="mt-1 font-medium text-shop-text">
+                          {{ formatCurrency(createdOrder()?.valorTotal ?? 0) }}
+                        </dd>
+                      </div>
+                    </dl>
+                  </section>
+                }
               </div>
             } @else {
               <section class="space-y-4" aria-labelledby="checkout-items-title">
@@ -323,6 +378,29 @@ export class CheckoutPageComponent {
 
   protected getSelectValue(event: Event): string {
     return (event.target as HTMLSelectElement).value;
+  }
+
+  protected successDescription(): string {
+    const order = this.createdOrder();
+
+    if (!order) {
+      return 'Seu pedido foi confirmado e está pronto para acompanhamento.';
+    }
+
+    return `O pedido #${order.pedidoId} foi confirmado com a forma de pagamento ${this.paymentLabel(order.formaPagamento)}.`;
+  }
+
+  protected formatCurrency(value: number | string): string {
+    const amount = typeof value === 'number' ? value : Number(value);
+
+    if (!Number.isFinite(amount)) {
+      return 'R$ 0,00';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(amount);
   }
 
   protected submitOrder(): void {

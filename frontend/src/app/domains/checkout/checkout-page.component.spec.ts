@@ -353,7 +353,18 @@ describe('CheckoutPageComponent', () => {
     expect(Object.keys(submittedRequest)).toEqual(['enderecoEntrega', 'formaPagamento', 'dataPedido', 'items']);
     expect('clienteId' in submittedRequest).toBe(false);
     expect('carrinhoId' in submittedRequest).toBe(false);
-    expect(screen.getByRole('heading', { name: 'Pedido criado com sucesso' })).toBeVisible();
+    expect(screen.getByRole('status')).toBeVisible();
+    expect(screen.getByText('Pedido confirmado')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Seu pedido foi criado com sucesso' })).toBeVisible();
     expect(screen.getByText(/pedido #9999/i)).toBeVisible();
+    expect(screen.getByText('Forma de pagamento')).toBeVisible();
+    expect(screen.getByText('Boleto')).toBeVisible();
+    expect(screen.getByText('Valor total')).toBeVisible();
+    expect(screen.getByText('R$ 399,90')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Ver meus pedidos' })).toHaveAttribute(
+      'href',
+      '/account/orders',
+    );
+    expect(screen.getByRole('link', { name: 'Ir para a home' })).toHaveAttribute('href', '/');
   });
 });
