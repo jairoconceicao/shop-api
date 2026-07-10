@@ -1,17 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, of } from 'rxjs';
+import { map } from 'rxjs';
 
 import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
 import type { Category } from '@shared/models';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { ProductCardComponent } from '@shared/ui/product-card.component';
+import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
+import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
+import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
+
+import { createRemoteSectionState } from './home-page.context';
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, PageContainerComponent, ProductCardComponent],
+  imports: [
+    RouterLink,
+    PageContainerComponent,
+    ProductCardComponent,
+    LoadingStateComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+  ],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-8">
@@ -96,20 +107,72 @@ import { ProductCardComponent } from '@shared/ui/product-card.component';
           </div>
         </article>
 
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          @for (category of categories(); track category.title) {
-            <a
-              [routerLink]="category.link"
-              class="border-shop-border shadow-soft hover:border-shop-primary/30 rounded-[1.5rem] border bg-white p-4 transition hover:-translate-y-0.5"
+        <section class="space-y-4">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                Categorias
+              </p>
+              <h2 class="text-shop-text mt-2 text-2xl font-black tracking-tight sm:text-3xl">
+                Navegue por categoria
+              </h2>
+            </div>
+          </div>
+
+          @if (categoriesState.isLoading()) {
+            <app-loading-state
+              class="block"
+              eyebrow="Carregando categorias"
+              title="Preparando a navegação"
+              description="Buscando as categorias públicas para montar os atalhos da home."
+            />
+          } @else if (categoriesState.error()) {
+            <app-error-state
+              class="block"
+              eyebrow="Falha nas categorias"
+              title="Nao foi possivel carregar as categorias"
+              description="Tente novamente para atualizar os atalhos da home."
+              [details]="categoriesState.error() ?? ''"
             >
-              <span
-                class="bg-shop-secondary-soft text-shop-secondary inline-flex rounded-full px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
+              <button
+                type="button"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+                (click)="reloadCategories()"
               >
-                {{ category.tag }}
-              </span>
-              <h2 class="text-shop-text mt-4 text-lg font-bold">{{ category.title }}</h2>
-              <p class="text-shop-text-muted mt-2 text-sm leading-6">{{ category.description }}</p>
-            </a>
+                Recarregar categorias
+              </button>
+            </app-error-state>
+          } @else if (categoriesState.isEmpty()) {
+            <app-empty-state
+              class="block"
+              eyebrow="Sem categorias"
+              title="Nenhuma categoria disponivel"
+              description="Assim que a API retornar categorias publicas, elas aparecem aqui."
+            >
+              <a
+                routerLink="/products"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+              >
+                Explorar produtos
+              </a>
+            </app-empty-state>
+          } @else {
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              @for (category of categories(); track category.title) {
+                <a
+                  [routerLink]="category.link"
+                  class="border-shop-border shadow-soft hover:border-shop-primary/30 rounded-[1.5rem] border bg-white p-4 transition hover:-translate-y-0.5"
+                >
+                  <span
+                    class="bg-shop-secondary-soft text-shop-secondary inline-flex rounded-full px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
+                  >
+                    {{ category.tag }}
+                  </span>
+                  <h3 class="text-shop-text mt-4 text-lg font-bold">{{ category.title }}</h3>
+                  <p class="text-shop-text-muted mt-2 text-sm leading-6">{{ category.description }}</p>
+                </a>
+              }
+            </div>
           }
         </section>
 
@@ -131,11 +194,47 @@ import { ProductCardComponent } from '@shared/ui/product-card.component';
             </a>
           </div>
 
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            @for (product of featuredProducts(); track product.produtoId) {
-              <app-product-card [product]="product" />
-            }
-          </div>
+          @if (featuredProductsState.isLoading()) {
+            <app-loading-state
+              eyebrow="Carregando vitrine"
+              title="Preparando os produtos"
+              description="Buscando os produtos públicos em destaque para exibir na home."
+            />
+          } @else if (featuredProductsState.error()) {
+            <app-error-state
+              eyebrow="Falha na vitrine"
+              title="Nao foi possivel carregar os produtos"
+              description="Tente novamente para atualizar a vitrine em destaque."
+              [details]="featuredProductsState.error() ?? ''"
+            >
+              <button
+                type="button"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+                (click)="reloadFeaturedProducts()"
+              >
+                Recarregar vitrine
+              </button>
+            </app-error-state>
+          } @else if (featuredProductsState.isEmpty()) {
+            <app-empty-state
+              eyebrow="Vitrine vazia"
+              title="Nenhum produto em destaque"
+              description="A API ainda nao retornou produtos publicos para esta vitrine."
+            >
+              <a
+                routerLink="/products"
+                class="rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover"
+              >
+                Explorar produtos
+              </a>
+            </app-empty-state>
+          } @else {
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              @for (product of featuredProducts(); track product.produtoId) {
+                <app-product-card [product]="product" />
+              }
+            </div>
+          }
         </section>
       </section>
     </app-page-container>
@@ -177,38 +276,13 @@ export class HomePageComponent {
     },
   ] as const;
 
-  private readonly fallbackCategories: Category[] = [
-    {
-      categoriaId: 1,
-      titulo: 'Informática',
-      descricao: 'Notebooks, monitores, periféricos e acessórios para produção e lazer.',
-    },
-    {
-      categoriaId: 2,
-      titulo: 'Celulares',
-      descricao: 'Smartphones, capas, películas, cabos e carregadores para o dia a dia.',
-    },
-    {
-      categoriaId: 3,
-      titulo: 'Casa',
-      descricao: 'Organização, cozinha e pequenos eletros para agilizar a rotina.',
-    },
-    {
-      categoriaId: 4,
-      titulo: 'Games',
-      descricao: 'Consoles, headsets, controles e tudo para jogar melhor.',
-    },
-  ];
-
-  private readonly categoriesResponse = toSignal(
-    this.categoryService.listPublicCategories().pipe(catchError(() => of(this.fallbackCategories))),
-    {
-      initialValue: this.fallbackCategories,
-    },
+  private readonly categoriesState = createRemoteSectionState<Category>(
+    () => this.categoryService.listPublicCategories(),
+    'Nao foi possivel carregar as categorias. Tente novamente.',
   );
 
   protected readonly categories = computed(() =>
-    this.categoriesResponse().map((category, index) => ({
+    this.categoriesState.items().map((category, index) => ({
       tag: `Top ${index + 1}`,
       title: category.titulo,
       description: category.descricao,
@@ -216,34 +290,18 @@ export class HomePageComponent {
     })),
   );
 
-  private readonly featuredProductsResponse = toSignal(
-    this.catalogService.listPublicProducts().pipe(
-      catchError(() =>
-        of({
-          status: true,
-          message: '',
-          pagination: {
-            pages: 0,
-            size: 4,
-            totalItems: 0,
-            data: [],
-          },
-        }),
-      ),
-    ),
-    {
-      initialValue: {
-        status: true,
-        message: '',
-        pagination: {
-          pages: 0,
-          size: 4,
-          totalItems: 0,
-          data: [],
-        },
-      },
-    },
+  private readonly featuredProductsState = createRemoteSectionState(
+    () => this.catalogService.listPublicProducts().pipe(map((response) => response.pagination.data)),
+    'Nao foi possivel carregar os produtos em destaque. Tente novamente.',
   );
 
-  protected readonly featuredProducts = computed(() => this.featuredProductsResponse().pagination.data);
+  protected readonly featuredProducts = computed(() => this.featuredProductsState.items());
+
+  protected reloadCategories(): void {
+    this.categoriesState.reload();
+  }
+
+  protected reloadFeaturedProducts(): void {
+    this.featuredProductsState.reload();
+  }
 }

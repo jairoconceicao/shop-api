@@ -1,7 +1,7 @@
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
-import { of } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CategoryService } from '@core/category/category.service';
@@ -100,5 +100,95 @@ describe('HomePageComponent', () => {
     expect(screen.getByText('Produtos em destaque')).toBeVisible();
     expect(screen.getByText('Produtos de tecnologia')).toBeVisible();
     expect(screen.getByText('Smartphones e acessórios')).toBeVisible();
+  });
+
+  it('renders loading states while the API requests are pending', async () => {
+    const categoriesSubject = new Subject<Category[]>();
+    const productsSubject = new Subject<PagedResponse<ProductCatalogItem>>();
+
+    catalogServiceMock.listPublicProducts.mockReturnValue(productsSubject.asObservable());
+    categoryServiceMock.listPublicCategories.mockReturnValue(categoriesSubject.asObservable());
+
+    await render(HomePageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    expect(screen.getByText('Carregando categorias')).toBeVisible();
+    expect(screen.getByText('Preparando a navegação')).toBeVisible();
+    expect(screen.getByText('Carregando vitrine')).toBeVisible();
+    expect(screen.getByText('Preparando os produtos')).toBeVisible();
+  });
+
+  it('renders empty states when the API returns no categories or products', async () => {
+    catalogServiceMock.listPublicProducts.mockReturnValue(
+      of({
+        status: true,
+        message: 'Vitrine vazia.',
+        pagination: {
+          pages: 0,
+          size: 4,
+          totalItems: 0,
+          data: [],
+        },
+      }),
+    );
+    categoryServiceMock.listPublicCategories.mockReturnValue(of([]));
+
+    await render(HomePageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    expect(screen.getByText('Nenhuma categoria disponivel')).toBeVisible();
+    expect(screen.getByText('Vitrine vazia')).toBeVisible();
+    expect(screen.getByText('Nenhum produto em destaque')).toBeVisible();
+    expect(screen.getAllByRole('link', { name: 'Explorar produtos' })).toHaveLength(2);
+  });
+
+  it('renders error states and recovery actions when the API fails', async () => {
+    catalogServiceMock.listPublicProducts.mockReturnValue(
+      throwError(() => new Error('failed to load featured products')),
+    );
+    categoryServiceMock.listPublicCategories.mockReturnValue(
+      throwError(() => new Error('failed to load categories')),
+    );
+
+    await render(HomePageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    expect(screen.getByText('Nao foi possivel carregar as categorias')).toBeVisible();
+    expect(screen.getByText('Nao foi possivel carregar os produtos')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Recarregar categorias' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Recarregar vitrine' })).toBeVisible();
   });
 });
