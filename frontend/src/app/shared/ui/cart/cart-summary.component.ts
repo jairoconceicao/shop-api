@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { ButtonComponent } from '@shared/ui/base/button.component';
 
@@ -30,7 +30,7 @@ import { ButtonComponent } from '@shared/ui/base/button.component';
       </div>
 
       <div class="mt-6">
-        <app-button type="button" size="lg" [block]="true">
+        <app-button type="button" size="lg" [block]="true" [disabled]="ctaDisabled()" (click)="ctaClicked.emit()">
           {{ ctaLabel() }}
         </app-button>
       </div>
@@ -44,6 +44,8 @@ export class CartSummaryComponent {
   readonly subtotal = input(0);
   readonly shipping = input(0);
   readonly ctaLabel = input('Finalizar compra');
+  readonly ctaDisabled = input(false);
+  readonly ctaClicked = output<void>();
 
   protected readonly total = computed(() => this.subtotal() + this.shipping());
 

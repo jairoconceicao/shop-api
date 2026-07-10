@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import { CustomerService } from '@core/customer/customer.service';
+import { OrderService } from '@core/order/order.service';
 import type { CartItem } from '@shared/models';
 
 import { CartStore } from '@domains/cart/cart.store';
@@ -58,6 +59,18 @@ describe('CheckoutPageComponent', () => {
         email: 'cliente@shopapi.dev',
       }),
     };
+    const orderService = {
+      create: vi.fn().mockReturnValue(
+        of({
+          pedidoId: 9999,
+          clienteId: 20,
+          dataPedido: '2026-07-10T12:00:00-03:00',
+          formaPagamento: 'Pix',
+          status: 'Criado',
+          valorTotal: 449.7,
+        }),
+      ),
+    };
 
     cartStore.setItems([item(), item({ itemId: 2, produtoId: 20, quantidade: 1, valorUnitario: 50 })]);
 
@@ -65,6 +78,7 @@ describe('CheckoutPageComponent', () => {
       providers: [
         provideRouter([]),
         { provide: CustomerService, useValue: customerService },
+        { provide: OrderService, useValue: orderService },
         { provide: TokenStorageService, useValue: tokenStorage },
       ],
     });
@@ -87,7 +101,7 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByRole('heading', { name: 'Selecione a forma de pagamento' })).toBeVisible();
     expect(screen.getByLabelText('Forma de pagamento')).toHaveValue('Pix');
     expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Pix');
-    expect(screen.getByRole('button', { name: 'Continuar checkout' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Finalizar pedido' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Revisar carrinho' })).toHaveAttribute('href', '/cart');
     expect(screen.getByRole('link', { name: 'Continuar comprando' })).toHaveAttribute(
       'href',
@@ -243,5 +257,95 @@ describe('CheckoutPageComponent', () => {
 
     expect(paymentMethod).toHaveValue('Boleto');
     expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Boleto');
+  });
+
+  it('creates an order with the supported payload when checkout is submitted', async () => {
+    const cartStore = TestBed.inject(CartStore);
+    const customerService = {
+      getById: vi.fn().mockReturnValue(
+        of({
+          clienteId: 20,
+          cpf: '12345678901',
+          nome: 'Cliente Shop',
+          dataNascimento: '1990-01-01',
+          email: 'cliente@shopapi.dev',
+          endereco: {
+            logradouro: 'Rua Central',
+            numero: '100',
+            complemento: 'Apto 12',
+            cep: '01001000',
+            bairro: 'Centro',
+            cidade: 'Sao Paulo',
+            uf: 'SP',
+          },
+          celular: {
+            ddd: '11',
+            numero: '999999999',
+            whatsApp: true,
+          },
+        }),
+      ),
+    };
+    const orderService = {
+      create: vi.fn().mockReturnValue(
+        of({
+          pedidoId: 9999,
+          clienteId: 20,
+          dataPedido: '2026-07-10T12:00:00-03:00',
+          formaPagamento: 'Boleto',
+          status: 'Criado',
+          valorTotal: 399.9,
+        }),
+      ),
+    };
+    const tokenStorage = {
+      getSession: vi.fn().mockReturnValue({
+        token: 'jwt-token',
+        tipo: 'Bearer',
+        expiraEm: '2026-07-09T12:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@shopapi.dev',
+      }),
+    };
+
+    cartStore.setItems([item({ itemId: 11, produtoId: 10, quantidade: 2, valorUnitario: 199.95 })]);
+
+    await render(CheckoutPageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerService, useValue: customerService },
+        { provide: OrderService, useValue: orderService },
+        { provide: TokenStorageService, useValue: tokenStorage },
+      ],
+    });
+
+    const paymentMethod = screen.getByLabelText('Forma de pagamento') as HTMLSelectElement;
+    paymentMethod.value = 'Boleto';
+    paymentMethod.dispatchEvent(new Event('change'));
+
+    await screen.getByRole('button', { name: 'Finalizar pedido' }).click();
+
+    expect(orderService.create).toHaveBeenCalledTimes(1);
+    expect(orderService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enderecoEntrega: expect.objectContaining({
+          logradouro: 'Rua Central',
+          numero: '100',
+          cep: '01001000',
+        }),
+        formaPagamento: 'Boleto',
+        items: [
+          {
+            itemId: 11,
+            produtoId: 10,
+            quantidade: 2,
+            valorUnitario: 199.95,
+          },
+        ],
+      }),
+    );
+    expect(screen.getByRole('heading', { name: 'Pedido criado com sucesso' })).toBeVisible();
+    expect(screen.getByText(/pedido #9999/i)).toBeVisible();
   });
 });

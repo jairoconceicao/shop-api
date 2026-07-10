@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { createCheckoutAddressState } from './checkout-address.context';
 import { createCheckoutCustomerState } from './checkout-customer.context';
 import { createCheckoutPaymentState } from './checkout-payment.context';
+import { createCheckoutSubmitState } from './checkout-submit.context';
 import { createCheckoutState } from './checkout.context';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
 import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
@@ -54,6 +55,16 @@ import type { PaymentMethod } from '@shared/models';
                     Ir para o carrinho
                   </a>
                 </app-empty-state>
+              </div>
+            } @else if (orderSuccess()) {
+              <div class="rounded-[1.5rem] border border-shop-success/20 bg-shop-success-soft p-5">
+                <h2 class="text-shop-success text-2xl font-black tracking-tight">
+                  Pedido criado com sucesso
+                </h2>
+                <p class="text-shop-text-muted mt-3 text-sm leading-7">
+                  O pedido #{{ createdOrder()?.pedidoId }} foi enviado com a forma de pagamento
+                  {{ paymentLabel(createdOrder()?.formaPagamento ?? paymentMethod()) }}.
+                </p>
               </div>
             } @else {
               <section class="space-y-4" aria-labelledby="checkout-items-title">
@@ -109,7 +120,13 @@ import type { PaymentMethod } from '@shared/models';
                 </div>
               </section>
 
-              <app-cart-summary [subtotal]="subtotal()" [shipping]="shipping()" ctaLabel="Continuar checkout">
+              <app-cart-summary
+                [subtotal]="subtotal()"
+                [shipping]="shipping()"
+                ctaLabel="Finalizar pedido"
+                [ctaDisabled]="isSubmitting()"
+                (ctaClicked)="submitOrder()"
+              >
                 <div class="mt-3 space-y-3">
                   <a
                     routerLink="/cart"
@@ -271,6 +288,7 @@ export class CheckoutPageComponent {
   private readonly checkoutCustomerState = createCheckoutCustomerState();
   private readonly checkoutAddressState = createCheckoutAddressState(this.checkoutCustomerState.baseAddress);
   private readonly checkoutPaymentState = createCheckoutPaymentState();
+  private readonly checkoutSubmitState = createCheckoutSubmitState();
 
   protected readonly items = this.checkoutState.items;
   protected readonly subtotal = this.checkoutState.subtotal;
@@ -280,6 +298,9 @@ export class CheckoutPageComponent {
   protected readonly deliveryAddress = this.checkoutAddressState.deliveryAddress;
   protected readonly paymentMethod = this.checkoutPaymentState.paymentMethod;
   protected readonly paymentOptions = this.checkoutPaymentState.paymentOptions;
+  protected readonly isSubmitting = this.checkoutSubmitState.isSubmitting;
+  protected readonly orderSuccess = this.checkoutSubmitState.success;
+  protected readonly createdOrder = this.checkoutSubmitState.createdOrder;
   protected readonly ufOptions = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
   protected setDeliveryAddressField(field: 'logradouro' | 'numero' | 'complemento' | 'cep' | 'bairro' | 'cidade' | 'uf', value: string): void {
@@ -302,5 +323,13 @@ export class CheckoutPageComponent {
 
   protected getSelectValue(event: Event): string {
     return (event.target as HTMLSelectElement).value;
+  }
+
+  protected submitOrder(): void {
+    this.checkoutSubmitState.submit({
+      deliveryAddress: this.deliveryAddress,
+      paymentMethod: this.paymentMethod,
+      items: this.items,
+    });
   }
 }

@@ -220,7 +220,7 @@ integracao com a API.
 [x] TASK-077: Carregar perfil do cliente para preencher endereco base.
 [x] TASK-078: Permitir edicao explicita de `enderecoEntrega` no checkout.
 [x] TASK-079: Implementar selecao de `formaPagamento`.
-[ ] TASK-080: Integrar `POST /api/v1/pedido`.
+[x] TASK-080: Integrar `POST /api/v1/pedido`.
 [ ] TASK-081: Enviar somente os campos suportados pelo backend atual.
 [ ] TASK-082: Tratar sucesso com confirmacao do pedido.
 [ ] TASK-083: Tratar erro de carrinho vazio, produto indisponivel e falha de validacao.
