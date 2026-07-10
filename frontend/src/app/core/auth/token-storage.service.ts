@@ -47,11 +47,18 @@ export class TokenStorageService {
       const parsedSession: Partial<AuthSession> = JSON.parse(serializedSession) as Partial<AuthSession>;
 
       if (!this.isAuthSession(parsedSession)) {
+        this.clearSession();
+        return null;
+      }
+
+      if (this.isSessionExpired(parsedSession)) {
+        this.clearSession();
         return null;
       }
 
       return parsedSession;
     } catch {
+      this.clearSession();
       return null;
     }
   }
@@ -100,5 +107,15 @@ export class TokenStorageService {
       typeof session.email === 'string' &&
       session.email.trim().length > 0
     );
+  }
+
+  private isSessionExpired(session: AuthSession): boolean {
+    const expiresAt = Date.parse(session.expiraEm);
+
+    if (!Number.isFinite(expiresAt)) {
+      return true;
+    }
+
+    return expiresAt <= Date.now();
   }
 }

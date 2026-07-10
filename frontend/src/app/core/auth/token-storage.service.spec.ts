@@ -57,6 +57,25 @@ describe('TokenStorageService', () => {
     expect(localStorage.getItem('shop-api.auth.session')).toBeNull();
   });
 
+  it('drops expired sessions before exposing them', () => {
+    const service = TestBed.inject(TokenStorageService);
+    const expiredSession = {
+      token: 'jwt-token',
+      tipo: 'Bearer',
+      expiraEm: '2020-07-09T12:00:00Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@shopapi.dev',
+    } satisfies AuthSession;
+
+    localStorage.setItem('shop-api.auth.session', JSON.stringify(expiredSession));
+
+    expect(service.getSession()).toBeNull();
+    expect(service.getToken()).toBeNull();
+    expect(service.hasToken()).toBe(false);
+    expect(localStorage.getItem('shop-api.auth.session')).toBeNull();
+  });
+
   it('is a no-op when browser storage is unavailable', () => {
     TestBed.resetTestingModule();
 
