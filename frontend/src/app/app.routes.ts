@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
+import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 import { PlaceholderPageComponent } from '@shared/ui/placeholder-page.component';
 
@@ -19,6 +20,11 @@ export const routes: Routes = [
         path: 'login',
         component: LoginPageComponent,
         title: 'Shop API | Login',
+      },
+      {
+        path: 'cadastro',
+        component: RegisterPageComponent,
+        title: 'Shop API | Cadastro',
       },
       {
         path: 'products',

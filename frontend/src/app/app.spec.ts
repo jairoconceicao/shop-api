@@ -8,6 +8,7 @@ describe('App', () => {
     await render(App);
 
     expect(screen.getAllByText('Shop API')[0]).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Criar conta' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Entrar' })).toBeVisible();
   });
 });

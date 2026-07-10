@@ -40,6 +40,7 @@ import { map } from 'rxjs';
 
               <nav class="flex items-center gap-2 text-sm font-semibold">
                 <a routerLink="/products" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Catalogo</a>
+                <a routerLink="/cadastro" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Criar conta</a>
                 <a routerLink="/cart" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Carrinho</a>
                 <a routerLink="/account" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Conta</a>
                 <a routerLink="/login" class="rounded-full bg-shop-primary px-5 py-2.5 text-shop-text-inverted shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition hover:bg-shop-primary-hover">Entrar</a>
@@ -47,6 +48,7 @@ import { map } from 'rxjs';
             </div>
           } @else {
             <div class="flex items-center gap-2">
+              <a routerLink="/cadastro" class="rounded-full border border-shop-border px-4 py-2 text-sm font-semibold text-shop-text">Criar conta</a>
               <a routerLink="/login" class="rounded-full border border-shop-border px-4 py-2 text-sm font-semibold text-shop-text">Entrar</a>
               <a routerLink="/cart" class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-shop-secondary-soft text-shop-secondary" aria-label="Ir para o carrinho">
                 <span aria-hidden="true">cart</span>

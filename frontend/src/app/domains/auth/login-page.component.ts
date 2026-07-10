@@ -140,6 +140,7 @@ import {
           <div class="mt-6 flex flex-wrap gap-3 text-sm font-semibold">
             <a routerLink="/" class="text-shop-primary transition hover:text-shop-primary-hover">Voltar para home</a>
             <a routerLink="/products" class="text-shop-text-muted transition hover:text-shop-primary">Explorar catalogo</a>
+            <a routerLink="/cadastro" class="text-shop-text-muted transition hover:text-shop-primary">Criar conta</a>
           </div>
         </article>
       </section>
