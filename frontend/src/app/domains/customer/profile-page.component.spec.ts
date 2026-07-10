@@ -1,42 +1,23 @@
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { fireEvent } from '@testing-library/dom';
 import { vi } from 'vitest';
 
 import { CustomerStore } from './customer.store';
 import { ProfilePageComponent } from './profile-page.component';
+import {
+  createCustomerStoreMock,
+  customerAreaFixture,
+  customerAreaProfileFormFixture,
+} from './customer-area.context';
+import { normalizeProfileFormValue } from './profile-form.schema';
 
 describe('ProfilePageComponent', () => {
-  const createStoreMock = (overrides: Partial<Record<string, unknown>> = {}) => ({
-    loadProfile: vi.fn(),
-    updateProfile: vi.fn(),
-    isLoading: vi.fn(() => false),
-    error: vi.fn(() => null),
-    profile: vi.fn(() => ({
-      cpf: '12345678901',
-      nome: 'Cliente Shop',
-      dataNascimento: '1990-01-01',
-      email: 'cliente@shop.com',
-      endereco: {
-        logradouro: 'Rua Central',
-        numero: '100',
-        complemento: 'Apto 12',
-        cep: '01001000',
-        bairro: 'Centro',
-        cidade: 'Sao Paulo',
-        uf: 'SP',
-      },
-      celular: {
-        ddd: '11',
-        numero: '999999999',
-        whatsApp: true,
-      },
-    })),
-    ...overrides,
-  });
-
   it('loads the authenticated customer profile and renders the editable form', async () => {
-    const customerStoreMock = createStoreMock();
+    const customerStoreMock = createCustomerStoreMock({
+      profile: vi.fn(() => customerAreaFixture),
+    });
 
     await render(ProfilePageComponent, {
       providers: [
@@ -57,7 +38,8 @@ describe('ProfilePageComponent', () => {
   });
 
   it('submits the customer update request using the store action', async () => {
-    const customerStoreMock = createStoreMock({
+    const customerStoreMock = createCustomerStoreMock({
+      profile: vi.fn(() => customerAreaFixture),
       isLoading: vi.fn(() => true),
       error: vi.fn(() => 'Nao foi possivel atualizar os dados do cliente.'),
     });
@@ -73,8 +55,28 @@ describe('ProfilePageComponent', () => {
     expect(screen.getByRole('button', { name: 'Salvar alteracoes' })).toBeDisabled();
   });
 
+  it('normalizes the form before updating the customer profile', async () => {
+    const customerStoreMock = createCustomerStoreMock({
+      profile: vi.fn(() => customerAreaFixture),
+    });
+
+    await render(ProfilePageComponent, {
+      providers: [
+        provideRouter([]),
+        { provide: CustomerStore, useValue: customerStoreMock },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alteracoes' }));
+
+    expect(customerStoreMock.updateProfile).toHaveBeenCalledTimes(1);
+    expect(customerStoreMock.updateProfile).toHaveBeenCalledWith(
+      normalizeProfileFormValue(customerAreaProfileFormFixture),
+    );
+  });
+
   it('shows schema validation feedback before submitting invalid data', async () => {
-    const customerStoreMock = createStoreMock({
+    const customerStoreMock = createCustomerStoreMock({
       profile: vi.fn(() => null),
     });
 

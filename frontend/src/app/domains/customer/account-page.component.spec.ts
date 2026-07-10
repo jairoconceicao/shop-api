@@ -1,4 +1,3 @@
-import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
@@ -7,34 +6,22 @@ import { vi } from 'vitest';
 
 import { CustomerStore } from './customer.store';
 import { AccountPageComponent } from './account-page.component';
+import { createCustomerStoreMock, customerAreaFixture } from './customer-area.context';
 
 describe('AccountPageComponent', () => {
   it('renders the customer area navigation and summary', async () => {
-    const customerStore = TestBed.inject(CustomerStore);
-    customerStore.setProfile({
-      clienteId: 42,
-      cpf: '12345678901',
-      nome: 'Cliente Shop',
-      dataNascimento: '1990-01-01',
-      email: 'cliente@shop.com',
-      endereco: {
-        logradouro: 'Rua Central',
-        numero: '100',
-        complemento: null,
-        cep: '01001000',
-        bairro: 'Centro',
-        cidade: 'Sao Paulo',
-        uf: 'SP',
-      },
-      celular: {
-        ddd: '11',
-        numero: '999999999',
-        whatsApp: true,
-      },
+    const customerStore = createCustomerStoreMock({
+      profile: vi.fn(() => customerAreaFixture),
+      displayName: vi.fn(() => customerAreaFixture.nome),
+      email: vi.fn(() => customerAreaFixture.email),
+      cpf: vi.fn(() => customerAreaFixture.cpf),
+      primaryPhone: vi.fn(
+        () => `(${customerAreaFixture.celular.ddd}) ${customerAreaFixture.celular.numero}`,
+      ),
     });
 
     await render(AccountPageComponent, {
-      providers: [provideRouter([]), CustomerStore],
+      providers: [provideRouter([]), { provide: CustomerStore, useValue: customerStore }],
     });
 
     expect(screen.getByRole('heading', { name: 'Minha conta, Cliente Shop' })).toBeVisible();
@@ -49,8 +36,16 @@ describe('AccountPageComponent', () => {
   });
 
   it('falls back to a generic title when the customer profile is missing', async () => {
+    const customerStore = createCustomerStoreMock({
+      profile: vi.fn(() => null),
+      displayName: vi.fn(() => ''),
+      email: vi.fn(() => ''),
+      cpf: vi.fn(() => ''),
+      primaryPhone: vi.fn(() => ''),
+    });
+
     await render(AccountPageComponent, {
-      providers: [provideRouter([]), CustomerStore],
+      providers: [provideRouter([]), { provide: CustomerStore, useValue: customerStore }],
     });
 
     expect(screen.getByRole('heading', { name: 'Minha conta' })).toBeVisible();
@@ -60,11 +55,10 @@ describe('AccountPageComponent', () => {
   });
 
   it('shows an explicit confirmation before deleting the account', async () => {
-    const customerStore = TestBed.inject(CustomerStore);
-    const deleteProfileSpy = vi.spyOn(customerStore, 'deleteProfile');
+    const customerStore = createCustomerStoreMock();
 
     await render(AccountPageComponent, {
-      providers: [provideRouter([]), CustomerStore],
+      providers: [provideRouter([]), { provide: CustomerStore, useValue: customerStore }],
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar conta' }));
@@ -78,9 +72,9 @@ describe('AccountPageComponent', () => {
     expect(screen.getByRole('button', { name: 'Sim, cancelar conta' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Manter minha conta' })).toBeVisible();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Manter minha conta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar conta' }));
 
+    expect(customerStore.deleteProfile).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('heading', { name: 'Confirmar cancelamento da conta' })).toBeNull();
-    expect(deleteProfileSpy).not.toHaveBeenCalled();
   });
 });
