@@ -17,8 +17,16 @@ export interface IncrementalSectionState<T> {
   readonly loadMoreError: Signal<string | null>;
   readonly isEmpty: Signal<boolean>;
   readonly hasMore: Signal<boolean>;
+  readonly pagination: Signal<IncrementalSectionPagination>;
   reload(): void;
   loadMore(): void;
+}
+
+export interface IncrementalSectionPagination {
+  readonly page: number;
+  readonly size: number;
+  readonly totalItems: number;
+  readonly totalPages: number;
 }
 
 export function createIncrementalSectionState<T>(
@@ -32,8 +40,12 @@ export function createIncrementalSectionState<T>(
   const isLoadingMore = signal(false);
   const error = signal<string | null>(null);
   const loadMoreError = signal<string | null>(null);
-  const currentPage = signal(0);
-  const totalPages = signal(0);
+  const pagination = signal<IncrementalSectionPagination>({
+    page: 0,
+    size: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  });
 
   let subscription: Subscription | null = null;
 
@@ -57,8 +69,12 @@ export function createIncrementalSectionState<T>(
       error.set(null);
       loadMoreError.set(null);
       items.set([]);
-      currentPage.set(0);
-      totalPages.set(0);
+      pagination.set({
+        page: 0,
+        size: pageSize,
+        totalItems: 0,
+        totalPages: 0,
+      });
     }
 
     subscription = loader({ page, size: pageSize }).subscribe({
@@ -66,8 +82,12 @@ export function createIncrementalSectionState<T>(
         const nextItems = response.pagination.data;
 
         items.set(loadingMore ? [...items(), ...nextItems] : nextItems);
-        currentPage.set(page);
-        totalPages.set(response.pagination.pages);
+        pagination.set({
+          page,
+          size: response.pagination.size,
+          totalItems: response.pagination.totalItems,
+          totalPages: response.pagination.pages,
+        });
         finalize(loadingMore);
       },
       error: () => {
@@ -89,11 +109,11 @@ export function createIncrementalSectionState<T>(
       return;
     }
 
-    loadPage(currentPage() + 1, true);
+    loadPage(pagination().page + 1, true);
   };
 
   const hasMore = computed(
-    () => !isInitialLoading() && !error() && currentPage() > 0 && currentPage() < totalPages(),
+    () => !isInitialLoading() && !error() && pagination().page > 0 && pagination().page < pagination().totalPages,
   );
 
   destroyRef.onDestroy(() => subscription?.unsubscribe());
@@ -108,6 +128,7 @@ export function createIncrementalSectionState<T>(
     loadMoreError,
     isEmpty: computed(() => !isInitialLoading() && !error() && items().length === 0),
     hasMore,
+    pagination,
     reload,
     loadMore,
   };

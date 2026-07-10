@@ -3,7 +3,10 @@ import { computed, inject, signal, type Signal } from '@angular/core';
 import { CatalogService } from '@core/catalog/catalog.service';
 import type { ProductCatalogItem } from '@shared/models';
 
-import { createIncrementalSectionState } from '../home/home-featured-products.context';
+import {
+  createIncrementalSectionState,
+  type IncrementalSectionPagination,
+} from '../home/home-featured-products.context';
 
 export interface ProductsCatalogState {
   readonly items: Signal<readonly ProductCatalogItem[]>;
@@ -14,6 +17,7 @@ export interface ProductsCatalogState {
   readonly loadMoreError: Signal<string | null>;
   readonly isEmpty: Signal<boolean>;
   readonly hasMore: Signal<boolean>;
+  readonly pagination: Signal<IncrementalSectionPagination>;
   readonly searchword: Signal<string>;
   reload(): void;
   loadMore(): void;

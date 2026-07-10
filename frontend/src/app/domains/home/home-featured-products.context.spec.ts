@@ -29,6 +29,12 @@ describe('createIncrementalSectionState', () => {
     expect(state.isLoading()).toBe(false);
     expect(state.error()).toBeNull();
     expect(state.items()).toEqual(firstPageResponse.pagination.data);
+    expect(state.pagination()).toEqual({
+      page: 1,
+      size: 4,
+      totalItems: 2,
+      totalPages: 2,
+    });
     expect(state.hasMore()).toBe(true);
 
     state.loadMore();
@@ -38,6 +44,12 @@ describe('createIncrementalSectionState', () => {
       ...firstPageResponse.pagination.data,
       ...secondPageResponse.pagination.data,
     ]);
+    expect(state.pagination()).toEqual({
+      page: 2,
+      size: 4,
+      totalItems: 2,
+      totalPages: 2,
+    });
     expect(state.hasMore()).toBe(false);
     expect(state.loadMoreError()).toBeNull();
   });
@@ -58,6 +70,12 @@ describe('createIncrementalSectionState', () => {
     state.loadMore();
 
     expect(state.items()).toEqual(firstPageResponse.pagination.data);
+    expect(state.pagination()).toEqual({
+      page: 1,
+      size: 4,
+      totalItems: 2,
+      totalPages: 2,
+    });
     expect(state.loadMoreError()).toBe('Falha ao carregar a vitrine.');
     expect(state.error()).toBeNull();
     expect(state.hasMore()).toBe(true);
