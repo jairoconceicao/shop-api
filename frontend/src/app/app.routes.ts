@@ -9,6 +9,7 @@ import { ProductDetailsPageComponent } from '@domains/catalog/product-details-pa
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
 import { AccountPageComponent } from '@domains/customer/account-page.component';
 import { ProfilePageComponent } from '@domains/customer/profile-page.component';
+import { PasswordPageComponent } from '@domains/customer/password-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 
 export const routes: Routes = [
@@ -64,6 +65,12 @@ export const routes: Routes = [
         component: ProfilePageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Meus dados',
+      },
+      {
+        path: 'account/password',
+        component: PasswordPageComponent,
+        canActivate: [authGuard],
+        title: 'Shop API | Alterar senha',
       },
     ],
   },

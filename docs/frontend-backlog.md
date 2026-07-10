@@ -244,7 +244,7 @@ de perfil.
 
 ### 12. Alteracao de senha
 
-[ ] TASK-095: Implementar rota `/account/password`.
+[x] TASK-095: Implementar rota `/account/password`.
 [ ] TASK-096: Criar formulario com senha atual, nova senha e confirmacao.
 [ ] TASK-097: Aplicar validacoes por schema.
 [ ] TASK-098: Integrar `PUT /api/v1/cliente/{clienteId}/senha`.

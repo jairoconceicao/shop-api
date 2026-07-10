@@ -28,4 +28,12 @@ describe('app routes', () => {
     expect(profileRoute?.canActivate).toEqual([authGuard]);
     expect(profileRoute?.title).toBe('Shop API | Meus dados');
   });
+
+  it('routes account password to the password page and keeps it protected', () => {
+    const passwordRoute = routes[0]?.children?.find((route) => route.path === 'account/password');
+
+    expect(passwordRoute).toBeDefined();
+    expect(passwordRoute?.canActivate).toEqual([authGuard]);
+    expect(passwordRoute?.title).toBe('Shop API | Alterar senha');
+  });
 });
