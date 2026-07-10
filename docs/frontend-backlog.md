@@ -224,7 +224,7 @@ integracao com a API.
 [x] TASK-081: Enviar somente os campos suportados pelo backend atual.
 [x] TASK-082: Tratar sucesso com confirmacao do pedido.
 [x] TASK-083: Tratar erro de carrinho vazio, produto indisponivel e falha de validacao.
-[ ] TASK-084: Criar teste end-to-end do fluxo adicionar ao carrinho e finalizar pedido.
+[x] TASK-084: Criar teste end-to-end do fluxo adicionar ao carrinho e finalizar pedido.
 
 ### 11. Area do cliente
 

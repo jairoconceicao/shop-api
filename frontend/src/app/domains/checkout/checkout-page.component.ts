@@ -299,7 +299,7 @@ import type { PaymentMethod } from '@shared/models';
                     <app-input
                       label="Complemento"
                       autocomplete="address-line2"
-                      [value]="deliveryAddress().complemento"
+                      [value]="deliveryAddress().complemento ?? ''"
                       (valueChange)="setDeliveryAddressField('complemento', $event)"
                     />
                     <app-input

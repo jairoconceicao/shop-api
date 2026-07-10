@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { CartStore } from './cart.store';
 import { createCartSummaryState } from './cart-summary.context';
@@ -76,7 +76,11 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
                 </div>
               </section>
 
-              <app-cart-summary [subtotal]="subtotal()" [shipping]="shipping()">
+              <app-cart-summary
+                [subtotal]="subtotal()"
+                [shipping]="shipping()"
+                (ctaClicked)="goToCheckout()"
+              >
                 <a
                   routerLink="/products"
                   class="border-shop-border text-shop-text hover:border-shop-primary/30 hover:text-shop-primary mt-3 inline-flex w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-bold transition"
@@ -93,6 +97,7 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartPageComponent {
+  private readonly router = inject(Router);
   private readonly cartStore = inject(CartStore);
   private readonly summaryState = createCartSummaryState();
 
@@ -104,4 +109,8 @@ export class CartPageComponent {
 
   protected readonly updateQuantity = this.summaryState.updateQuantity;
   protected readonly removeItem = this.summaryState.removeItem;
+
+  protected goToCheckout(): void {
+    void this.router.navigate(['/checkout']);
+  }
 }

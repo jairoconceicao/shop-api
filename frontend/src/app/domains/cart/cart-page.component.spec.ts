@@ -49,6 +49,7 @@ describe('CartPageComponent', () => {
     expect(screen.getByText('R$ 399,80')).toBeVisible();
     expect(screen.getByText('R$ 499,90')).toBeVisible();
     expect(screen.getByText('R$ 899,70')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Finalizar compra' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Continuar comprando' })).toHaveAttribute(
       'href',
       '/products',
