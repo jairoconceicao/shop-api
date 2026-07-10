@@ -57,6 +57,34 @@ describe('LocalStorageAuthSessionStorageService', () => {
     expect(localStorage.getItem('shop-api.auth.session')).toBeNull();
   });
 
+  it('updates the persisted session token when a session already exists', () => {
+    const service = TestBed.inject(LocalStorageAuthSessionStorageService);
+    const session = {
+      token: 'old-token',
+      tipo: 'Bearer',
+      expiraEm: '2026-07-09T12:00:00Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@shopapi.dev',
+    } satisfies AuthSession;
+
+    service.setSession(session);
+    service.setToken('new-token');
+
+    expect(service.getToken()).toBe('new-token');
+    expect(service.getSession()).toEqual({
+      ...session,
+      token: 'new-token',
+    });
+    expect(localStorage.getItem('shop-api.auth.session')).toBe(
+      JSON.stringify({
+        ...session,
+        token: 'new-token',
+      }),
+    );
+    expect(localStorage.getItem('shop-api.auth.token')).toBeNull();
+  });
+
   it('drops expired sessions before exposing them', () => {
     const service = TestBed.inject(LocalStorageAuthSessionStorageService);
     const expiredSession = {

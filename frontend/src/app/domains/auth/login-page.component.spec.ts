@@ -6,7 +6,7 @@ import '@testing-library/jest-dom/vitest';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { NormalizedApiError } from '@shared/api';
+import { type NormalizedApiError } from '@shared/api';
 import { AuthService } from '@core/auth/auth.service';
 
 import { LoginPageComponent } from './login-page.component';
@@ -81,6 +81,51 @@ describe('LoginPageComponent', () => {
       email: 'cliente@shopapi.dev',
       senha: '12345678',
       lembrarMe: false,
+    });
+  });
+
+  it('submits the remember-me flag when the checkbox is enabled', async () => {
+    authServiceMock.login.mockReturnValue(
+      of({
+        token: 'jwt-token',
+        tipo: 'Bearer',
+        expiraEm: '2026-07-09T12:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@shopapi.dev',
+      }),
+    );
+
+    await render(LoginPageComponent, {
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: authServiceMock,
+        },
+      ],
+    });
+
+    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
+    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
+    const rememberMeCheckbox = screen.getByRole('checkbox', { name: 'Manter-me conectado' }) as HTMLInputElement;
+    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+
+    emailInput.value = 'cliente@shopapi.dev';
+    emailInput.dispatchEvent(new Event('input'));
+    passwordInput.value = '12345678';
+    passwordInput.dispatchEvent(new Event('input'));
+    rememberMeCheckbox.checked = true;
+    rememberMeCheckbox.dispatchEvent(new Event('change'));
+
+    submitButton.click();
+
+    expect(authServiceMock.login).toHaveBeenCalledWith({
+      email: 'cliente@shopapi.dev',
+      senha: '12345678',
+      lembrarMe: true,
     });
   });
 
@@ -200,12 +245,12 @@ describe('LoginPageComponent', () => {
 
     submitButton.click();
     loginRequest.error(
-      new NormalizedApiError({
+      {
         status: 401,
         code: 'UNAUTHORIZED',
         message: 'Credenciais invalidas.',
         details: null,
-      }),
+      } as NormalizedApiError,
     );
 
     expect(screen.getByRole('alert')).toHaveTextContent('Nao foi possivel entrar');
