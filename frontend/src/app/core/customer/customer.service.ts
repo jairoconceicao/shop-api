@@ -2,7 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ApiClientService, normalizeResponseData, type ApiResponse } from '@shared/api';
-import type { CustomerCreateRequest, CustomerDetails, CustomerIdResponse, CustomerUpdateRequest } from '@shared/models';
+import type {
+  CustomerCreateRequest,
+  CustomerDetails,
+  CustomerIdResponse,
+  CustomerUpdateRequest,
+} from '@shared/models';
 
 @Injectable({
   providedIn: 'root',
@@ -26,5 +31,11 @@ export class CustomerService {
     return this.apiClient
       .put<ApiResponse<CustomerDetails>, CustomerUpdateRequest>(`/api/v1/cliente/${clienteId}`, request)
       .pipe(map((response: ApiResponse<CustomerDetails>) => normalizeResponseData(response)));
+  }
+
+  delete(clienteId: number): Observable<void> {
+    return this.apiClient
+      .delete<ApiResponse<void>>(`/api/v1/cliente/${clienteId}`)
+      .pipe(map((response: ApiResponse<void>) => normalizeResponseData(response)));
   }
 }

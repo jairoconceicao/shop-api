@@ -12,12 +12,14 @@ describe('CustomerService', () => {
     post: vi.fn(),
     get: vi.fn(),
     put: vi.fn(),
+    delete: vi.fn(),
   };
 
   beforeEach(() => {
     apiClientMock.post.mockReset();
     apiClientMock.get.mockReset();
     apiClientMock.put.mockReset();
+    apiClientMock.delete.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -160,5 +162,25 @@ describe('CustomerService', () => {
 
     expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20', request, undefined);
     expect(receivedResponses).toEqual([response.data]);
+  });
+
+  it('deletes a customer through DELETE /api/v1/cliente/{clienteId}', () => {
+    const response = {
+      status: true,
+      message: '',
+      data: undefined,
+    } satisfies ApiResponse<void>;
+
+    apiClientMock.delete.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CustomerService);
+    const receivedResponses: void[] = [];
+
+    service.delete(20).subscribe((result) => {
+      receivedResponses.push(result);
+    });
+
+    expect(apiClientMock.delete).toHaveBeenCalledWith('/api/v1/cliente/20', undefined);
+    expect(receivedResponses).toEqual([undefined]);
   });
 });

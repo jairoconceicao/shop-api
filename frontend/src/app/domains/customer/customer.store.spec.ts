@@ -12,6 +12,7 @@ describe('CustomerStore', () => {
   const customerServiceMock = {
     getById: vi.fn(),
     update: vi.fn(),
+    delete: vi.fn(),
   };
 
   const tokenStorageMock = {
@@ -44,6 +45,7 @@ describe('CustomerStore', () => {
   beforeEach(() => {
     customerServiceMock.getById.mockReset();
     customerServiceMock.update.mockReset();
+    customerServiceMock.delete.mockReset();
     tokenStorageMock.getSession.mockReset();
 
     TestBed.configureTestingModule({
@@ -176,6 +178,21 @@ describe('CustomerStore', () => {
       }),
     );
     expect(store.profile()).toEqual(profile);
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBeNull();
+  });
+
+  it('deletes the customer profile through the authenticated session customer id', () => {
+    tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
+    customerServiceMock.delete.mockReturnValue(of(undefined));
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.setProfile(customer({ clienteId: 42 }));
+    store.deleteProfile();
+
+    expect(customerServiceMock.delete).toHaveBeenCalledWith(42);
+    expect(store.profile()).toBeNull();
     expect(store.isLoading()).toBe(false);
     expect(store.error()).toBeNull();
   });

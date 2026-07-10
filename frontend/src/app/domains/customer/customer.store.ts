@@ -151,6 +151,41 @@ export const CustomerStore = signalStore(
                 isLoading: false,
                 error: 'Nao foi possivel atualizar os dados do cliente.',
               });
+          },
+        });
+      },
+
+      deleteProfile(): void {
+        const customerId = Number(store.customerId());
+
+        if (!customerId) {
+          patchState(store, {
+            isLoading: false,
+            error: 'Nao foi possivel cancelar a conta do cliente.',
+          });
+          return;
+        }
+
+        profileSubscription?.unsubscribe();
+        patchState(store, {
+          isLoading: true,
+          error: null,
+        });
+
+        profileSubscription = customerService
+          .delete(customerId)
+          .pipe(finalize(() => {
+            profileSubscription = null;
+          }))
+          .subscribe({
+            next: () => {
+              patchState(store, initialState);
+            },
+            error: () => {
+              patchState(store, {
+                isLoading: false,
+                error: 'Nao foi possivel cancelar a conta do cliente.',
+              });
             },
           });
       },
