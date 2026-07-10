@@ -327,24 +327,32 @@ describe('CheckoutPageComponent', () => {
     await screen.getByRole('button', { name: 'Finalizar pedido' }).click();
 
     expect(orderService.create).toHaveBeenCalledTimes(1);
-    expect(orderService.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        enderecoEntrega: expect.objectContaining({
-          logradouro: 'Rua Central',
-          numero: '100',
-          cep: '01001000',
-        }),
-        formaPagamento: 'Boleto',
-        items: [
-          {
-            itemId: 11,
-            produtoId: 10,
-            quantidade: 2,
-            valorUnitario: 199.95,
-          },
-        ],
-      }),
-    );
+    expect(orderService.create).toHaveBeenCalledWith({
+      enderecoEntrega: {
+        logradouro: 'Rua Central',
+        numero: '100',
+        complemento: 'Apto 12',
+        cep: '01001000',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        uf: 'SP',
+      },
+      formaPagamento: 'Boleto',
+      dataPedido: expect.any(String),
+      items: [
+        {
+          itemId: 11,
+          produtoId: 10,
+          quantidade: 2,
+          valorUnitario: 199.95,
+        },
+      ],
+    });
+
+    const [submittedRequest] = orderService.create.mock.calls[0];
+    expect(Object.keys(submittedRequest)).toEqual(['enderecoEntrega', 'formaPagamento', 'dataPedido', 'items']);
+    expect('clienteId' in submittedRequest).toBe(false);
+    expect('carrinhoId' in submittedRequest).toBe(false);
     expect(screen.getByRole('heading', { name: 'Pedido criado com sucesso' })).toBeVisible();
     expect(screen.getByText(/pedido #9999/i)).toBeVisible();
   });

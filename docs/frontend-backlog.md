@@ -221,7 +221,7 @@ integracao com a API.
 [x] TASK-078: Permitir edicao explicita de `enderecoEntrega` no checkout.
 [x] TASK-079: Implementar selecao de `formaPagamento`.
 [x] TASK-080: Integrar `POST /api/v1/pedido`.
-[ ] TASK-081: Enviar somente os campos suportados pelo backend atual.
+[x] TASK-081: Enviar somente os campos suportados pelo backend atual.
 [ ] TASK-082: Tratar sucesso com confirmacao do pedido.
 [ ] TASK-083: Tratar erro de carrinho vazio, produto indisponivel e falha de validacao.
 [ ] TASK-084: Criar teste end-to-end do fluxo adicionar ao carrinho e finalizar pedido.
