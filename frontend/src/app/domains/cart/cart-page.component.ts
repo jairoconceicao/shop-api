@@ -2,13 +2,20 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 
 import { CartStore } from './cart.store';
-import { ButtonComponent } from '@shared/ui/base/button.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
+import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
+import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
 
 @Component({
   selector: 'app-cart-page',
-  imports: [RouterLink, ButtonComponent, PageContainerComponent, EmptyStateComponent],
+  imports: [
+    RouterLink,
+    PageContainerComponent,
+    EmptyStateComponent,
+    CartItemComponent,
+    CartSummaryComponent,
+  ],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-8">
@@ -59,91 +66,19 @@ import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 
                 <div class="space-y-3">
                   @for (item of items(); track item.itemId) {
-                    <article class="border-shop-border rounded-[1.5rem] border bg-white p-4 shadow-soft">
-                      <div class="flex items-start justify-between gap-4">
-                        <div class="min-w-0">
-                          <p class="text-shop-text text-lg font-bold">
-                            Produto #{{ item.produtoId }}
-                          </p>
-                          <p class="text-shop-text-muted mt-1 text-sm">
-                            Item #{{ item.itemId }} • Quantidade {{ item.quantidade }}
-                          </p>
-                        </div>
-
-                        <p class="text-shop-price text-right text-lg font-black">
-                          {{ formatCurrency(itemTotal(item)) }}
-                        </p>
-                      </div>
-
-                      <dl class="mt-4 grid gap-3 sm:grid-cols-3">
-                        <div class="rounded-2xl bg-shop-surface-muted p-3">
-                          <dt class="text-shop-text-light text-xs font-bold tracking-[0.24em] uppercase">
-                            Unitário
-                          </dt>
-                          <dd class="text-shop-text mt-2 text-sm font-semibold">
-                            {{ formatCurrency(item.valorUnitario) }}
-                          </dd>
-                        </div>
-
-                        <div class="rounded-2xl bg-shop-surface-muted p-3">
-                          <dt class="text-shop-text-light text-xs font-bold tracking-[0.24em] uppercase">
-                            Quantidade
-                          </dt>
-                          <dd class="text-shop-text mt-2 text-sm font-semibold">
-                            {{ item.quantidade }}
-                          </dd>
-                        </div>
-
-                        <div class="rounded-2xl bg-shop-surface-muted p-3">
-                          <dt class="text-shop-text-light text-xs font-bold tracking-[0.24em] uppercase">
-                            Subtotal
-                          </dt>
-                          <dd class="text-shop-text mt-2 text-sm font-semibold">
-                            {{ formatCurrency(itemTotal(item)) }}
-                          </dd>
-                        </div>
-                      </dl>
-                    </article>
+                    <app-cart-item [item]="item" />
                   }
                 </div>
               </section>
 
-              <aside class="rounded-[1.75rem] border border-shop-border bg-shop-background p-5 shadow-soft lg:sticky lg:top-6">
-                <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
-                  Resumo
-                </p>
-                <h2 class="text-shop-text mt-2 text-2xl font-black tracking-tight">
-                  Total do pedido
-                </h2>
-
-                <div class="mt-5 space-y-3 text-sm text-shop-text-muted">
-                  <div class="flex items-center justify-between gap-4">
-                    <span>Produtos</span>
-                    <span>{{ formatCurrency(subtotal()) }}</span>
-                  </div>
-                  <div class="flex items-center justify-between gap-4">
-                    <span>Frete</span>
-                    <span class="text-shop-free-shipping">{{ formatCurrency(shipping()) }}</span>
-                  </div>
-                  <div class="border-shop-border flex items-center justify-between gap-4 border-t pt-4 text-lg font-black text-shop-text">
-                    <span>Total</span>
-                    <span>{{ formatCurrency(total()) }}</span>
-                  </div>
-                </div>
-
-                <div class="mt-6">
-                  <app-button type="button" size="lg" [block]="true">
-                    Finalizar compra
-                  </app-button>
-                </div>
-
+              <app-cart-summary [subtotal]="subtotal()" [shipping]="shipping()">
                 <a
                   routerLink="/products"
                   class="border-shop-border text-shop-text hover:border-shop-primary/30 hover:text-shop-primary mt-3 inline-flex w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-bold transition"
                 >
                   Continuar comprando
                 </a>
-              </aside>
+              </app-cart-summary>
             </div>
           }
         </article>
@@ -160,24 +95,4 @@ export class CartPageComponent {
   protected readonly subtotal = this.cartStore.subtotal;
   protected readonly isEmpty = this.cartStore.isEmpty;
   protected readonly shipping = computed(() => 0);
-  protected readonly total = computed(() => this.subtotal() + this.shipping());
-
-  protected itemTotal(item: { quantidade: number | string; valorUnitario: number | string }): number {
-    return toNumber(item.quantidade) * toNumber(item.valorUnitario);
-  }
-
-  protected formatCurrency(value: number | string): string {
-    const numericValue = toNumber(value);
-
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(numericValue);
-  }
-}
-
-function toNumber(value: number | string): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
-
-  return Number.isFinite(parsed) ? parsed : 0;
 }
