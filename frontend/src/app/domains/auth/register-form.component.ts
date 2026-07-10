@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
+import { CustomerService } from '@core/customer/customer.service';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { CheckboxComponent } from '@shared/ui/base/checkbox.component';
 import { FormErrorComponent } from '@shared/ui/base/form-error.component';
@@ -232,7 +234,7 @@ import {
         </fieldset>
 
         <div class="flex flex-col gap-3 sm:flex-row">
-          <app-button type="submit" size="lg" [block]="true">Criar conta</app-button>
+          <app-button type="submit" size="lg" [block]="true" [disabled]="isSubmitting()">Criar conta</app-button>
           <a
             routerLink="/login"
             class="inline-flex items-center justify-center rounded-2xl border border-shop-border px-5 py-3.5 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
@@ -246,8 +248,10 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterFormComponent {
+  private readonly customerService = inject(CustomerService);
   readonly form = signal<RegisterFormValue>(createEmptyRegisterFormValue());
   private readonly submitAttempted = signal(false);
+  protected readonly isSubmitting = signal(false);
   private readonly validationErrors = signal<RegisterFormErrors>(createEmptyRegisterFormErrors());
   protected readonly registerFormCpfMask = registerFormCpfMask;
   protected readonly registerFormCepMask = registerFormCepMask;
@@ -266,6 +270,33 @@ export class RegisterFormComponent {
     if (!result.success) {
       return;
     }
+
+    this.isSubmitting.set(true);
+
+    this.customerService
+      .create({
+        senha: candidate.senha,
+        cpf: candidate.cpf,
+        nome: candidate.nome,
+        dataNascimento: candidate.dataNascimento,
+        email: candidate.email,
+        endereco: {
+          logradouro: candidate.endereco.logradouro,
+          numero: candidate.endereco.numero,
+          complemento: candidate.endereco.complemento || null,
+          cep: candidate.endereco.cep,
+          bairro: candidate.endereco.bairro,
+          cidade: candidate.endereco.cidade,
+          uf: candidate.endereco.uf,
+        },
+        celular: {
+          ddd: candidate.celular.ddd,
+          numero: candidate.celular.numero,
+          whatsApp: candidate.celular.whatsApp,
+        },
+      })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe();
   }
 
   setPersonalField(field: 'nome' | 'cpf' | 'dataNascimento' | 'email' | 'senha', value: string): void {

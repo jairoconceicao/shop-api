@@ -2,14 +2,40 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { of } from 'rxjs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NgxMaskDirective, provideEnvironmentNgxMask } from 'ngx-mask';
 
+import { CustomerService } from '@core/customer/customer.service';
+import type { CustomerIdResponse } from '@shared/models';
+
 import { RegisterFormComponent } from './register-form.component';
+import { createEmptyRegisterFormValue } from './register-form.context';
 
 describe('RegisterFormComponent', () => {
+  const customerServiceMock = {
+    create: vi.fn(),
+  };
+
+  beforeEach(() => {
+    customerServiceMock.create.mockReset();
+    customerServiceMock.create.mockReturnValue(
+      of({
+        clienteId: 20,
+      } satisfies CustomerIdResponse),
+    );
+  });
+
   it('renders the registration form groups', async () => {
     const { fixture } = await render(RegisterFormComponent, {
-      providers: [provideRouter([]), provideEnvironmentNgxMask()],
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
     });
 
     const maskDirectives = fixture.debugElement.queryAll(By.directive(NgxMaskDirective));
@@ -47,7 +73,14 @@ describe('RegisterFormComponent', () => {
 
   it('renders schema validation feedback when the form is submitted empty', async () => {
     await render(RegisterFormComponent, {
-      providers: [provideRouter([]), provideEnvironmentNgxMask()],
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
     });
 
     screen.getByRole('button', { name: 'Criar conta' }).click();
@@ -65,5 +98,65 @@ describe('RegisterFormComponent', () => {
     expect(screen.getByText('UF e obrigatoria.')).toBeVisible();
     expect(screen.getByText('DDD e obrigatorio.')).toBeVisible();
     expect(screen.getByText('Numero de celular e obrigatorio.')).toBeVisible();
+  });
+
+  it('submits a normalized customer creation payload to the API', async () => {
+    const { fixture } = await render(RegisterFormComponent, {
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
+    });
+
+    fixture.componentInstance.form.set({
+      ...createEmptyRegisterFormValue(),
+      nome: '  Cliente Shop  ',
+      cpf: '123.456.789-01',
+      dataNascimento: '1990-01-01',
+      email: ' cliente@shopapi.dev ',
+      senha: '12345678',
+      endereco: {
+        logradouro: '  Rua Central ',
+        numero: ' 100 ',
+        complemento: ' Apt 10 ',
+        cep: '01001-000',
+        bairro: ' Centro ',
+        cidade: ' Sao Paulo ',
+        uf: 'sp',
+      },
+      celular: {
+        ddd: '(11)',
+        numero: '99999-9999',
+        whatsApp: true,
+      },
+    });
+
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+
+    expect(customerServiceMock.create).toHaveBeenCalledWith({
+      senha: '12345678',
+      cpf: '12345678901',
+      nome: 'Cliente Shop',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shopapi.dev',
+      endereco: {
+        logradouro: 'Rua Central',
+        numero: '100',
+        complemento: 'Apt 10',
+        cep: '01001000',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        uf: 'SP',
+      },
+      celular: {
+        ddd: '11',
+        numero: '999999999',
+        whatsApp: true,
+      },
+    });
   });
 });
