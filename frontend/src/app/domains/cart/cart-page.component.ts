@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CartStore } from './cart.store';
+import { createCartSummaryState } from './cart-summary.context';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
@@ -66,7 +67,11 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
 
                 <div class="space-y-3">
                   @for (item of items(); track item.itemId) {
-                    <app-cart-item [item]="item" />
+                    <app-cart-item
+                      [item]="item"
+                      (quantityChange)="updateQuantity(item.produtoId, $event)"
+                      (remove)="removeItem(item.itemId)"
+                    />
                   }
                 </div>
               </section>
@@ -89,10 +94,14 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
 })
 export class CartPageComponent {
   private readonly cartStore = inject(CartStore);
+  private readonly summaryState = createCartSummaryState();
 
   protected readonly items = this.cartStore.items;
   protected readonly itemCount = this.cartStore.itemCount;
-  protected readonly subtotal = this.cartStore.subtotal;
   protected readonly isEmpty = this.cartStore.isEmpty;
-  protected readonly shipping = computed(() => 0);
+  protected readonly subtotal = this.summaryState.subtotal;
+  protected readonly shipping = this.summaryState.shipping;
+
+  protected readonly updateQuantity = this.summaryState.updateQuantity;
+  protected readonly removeItem = this.summaryState.removeItem;
 }

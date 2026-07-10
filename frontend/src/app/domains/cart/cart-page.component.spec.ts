@@ -1,6 +1,7 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 
 import { CartStore } from './cart.store';
@@ -19,6 +20,8 @@ describe('CartPageComponent', () => {
   });
 
   it('renders the cart items and summary when the store has items', async () => {
+    const user = userEvent.setup();
+
     await render(CartPageComponent, {
       providers: [provideRouter([]), CartStore],
     });
@@ -50,5 +53,10 @@ describe('CartPageComponent', () => {
       'href',
       '/products',
     );
+
+    await user.click(screen.getAllByRole('button', { name: 'Aumentar quantidade' })[0]);
+
+    expect(await screen.findByText('R$ 599,70')).toBeVisible();
+    expect(screen.getByText('R$ 1.099,60')).toBeVisible();
   });
 });

@@ -210,7 +210,7 @@ integracao com a API.
 [x] TASK-070: Integrar `DELETE /api/v1/carrinho/items/{itemId}` para remocao.
 [x] TASK-071: Implementar rota `/cart`.
 [x] TASK-072: Implementar componentes `CartButton`, `CartItem`, `CartSummary` e `QuantitySelector`.
-[ ] TASK-073: Manter resumo de valores consistente apos alteracoes.
+[x] TASK-073: Manter resumo de valores consistente apos alteracoes.
 [ ] TASK-074: Criar testes unitarios da store e testes de fluxo do carrinho.
 
 ### 10. Checkout
