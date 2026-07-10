@@ -232,7 +232,7 @@ Observacao: a rota `/account` ja existe como placeholder, sem fluxo funcional
 de perfil.
 
 [x] TASK-085: Criar store de dominio `Customer` com NgRx SignalStore.
-[ ] TASK-086: Implementar rota `/account`.
+[x] TASK-086: Implementar rota `/account`.
 [ ] TASK-087: Implementar rota `/account/profile`.
 [ ] TASK-088: Integrar `GET /api/v1/cliente/{clienteId}`.
 [ ] TASK-089: Integrar `PUT /api/v1/cliente/{clienteId}`.

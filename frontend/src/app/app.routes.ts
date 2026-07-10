@@ -7,8 +7,8 @@ import { CheckoutPageComponent } from '@domains/checkout/checkout-page.component
 import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
+import { AccountPageComponent } from '@domains/customer/account-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
-import { PlaceholderPageComponent } from '@shared/ui/placeholder-page.component';
 
 export const routes: Routes = [
   {
@@ -54,15 +54,9 @@ export const routes: Routes = [
       },
       {
         path: 'account',
-        component: PlaceholderPageComponent,
+        component: AccountPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Minha conta',
-        data: {
-          eyebrow: 'Conta',
-          title: 'Area do cliente isolada por dominio.',
-          description:
-            'A fundacao ja separa rotas publicas e privadas para integrar perfil, senha e pedidos sem misturar o layout base.',
-        },
       },
     ],
   },
