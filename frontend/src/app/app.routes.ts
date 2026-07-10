@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@core/auth/auth.guard';
 import { AppShellComponent } from '@core/layout/app-shell.component';
 import { LoginPageComponent } from '@domains/auth/login-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
@@ -33,6 +34,7 @@ export const routes: Routes = [
       {
         path: 'cart',
         component: PlaceholderPageComponent,
+        canActivate: [authGuard],
         title: 'Shop API | Carrinho',
         data: {
           eyebrow: 'Carrinho',
@@ -44,6 +46,7 @@ export const routes: Routes = [
       {
         path: 'account',
         component: PlaceholderPageComponent,
+        canActivate: [authGuard],
         title: 'Shop API | Minha conta',
         data: {
           eyebrow: 'Conta',
