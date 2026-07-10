@@ -20,6 +20,11 @@ export interface RegisterFormValue {
   };
 }
 
+export const registerFormCpfMask = '000.000.000-00';
+export const registerFormCepMask = '00000-000';
+export const registerFormDddMask = '00';
+export const registerFormPhoneMask = '00000-0000';
+
 export const registerFormUfOptions = [
   'AC',
   'AL',

@@ -7,6 +7,10 @@ import { InputComponent } from '@shared/ui/base/input.component';
 
 import {
   createEmptyRegisterFormValue,
+  registerFormCepMask,
+  registerFormCpfMask,
+  registerFormDddMask,
+  registerFormPhoneMask,
   registerFormUfOptions,
   type RegisterFormValue,
 } from './register-form.context';
@@ -48,8 +52,9 @@ import {
               label="CPF"
               autocomplete="off"
               inputMode="numeric"
-              placeholder="12345678901"
-              hint="Informe o CPF sem pontuacao."
+              placeholder="123.456.789-01"
+              hint="A mascara sera aplicada automaticamente."
+              [mask]="registerFormCpfMask"
               [value]="form().cpf"
               (valueChange)="setPersonalField('cpf', $event)"
             />
@@ -90,8 +95,9 @@ import {
               label="CEP"
               autocomplete="postal-code"
               inputMode="numeric"
-              placeholder="01001000"
-              hint="Informe o CEP sem pontuacao."
+              placeholder="01001-000"
+              hint="A mascara sera aplicada automaticamente."
+              [mask]="registerFormCepMask"
               [value]="form().endereco.cep"
               (valueChange)="setAddressField('cep', $event)"
             />
@@ -163,6 +169,7 @@ import {
               inputMode="numeric"
               placeholder="11"
               hint="Dois digitos do seu DDD."
+              [mask]="registerFormDddMask"
               [value]="form().celular.ddd"
               (valueChange)="setCellphoneField('ddd', $event)"
             />
@@ -171,7 +178,8 @@ import {
               label="Telefone celular"
               type="tel"
               autocomplete="tel-national"
-              placeholder="999999999"
+              placeholder="99999-9999"
+              [mask]="registerFormPhoneMask"
               [value]="form().celular.numero"
               (valueChange)="setCellphoneField('numero', $event)"
             />
@@ -201,6 +209,10 @@ import {
 })
 export class RegisterFormComponent {
   readonly form = signal<RegisterFormValue>(createEmptyRegisterFormValue());
+  protected readonly registerFormCpfMask = registerFormCpfMask;
+  protected readonly registerFormCepMask = registerFormCepMask;
+  protected readonly registerFormDddMask = registerFormDddMask;
+  protected readonly registerFormPhoneMask = registerFormPhoneMask;
   protected readonly ufOptions = registerFormUfOptions;
 
   handleSubmit(event: Event): void {

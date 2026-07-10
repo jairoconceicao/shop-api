@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, input } from '@angular/core';
+import { NgxMaskDirective } from 'ngx-mask';
 import { createUiId } from './ui-id';
 import { FormErrorComponent } from './form-error.component';
 
@@ -7,9 +8,9 @@ type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'num
 
 @Component({
   selector: 'app-input',
-  imports: [NgClass, FormErrorComponent],
+  imports: [NgClass, FormErrorComponent, NgxMaskDirective],
   template: `
-    <label class="block">
+    <label class="block" [for]="id()">
       <span class="mb-2 block text-sm font-semibold text-shop-text">
         {{ label() }}
         @if (required()) {
@@ -17,23 +18,46 @@ type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'num
         }
       </span>
 
-      <input
-        [id]="id()"
-        [type]="type()"
-        [value]="value()"
-        [placeholder]="placeholder()"
-        [name]="name() || null"
-        [autocomplete]="autocomplete() || null"
-        [disabled]="disabled()"
-        [readonly]="readonly()"
-        [required]="required()"
-        [attr.inputmode]="inputMode() || null"
-        [attr.aria-invalid]="isInvalid() ? 'true' : null"
-        [attr.aria-describedby]="describedBy() || null"
-        [ngClass]="classes()"
-        (input)="handleInput($event)"
-        (blur)="handleBlur()"
-      />
+      @if (mask()) {
+        <input
+          [id]="id()"
+          [type]="type()"
+          [value]="value()"
+          [placeholder]="placeholder()"
+          [name]="name() || null"
+          [autocomplete]="autocomplete() || null"
+          [disabled]="disabled()"
+          [readonly]="readonly()"
+          [required]="required()"
+          [mask]="mask()"
+          [dropSpecialCharacters]="dropSpecialCharacters()"
+          [clearIfNotMatch]="clearIfNotMatch()"
+          [attr.inputmode]="inputMode() || null"
+          [attr.aria-invalid]="isInvalid() ? 'true' : null"
+          [attr.aria-describedby]="describedBy() || null"
+          [ngClass]="classes()"
+          (input)="handleInput($event)"
+          (blur)="handleBlur()"
+        />
+      } @else {
+        <input
+          [id]="id()"
+          [type]="type()"
+          [value]="value()"
+          [placeholder]="placeholder()"
+          [name]="name() || null"
+          [autocomplete]="autocomplete() || null"
+          [disabled]="disabled()"
+          [readonly]="readonly()"
+          [required]="required()"
+          [attr.inputmode]="inputMode() || null"
+          [attr.aria-invalid]="isInvalid() ? 'true' : null"
+          [attr.aria-describedby]="describedBy() || null"
+          [ngClass]="classes()"
+          (input)="handleInput($event)"
+          (blur)="handleBlur()"
+        />
+      }
 
       @if (hint()) {
         <p [id]="hintId()" class="mt-2 text-sm text-shop-text-muted">{{ hint() }}</p>
@@ -54,6 +78,9 @@ export class InputComponent {
   readonly autocomplete = input('');
   readonly inputMode = input('');
   readonly hint = input('');
+  readonly mask = input('');
+  readonly dropSpecialCharacters = input(true);
+  readonly clearIfNotMatch = input(false);
   readonly error = input<string | readonly string[] | null>(null);
   readonly disabled = input(false);
   readonly readonly = input(false);

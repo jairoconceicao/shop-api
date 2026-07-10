@@ -1,14 +1,18 @@
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { NgxMaskDirective, provideEnvironmentNgxMask } from 'ngx-mask';
 
 import { RegisterFormComponent } from './register-form.component';
 
 describe('RegisterFormComponent', () => {
   it('renders the registration form groups', async () => {
-    await render(RegisterFormComponent, {
-      providers: [provideRouter([])],
+    const { fixture } = await render(RegisterFormComponent, {
+      providers: [provideRouter([]), provideEnvironmentNgxMask()],
     });
+
+    const maskDirectives = fixture.debugElement.queryAll(By.directive(NgxMaskDirective));
 
     expect(screen.getByRole('heading', { name: 'Dados pessoais, endereco e celular' })).toBeVisible();
     expect(screen.getByText('Dados pessoais', { selector: 'legend' })).toBeVisible();
@@ -31,5 +35,13 @@ describe('RegisterFormComponent', () => {
     expect(screen.getByRole('checkbox', { name: 'Este numero usa WhatsApp' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Criar conta' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ja tenho conta' })).toHaveAttribute('href', '/login');
+
+    expect(maskDirectives).toHaveLength(4);
+    expect(maskDirectives.map((debugElement) => debugElement.injector.get(NgxMaskDirective).mask())).toEqual([
+      '000.000.000-00',
+      '00000-000',
+      '00',
+      '00000-0000',
+    ]);
   });
 });

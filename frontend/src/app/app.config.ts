@@ -5,6 +5,7 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideEnvironmentNgxMask } from 'ngx-mask';
 
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthSessionStorage } from './core/auth/auth-session-storage';
@@ -15,6 +16,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
+    provideEnvironmentNgxMask(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     {
       provide: AuthSessionStorage,

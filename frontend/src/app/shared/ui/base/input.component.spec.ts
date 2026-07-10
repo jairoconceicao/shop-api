@@ -1,5 +1,7 @@
+import { By } from '@angular/platform-browser';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { NgxMaskDirective, provideEnvironmentNgxMask } from 'ngx-mask';
 
 import { InputComponent } from './input.component';
 
@@ -19,6 +21,7 @@ describe('InputComponent', () => {
       `,
       {
         imports: [InputComponent],
+        providers: [provideEnvironmentNgxMask()],
         componentProperties: {
           value: 'cliente@shopapi.dev',
           onValueChange: (val: string) => emittedValues.push(val),
@@ -51,6 +54,7 @@ describe('InputComponent', () => {
       `,
       {
         imports: [InputComponent],
+        providers: [provideEnvironmentNgxMask()],
       },
     );
 
@@ -62,5 +66,29 @@ describe('InputComponent', () => {
     expect(input).toHaveAttribute('aria-describedby');
     expect(screen.getByText('Use o nome cadastrado.')).toBeVisible();
     expect(screen.getByRole('alert')).toHaveTextContent('Nome obrigatorio');
+  });
+
+  it('forwards mask configuration to ngx-mask', async () => {
+    const { fixture } = await render(
+      `
+        <app-input
+          label="CPF"
+          mask="000.000.000-00"
+          [dropSpecialCharacters]="true"
+          [clearIfNotMatch]="false"
+        />
+      `,
+      {
+        imports: [InputComponent],
+        providers: [provideEnvironmentNgxMask()],
+      },
+    );
+
+    const maskDirective = fixture.debugElement.query(By.directive(NgxMaskDirective));
+
+    expect(maskDirective).not.toBeNull();
+    expect(maskDirective?.injector.get(NgxMaskDirective).mask()).toBe('000.000.000-00');
+    expect(maskDirective?.injector.get(NgxMaskDirective).dropSpecialCharacters()).toBe(true);
+    expect(maskDirective?.injector.get(NgxMaskDirective).clearIfNotMatch()).toBe(false);
   });
 });
