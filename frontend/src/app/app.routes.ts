@@ -8,6 +8,7 @@ import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
 import { AccountPageComponent } from '@domains/customer/account-page.component';
+import { ProfilePageComponent } from '@domains/customer/profile-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 
 export const routes: Routes = [
@@ -57,6 +58,12 @@ export const routes: Routes = [
         component: AccountPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Minha conta',
+      },
+      {
+        path: 'account/profile',
+        component: ProfilePageComponent,
+        canActivate: [authGuard],
+        title: 'Shop API | Meus dados',
       },
     ],
   },

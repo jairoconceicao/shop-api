@@ -20,4 +20,12 @@ describe('app routes', () => {
     expect(accountRoute?.canActivate).toEqual([authGuard]);
     expect(accountRoute?.title).toBe('Shop API | Minha conta');
   });
+
+  it('routes account profile to the customer profile page and keeps it protected', () => {
+    const profileRoute = routes[0]?.children?.find((route) => route.path === 'account/profile');
+
+    expect(profileRoute).toBeDefined();
+    expect(profileRoute?.canActivate).toEqual([authGuard]);
+    expect(profileRoute?.title).toBe('Shop API | Meus dados');
+  });
 });
