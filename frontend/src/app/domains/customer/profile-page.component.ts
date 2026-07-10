@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CustomerStore } from './customer.store';
@@ -74,7 +74,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfilePageComponent {
+export class ProfilePageComponent implements OnInit {
   private readonly customerStore = inject(CustomerStore);
 
   protected readonly customerName = computed(() => this.customerStore.displayName() || 'Cliente');
@@ -93,4 +93,8 @@ export class ProfilePageComponent {
       .join(', ');
   });
   protected readonly customerBirthDate = computed(() => this.customerStore.profile()?.dataNascimento ?? 'Nao informado');
+
+  ngOnInit(): void {
+    this.customerStore.loadProfile();
+  }
 }

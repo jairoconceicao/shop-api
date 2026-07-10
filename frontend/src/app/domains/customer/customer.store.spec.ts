@@ -1,10 +1,22 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CustomerService } from '@core/customer/customer.service';
+import { TokenStorageService } from '@core/auth/token-storage.service';
 import type { CustomerDetails } from '@shared/models';
 
 import { CustomerStore } from './customer.store';
 
 describe('CustomerStore', () => {
+  const customerServiceMock = {
+    getById: vi.fn(),
+  };
+
+  const tokenStorageMock = {
+    getSession: vi.fn(),
+  };
+
   const customer = (overrides: Partial<CustomerDetails> = {}): CustomerDetails => ({
     clienteId: 7,
     cpf: '12345678901',
@@ -26,6 +38,23 @@ describe('CustomerStore', () => {
       whatsApp: true,
     },
     ...overrides,
+  });
+
+  beforeEach(() => {
+    customerServiceMock.getById.mockReset();
+    tokenStorageMock.getSession.mockReset();
+
+    TestBed.configureTestingModule({
+      providers: [
+        CustomerStore,
+        { provide: CustomerService, useValue: customerServiceMock },
+        { provide: TokenStorageService, useValue: tokenStorageMock },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
   });
 
   it('starts without a profile and exposes empty derived state', () => {
@@ -90,5 +119,34 @@ describe('CustomerStore', () => {
     expect(store.isEmpty()).toBe(true);
     expect(store.isLoading()).toBe(false);
     expect(store.error()).toBeNull();
+  });
+
+  it('loads the customer profile from the authenticated session', () => {
+    const profile = customer({ clienteId: 42, nome: 'Cliente Autenticado' });
+    tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
+    customerServiceMock.getById.mockReturnValue(of(profile));
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.loadProfile();
+
+    expect(tokenStorageMock.getSession).toHaveBeenCalledTimes(1);
+    expect(customerServiceMock.getById).toHaveBeenCalledWith(42);
+    expect(store.profile()).toEqual(profile);
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBeNull();
+  });
+
+  it('reports a session error when the customer id is missing', () => {
+    tokenStorageMock.getSession.mockReturnValue(null);
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.loadProfile();
+
+    expect(customerServiceMock.getById).not.toHaveBeenCalled();
+    expect(store.profile()).toBeNull();
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBe('Sessao do cliente indisponivel.');
   });
 });

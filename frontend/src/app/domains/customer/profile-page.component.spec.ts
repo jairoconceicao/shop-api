@@ -1,20 +1,19 @@
-import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
 import { CustomerStore } from './customer.store';
 import { ProfilePageComponent } from './profile-page.component';
 
 describe('ProfilePageComponent', () => {
-  it('renders the customer profile summary', async () => {
-    const customerStore = TestBed.inject(CustomerStore);
-    customerStore.setProfile({
-      clienteId: 42,
-      cpf: '12345678901',
-      nome: 'Cliente Shop',
-      dataNascimento: '1990-01-01',
-      email: 'cliente@shop.com',
+  const createStoreMock = (overrides: Partial<Record<string, unknown>> = {}) => ({
+    loadProfile: vi.fn(),
+    displayName: vi.fn(() => 'Cliente Shop'),
+    email: vi.fn(() => 'cliente@shop.com'),
+    cpf: vi.fn(() => '12345678901'),
+    primaryPhone: vi.fn(() => '(11) 999999999'),
+    profile: vi.fn(() => ({
       endereco: {
         logradouro: 'Rua Central',
         numero: '100',
@@ -24,17 +23,22 @@ describe('ProfilePageComponent', () => {
         cidade: 'Sao Paulo',
         uf: 'SP',
       },
-      celular: {
-        ddd: '11',
-        numero: '999999999',
-        whatsApp: true,
-      },
-    });
+      dataNascimento: '1990-01-01',
+    })),
+    ...overrides,
+  });
+
+  it('loads the authenticated customer profile when the page initializes', async () => {
+    const customerStoreMock = createStoreMock();
 
     await render(ProfilePageComponent, {
-      providers: [provideRouter([]), CustomerStore],
+      providers: [
+        provideRouter([]),
+        { provide: CustomerStore, useValue: customerStoreMock },
+      ],
     });
 
+    expect(customerStoreMock.loadProfile).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('heading', { name: 'Meus dados' })).toBeVisible();
     expect(screen.getByText('cliente@shop.com')).toBeVisible();
     expect(screen.getByText('12345678901')).toBeVisible();
@@ -45,8 +49,19 @@ describe('ProfilePageComponent', () => {
   });
 
   it('falls back to empty profile values when no customer is loaded', async () => {
+    const customerStoreMock = createStoreMock({
+      displayName: vi.fn(() => ''),
+      email: vi.fn(() => ''),
+      cpf: vi.fn(() => ''),
+      primaryPhone: vi.fn(() => ''),
+      profile: vi.fn(() => null),
+    });
+
     await render(ProfilePageComponent, {
-      providers: [provideRouter([]), CustomerStore],
+      providers: [
+        provideRouter([]),
+        { provide: CustomerStore, useValue: customerStoreMock },
+      ],
     });
 
     expect(screen.getByText('Cliente')).toBeVisible();
