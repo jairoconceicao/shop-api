@@ -2,12 +2,13 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NgxMaskDirective, provideEnvironmentNgxMask } from 'ngx-mask';
 
 import { CustomerService } from '@core/customer/customer.service';
 import type { CustomerIdResponse } from '@shared/models';
+import { NormalizedApiError } from '@shared/api/api-error.model';
 
 import { RegisterFormComponent } from './register-form.component';
 import { createEmptyRegisterFormValue } from './register-form.context';
@@ -158,5 +159,127 @@ describe('RegisterFormComponent', () => {
         whatsApp: true,
       },
     });
+  });
+
+  it('renders API validation feedback when the backend rejects the registration', async () => {
+    customerServiceMock.create.mockReturnValue(
+      throwError(
+        () =>
+          new NormalizedApiError({
+            status: 422,
+            code: 'VALIDATION_ERROR',
+            message: 'Dados invalidos para o cadastro do cliente.',
+            details: [
+              {
+                code: 'CLIENTE_EMAIL_INVALIDO',
+                message: 'Email ja cadastrado.',
+                propertyName: 'Email',
+              },
+              {
+                code: 'CLIENTE_CELULAR_NUMERO_INVALIDO',
+                message: 'Numero de celular invalido.',
+                propertyName: 'Celular.Numero',
+              },
+            ],
+          }),
+      ),
+    );
+
+    const { fixture } = await render(RegisterFormComponent, {
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
+    });
+
+    fixture.componentInstance.form.set({
+      ...createEmptyRegisterFormValue(),
+      nome: 'Cliente Shop',
+      cpf: '123.456.789-01',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shopapi.dev',
+      senha: '12345678',
+      endereco: {
+        logradouro: 'Rua Central',
+        numero: '100',
+        complemento: 'Apto 10',
+        cep: '01001-000',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        uf: 'SP',
+      },
+      celular: {
+        ddd: '11',
+        numero: '99999-9999',
+        whatsApp: true,
+      },
+    });
+
+    screen.getByRole('button', { name: 'Criar conta' }).click();
+
+    expect(await screen.findByText('Email ja cadastrado.')).toBeVisible();
+    expect(await screen.findByText('Numero de celular invalido.')).toBeVisible();
+    expect(screen.queryByText('Dados invalidos para o cadastro do cliente.')).not.toBeInTheDocument();
+  });
+
+  it('renders a conflict message and field feedback when the backend detects duplicated data', async () => {
+    customerServiceMock.create.mockReturnValue(
+      throwError(
+        () =>
+          new NormalizedApiError({
+            status: 409,
+            code: 'CONFLICT_ERROR',
+            message: 'Ja existe um cadastro com estes dados.',
+            details: {
+              cpf: ['CPF ja cadastrado.'],
+              email: ['E-mail ja cadastrado.'],
+            },
+          }),
+      ),
+    );
+
+    const { fixture } = await render(RegisterFormComponent, {
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
+    });
+
+    fixture.componentInstance.form.set({
+      ...createEmptyRegisterFormValue(),
+      nome: 'Cliente Shop',
+      cpf: '123.456.789-01',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shopapi.dev',
+      senha: '12345678',
+      endereco: {
+        logradouro: 'Rua Central',
+        numero: '100',
+        complemento: 'Apto 10',
+        cep: '01001-000',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        uf: 'SP',
+      },
+      celular: {
+        ddd: '11',
+        numero: '99999-9999',
+        whatsApp: true,
+      },
+    });
+
+    screen.getByRole('button', { name: 'Criar conta' }).click();
+
+    expect(await screen.findByText('Ja existe um cadastro com estes dados.')).toBeVisible();
+    expect(await screen.findByText('CPF ja cadastrado.')).toBeVisible();
+    expect(await screen.findByText('E-mail ja cadastrado.')).toBeVisible();
   });
 });

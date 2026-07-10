@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { CustomerService } from '@core/customer/customer.service';
+import type { NormalizedApiError } from '@shared/api';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { CheckboxComponent } from '@shared/ui/base/checkbox.component';
 import { FormErrorComponent } from '@shared/ui/base/form-error.component';
@@ -233,6 +234,10 @@ import {
           />
         </fieldset>
 
+        @if (submissionError()) {
+          <app-form-error [error]="submissionError()" />
+        }
+
         <div class="flex flex-col gap-3 sm:flex-row">
           <app-button type="submit" size="lg" [block]="true" [disabled]="isSubmitting()">Criar conta</app-button>
           <a
@@ -253,6 +258,8 @@ export class RegisterFormComponent {
   private readonly submitAttempted = signal(false);
   protected readonly isSubmitting = signal(false);
   private readonly validationErrors = signal<RegisterFormErrors>(createEmptyRegisterFormErrors());
+  private readonly apiErrors = signal<RegisterFormErrors>(createEmptyRegisterFormErrors());
+  protected readonly submissionError = signal<string | null>(null);
   protected readonly registerFormCpfMask = registerFormCpfMask;
   protected readonly registerFormCepMask = registerFormCepMask;
   protected readonly registerFormDddMask = registerFormDddMask;
@@ -262,6 +269,8 @@ export class RegisterFormComponent {
   handleSubmit(event: Event): void {
     event.preventDefault();
     this.submitAttempted.set(true);
+    this.apiErrors.set(createEmptyRegisterFormErrors());
+    this.submissionError.set(null);
 
     const candidate = normalizeRegisterFormValue(this.form());
     const result = registerFormSchema.validate(candidate);
@@ -296,7 +305,22 @@ export class RegisterFormComponent {
         },
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe();
+      .subscribe({
+        next: () => {
+          this.apiErrors.set(createEmptyRegisterFormErrors());
+          this.submissionError.set(null);
+        },
+        error: (error: unknown) => {
+          if (!isNormalizedApiError(error)) {
+            this.submissionError.set('Nao foi possivel criar sua conta. Tente novamente.');
+            return;
+          }
+
+          const apiErrors = mapRegisterApiErrors(error.details);
+          this.apiErrors.set(apiErrors);
+          this.submissionError.set(resolveRegisterSubmissionErrorMessage(error, apiErrors));
+        },
+      });
   }
 
   setPersonalField(field: 'nome' | 'cpf' | 'dataNascimento' | 'email' | 'senha', value: string): void {
@@ -344,11 +368,203 @@ export class RegisterFormComponent {
       return null;
     }
 
-    const messages = this.validationErrors()[field];
+    const messages = [...this.validationErrors()[field], ...this.apiErrors()[field]];
     return messages.length > 0 ? messages : null;
   }
 
   getSelectValue(event: Event): string {
     return (event.target as HTMLSelectElement).value;
   }
+}
+
+function resolveRegisterSubmissionErrorMessage(
+  error: NormalizedApiError,
+  apiErrors: RegisterFormErrors,
+): string | null {
+  if (isConflictError(error)) {
+    return error.message;
+  }
+
+  if (hasAnyRegisterApiFieldErrors(apiErrors)) {
+    return null;
+  }
+
+  return error.message;
+}
+
+function mapRegisterApiErrors(details: unknown): RegisterFormErrors {
+  const errors = createEmptyRegisterFormErrors();
+  appendRegisterApiErrors(errors, details);
+
+  return errors;
+}
+
+function appendRegisterApiErrors(target: RegisterFormErrors, details: unknown): void {
+  if (!details) {
+    return;
+  }
+
+  if (Array.isArray(details)) {
+    for (const item of details) {
+      appendRegisterApiErrors(target, item);
+    }
+
+    return;
+  }
+
+  if (typeof details !== 'object') {
+    return;
+  }
+
+  const candidate = details as Record<string, unknown>;
+
+  if (
+    'propertyName' in candidate ||
+    'PropertyName' in candidate ||
+    'message' in candidate ||
+    'Message' in candidate
+  ) {
+    const propertyName = readString(candidate['propertyName'] ?? candidate['PropertyName']);
+    const message = readString(candidate['message'] ?? candidate['Message']);
+
+    if (propertyName && message) {
+      appendFieldMessages(target, propertyName, [message]);
+    }
+
+    return;
+  }
+
+  for (const [propertyName, value] of Object.entries(candidate)) {
+    appendFieldMessages(target, propertyName, extractMessages(value));
+  }
+}
+
+function appendFieldMessages(target: RegisterFormErrors, propertyName: string, messages: readonly string[]): void {
+  const fields = resolveRegisterFields(propertyName);
+
+  if (fields.length === 0 || messages.length === 0) {
+    return;
+  }
+
+  for (const field of fields) {
+    target[field].push(...messages);
+  }
+}
+
+function resolveRegisterFields(propertyName: string): RegisterFormField[] {
+  const normalized = propertyName.trim().toLowerCase();
+
+  if (!normalized) {
+    return [];
+  }
+
+  if (normalized.endsWith('.cpf') || normalized === 'cpf') {
+    return ['cpf'];
+  }
+
+  if (normalized.endsWith('.nome') || normalized === 'nome') {
+    return ['nome'];
+  }
+
+  if (normalized.endsWith('.datanascimento') || normalized === 'datanascimento') {
+    return ['dataNascimento'];
+  }
+
+  if (normalized.endsWith('.email') || normalized === 'email') {
+    return ['email'];
+  }
+
+  if (normalized.endsWith('.senha') || normalized === 'senha') {
+    return ['senha'];
+  }
+
+  if (normalized.endsWith('.logradouro') || normalized === 'logradouro') {
+    return ['logradouro'];
+  }
+
+  if (normalized.endsWith('.numero')) {
+    return normalized.includes('celular') ? ['telefone'] : ['numero'];
+  }
+
+  if (normalized.endsWith('.complemento') || normalized === 'complemento') {
+    return ['complemento'];
+  }
+
+  if (normalized.endsWith('.cep') || normalized === 'cep') {
+    return ['cep'];
+  }
+
+  if (normalized.endsWith('.bairro') || normalized === 'bairro') {
+    return ['bairro'];
+  }
+
+  if (normalized.endsWith('.cidade') || normalized === 'cidade') {
+    return ['cidade'];
+  }
+
+  if (normalized.endsWith('.uf') || normalized === 'uf') {
+    return ['uf'];
+  }
+
+  if (normalized.endsWith('.ddd') || normalized === 'ddd') {
+    return ['ddd'];
+  }
+
+  if (normalized.endsWith('.celular') || normalized === 'celular') {
+    return ['ddd', 'telefone'];
+  }
+
+  if (normalized.endsWith('.endereco') || normalized === 'endereco') {
+    return ['logradouro', 'numero', 'complemento', 'cep', 'bairro', 'cidade', 'uf'];
+  }
+
+  if (normalized.includes('telefone')) {
+    return ['telefone'];
+  }
+
+  return [];
+}
+
+function extractMessages(value: unknown): string[] {
+  if (typeof value === 'string') {
+    return value.trim() ? [value.trim()] : [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => extractMessages(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const message = readString(candidate['message'] ?? candidate['Message']);
+
+  return message ? [message] : [];
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function hasAnyRegisterApiFieldErrors(errors: RegisterFormErrors): boolean {
+  return Object.values(errors).some((messages) => messages.length > 0);
+}
+
+function isConflictError(error: NormalizedApiError): boolean {
+  return error.status === 409 || error.code.toUpperCase().includes('CONFLICT');
+}
+
+function isNormalizedApiError(error: unknown): error is NormalizedApiError {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      'status' in error &&
+      'code' in error &&
+      'message' in error &&
+      typeof (error as { status?: unknown }).status === 'number' &&
+      typeof (error as { code?: unknown }).code === 'string' &&
+      typeof (error as { message?: unknown }).message === 'string',
+  );
 }
