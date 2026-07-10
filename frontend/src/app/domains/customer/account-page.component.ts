@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
+import { createAccountCancelConfirmationState } from './account-cancel-confirmation.context';
 import { CustomerStore } from './customer.store';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
@@ -62,10 +63,38 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
               </a>
               <button
                 type="button"
+                (click)="beginAccountCancellation()"
                 class="rounded-2xl bg-shop-danger-soft px-4 py-3 text-center font-semibold text-shop-danger transition hover:opacity-90 lg:text-left"
               >
-                Sair da conta
+                Cancelar conta
               </button>
+              @if (showCancellationConfirmation()) {
+                <section class="rounded-2xl border border-shop-danger/20 bg-shop-danger/10 px-4 py-4 text-left" aria-labelledby="account-cancel-title">
+                  <h2 id="account-cancel-title" class="text-sm font-black uppercase tracking-[0.24em] text-shop-danger">
+                    {{ accountCancellation.confirmationTitle() }}
+                  </h2>
+                  <p class="mt-2 text-sm leading-6 text-shop-text-muted">
+                    {{ accountCancellation.confirmationDescription() }}
+                  </p>
+
+                  <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      (click)="confirmAccountCancellation()"
+                      class="inline-flex items-center justify-center rounded-2xl bg-shop-danger px-4 py-3 text-sm font-bold text-white transition hover:opacity-90"
+                    >
+                      {{ accountCancellation.actionLabel() }}
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cancelAccountCancellation()"
+                      class="inline-flex items-center justify-center rounded-2xl border border-shop-border px-4 py-3 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
+                    >
+                      {{ accountCancellation.cancelLabel() }}
+                    </button>
+                  </div>
+                </section>
+              }
             </nav>
           </aside>
 
@@ -129,14 +158,28 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 })
 export class AccountPageComponent {
   private readonly customerStore = inject(CustomerStore);
+  protected readonly accountCancellation = createAccountCancelConfirmationState();
 
   protected readonly customerName = computed(() => this.customerStore.displayName() || 'Cliente');
   protected readonly customerEmail = computed(() => this.customerStore.email() || 'E-mail nao carregado');
   protected readonly customerCpf = computed(() => this.customerStore.cpf() || 'Nao informado');
   protected readonly customerPhone = computed(() => this.customerStore.primaryPhone() || 'Nao informado');
+  protected readonly showCancellationConfirmation = computed(() => this.accountCancellation.isAwaitingConfirmation());
 
   protected readonly accountTitle = computed(() => {
     const name = this.customerName().trim();
     return name && name !== 'Cliente' ? `Minha conta, ${name}` : 'Minha conta';
   });
+
+  protected beginAccountCancellation(): void {
+    this.accountCancellation.begin();
+  }
+
+  protected cancelAccountCancellation(): void {
+    this.accountCancellation.cancel();
+  }
+
+  protected confirmAccountCancellation(): void {
+    this.accountCancellation.confirm();
+  }
 }
