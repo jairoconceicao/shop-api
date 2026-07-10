@@ -112,8 +112,9 @@ describe('ProductsPageComponent', () => {
 
     expect(screen.getByRole('heading', { name: /Explore produtos/i })).toBeVisible();
     expect(screen.getByText('Catalogo publico')).toBeVisible();
-    expect(screen.getByText('Itens carregados')).toBeVisible();
-    expect(screen.getByText('Publico')).toBeVisible();
+    expect(screen.getByLabelText('Página 1')).toBeVisible();
+    expect(screen.getByLabelText('Tamanho 8')).toBeVisible();
+    expect(screen.getByLabelText('Total de itens 2')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Todas' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Celulares' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
@@ -131,6 +132,7 @@ describe('ProductsPageComponent', () => {
       size: 8,
       searchword: undefined,
     });
+    expect(screen.getByLabelText('Página 2')).toBeVisible();
     expect(await screen.findByRole('heading', { name: 'Mouse Gamer' })).toBeVisible();
   });
 

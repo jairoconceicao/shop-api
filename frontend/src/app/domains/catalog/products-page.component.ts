@@ -10,6 +10,7 @@ import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
 import { createProductsPageFiltersState } from './products-page-filters.context';
+import { createProductsPagePaginationState } from './products-page-pagination.context';
 import { createProductsCatalogState } from './products-page.context';
 
 @Component({
@@ -63,16 +64,19 @@ import { createProductsCatalogState } from './products-page.context';
               </form>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-3 lg:w-[28rem]">
+            <dl class="grid gap-3 sm:grid-cols-3 lg:w-[28rem]">
               @for (metric of metrics; track metric.label) {
-                <div class="rounded-[1.5rem] bg-white/10 p-4 backdrop-blur-sm">
-                  <p class="text-xs font-bold tracking-[0.24em] text-white/55 uppercase">
+                <div
+                  class="rounded-[1.5rem] bg-white/10 p-4 backdrop-blur-sm"
+                  [attr.aria-label]="metric.ariaLabel()"
+                >
+                  <dt class="text-xs font-bold tracking-[0.24em] text-white/55 uppercase">
                     {{ metric.label }}
-                  </p>
-                  <p class="mt-2 text-lg font-bold text-white">{{ metric.value() }}</p>
+                  </dt>
+                  <dd class="mt-2 text-lg font-bold text-white">{{ metric.value() }}</dd>
                 </div>
               }
-            </div>
+            </dl>
           </div>
         </article>
 
@@ -240,6 +244,10 @@ import { createProductsCatalogState } from './products-page.context';
 export class ProductsPageComponent {
   private readonly categoriesState = createProductsPageFiltersState();
   private readonly productsState = createProductsCatalogState(this.categoriesState.selectedCategoryId);
+  private readonly paginationState = createProductsPagePaginationState(
+    this.productsState.pagination,
+    this.productsState.isLoading,
+  );
 
   protected readonly products = computed(() => this.productsState.items());
   protected readonly categories = this.categoriesState.categories;
@@ -281,20 +289,7 @@ export class ProductsPageComponent {
       : 'Assim que a API retornar produtos publicos, eles aparecerao aqui.',
   );
 
-  protected readonly metrics = [
-    {
-      label: 'Itens carregados',
-      value: () => `${this.products().length}`,
-    },
-    {
-      label: 'Página',
-      value: () => (this.productsState.isLoading() ? '...' : this.productsState.hasMore() ? 'Ativa' : 'Final'),
-    },
-    {
-      label: 'Acesso',
-      value: () => 'Publico',
-    },
-  ] as const;
+  protected readonly metrics = this.paginationState.metrics;
 
   protected handleSearch(event: Event): void {
     event.preventDefault();
