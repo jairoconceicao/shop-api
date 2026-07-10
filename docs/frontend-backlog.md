@@ -201,7 +201,7 @@ o catalogo funcional ainda nao foi implementado.
 Observacao: a rota `/cart` ja existe como placeholder, sem store nem
 integracao com a API.
 
-[ ] TASK-064: Criar store de dominio `Cart` com NgRx SignalStore.
+[x] TASK-064: Criar store de dominio `Cart` com NgRx SignalStore.
 [ ] TASK-065: Implementar criacao automatica de carrinho quando necessario.
 [ ] TASK-066: Integrar `POST /api/v1/carrinho/criar`.
 [ ] TASK-067: Integrar `GET /api/v1/carrinho/{carrinhoId}`.

@@ -1,0 +1,47 @@
+import { TestBed } from '@angular/core/testing';
+
+import type { CartItem } from '@shared/models';
+
+import { CartStore } from './cart.store';
+
+describe('CartStore', () => {
+  const item = (overrides: Partial<CartItem> = {}): CartItem => ({
+    itemId: 1,
+    produtoId: 10,
+    quantidade: 1,
+    valorUnitario: 25,
+    ...overrides,
+  });
+
+  it('starts empty and exposes derived totals', () => {
+    const store = TestBed.inject(CartStore);
+
+    expect(store.isEmpty()).toBe(true);
+    expect(store.itemCount()).toBe(0);
+    expect(store.subtotal()).toBe(0);
+  });
+
+  it('adds items and merges quantities for the same product', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.addItem(item());
+    store.addItem(item({ itemId: 2, quantidade: '2', valorUnitario: '25' }));
+
+    expect(store.items()).toEqual([{ ...item(), quantidade: 3 }]);
+    expect(store.itemCount()).toBe(3);
+    expect(store.subtotal()).toBe(75);
+  });
+
+  it('updates and removes items, treating non-positive quantities as removal', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.setItems([item(), item({ itemId: 2, produtoId: 20, valorUnitario: 10 })]);
+    store.updateQuantity(10, 4);
+    expect(store.items()[0].quantidade).toBe(4);
+
+    store.updateQuantity(10, 0);
+    expect(store.items()).toHaveLength(1);
+    store.removeItem(20);
+    expect(store.isEmpty()).toBe(true);
+  });
+});
