@@ -153,7 +153,7 @@ nao foi conectada ao backend e nao ha sessao, guard ou interceptor.
 [x] TASK-034: Implementar tela publica de criacao de conta.
 [x] TASK-035: Implementar formulario com dados pessoais, endereco e celular.
 [x] TASK-036: Aplicar mascaras para CPF, CEP, DDD e telefone com `ngx-mask`.
-[ ] TASK-037: Aplicar validacoes por schema.
+[x] TASK-037: Aplicar validacoes por schema.
 [ ] TASK-038: Integrar `POST /api/v1/cliente`.
 [ ] TASK-039: Tratar erros de validacao e conflitos retornados pela API.
 [ ] TASK-040: Redirecionar para login ou iniciar fluxo definido apos cadastro.

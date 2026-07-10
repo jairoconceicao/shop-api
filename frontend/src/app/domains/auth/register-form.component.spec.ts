@@ -44,4 +44,26 @@ describe('RegisterFormComponent', () => {
       '00000-0000',
     ]);
   });
+
+  it('renders schema validation feedback when the form is submitted empty', async () => {
+    await render(RegisterFormComponent, {
+      providers: [provideRouter([]), provideEnvironmentNgxMask()],
+    });
+
+    screen.getByRole('button', { name: 'Criar conta' }).click();
+
+    expect(screen.getByText('Nome e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('CPF e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Data de nascimento e obrigatoria.')).toBeVisible();
+    expect(screen.getByText('Email e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Senha e obrigatoria.')).toBeVisible();
+    expect(screen.getByText('Logradouro e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Numero e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('CEP e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Bairro e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Cidade e obrigatoria.')).toBeVisible();
+    expect(screen.getByText('UF e obrigatoria.')).toBeVisible();
+    expect(screen.getByText('DDD e obrigatorio.')).toBeVisible();
+    expect(screen.getByText('Numero de celular e obrigatorio.')).toBeVisible();
+  });
 });
