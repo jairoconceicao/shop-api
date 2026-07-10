@@ -70,4 +70,27 @@ describe('CartService', () => {
       valorUnitario: 2999.95,
     });
   });
+
+  it('updates cart item quantity by item id and normalizes the response', () => {
+    const apiClient = {
+      patch: vi.fn().mockReturnValue(
+        of({
+          data: { itemId: 99, produtoId: 101 },
+          status: 200,
+          message: 'Quantidade atualizada',
+        }),
+      ),
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: ApiClientService, useValue: apiClient }] });
+
+    TestBed.inject(CartService)
+      .updateItemQuantity(99, { quantidade: 3 })
+      .subscribe((response) => {
+        expect(response).toEqual({ itemId: 99, produtoId: 101 });
+      });
+
+    expect(apiClient.patch).toHaveBeenCalledWith('/api/v1/carrinho/items/99', {
+      quantidade: 3,
+    });
+  });
 });
