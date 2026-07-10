@@ -8,6 +8,7 @@ import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
 import { createProductDetailsAvailabilityState } from './product-details-availability.context';
+import { createProductDetailsPurchaseState } from './product-details-purchase.context';
 import { createProductDetailsState } from './product-details.context';
 
 @Component({
@@ -146,7 +147,12 @@ import { createProductDetailsState } from './product-details.context';
                   </button>
                 } @else {
                   <div class="grid gap-3 sm:grid-cols-2">
-                    <app-button type="button" size="lg" [block]="true">
+                    <app-button
+                      type="button"
+                      size="lg"
+                      [block]="true"
+                      (click)="purchaseState.startPurchase()"
+                    >
                       Comprar agora
                     </app-button>
                     <app-button type="button" variant="outline" size="lg" [block]="true">
@@ -189,6 +195,7 @@ export class ProductDetailsPageComponent {
 
   protected readonly product = this.state.product;
   protected readonly availabilityState = createProductDetailsAvailabilityState(this.product);
+  protected readonly purchaseState = createProductDetailsPurchaseState(this.productId);
   protected readonly isLoading = this.state.isLoading;
   protected readonly error = this.state.error;
   protected readonly isUnavailable = this.availabilityState.isUnavailable;
