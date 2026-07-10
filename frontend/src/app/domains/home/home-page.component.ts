@@ -309,7 +309,7 @@ export class HomePageComponent {
     },
   ] as const;
 
-  private readonly categoriesState = createRemoteSectionState<Category>(
+  protected readonly categoriesState = createRemoteSectionState<Category>(
     () => this.categoryService.listPublicCategories(),
     'Nao foi possivel carregar as categorias. Tente novamente.',
   );
@@ -323,7 +323,7 @@ export class HomePageComponent {
     })),
   );
 
-  private readonly featuredProductsState = createIncrementalSectionState(
+  protected readonly featuredProductsState = createIncrementalSectionState(
     ({ page, size }) => this.catalogService.listPublicProducts({ page, size }),
     'Nao foi possivel carregar os produtos em destaque. Tente novamente.',
   );

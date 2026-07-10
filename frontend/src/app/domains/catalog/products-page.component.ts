@@ -141,7 +141,7 @@ import { createProductsCatalogState } from './products-page.context';
                     ? 'bg-shop-primary text-shop-text-inverted shadow-soft inline-flex rounded-full px-4 py-2 text-sm font-bold transition'
                     : 'border-shop-border bg-shop-background text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex rounded-full border px-4 py-2 text-sm font-bold transition'"
                   [attr.aria-pressed]="selectedCategoryId() === category.categoriaId"
-                  (click)="selectCategory(category.categoriaId)"
+                  (click)="selectCategory(+category.categoriaId)"
                 >
                   {{ category.titulo }}
                 </button>
@@ -272,8 +272,8 @@ export class ProductsPageComponent {
   });
   private readonly initialSearchword = this.route.snapshot.queryParamMap.get('searchword') ?? '';
   private readonly initialCategoryId = parseCategoryId(this.route.snapshot.queryParamMap.get('categoriaId'));
-  private readonly categoriesState = createProductsPageFiltersState(this.initialCategoryId);
-  private readonly productsState = createProductsCatalogState(
+  protected readonly categoriesState = createProductsPageFiltersState(this.initialCategoryId);
+  protected readonly productsState = createProductsCatalogState(
     this.categoriesState.selectedCategoryId,
     this.initialSearchword,
   );
