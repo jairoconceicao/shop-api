@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, untracked } from '@angular/core';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { InputComponent } from '@shared/ui/base/input.component';
@@ -242,12 +243,41 @@ import { createProductsCatalogState } from './products-page.context';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsPageComponent {
-  private readonly categoriesState = createProductsPageFiltersState();
-  private readonly productsState = createProductsCatalogState(this.categoriesState.selectedCategoryId);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly queryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
+  private readonly initialSearchword = this.route.snapshot.queryParamMap.get('searchword') ?? '';
+  private readonly initialCategoryId = parseCategoryId(this.route.snapshot.queryParamMap.get('categoriaId'));
+  private readonly categoriesState = createProductsPageFiltersState(this.initialCategoryId);
+  private readonly productsState = createProductsCatalogState(
+    this.categoriesState.selectedCategoryId,
+    this.initialSearchword,
+  );
   private readonly paginationState = createProductsPagePaginationState(
     this.productsState.pagination,
     this.productsState.isLoading,
   );
+  private readonly syncQueryParams = effect(() => {
+    const queryParamMap = this.queryParamMap();
+    const nextSearchword = queryParamMap.get('searchword') ?? '';
+    const nextCategoryId = parseCategoryId(queryParamMap.get('categoriaId'));
+    const currentSearchword = untracked(() => this.productsState.searchword());
+    const currentCategoryId = untracked(() => this.categoriesState.selectedCategoryId());
+
+    if (currentSearchword !== nextSearchword) {
+      this.productsState.setSearchword(nextSearchword);
+    }
+
+    if (currentCategoryId !== nextCategoryId) {
+      this.categoriesState.selectCategory(nextCategoryId);
+    }
+
+    if (currentSearchword !== nextSearchword || currentCategoryId !== nextCategoryId) {
+      this.productsState.reload();
+    }
+  });
 
   protected readonly products = computed(() => this.productsState.items());
   protected readonly categories = this.categoriesState.categories;
@@ -293,6 +323,10 @@ export class ProductsPageComponent {
 
   protected handleSearch(event: Event): void {
     event.preventDefault();
+    void this.router.navigate(['/products'], {
+      queryParams: buildCatalogQueryParams(this.searchword(), this.selectedCategoryId()),
+      queryParamsHandling: 'merge',
+    });
     this.reloadProducts();
   }
 
@@ -302,6 +336,10 @@ export class ProductsPageComponent {
 
   protected selectCategory(categoryId: number | null): void {
     this.categoriesState.selectCategory(categoryId);
+    void this.router.navigate(['/products'], {
+      queryParams: buildCatalogQueryParams(this.searchword(), categoryId),
+      queryParamsHandling: 'merge',
+    });
     this.productsState.reload();
   }
 
@@ -316,4 +354,27 @@ export class ProductsPageComponent {
   protected loadMoreProducts(): void {
     this.productsState.loadMore();
   }
+}
+
+function parseCategoryId(value: string | null): number | null {
+  if (value === null) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function buildCatalogQueryParams(searchword: string, categoryId: number | null): Params {
+  return {
+    searchword: normalizeQueryParam(searchword),
+    categoriaId: categoryId,
+  };
+}
+
+function normalizeQueryParam(value: string): string | null {
+  const normalized = value.trim();
+
+  return normalized ? normalized : null;
 }

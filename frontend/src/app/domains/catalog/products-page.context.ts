@@ -26,9 +26,10 @@ export interface ProductsCatalogState {
 
 export function createProductsCatalogState(
   selectedCategoryId: Signal<number | null>,
+  initialSearchword = '',
 ): ProductsCatalogState {
   const catalogService = inject(CatalogService);
-  const searchword = signal('');
+  const searchword = signal(initialSearchword);
   const normalizedSearchword = computed(() => normalizeSearchword(searchword()));
 
   const incrementalState = createIncrementalSectionState(

@@ -1,8 +1,9 @@
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { fireEvent, render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { TestBed } from '@angular/core/testing';
 
 import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
@@ -30,6 +31,17 @@ describe('ProductsPageComponent', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
+
+  function createActivatedRoute(queryParams: Record<string, string> = {}): ActivatedRoute {
+    const queryParamMap = convertToParamMap(queryParams);
+
+    return {
+      snapshot: {
+        queryParamMap,
+      } as ActivatedRoute['snapshot'],
+      queryParamMap: of(queryParamMap),
+    } as ActivatedRoute;
+  }
 
   it('renders the public catalog and loads more products', async () => {
     const categories = [
@@ -99,6 +111,10 @@ describe('ProductsPageComponent', () => {
     await render(ProductsPageComponent, {
       providers: [
         provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
@@ -215,6 +231,10 @@ describe('ProductsPageComponent', () => {
       providers: [
         provideRouter([]),
         {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
+        {
           provide: CatalogService,
           useValue: catalogServiceMock,
         },
@@ -224,6 +244,9 @@ describe('ProductsPageComponent', () => {
         },
       ],
     });
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fireEvent.click(screen.getByRole('button', { name: 'Celulares' }));
 
@@ -280,6 +303,10 @@ describe('ProductsPageComponent', () => {
       providers: [
         provideRouter([]),
         {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
+        {
           provide: CatalogService,
           useValue: catalogServiceMock,
         },
@@ -289,6 +316,9 @@ describe('ProductsPageComponent', () => {
         },
       ],
     });
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const searchInput = screen.getByLabelText('Buscar produtos');
     fireEvent.input(searchInput, { target: { value: 'notebook gamer' } });
@@ -300,6 +330,167 @@ describe('ProductsPageComponent', () => {
       searchword: 'notebook gamer',
     });
     expect(await screen.findByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();
+  });
+
+  it('restores the catalog state from the URL query params on load', async () => {
+    const categories = [
+      {
+        categoriaId: 1,
+        titulo: 'Informática',
+        descricao: 'Produtos de tecnologia',
+      },
+      {
+        categoriaId: 2,
+        titulo: 'Celulares',
+        descricao: 'Smartphones e acessórios',
+      },
+    ] satisfies Category[];
+
+    const categoryPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 202,
+            titulo: 'Smartphone Gamer',
+            thumb: null,
+            preco: 3999.9,
+            estoque: 7,
+            categoria: {
+              categoriaId: 2,
+              titulo: 'Celulares',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    catalogServiceMock.listPublicProductsByCategory.mockReturnValue(of(categoryPage));
+    categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
+
+    await render(ProductsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute({
+            searchword: 'notebook gamer',
+            categoriaId: '2',
+          }),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    expect(catalogServiceMock.listPublicProductsByCategory).toHaveBeenCalledWith(2, {
+      page: 1,
+      size: 8,
+    });
+    expect(screen.getByLabelText('Buscar produtos')).toHaveValue('notebook gamer');
+    expect(screen.getByRole('button', { name: 'Celulares' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('Filtrando por Celulares')).toBeVisible();
+  });
+
+  it('preserves the current filters in the URL when the user searches or changes category', async () => {
+    const categories = [
+      {
+        categoriaId: 1,
+        titulo: 'Informática',
+        descricao: 'Produtos de tecnologia',
+      },
+      {
+        categoriaId: 2,
+        titulo: 'Celulares',
+        descricao: 'Smartphones e acessórios',
+      },
+    ] satisfies Category[];
+
+    const initialPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 1,
+        size: 8,
+        totalItems: 1,
+        data: [
+          {
+            produtoId: 101,
+            titulo: 'Notebook Gamer',
+            thumb: null,
+            preco: 5999.9,
+            estoque: 12,
+            categoria: {
+              categoriaId: 1,
+              titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    catalogServiceMock.listPublicProducts.mockReturnValue(of(initialPage));
+    categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
+
+    await render(ProductsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute({ searchword: 'notebook gamer' }),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Celulares' }));
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/products'], {
+      queryParams: {
+        searchword: 'notebook gamer',
+        categoriaId: 2,
+      },
+      queryParamsHandling: 'merge',
+    });
+
+    const searchInput = screen.getByLabelText('Buscar produtos');
+    fireEvent.input(searchInput, { target: { value: 'notebook gamer pro' } });
+    fireEvent.submit(searchInput.closest('form') as HTMLFormElement);
+
+    expect(navigateSpy).toHaveBeenLastCalledWith(['/products'], {
+      queryParams: {
+        searchword: 'notebook gamer pro',
+        categoriaId: 2,
+      },
+      queryParamsHandling: 'merge',
+    });
+    expect(catalogServiceMock.listPublicProductsByCategory).toHaveBeenCalledWith(2, {
+      page: 1,
+      size: 8,
+    });
   });
 
   it('renders an empty state when the catalog has no products', async () => {
@@ -320,6 +511,10 @@ describe('ProductsPageComponent', () => {
     await render(ProductsPageComponent, {
       providers: [
         provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
@@ -344,6 +539,10 @@ describe('ProductsPageComponent', () => {
     await render(ProductsPageComponent, {
       providers: [
         provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute(),
+        },
         {
           provide: CatalogService,
           useValue: catalogServiceMock,
