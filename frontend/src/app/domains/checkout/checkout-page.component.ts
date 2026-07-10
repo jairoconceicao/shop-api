@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { createCheckoutCustomerState } from './checkout-customer.context';
 import { createCheckoutState } from './checkout.context';
 import { CartItemComponent } from '@shared/ui/cart/cart-item.component';
 import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
@@ -88,6 +89,61 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
               </app-cart-summary>
             }
           </div>
+
+          @if (baseAddress()) {
+            <div class="border-t border-shop-border bg-shop-background px-5 py-6 lg:px-10">
+              <div class="max-w-3xl rounded-[1.5rem] border border-shop-border bg-white p-5 shadow-soft">
+                <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
+                  Endereco base
+                </p>
+                <h2 class="text-shop-text mt-2 text-xl font-black tracking-tight">
+                  Dados carregados do perfil do cliente
+                </h2>
+                <dl class="text-shop-text-muted mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      Logradouro
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.logradouro }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      Numero
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.numero }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      Bairro
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.bairro }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      Cidade / UF
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">
+                      {{ baseAddress()?.cidade }} / {{ baseAddress()?.uf }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      CEP
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">{{ baseAddress()?.cep }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-shop-text-light text-xs font-bold uppercase tracking-[0.18em]">
+                      Complemento
+                    </dt>
+                    <dd class="mt-1 font-medium text-shop-text">
+                      {{ baseAddress()?.complemento ?? '-' }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          }
         </article>
       </section>
     </app-page-container>
@@ -96,9 +152,11 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
 })
 export class CheckoutPageComponent {
   private readonly checkoutState = createCheckoutState();
+  private readonly checkoutCustomerState = createCheckoutCustomerState();
 
   protected readonly items = this.checkoutState.items;
   protected readonly subtotal = this.checkoutState.subtotal;
   protected readonly shipping = this.checkoutState.shipping;
   protected readonly isEmpty = this.checkoutState.isEmpty;
+  protected readonly baseAddress = this.checkoutCustomerState.baseAddress;
 }

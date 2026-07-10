@@ -10,10 +10,12 @@ import { CustomerService } from './customer.service';
 describe('CustomerService', () => {
   const apiClientMock = {
     post: vi.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(() => {
     apiClientMock.post.mockReset();
+    apiClientMock.get.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -71,6 +73,46 @@ describe('CustomerService', () => {
     });
 
     expect(apiClientMock.post).toHaveBeenCalledWith('/api/v1/cliente', request, undefined);
+    expect(receivedResponses).toEqual([response.data]);
+  });
+
+  it('gets a customer by id through GET /api/v1/cliente/{clienteId}', () => {
+    const response = {
+      status: true,
+      message: '',
+      data: {
+        clienteId: 20,
+        cpf: '12345678901',
+        nome: 'Cliente Shop',
+        dataNascimento: '1990-01-01',
+        email: 'cliente@shopapi.dev',
+        endereco: {
+          logradouro: 'Rua Central',
+          numero: '100',
+          complemento: null,
+          cep: '01001000',
+          bairro: 'Centro',
+          cidade: 'Sao Paulo',
+          uf: 'SP',
+        },
+        celular: {
+          ddd: '11',
+          numero: '999999999',
+          whatsApp: true,
+        },
+      },
+    } satisfies ApiResponse<import('@shared/models').CustomerDetails>;
+
+    apiClientMock.get.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CustomerService);
+    const receivedResponses: import('@shared/models').CustomerDetails[] = [];
+
+    service.getById(20).subscribe((customer) => {
+      receivedResponses.push(customer);
+    });
+
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/cliente/20', undefined);
     expect(receivedResponses).toEqual([response.data]);
   });
 });
