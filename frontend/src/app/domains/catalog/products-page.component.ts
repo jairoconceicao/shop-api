@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { ButtonComponent } from '@shared/ui/base/button.component';
+import { InputComponent } from '@shared/ui/base/input.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { ProductCardComponent } from '@shared/ui/product-card.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
@@ -14,6 +16,8 @@ import { createProductsCatalogState } from './products-page.context';
   imports: [
     RouterLink,
     PageContainerComponent,
+    InputComponent,
+    ButtonComponent,
     ProductCardComponent,
     LoadingStateComponent,
     EmptyStateComponent,
@@ -39,6 +43,23 @@ import { createProductsCatalogState } from './products-page.context';
                 A rota de catálogo exibe os produtos públicos da API com uma experiência
                 mobile first e acesso rápido ao detalhe de cada item.
               </p>
+
+              <form class="mt-8 max-w-3xl" (submit)="handleSearch($event)">
+                <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                  <app-input
+                    label="Buscar produtos"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Procure por nome, marca ou categoria"
+                    [value]="searchword()"
+                    (valueChange)="setSearchword($event)"
+                  />
+
+                  <app-button type="submit" size="lg" variant="secondary" [block]="true">
+                    Buscar
+                  </app-button>
+                </div>
+              </form>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-3 lg:w-[28rem]">
@@ -80,9 +101,9 @@ import { createProductsCatalogState } from './products-page.context';
         } @else if (productsState.isEmpty()) {
           <app-empty-state
             class="block"
-            eyebrow="Catalogo vazio"
-            title="Nenhum produto disponivel"
-            description="Assim que a API retornar produtos publicos, eles aparecerao aqui."
+            [eyebrow]="emptyStateEyebrow()"
+            [title]="emptyStateTitle()"
+            [description]="emptyStateDescription()"
           >
             <a
               routerLink="/"
@@ -151,6 +172,19 @@ export class ProductsPageComponent {
   private readonly productsState = createProductsCatalogState();
 
   protected readonly products = computed(() => this.productsState.items());
+  protected readonly searchword = this.productsState.searchword;
+  protected readonly hasSearchword = computed(() => this.searchword().trim().length > 0);
+  protected readonly emptyStateEyebrow = computed(() =>
+    this.hasSearchword() ? 'Busca vazia' : 'Catalogo vazio',
+  );
+  protected readonly emptyStateTitle = computed(() =>
+    this.hasSearchword() ? `Nenhum resultado para "${this.searchword().trim()}"` : 'Nenhum produto disponivel',
+  );
+  protected readonly emptyStateDescription = computed(() =>
+    this.hasSearchword()
+      ? 'Tente usar outro termo ou limpe a busca para voltar ao catalogo completo.'
+      : 'Assim que a API retornar produtos publicos, eles aparecerao aqui.',
+  );
 
   protected readonly metrics = [
     {
@@ -166,6 +200,15 @@ export class ProductsPageComponent {
       value: () => 'Publico',
     },
   ] as const;
+
+  protected handleSearch(event: Event): void {
+    event.preventDefault();
+    this.reloadProducts();
+  }
+
+  protected setSearchword(value: string): void {
+    this.productsState.setSearchword(value);
+  }
 
   protected reloadProducts(): void {
     this.productsState.reload();

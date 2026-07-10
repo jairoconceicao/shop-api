@@ -1,15 +1,52 @@
-import { inject } from '@angular/core';
+import { computed, inject, signal, type Signal } from '@angular/core';
 
 import { CatalogService } from '@core/catalog/catalog.service';
+import type { ProductCatalogItem } from '@shared/models';
 
 import { createIncrementalSectionState } from '../home/home-featured-products.context';
 
-export function createProductsCatalogState() {
-  const catalogService = inject(CatalogService);
+export interface ProductsCatalogState {
+  readonly items: Signal<readonly ProductCatalogItem[]>;
+  readonly isLoading: Signal<boolean>;
+  readonly isInitialLoading: Signal<boolean>;
+  readonly isLoadingMore: Signal<boolean>;
+  readonly error: Signal<string | null>;
+  readonly loadMoreError: Signal<string | null>;
+  readonly isEmpty: Signal<boolean>;
+  readonly hasMore: Signal<boolean>;
+  readonly searchword: Signal<string>;
+  reload(): void;
+  loadMore(): void;
+  setSearchword(value: string): void;
+}
 
-  return createIncrementalSectionState(
-    ({ page, size }) => catalogService.listPublicProducts({ page, size }),
+export function createProductsCatalogState(): ProductsCatalogState {
+  const catalogService = inject(CatalogService);
+  const searchword = signal('');
+  const normalizedSearchword = computed(() => normalizeSearchword(searchword()));
+
+  const incrementalState = createIncrementalSectionState(
+    ({ page, size }) =>
+      catalogService.listPublicProducts({
+        page,
+        size,
+        searchword: normalizedSearchword(),
+      }),
     'Nao foi possivel carregar o catalogo de produtos. Tente novamente.',
     8,
   );
+
+  return {
+    ...incrementalState,
+    searchword,
+    setSearchword(value: string): void {
+      searchword.set(value);
+    },
+  };
+}
+
+function normalizeSearchword(value: string): string | undefined {
+  const normalized = value.trim();
+
+  return normalized ? normalized : undefined;
 }
