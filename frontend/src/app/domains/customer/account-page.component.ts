@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { CustomerStore } from './customer.store';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
 @Component({
   selector: 'app-account-page',
-  imports: [RouterLink, PageContainerComponent],
+  imports: [RouterLink, RouterLinkActive, PageContainerComponent],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -34,32 +34,35 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
           </div>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <aside class="rounded-[2rem] border border-shop-border bg-white p-5 shadow-soft">
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-shop-text-light">Menu da conta</p>
+        <div class="space-y-6 lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-6 lg:space-y-0">
+          <aside class="rounded-[2rem] border border-shop-border bg-white p-5 shadow-soft lg:sticky lg:top-28">
+            <p class="text-xs font-black uppercase tracking-[0.24em] text-shop-text-light">Navegacao da conta</p>
 
-            <nav class="mt-4 space-y-2" aria-label="Menu da area do cliente">
+            <nav class="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-1" aria-label="Menu da area do cliente">
               <a
                 routerLink="/account/profile"
-                class="block rounded-2xl bg-shop-surface-muted px-4 py-3 font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary"
+                routerLinkActive="bg-shop-primary-soft text-shop-primary"
+                class="rounded-2xl bg-shop-surface-muted px-4 py-3 text-center font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary lg:text-left"
               >
                 Meus dados
               </a>
               <a
                 routerLink="/account/password"
-                class="block rounded-2xl bg-shop-surface-muted px-4 py-3 font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary"
+                routerLinkActive="bg-shop-primary-soft text-shop-primary"
+                class="rounded-2xl bg-shop-surface-muted px-4 py-3 text-center font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary lg:text-left"
               >
                 Alterar senha
               </a>
               <a
                 routerLink="/account/orders"
-                class="block rounded-2xl bg-shop-surface-muted px-4 py-3 font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary"
+                routerLinkActive="bg-shop-primary-soft text-shop-primary"
+                class="rounded-2xl bg-shop-surface-muted px-4 py-3 text-center font-semibold text-shop-text transition hover:bg-shop-primary-soft hover:text-shop-primary lg:text-left"
               >
                 Meus pedidos
               </a>
               <button
                 type="button"
-                class="block w-full rounded-2xl bg-shop-danger-soft px-4 py-3 text-left font-semibold text-shop-danger transition hover:opacity-90"
+                class="rounded-2xl bg-shop-danger-soft px-4 py-3 text-center font-semibold text-shop-danger transition hover:opacity-90 lg:text-left"
               >
                 Sair da conta
               </button>

@@ -39,9 +39,11 @@ describe('AccountPageComponent', () => {
     expect(screen.getByText('cliente@shop.com')).toBeVisible();
     expect(screen.getByText('12345678901')).toBeVisible();
     expect(screen.getByText('(11) 999999999')).toBeVisible();
+    expect(screen.getByRole('navigation', { name: 'Menu da area do cliente' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Meus dados' })).toHaveAttribute('href', '/account/profile');
     expect(screen.getByRole('link', { name: 'Alterar senha' })).toHaveAttribute('href', '/account/password');
     expect(screen.getByRole('link', { name: 'Meus pedidos' })).toHaveAttribute('href', '/account/orders');
+    expect(screen.getByRole('button', { name: 'Sair da conta' })).toBeVisible();
   });
 
   it('falls back to a generic title when the customer profile is missing', async () => {
