@@ -3,7 +3,7 @@ import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiClientService, type ApiResponse } from '@shared/api';
-import type { CustomerCreateRequest, CustomerIdResponse } from '@shared/models';
+import type { CustomerCreateRequest, CustomerDetails, CustomerIdResponse, CustomerUpdateRequest } from '@shared/models';
 
 import { CustomerService } from './customer.service';
 
@@ -11,11 +11,13 @@ describe('CustomerService', () => {
   const apiClientMock = {
     post: vi.fn(),
     get: vi.fn(),
+    put: vi.fn(),
   };
 
   beforeEach(() => {
     apiClientMock.post.mockReset();
     apiClientMock.get.mockReset();
+    apiClientMock.put.mockReset();
 
     TestBed.configureTestingModule({
       providers: [
@@ -113,6 +115,50 @@ describe('CustomerService', () => {
     });
 
     expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/cliente/20', undefined);
+    expect(receivedResponses).toEqual([response.data]);
+  });
+
+  it('updates a customer through PUT /api/v1/cliente/{clienteId}', () => {
+    const request: CustomerUpdateRequest = {
+      cpf: '12345678901',
+      nome: 'Cliente Shop Atualizado',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shopapi.dev',
+      endereco: {
+        logradouro: 'Rua Central',
+        numero: '200',
+        complemento: 'Apto 12',
+        cep: '01001000',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        uf: 'SP',
+      },
+      celular: {
+        ddd: '11',
+        numero: '988888888',
+        whatsApp: false,
+      },
+    };
+
+    const response = {
+      status: true,
+      message: '',
+      data: {
+        clienteId: 20,
+        ...request,
+      },
+    } satisfies ApiResponse<CustomerDetails>;
+
+    apiClientMock.put.mockReturnValue(of(response));
+
+    const service = TestBed.inject(CustomerService);
+    const receivedResponses: CustomerDetails[] = [];
+
+    service.update(20, request).subscribe((customer) => {
+      receivedResponses.push(customer);
+    });
+
+    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20', request, undefined);
     expect(receivedResponses).toEqual([response.data]);
   });
 });

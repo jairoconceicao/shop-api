@@ -9,11 +9,14 @@ import { ProfilePageComponent } from './profile-page.component';
 describe('ProfilePageComponent', () => {
   const createStoreMock = (overrides: Partial<Record<string, unknown>> = {}) => ({
     loadProfile: vi.fn(),
-    displayName: vi.fn(() => 'Cliente Shop'),
-    email: vi.fn(() => 'cliente@shop.com'),
-    cpf: vi.fn(() => '12345678901'),
-    primaryPhone: vi.fn(() => '(11) 999999999'),
+    updateProfile: vi.fn(),
+    isLoading: vi.fn(() => false),
+    error: vi.fn(() => null),
     profile: vi.fn(() => ({
+      cpf: '12345678901',
+      nome: 'Cliente Shop',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shop.com',
       endereco: {
         logradouro: 'Rua Central',
         numero: '100',
@@ -23,12 +26,16 @@ describe('ProfilePageComponent', () => {
         cidade: 'Sao Paulo',
         uf: 'SP',
       },
-      dataNascimento: '1990-01-01',
+      celular: {
+        ddd: '11',
+        numero: '999999999',
+        whatsApp: true,
+      },
     })),
     ...overrides,
   });
 
-  it('loads the authenticated customer profile when the page initializes', async () => {
+  it('loads the authenticated customer profile and renders the editable form', async () => {
     const customerStoreMock = createStoreMock();
 
     await render(ProfilePageComponent, {
@@ -40,21 +47,19 @@ describe('ProfilePageComponent', () => {
 
     expect(customerStoreMock.loadProfile).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('heading', { name: 'Meus dados' })).toBeVisible();
-    expect(screen.getByText('cliente@shop.com')).toBeVisible();
-    expect(screen.getByText('12345678901')).toBeVisible();
-    expect(screen.getByText('(11) 999999999')).toBeVisible();
-    expect(screen.getByText('Rua Central, 100, Apto 12, Centro, Sao Paulo, SP')).toBeVisible();
-    expect(screen.getByText('1990-01-01')).toBeVisible();
+    expect(screen.getByDisplayValue('Cliente Shop')).toBeVisible();
+    expect(screen.getByDisplayValue('12345678901')).toBeVisible();
+    expect(screen.getByDisplayValue('1990-01-01')).toBeVisible();
+    expect(screen.getByDisplayValue('cliente@shop.com')).toBeVisible();
+    expect(screen.getByDisplayValue('Rua Central')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Salvar alteracoes' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar para conta' })).toHaveAttribute('href', '/account');
   });
 
-  it('falls back to empty profile values when no customer is loaded', async () => {
+  it('submits the customer update request using the store action', async () => {
     const customerStoreMock = createStoreMock({
-      displayName: vi.fn(() => ''),
-      email: vi.fn(() => ''),
-      cpf: vi.fn(() => ''),
-      primaryPhone: vi.fn(() => ''),
-      profile: vi.fn(() => null),
+      isLoading: vi.fn(() => true),
+      error: vi.fn(() => 'Nao foi possivel atualizar os dados do cliente.'),
     });
 
     await render(ProfilePageComponent, {
@@ -64,8 +69,7 @@ describe('ProfilePageComponent', () => {
       ],
     });
 
-    expect(screen.getByText('Cliente')).toBeVisible();
-    expect(screen.getByText('E-mail nao carregado')).toBeVisible();
-    expect(screen.getAllByText('Nao informado')).toHaveLength(3);
+    expect(screen.getByText('Nao foi possivel atualizar os dados do cliente.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Salvar alteracoes' })).toBeDisabled();
   });
 });

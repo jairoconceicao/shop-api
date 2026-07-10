@@ -4,7 +4,7 @@ import { finalize, Subscription } from 'rxjs';
 
 import { CustomerService } from '@core/customer/customer.service';
 import { TokenStorageService } from '@core/auth/token-storage.service';
-import type { CustomerDetails } from '@shared/models';
+import type { CustomerDetails, CustomerUpdateRequest } from '@shared/models';
 
 interface CustomerState {
   readonly profile: CustomerDetails | null;
@@ -114,6 +114,45 @@ export const CustomerStore = signalStore(
         }
 
         loadProfileByCustomerId(customerId);
+      },
+
+      updateProfile(request: CustomerUpdateRequest): void {
+        const customerId = Number(store.customerId());
+
+        if (!customerId) {
+          patchState(store, {
+            isLoading: false,
+            error: 'Nao foi possivel atualizar os dados do cliente.',
+          });
+          return;
+        }
+
+        profileSubscription?.unsubscribe();
+        patchState(store, {
+          isLoading: true,
+          error: null,
+        });
+
+        profileSubscription = customerService
+          .update(customerId, request)
+          .pipe(finalize(() => {
+            profileSubscription = null;
+          }))
+          .subscribe({
+            next: (profile) => {
+              patchState(store, {
+                profile,
+                isLoading: false,
+                error: null,
+              });
+            },
+            error: () => {
+              patchState(store, {
+                isLoading: false,
+                error: 'Nao foi possivel atualizar os dados do cliente.',
+              });
+            },
+          });
       },
     };
   }),

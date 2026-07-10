@@ -11,6 +11,7 @@ import { CustomerStore } from './customer.store';
 describe('CustomerStore', () => {
   const customerServiceMock = {
     getById: vi.fn(),
+    update: vi.fn(),
   };
 
   const tokenStorageMock = {
@@ -42,6 +43,7 @@ describe('CustomerStore', () => {
 
   beforeEach(() => {
     customerServiceMock.getById.mockReset();
+    customerServiceMock.update.mockReset();
     tokenStorageMock.getSession.mockReset();
 
     TestBed.configureTestingModule({
@@ -148,5 +150,33 @@ describe('CustomerStore', () => {
     expect(store.profile()).toBeNull();
     expect(store.isLoading()).toBe(false);
     expect(store.error()).toBe('Sessao do cliente indisponivel.');
+  });
+
+  it('updates the customer profile through the authenticated session customer id', () => {
+    const profile = customer({ clienteId: 42, nome: 'Cliente Atualizado' });
+    tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
+    customerServiceMock.update.mockReturnValue(of(profile));
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.setProfile(customer({ clienteId: 42 }));
+    store.updateProfile({
+      cpf: '12345678901',
+      nome: 'Cliente Atualizado',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shop.com',
+      endereco: customer().endereco,
+      celular: customer().celular,
+    });
+
+    expect(customerServiceMock.update).toHaveBeenCalledWith(
+      42,
+      expect.objectContaining({
+        nome: 'Cliente Atualizado',
+      }),
+    );
+    expect(store.profile()).toEqual(profile);
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBeNull();
   });
 });

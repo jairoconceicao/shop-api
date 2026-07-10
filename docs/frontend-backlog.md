@@ -235,7 +235,7 @@ de perfil.
 [x] TASK-086: Implementar rota `/account`.
 [x] TASK-087: Implementar rota `/account/profile`.
 [x] TASK-088: Integrar `GET /api/v1/cliente/{clienteId}`.
-[ ] TASK-089: Integrar `PUT /api/v1/cliente/{clienteId}`.
+[x] TASK-089: Integrar `PUT /api/v1/cliente/{clienteId}`.
 [ ] TASK-090: Integrar `DELETE /api/v1/cliente/{clienteId}` para cancelamento de conta.
 [ ] TASK-091: Implementar menu lateral no desktop e navegacao simples no mobile.
 [ ] TASK-092: Criar formulario de perfil com validacao por schema.
