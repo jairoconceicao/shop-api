@@ -15,11 +15,11 @@ A inspiração visual vem de lojas como **Mercado Livre**, **KaBuM** e **Magalu*
 
 ---
 
-# 2. Tema visual com Tailwind CSS 4
+## 2. Tema visual com Tailwind CSS 4
 
 A Shop API deve utilizar uma paleta suave, harmônica e comercial, com tons claros para fundo, azul como cor principal de ação e laranja para destaque de ofertas.
 
-## 2.1 Arquivo global de estilo
+### 2.1 Arquivo global de estilo
 
 Exemplo sugerido para `app.css`, `globals.css` ou arquivo global equivalente:
 
@@ -68,7 +68,7 @@ Exemplo sugerido para `app.css`, `globals.css` ou arquivo global equivalente:
 
 ---
 
-## 2.2 Uso das cores no Tailwind
+### 2.2 Uso das cores no Tailwind
 
 | Contexto                 | Classe Tailwind                              |
 | ------------------------ | -------------------------------------------- |
@@ -94,9 +94,9 @@ Exemplo sugerido para `app.css`, `globals.css` ou arquivo global equivalente:
 
 ---
 
-# 3. Diretrizes de UI
+## 3. Diretrizes de UI
 
-## Mobile First
+### Mobile First
 
 A interface deve ser pensada primeiro para telas pequenas. O mobile precisa ser direto, rápido e com foco em compra.
 
@@ -110,7 +110,7 @@ Princípios:
 * Navegação inferior opcional;
 * Ações principais acima da dobra.
 
-## Desktop
+### Desktop
 
 No desktop, a interface pode usar melhor o espaço horizontal.
 
@@ -126,9 +126,9 @@ Princípios:
 
 ---
 
-# 4. Componentes globais
+## 4. Componentes globais
 
-## Header mobile
+### Header mobile
 
 ```text
 ┌─────────────────────────────────┐
@@ -161,7 +161,7 @@ Classes sugeridas:
 </header>
 ```
 
-## Header desktop
+### Header desktop
 
 ```text
 ┌───────────────────────────────────────────────────────────────┐
@@ -194,13 +194,13 @@ Classes sugeridas:
 
 ---
 
-# 5. Página de Login
+## 5. Página de Login
 
-## Objetivo
+### Objetivo
 
 Permitir que o cliente acesse sua conta com e-mail e senha, incluindo a opção de manter-se conectado.
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────┐
@@ -249,7 +249,7 @@ Classes principais:
 </main>
 ```
 
-## Desktop
+### Desktop
 
 Layout em duas colunas:
 
@@ -261,13 +261,13 @@ Layout em duas colunas:
 
 ---
 
-# 6. Página Home
+## 6. Página Home
 
-## Objetivo
+### Objetivo
 
 Exibir ofertas, campo de busca, categorias e catálogo de produtos.
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────┐
@@ -313,7 +313,7 @@ Classes principais:
 </main>
 ```
 
-## Desktop
+### Desktop
 
 ```text
 ┌───────────────────────────────────────────────────────────────┐
@@ -341,9 +341,9 @@ Grid recomendado:
 
 ---
 
-# 7. Card de Produto
+## 7. Card de Produto
 
-## Estrutura visual
+### Estrutura visual
 
 ```text
 ┌────────────────────┐
@@ -389,13 +389,13 @@ Classes sugeridas:
 
 ---
 
-# 8. Página Detalhes do Produto
+## 8. Página Detalhes do Produto
 
-## Objetivo
+### Objetivo
 
 Apresentar informações completas do produto e conduzir o cliente para compra ou carrinho.
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────┐
@@ -449,7 +449,7 @@ Classes principais:
 </section>
 ```
 
-## Desktop
+### Desktop
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
@@ -467,15 +467,15 @@ Classes principais:
 
 ---
 
-# 9. Página Carrinho
+## 9. Página Carrinho
 
-## Objetivo
+### Objetivo
 
 Permitir revisar produtos, alterar quantidade, remover itens e iniciar o checkout.
 
 O carrinho deve ser acessível por botão ou ícone no canto superior direito de todas as páginas.
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────┐
@@ -542,7 +542,7 @@ Classes principais:
 </section>
 ```
 
-## Desktop
+### Desktop
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
@@ -558,13 +558,13 @@ Classes principais:
 
 ---
 
-# 10. Página Área do Cliente
+## 10. Página Área do Cliente
 
-## Objetivo
+### Objetivo
 
 Permitir que o cliente altere seus dados, altere sua senha e consulte seus pedidos.
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────┐
@@ -616,7 +616,7 @@ Classes principais:
 </section>
 ```
 
-## Desktop
+### Desktop
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
@@ -633,9 +633,9 @@ Classes principais:
 
 ---
 
-# 11. Navegação recomendada
+## 11. Navegação recomendada
 
-## Mobile
+### Mobile
 
 ```text
 ┌───────────────────────────────────────────────┐
@@ -656,7 +656,7 @@ Classes sugeridas:
 </nav>
 ```
 
-## Desktop
+### Desktop
 
 ```text
 Shop API | Busca | Ofertas | Categorias | Meus Pedidos | Carrinho | Conta
@@ -664,7 +664,7 @@ Shop API | Busca | Ofertas | Categorias | Meus Pedidos | Carrinho | Conta
 
 ---
 
-# 12. Rotas sugeridas
+## 12. Rotas sugeridas
 
 | Página              | Rota                |
 | ------------------- | ------------------- |
@@ -680,7 +680,7 @@ Shop API | Busca | Ofertas | Categorias | Meus Pedidos | Carrinho | Conta
 
 ---
 
-# 13. Componentes reutilizáveis
+## 13. Componentes reutilizáveis
 
 ```text
 /components
@@ -721,7 +721,7 @@ Shop API | Busca | Ofertas | Categorias | Meus Pedidos | Carrinho | Conta
 
 ---
 
-# 14. Breakpoints recomendados
+## 14. Breakpoints recomendados
 
 | Breakpoint       | Uso                            |
 | ---------------- | ------------------------------ |
@@ -730,7 +730,7 @@ Shop API | Busca | Ofertas | Categorias | Meus Pedidos | Carrinho | Conta
 | `769px - 1024px` | Tablet / desktop compacto      |
 | `1025px+`        | Desktop completo               |
 
-## Grid de produtos
+### Grid de produtos
 
 | Dispositivo    | Colunas |
 | -------------- | ------: |
@@ -750,9 +750,9 @@ Classes sugeridas:
 
 ---
 
-# 15. Estados importantes da interface
+## 15. Estados importantes da interface
 
-## Produto indisponível
+### Produto indisponível
 
 ```html
 <div class="rounded-xl bg-shop-warning-soft p-4 text-shop-warning">
@@ -764,7 +764,7 @@ Classes sugeridas:
 </button>
 ```
 
-## Carrinho vazio
+### Carrinho vazio
 
 ```html
 <section class="flex min-h-[60vh] flex-col items-center justify-center bg-shop-background px-4 text-center">
@@ -783,7 +783,7 @@ Classes sugeridas:
 </section>
 ```
 
-## Cliente não logado
+### Cliente não logado
 
 ```html
 <div class="rounded-2xl bg-shop-surface p-5 text-center shadow-sm">
@@ -802,7 +802,7 @@ Classes sugeridas:
 </div>
 ```
 
-## Erro no login
+### Erro no login
 
 ```html
 <div class="rounded-xl bg-shop-danger-soft p-3 text-sm font-medium text-shop-danger">
@@ -812,7 +812,7 @@ Classes sugeridas:
 
 ---
 
-# 16. Resumo da proposta
+## 16. Resumo da proposta
 
 A Shop API deve utilizar uma UI mobile first com:
 
