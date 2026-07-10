@@ -530,6 +530,82 @@ describe('ProductsPageComponent', () => {
     expect(screen.getByRole('link', { name: 'Voltar para home' })).toHaveAttribute('href', '/');
   });
 
+  it('renders a recoverable empty state when a filtered catalog has no products', async () => {
+    categoryServiceMock.listPublicCategories.mockReturnValue(of([]));
+    catalogServiceMock.listPublicProducts
+      .mockReturnValueOnce(
+        of({
+          status: true,
+          message: 'Catalogo vazio.',
+          pagination: {
+            pages: 0,
+            size: 8,
+            totalItems: 0,
+            data: [],
+          },
+        }),
+      )
+      .mockReturnValueOnce(
+        of({
+          status: true,
+          message: 'Catalogo de produtos carregado com sucesso.',
+          pagination: {
+            pages: 1,
+            size: 8,
+            totalItems: 1,
+            data: [
+              {
+                produtoId: 101,
+                titulo: 'Notebook Gamer',
+                thumb: null,
+                preco: 5999.9,
+                estoque: 12,
+                categoria: {
+                  categoriaId: 1,
+                  titulo: 'Informática',
+                },
+              },
+            ],
+          },
+        }),
+      );
+
+    await render(ProductsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute({
+            searchword: 'notebook',
+          }),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    expect(screen.getByText('Nenhum resultado para "notebook"')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Limpar filtros' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenNthCalledWith(2, {
+      page: 1,
+      size: 8,
+      searchword: undefined,
+    });
+    expect(await screen.findByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
+  });
+
   it('renders an error state when the catalog request fails', async () => {
     categoryServiceMock.listPublicCategories.mockReturnValue(of([]));
     catalogServiceMock.listPublicProducts.mockReturnValue(
@@ -556,5 +632,71 @@ describe('ProductsPageComponent', () => {
 
     expect(screen.getByText('Nao foi possivel carregar os produtos')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Recarregar catalogo' })).toBeVisible();
+  });
+
+  it('renders a recoverable error state when a filtered catalog request fails', async () => {
+    categoryServiceMock.listPublicCategories.mockReturnValue(of([]));
+    catalogServiceMock.listPublicProducts
+      .mockReturnValueOnce(throwError(() => new Error('failed to load catalog')))
+      .mockReturnValueOnce(
+        of({
+          status: true,
+          message: 'Catalogo de produtos carregado com sucesso.',
+          pagination: {
+            pages: 1,
+            size: 8,
+            totalItems: 1,
+            data: [
+              {
+                produtoId: 202,
+                titulo: 'Notebook Gamer Pro',
+                thumb: null,
+                preco: 7999.9,
+                estoque: 4,
+                categoria: {
+                  categoriaId: 1,
+                  titulo: 'Informática',
+                },
+              },
+            ],
+          },
+        }),
+      );
+
+    await render(ProductsPageComponent, {
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: createActivatedRoute({
+            searchword: 'notebook',
+          }),
+        },
+        {
+          provide: CatalogService,
+          useValue: catalogServiceMock,
+        },
+        {
+          provide: CategoryService,
+          useValue: categoryServiceMock,
+        },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    expect(screen.getByText('Nao foi possivel carregar os produtos')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Recarregar catalogo' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Limpar filtros' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenNthCalledWith(2, {
+      page: 1,
+      size: 8,
+      searchword: undefined,
+    });
+    expect(await screen.findByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();
   });
 });
