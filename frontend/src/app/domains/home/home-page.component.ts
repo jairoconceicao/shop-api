@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { map } from 'rxjs';
 
 import { CategoryService } from '@core/category/category.service';
 import { CatalogService } from '@core/catalog/catalog.service';
@@ -12,6 +11,7 @@ import { ErrorStateComponent } from '@shared/ui/states/error-state.component';
 import { LoadingStateComponent } from '@shared/ui/states/loading-state.component';
 
 import { createRemoteSectionState } from './home-page.context';
+import { createIncrementalSectionState } from './home-featured-products.context';
 
 @Component({
   selector: 'app-home-page',
@@ -229,9 +229,42 @@ import { createRemoteSectionState } from './home-page.context';
               </a>
             </app-empty-state>
           } @else {
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              @for (product of featuredProducts(); track product.produtoId) {
-                <app-product-card [product]="product" />
+            <div class="space-y-4">
+              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                @for (product of featuredProducts(); track product.produtoId) {
+                  <app-product-card [product]="product" />
+                }
+              </div>
+
+              @if (featuredProductsState.loadMoreError()) {
+                <div class="border-shop-border rounded-[1.5rem] border bg-white p-4">
+                  <p class="text-shop-text font-bold">Nao foi possivel carregar mais produtos.</p>
+                  <p class="text-shop-text-muted mt-1 text-sm">
+                    {{ featuredProductsState.loadMoreError() }}
+                  </p>
+                  <button
+                    type="button"
+                    class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover mt-4 inline-flex rounded-2xl px-5 py-3 text-sm font-bold transition"
+                    (click)="loadMoreFeaturedProducts()"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              } @else if (featuredProductsState.hasMore()) {
+                <div class="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    class="border-shop-border bg-shop-background text-shop-text hover:border-shop-primary/30 hover:text-shop-primary inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-70"
+                    [disabled]="featuredProductsState.isLoadingMore()"
+                    (click)="loadMoreFeaturedProducts()"
+                  >
+                    @if (featuredProductsState.isLoadingMore()) {
+                      Carregando mais produtos...
+                    } @else {
+                      Ver mais produtos
+                    }
+                  </button>
+                </div>
               }
             </div>
           }
@@ -290,8 +323,8 @@ export class HomePageComponent {
     })),
   );
 
-  private readonly featuredProductsState = createRemoteSectionState(
-    () => this.catalogService.listPublicProducts().pipe(map((response) => response.pagination.data)),
+  private readonly featuredProductsState = createIncrementalSectionState(
+    ({ page, size }) => this.catalogService.listPublicProducts({ page, size }),
     'Nao foi possivel carregar os produtos em destaque. Tente novamente.',
   );
 
@@ -303,5 +336,9 @@ export class HomePageComponent {
 
   protected reloadFeaturedProducts(): void {
     this.featuredProductsState.reload();
+  }
+
+  protected loadMoreFeaturedProducts(): void {
+    this.featuredProductsState.loadMore();
   }
 }

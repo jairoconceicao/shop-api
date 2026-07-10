@@ -30,13 +30,13 @@ describe('HomePageComponent', () => {
   });
 
   it('renders the mobile first storefront sections', async () => {
-    const response = {
+    const firstPage = {
       status: true,
       message: 'Catalogo de produtos carregado com sucesso.',
       pagination: {
-        pages: 1,
+        pages: 2,
         size: 4,
-        totalItems: 1,
+        totalItems: 2,
         data: [
           {
             produtoId: 101,
@@ -47,6 +47,29 @@ describe('HomePageComponent', () => {
             categoria: {
               categoriaId: 1,
               titulo: 'Informática',
+            },
+          },
+        ],
+      },
+    } satisfies PagedResponse<ProductCatalogItem>;
+
+    const secondPage = {
+      status: true,
+      message: 'Catalogo de produtos carregado com sucesso.',
+      pagination: {
+        pages: 2,
+        size: 4,
+        totalItems: 2,
+        data: [
+          {
+            produtoId: 102,
+            titulo: 'Keyboard Mecânico',
+            thumb: null,
+            preco: 499.9,
+            estoque: 8,
+            categoria: {
+              categoriaId: 2,
+              titulo: 'Periféricos',
             },
           },
         ],
@@ -66,7 +89,9 @@ describe('HomePageComponent', () => {
       },
     ] satisfies Category[];
 
-    catalogServiceMock.listPublicProducts.mockReturnValue(of(response));
+    catalogServiceMock.listPublicProducts
+      .mockReturnValueOnce(of(firstPage))
+      .mockReturnValueOnce(of(secondPage));
     categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
 
     await render(HomePageComponent, {
@@ -90,7 +115,10 @@ describe('HomePageComponent', () => {
       '/products',
     );
     expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/login');
-    expect(catalogServiceMock.listPublicProducts).toHaveBeenCalledWith();
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenNthCalledWith(1, {
+      page: 1,
+      size: 4,
+    });
     expect(categoryServiceMock.listPublicCategories).toHaveBeenCalledWith();
     expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
     expect(screen.getAllByText('Informática')).toHaveLength(2);
@@ -100,6 +128,16 @@ describe('HomePageComponent', () => {
     expect(screen.getByText('Produtos em destaque')).toBeVisible();
     expect(screen.getByText('Produtos de tecnologia')).toBeVisible();
     expect(screen.getByText('Smartphones e acessórios')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ver mais produtos' })).toBeVisible();
+
+    screen.getByRole('button', { name: 'Ver mais produtos' }).click();
+
+    expect(catalogServiceMock.listPublicProducts).toHaveBeenNthCalledWith(2, {
+      page: 2,
+      size: 4,
+    });
+    expect(await screen.findByRole('heading', { name: 'Keyboard Mecânico' })).toBeVisible();
+    expect(screen.getAllByRole('link', { name: 'Comprar' })).toHaveLength(2);
   });
 
   it('renders loading states while the API requests are pending', async () => {
