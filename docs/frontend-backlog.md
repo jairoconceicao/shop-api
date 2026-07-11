@@ -272,7 +272,7 @@ Entregue ate aqui:
 - Separacao inicial por `core`, `shared` e `domains`.
 
 [x] TASK-110: Definir rotas publicas: `/`, `/login`, `/products`, `/products/:id` e cadastro.
-[ ] TASK-111: Definir rotas protegidas: `/cart`, checkout, `/account`, `/account/profile`, `/account/password` e `/account/orders`.
+[x] TASK-111: Definir rotas protegidas: `/cart`, checkout, `/account`, `/account/profile`, `/account/password` e `/account/orders`.
 [ ] TASK-112: Criar stores por dominio: `Auth`, `Cart`, `Catalog`, `Customer` e `Checkout`.
 [ ] TASK-113: Garantir que stores nao dupliquem normalizacao de envelope HTTP.
 [ ] TASK-114: Garantir redirecionamentos coerentes apos login, logout e expiracao de sessao.

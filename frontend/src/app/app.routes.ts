@@ -15,6 +15,7 @@ import { PasswordPageComponent } from '@domains/customer/password-page.component
 import { HomePageComponent } from '@domains/home/home-page.component';
 
 import { publicAppRoutes } from './app.routes.context';
+import { protectedAppRoutes } from './app.routes.protected.context';
 
 export const routes: Routes = [
   {
@@ -47,43 +48,43 @@ export const routes: Routes = [
         title: 'Shop API | Detalhe do produto',
       },
       {
-        path: 'cart',
+        path: protectedAppRoutes.cart,
         component: CartPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Carrinho',
       },
       {
-        path: 'checkout',
+        path: protectedAppRoutes.checkout,
         component: CheckoutPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Checkout',
       },
       {
-        path: 'account',
+        path: protectedAppRoutes.account,
         component: AccountPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Minha conta',
       },
       {
-        path: 'account/profile',
+        path: protectedAppRoutes.accountProfile,
         component: ProfilePageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Meus dados',
       },
       {
-        path: 'account/password',
+        path: protectedAppRoutes.accountPassword,
         component: PasswordPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Alterar senha',
       },
       {
-        path: 'account/orders',
+        path: protectedAppRoutes.accountOrders,
         component: OrdersPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Meus pedidos',
       },
       {
-        path: 'account/orders/:pedidoId',
+        path: protectedAppRoutes.accountOrderDetails,
         component: OrderDetailPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Detalhe do pedido',

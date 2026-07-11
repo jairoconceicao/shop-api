@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { authGuard } from '@core/auth/auth.guard';
 
 import { publicAppRoutes } from './app.routes.context';
+import { protectedAppRoutes } from './app.routes.protected.context';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
@@ -48,19 +49,47 @@ describe('app routes', () => {
     expect(productDetailsRoute?.title).toBe('Shop API | Detalhe do produto');
   });
 
-  it('protects the checkout route with the auth guard', () => {
-    const checkoutRoute = routes[0]?.children?.find((route) => route.path === 'checkout');
+  it('defines the protected cart route with the auth guard', () => {
+    const cartRoute = routes[0]?.children?.find((route) => route.path === protectedAppRoutes.cart);
+
+    expect(cartRoute).toBeDefined();
+    expect(cartRoute?.canActivate).toEqual([authGuard]);
+    expect(cartRoute?.title).toBe('Shop API | Carrinho');
+  });
+
+  it('defines the protected checkout route with the auth guard', () => {
+    const checkoutRoute = routes[0]?.children?.find(
+      (route) => route.path === protectedAppRoutes.checkout,
+    );
 
     expect(checkoutRoute).toBeDefined();
     expect(checkoutRoute?.canActivate).toEqual([authGuard]);
     expect(checkoutRoute?.title).toBe('Shop API | Checkout');
   });
 
-  it('routes account to the customer area and keeps it protected', () => {
-    const accountRoute = routes[0]?.children?.find((route) => route.path === 'account');
+  it('defines the protected account routes with the auth guard', () => {
+    const accountRoute = routes[0]?.children?.find((route) => route.path === protectedAppRoutes.account);
+    const profileRoute = routes[0]?.children?.find(
+      (route) => route.path === protectedAppRoutes.accountProfile,
+    );
+    const passwordRoute = routes[0]?.children?.find(
+      (route) => route.path === protectedAppRoutes.accountPassword,
+    );
+    const ordersRoute = routes[0]?.children?.find(
+      (route) => route.path === protectedAppRoutes.accountOrders,
+    );
 
     expect(accountRoute).toBeDefined();
     expect(accountRoute?.canActivate).toEqual([authGuard]);
     expect(accountRoute?.title).toBe('Shop API | Minha conta');
+    expect(profileRoute).toBeDefined();
+    expect(profileRoute?.canActivate).toEqual([authGuard]);
+    expect(profileRoute?.title).toBe('Shop API | Meus dados');
+    expect(passwordRoute).toBeDefined();
+    expect(passwordRoute?.canActivate).toEqual([authGuard]);
+    expect(passwordRoute?.title).toBe('Shop API | Alterar senha');
+    expect(ordersRoute).toBeDefined();
+    expect(ordersRoute?.canActivate).toEqual([authGuard]);
+    expect(ordersRoute?.title).toBe('Shop API | Meus pedidos');
   });
 });
