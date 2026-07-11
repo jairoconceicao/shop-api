@@ -261,7 +261,7 @@ de perfil.
 [x] TASK-106: Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.
 [x] TASK-107: Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando `status: "Cancelado"`.
 [x] TASK-108: Exibir status com `OrderStatusBadge`.
-[ ] TASK-109: Criar testes de listagem, detalhe e cancelamento de pedido.
+[x] TASK-109: Criar testes de listagem, detalhe e cancelamento de pedido.
 
 ### 14. Roteamento e stores de dominio
 
