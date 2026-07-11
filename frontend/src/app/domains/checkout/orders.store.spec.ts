@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OrderService } from '@core/order/order.service';
 import type { Order } from '@shared/models';
+import { resetStoreTestBed } from '../testing/store-test.context';
 
 import { OrdersStore } from './orders.store';
 
@@ -57,7 +58,7 @@ describe('OrdersStore', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
+    resetStoreTestBed();
   });
 
   it('starts with empty state and exposes derived signals', () => {
@@ -245,6 +246,23 @@ describe('OrdersStore', () => {
 
     store.clearError();
     expect(store.error()).toBeNull();
+  });
+
+  it('keeps pagination defaults when clearing the orders list', () => {
+    const store = TestBed.inject(OrdersStore);
+
+    orderServiceMock.list.mockReturnValue(
+      of({ pages: 2, size: 10, totalItems: 15, data: [order()] }),
+    );
+    store.loadOrders({ cpf: '12345678901', page: 2, size: 10 });
+
+    store.clearOrders();
+
+    expect(store.orders()).toEqual([]);
+    expect(store.currentPage()).toBe(1);
+    expect(store.pageSize()).toBe(20);
+    expect(store.totalItems()).toBe(0);
+    expect(store.totalPages()).toBe(0);
   });
 
   it('resets the entire state to initial values', () => {

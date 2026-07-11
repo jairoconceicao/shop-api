@@ -276,7 +276,7 @@ Entregue ate aqui:
 [x] TASK-112: Criar stores por dominio: `Auth`, `Cart`, `Catalog`, `Customer` e `Checkout`.
 [x] TASK-113: Garantir que stores nao dupliquem normalizacao de envelope HTTP.
 [x] TASK-114: Garantir redirecionamentos coerentes apos login, logout e expiracao de sessao.
-[ ] TASK-115: Criar testes unitarios dos reducers/actions/metodos de store.
+[x] TASK-115: Criar testes unitarios dos reducers/actions/metodos de store.
 
 ### 15. Acessibilidade, responsividade e qualidade visual
 

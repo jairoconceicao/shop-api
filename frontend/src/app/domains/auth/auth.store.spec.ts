@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '@core/auth/auth.service';
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import type { AuthSession } from '@shared/models';
+import { resetStoreTestBed } from '../testing/store-test.context';
 
 import { AuthStore } from './auth.store';
 
@@ -45,7 +46,7 @@ describe('AuthStore', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
+    resetStoreTestBed();
   });
 
   it('starts empty and exposes derived session signals', () => {
@@ -71,6 +72,18 @@ describe('AuthStore', () => {
     expect(store.isAuthenticated()).toBe(true);
     expect(store.email()).toBe('cliente@shop.com');
     expect(store.customerId()).toBe(42);
+  });
+
+  it('loads an empty session when storage has nothing persisted', () => {
+    tokenStorageMock.getSession.mockReturnValue(null);
+
+    const store = TestBed.inject(AuthStore);
+
+    store.loadSession();
+
+    expect(store.isAuthenticated()).toBe(false);
+    expect(store.session()).toBeNull();
+    expect(store.error()).toBeNull();
   });
 
   it('logs in and stores the session in the state', () => {
@@ -116,6 +129,23 @@ describe('AuthStore', () => {
     expect(store.isAuthenticated()).toBe(false);
     expect(store.session()).toBeNull();
     expect(store.error()).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('reports an error when logout fails and still redirects to login', () => {
+    authServiceMock.logout.mockReturnValue(throwError(() => new Error('fail')));
+
+    const store = TestBed.inject(AuthStore);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    store.setSession(session());
+    store.logout();
+
+    expect(authServiceMock.logout).toHaveBeenCalledTimes(1);
+    expect(store.isAuthenticated()).toBe(false);
+    expect(store.session()).toBeNull();
+    expect(store.error()).toBe('Nao foi possivel encerrar a sessao.');
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 

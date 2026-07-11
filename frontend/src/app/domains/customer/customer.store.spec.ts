@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CustomerService } from '@core/customer/customer.service';
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import type { CustomerDetails } from '@shared/models';
+import { resetStoreTestBed } from '../testing/store-test.context';
 
 import { CustomerStore } from './customer.store';
 
@@ -58,7 +59,7 @@ describe('CustomerStore', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
+    resetStoreTestBed();
   });
 
   it('starts without a profile and exposes empty derived state', () => {
@@ -154,6 +155,18 @@ describe('CustomerStore', () => {
     expect(store.error()).toBe('Sessao do cliente indisponivel.');
   });
 
+  it('reports a session error when the customer id is not numeric', () => {
+    tokenStorageMock.getSession.mockReturnValue({ clienteId: 'abc' });
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.loadProfile();
+
+    expect(customerServiceMock.getById).not.toHaveBeenCalled();
+    expect(store.profile()).toBeNull();
+    expect(store.error()).toBe('Sessao do cliente indisponivel.');
+  });
+
   it('updates the customer profile through the authenticated session customer id', () => {
     const profile = customer({ clienteId: 42, nome: 'Cliente Atualizado' });
     tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
@@ -182,6 +195,42 @@ describe('CustomerStore', () => {
     expect(store.error()).toBeNull();
   });
 
+  it('reports an error when updating without a profile loaded', () => {
+    const store = TestBed.inject(CustomerStore);
+
+    store.updateProfile({
+      cpf: '12345678901',
+      nome: 'Cliente Atualizado',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shop.com',
+      endereco: customer().endereco,
+      celular: customer().celular,
+    });
+
+    expect(customerServiceMock.update).not.toHaveBeenCalled();
+    expect(store.error()).toBe('Nao foi possivel atualizar os dados do cliente.');
+  });
+
+  it('reports service errors when updating the profile fails', () => {
+    tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
+    customerServiceMock.update.mockReturnValue(throwError(() => new Error('fail')));
+
+    const store = TestBed.inject(CustomerStore);
+
+    store.setProfile(customer({ clienteId: 42 }));
+    store.updateProfile({
+      cpf: '12345678901',
+      nome: 'Cliente Atualizado',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@shop.com',
+      endereco: customer().endereco,
+      celular: customer().celular,
+    });
+
+    expect(store.isLoading()).toBe(false);
+    expect(store.error()).toBe('Nao foi possivel atualizar os dados do cliente.');
+  });
+
   it('deletes the customer profile through the authenticated session customer id', () => {
     tokenStorageMock.getSession.mockReturnValue({ clienteId: 42 });
     customerServiceMock.delete.mockReturnValue(of(undefined));
@@ -195,5 +244,14 @@ describe('CustomerStore', () => {
     expect(store.profile()).toBeNull();
     expect(store.isLoading()).toBe(false);
     expect(store.error()).toBeNull();
+  });
+
+  it('reports an error when deleting without a profile loaded', () => {
+    const store = TestBed.inject(CustomerStore);
+
+    store.deleteProfile();
+
+    expect(customerServiceMock.delete).not.toHaveBeenCalled();
+    expect(store.error()).toBe('Nao foi possivel cancelar a conta do cliente.');
   });
 });

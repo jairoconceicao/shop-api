@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import type { CartItem } from '@shared/models';
+import { resetStoreTestBed } from '../testing/store-test.context';
 
 import { CartStore } from './cart.store';
 
@@ -85,5 +86,20 @@ describe('CartStore', () => {
     store.updateQuantity(10, Number.NaN);
 
     expect(store.items()).toEqual([item({ itemId: 2, produtoId: 20, valorUnitario: 10 })]);
+  });
+
+  it('replaces the cart items when setting a new collection', () => {
+    const store = TestBed.inject(CartStore);
+
+    store.setItems([item(), item({ itemId: 2, produtoId: 20, quantidade: 3 })]);
+
+    expect(store.hasCart()).toBe(true);
+    expect(store.items()).toEqual([item(), item({ itemId: 2, produtoId: 20, quantidade: 3 })]);
+    expect(store.itemCount()).toBe(4);
+    expect(store.subtotal()).toBe(100);
+  });
+
+  afterEach(() => {
+    resetStoreTestBed();
   });
 });

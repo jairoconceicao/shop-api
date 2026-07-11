@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CatalogService } from '@core/catalog/catalog.service';
 import type { ApiPagination } from '@shared/api';
 import type { ProductCatalogItem, ProductDetails } from '@shared/models';
+import { resetStoreTestBed } from '../testing/store-test.context';
 
 import { CatalogStore } from './catalog.store';
 
@@ -51,7 +52,7 @@ describe('CatalogStore', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
+    resetStoreTestBed();
   });
 
   it('starts empty and exposes derived state', () => {
@@ -110,6 +111,18 @@ describe('CatalogStore', () => {
     });
     expect(store.categoryId()).toBe(3);
     expect(store.products()).toHaveLength(1);
+  });
+
+  it('trims the search term and updates category filters independently', () => {
+    const store = TestBed.inject(CatalogStore);
+
+    store.setSearchword('  notebook  ');
+    store.setCategory(9);
+    store.clearCategory();
+
+    expect(store.searchword()).toBe('notebook');
+    expect(store.categoryId()).toBeNull();
+    expect(store.currentPage()).toBe(1);
   });
 
   it('sets an error state when loading the catalog fails', () => {
