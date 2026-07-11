@@ -36,11 +36,58 @@ import { createOrdersPageContext } from './orders-page.context';
           </div>
         </div>
 
-        <app-empty-state
-          [eyebrow]="context.emptyStateEyebrow"
-          [title]="context.emptyStateTitle"
-          [description]="context.emptyStateDescription"
-        />
+        @if (context.isLoadingOrders()) {
+          <app-empty-state
+            eyebrow="Pedidos"
+            title="Carregando pedidos"
+            description="Estamos buscando seus pedidos mais recentes."
+          />
+        } @else if (context.ordersError()) {
+          <app-empty-state
+            eyebrow="Pedidos"
+            title="Nao foi possivel carregar os pedidos"
+            [description]="context.ordersError()"
+          />
+        } @else if (context.hasOrders()) {
+          <div class="space-y-4">
+            @for (order of context.orders(); track order.pedidoId) {
+              <article class="rounded-[2rem] border border-shop-border bg-white p-5 shadow-soft">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-black uppercase tracking-[0.24em] text-shop-text-light">
+                      Pedido #{{ order.pedidoId }}
+                    </p>
+                    <p class="mt-2 text-lg font-bold text-shop-text">
+                      {{ order.status }}
+                    </p>
+                    <p class="mt-1 text-sm text-shop-text-muted">
+                      {{ order.dataPedido }}
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl bg-shop-surface-muted px-4 py-3 text-sm font-semibold text-shop-text">
+                    Forma de pagamento: {{ order.formaPagamento }}
+                  </div>
+                </div>
+              </article>
+            }
+
+            <div class="flex flex-col gap-2 rounded-[2rem] border border-shop-border bg-white px-5 py-4 text-sm text-shop-text-muted shadow-soft sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                {{ context.totalItems() }} pedido(s) encontrados
+              </span>
+              <span>
+                Pagina {{ context.currentPage() }} de {{ context.totalPages() || 1 }}
+              </span>
+            </div>
+          </div>
+        } @else {
+          <app-empty-state
+            eyebrow="Pedidos"
+            title="Nenhum pedido carregado ainda"
+            description="Seus pedidos aparecem aqui assim que a listagem do CPF autenticado for retornada."
+          />
+        }
       </section>
     </app-page-container>
   `,
