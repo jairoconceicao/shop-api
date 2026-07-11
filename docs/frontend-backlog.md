@@ -283,7 +283,7 @@ Entregue ate aqui:
 [x] TASK-116: Validar navegacao por teclado nos fluxos principais.
 [x] TASK-117: Garantir labels, descricoes de erro e foco visivel nos formularios.
 [x] TASK-118: Garantir contraste adequado para tokens do tema.
-[ ] TASK-119: Validar layout em mobile pequeno, mobile grande, tablet e desktop.
+[x] TASK-119: Validar layout em mobile pequeno, mobile grande, tablet e desktop.
 [ ] TASK-120: Evitar sobreposicao de textos e componentes em breakpoints suportados.
 [ ] TASK-121: Garantir que botoes e alvos de toque sejam confortaveis no mobile.
 [ ] TASK-122: Revisar consistencia visual com `docs/frontend-specs.md`.

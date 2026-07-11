@@ -230,7 +230,7 @@ import { createIncrementalSectionState } from './home-featured-products.context'
             </app-empty-state>
           } @else {
             <div class="space-y-4">
-              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 @for (product of featuredProducts(); track product.produtoId) {
                   <app-product-card [product]="product" />
                 }
