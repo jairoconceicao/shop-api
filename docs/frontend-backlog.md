@@ -293,7 +293,7 @@ Entregue ate aqui:
 Observacao: existe um e2e inicial de smoke test para a home, mas os fluxos de
 negocio ainda nao estao cobertos.
 
-[ ] TASK-123: Criar e2e para catalogo publico sem autenticacao.
+[x] TASK-123: Criar e2e para catalogo publico sem autenticacao.
 [ ] TASK-124: Criar e2e para login e acesso a rota protegida.
 [ ] TASK-125: Criar e2e para cadastro de cliente.
 [ ] TASK-126: Criar e2e para busca textual e filtro por categoria.
