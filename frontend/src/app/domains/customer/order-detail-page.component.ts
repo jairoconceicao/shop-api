@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AlertComponent } from '@shared/ui/base/alert.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 
+import { createOrderDetailCancelContext } from './order-detail-cancel.context';
 import { createOrderDetailPageContext } from './order-detail-page.context';
 
 @Component({
   selector: 'app-order-detail-page',
-  imports: [EmptyStateComponent, PageContainerComponent, RouterLink],
+  imports: [AlertComponent, EmptyStateComponent, PageContainerComponent, RouterLink],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -46,10 +48,51 @@ import { createOrderDetailPageContext } from './order-detail-page.context';
           <app-empty-state
             eyebrow="Pedido"
             title="Nao foi possivel carregar o pedido"
-            [description]="context.orderError()"
+            [description]="context.orderError() ?? ''"
           />
         } @else if (context.hasOrder()) {
           <div class="space-y-6">
+            @if (cancelContext.canCancelOrder()) {
+              <app-alert variant="warning" title="Cancelar pedido">
+                <div class="space-y-4">
+                  <p>
+                    Se o pedido ainda puder ser cancelado, confirme a ação abaixo. O frontend vai enviar apenas
+                    <code class="rounded bg-white/70 px-1 py-0.5">status: "Cancelado"</code> para
+                    <code class="rounded bg-white/70 px-1 py-0.5">PATCH /api/v1/pedido/:pedidoId</code>.
+                  </p>
+
+                  @if (cancelContext.isAwaitingConfirmation()) {
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                      <button
+                        type="button"
+                        (click)="confirmOrderCancellation()"
+                        [disabled]="cancelContext.isCancellingOrder()"
+                        class="inline-flex items-center justify-center rounded-2xl bg-shop-danger px-5 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {{ cancelContext.actionLabel() }}
+                      </button>
+                      <button
+                        type="button"
+                        (click)="cancelOrderCancellation()"
+                        class="inline-flex items-center justify-center rounded-2xl border border-shop-border px-5 py-3 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary"
+                      >
+                        {{ cancelContext.cancelLabel() }}
+                      </button>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="beginOrderCancellation()"
+                      [disabled]="cancelContext.isCancellingOrder()"
+                      class="inline-flex items-center justify-center rounded-2xl border border-shop-danger px-5 py-3 text-sm font-bold text-shop-danger transition hover:bg-shop-danger-soft disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {{ cancelContext.actionLabel() }}
+                    </button>
+                  }
+                </div>
+              </app-alert>
+            }
+
             <article class="rounded-[2rem] border border-shop-border bg-white p-6 shadow-soft lg:p-8">
               <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div class="rounded-2xl bg-shop-surface-muted p-4">
@@ -138,6 +181,7 @@ import { createOrderDetailPageContext } from './order-detail-page.context';
 })
 export class OrderDetailPageComponent implements OnInit, OnDestroy {
   protected readonly context = createOrderDetailPageContext();
+  protected readonly cancelContext = createOrderDetailCancelContext();
 
   ngOnInit(): void {
     this.context.loadOrderDetail();
@@ -145,5 +189,17 @@ export class OrderDetailPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.context.clearOrderDetail();
+  }
+
+  protected beginOrderCancellation(): void {
+    this.cancelContext.begin();
+  }
+
+  protected cancelOrderCancellation(): void {
+    this.cancelContext.cancel();
+  }
+
+  protected confirmOrderCancellation(): void {
+    this.cancelContext.confirm();
   }
 }

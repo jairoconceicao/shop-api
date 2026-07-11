@@ -1,6 +1,7 @@
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
+import { fireEvent } from '@testing-library/dom';
 import { vi } from 'vitest';
 
 import { OrdersStore } from '../checkout/orders.store';
@@ -37,8 +38,10 @@ describe('OrderDetailPageComponent', () => {
     const ordersStoreMock = {
       loadOrderDetail: vi.fn(),
       clearCurrentOrder: vi.fn(),
+      cancelOrder: vi.fn(),
       currentOrder: vi.fn(() => order),
       isLoadingDetail: vi.fn(() => false),
+      isCancelling: vi.fn(() => false),
       error: vi.fn(() => null),
     };
 
@@ -55,5 +58,12 @@ describe('OrderDetailPageComponent', () => {
     expect(screen.getByText('Criado')).toBeVisible();
     expect(screen.getByText('Produto #77')).toBeVisible();
     expect(screen.getByText('Voltar para pedidos')).toHaveAttribute('href', '/account/orders');
+    expect(screen.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }));
+    expect(screen.getByRole('button', { name: 'Sim, cancelar pedido' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar pedido' }));
+    expect(ordersStoreMock.cancelOrder).toHaveBeenCalledWith('42');
   });
 });

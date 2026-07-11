@@ -259,7 +259,7 @@ de perfil.
 [x] TASK-104: Integrar `GET /api/v1/pedido?cpf={cpf}&page=&size=`.
 [x] TASK-105: Implementar filtros opcionais por `dataInicio` e `dataFim`.
 [x] TASK-106: Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.
-[ ] TASK-107: Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando `status: "Cancelado"`.
+[x] TASK-107: Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando `status: "Cancelado"`.
 [ ] TASK-108: Exibir status com `OrderStatusBadge`.
 [ ] TASK-109: Criar testes de listagem, detalhe e cancelamento de pedido.
 
