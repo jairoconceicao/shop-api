@@ -53,7 +53,7 @@ describe('OrdersPageComponent', () => {
     expect(screen.getByRole('heading', { name: 'Meus pedidos' })).toBeVisible();
     expect(screen.getByText('Voltar para conta')).toHaveAttribute('href', '/account');
     expect(screen.getByText('Pedido #999')).toBeVisible();
-    expect(screen.getByText('Criado')).toBeVisible();
+    expect(screen.getByLabelText('Status do pedido')).toHaveTextContent('Criado');
     expect(screen.getByText('1 pedido(s) encontrados')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ver detalhes' })).toHaveAttribute('href', '/account/orders/999');
   });

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { InputComponent } from '@shared/ui/base/input.component';
+import { OrderStatusBadgeComponent } from '@shared/ui/customer/order-status-badge.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
@@ -9,7 +10,7 @@ import { createOrdersPageContext } from './orders-page.context';
 
 @Component({
   selector: 'app-orders-page',
-  imports: [EmptyStateComponent, InputComponent, PageContainerComponent, RouterLink],
+  imports: [EmptyStateComponent, InputComponent, OrderStatusBadgeComponent, PageContainerComponent, RouterLink],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -85,9 +86,9 @@ import { createOrdersPageContext } from './orders-page.context';
                     <p class="text-xs font-black uppercase tracking-[0.24em] text-shop-text-light">
                       Pedido #{{ order.pedidoId }}
                     </p>
-                    <p class="mt-2 text-lg font-bold text-shop-text">
-                      {{ order.status }}
-                    </p>
+                    <div class="mt-2">
+                      <app-order-status-badge [status]="order.status" />
+                    </div>
                     <p class="mt-1 text-sm text-shop-text-muted">
                       {{ order.dataPedido }}
                     </p>

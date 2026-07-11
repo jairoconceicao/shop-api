@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/
 import { RouterLink } from '@angular/router';
 
 import { AlertComponent } from '@shared/ui/base/alert.component';
+import { OrderStatusBadgeComponent } from '@shared/ui/customer/order-status-badge.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 
@@ -10,7 +11,7 @@ import { createOrderDetailPageContext } from './order-detail-page.context';
 
 @Component({
   selector: 'app-order-detail-page',
-  imports: [AlertComponent, EmptyStateComponent, PageContainerComponent, RouterLink],
+  imports: [AlertComponent, EmptyStateComponent, OrderStatusBadgeComponent, PageContainerComponent, RouterLink],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -97,7 +98,9 @@ import { createOrderDetailPageContext } from './order-detail-page.context';
               <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div class="rounded-2xl bg-shop-surface-muted p-4">
                   <p class="text-sm font-medium text-shop-text-muted">Status</p>
-                  <p class="mt-1 text-base font-bold text-shop-text">{{ context.order()?.status }}</p>
+                  <div class="mt-1">
+                    <app-order-status-badge [status]="context.order()?.status ?? ''" />
+                  </div>
                 </div>
 
                 <div class="rounded-2xl bg-shop-surface-muted p-4">

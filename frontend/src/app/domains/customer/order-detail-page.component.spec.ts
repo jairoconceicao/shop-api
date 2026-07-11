@@ -55,7 +55,7 @@ describe('OrderDetailPageComponent', () => {
 
     expect(ordersStoreMock.loadOrderDetail).toHaveBeenCalledWith('42');
     expect(screen.getByRole('heading', { name: 'Detalhe do pedido #42' })).toBeVisible();
-    expect(screen.getByText('Criado')).toBeVisible();
+    expect(screen.getByLabelText('Status do pedido')).toHaveTextContent('Criado');
     expect(screen.getByText('Produto #77')).toBeVisible();
     expect(screen.getByText('Voltar para pedidos')).toHaveAttribute('href', '/account/orders');
     expect(screen.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible();
