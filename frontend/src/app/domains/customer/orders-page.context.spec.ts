@@ -82,7 +82,53 @@ describe('createOrdersPageContext', () => {
         cpf: '12345678901',
         page: 1,
         size: 20,
+        dataInicio: undefined,
+        dataFim: undefined,
       });
+    });
+  });
+
+  it('reloads the orders list when date filters change', () => {
+    const customerStoreMock = {
+      loadProfile: vi.fn(),
+      hasProfile: vi.fn(() => true),
+      isLoading: vi.fn(() => false),
+      cpf: vi.fn(() => '12345678901'),
+    };
+    const ordersStoreMock = {
+      loadOrders: vi.fn(),
+      orders: vi.fn(() => []),
+      totalItems: vi.fn(() => 0),
+      totalPages: vi.fn(() => 0),
+      currentPage: vi.fn(() => 1),
+      pageSize: vi.fn(() => 20),
+      isLoading: vi.fn(() => false),
+      hasOrders: vi.fn(() => false),
+      error: vi.fn(() => null),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CustomerStore, useValue: customerStoreMock },
+        { provide: OrdersStore, useValue: ordersStoreMock },
+      ],
+    });
+
+    TestBed.runInInjectionContext(() => {
+      const context = createOrdersPageContext();
+
+      context.setDataInicio('2026-07-01');
+      context.setDataFim('2026-07-10');
+
+      expect(ordersStoreMock.loadOrders).toHaveBeenCalledWith({
+        cpf: '12345678901',
+        page: 1,
+        size: 20,
+        dataInicio: '2026-07-01',
+        dataFim: '2026-07-10',
+      });
+      expect(context.dataInicio()).toBe('2026-07-01');
+      expect(context.dataFim()).toBe('2026-07-10');
     });
   });
 });

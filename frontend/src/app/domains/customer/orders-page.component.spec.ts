@@ -47,6 +47,8 @@ describe('OrdersPageComponent', () => {
       cpf: '12345678901',
       page: 1,
       size: 20,
+      dataInicio: undefined,
+      dataFim: undefined,
     });
     expect(screen.getByRole('heading', { name: 'Meus pedidos' })).toBeVisible();
     expect(screen.getByText('Voltar para conta')).toHaveAttribute('href', '/account');

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { InputComponent } from '@shared/ui/base/input.component';
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
@@ -8,7 +9,7 @@ import { createOrdersPageContext } from './orders-page.context';
 
 @Component({
   selector: 'app-orders-page',
-  imports: [RouterLink, EmptyStateComponent, PageContainerComponent],
+  imports: [EmptyStateComponent, InputComponent, PageContainerComponent, RouterLink],
   template: `
     <app-page-container [wide]="true">
       <section class="space-y-6">
@@ -35,6 +36,33 @@ import { createOrdersPageContext } from './orders-page.context';
             </a>
           </div>
         </div>
+
+        <form class="rounded-[2rem] border border-shop-border bg-white p-5 shadow-soft lg:p-6" (submit)="applyFilters($event)">
+          <div class="grid gap-4 md:grid-cols-2">
+            <app-input
+              label="Data inicial"
+              type="date"
+              [value]="context.dataInicio()"
+              (valueChange)="context.setDataInicio($event)"
+            />
+
+            <app-input
+              label="Data final"
+              type="date"
+              [value]="context.dataFim()"
+              (valueChange)="context.setDataFim($event)"
+            />
+          </div>
+
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-shop-primary px-5 py-3 text-sm font-bold text-shop-text-inverted transition hover:bg-shop-primary-hover">
+              Aplicar filtros
+            </button>
+            <button type="button" class="inline-flex items-center justify-center rounded-2xl border border-shop-border px-5 py-3 text-sm font-bold text-shop-text transition hover:border-shop-primary hover:text-shop-primary" (click)="clearFilters()">
+              Limpar filtros
+            </button>
+          </div>
+        </form>
 
         @if (context.isLoadingOrders()) {
           <app-empty-state
@@ -98,5 +126,13 @@ export class OrdersPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.context.ensureCustomerProfileLoaded();
+  }
+
+  applyFilters(event: SubmitEvent): void {
+    event.preventDefault();
+  }
+
+  clearFilters(): void {
+    this.context.clearFilters();
   }
 }

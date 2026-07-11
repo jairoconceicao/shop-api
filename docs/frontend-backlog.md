@@ -257,7 +257,7 @@ de perfil.
 [x] TASK-102: Implementar rota `/account/orders`.
 [x] TASK-103: Antes da listagem, garantir que o perfil do cliente com `cpf` foi carregado.
 [x] TASK-104: Integrar `GET /api/v1/pedido?cpf={cpf}&page=&size=`.
-[ ] TASK-105: Implementar filtros opcionais por `dataInicio` e `dataFim`.
+[x] TASK-105: Implementar filtros opcionais por `dataInicio` e `dataFim`.
 [ ] TASK-106: Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.
 [ ] TASK-107: Implementar cancelamento com `PATCH /api/v1/pedido/{pedidoId}` enviando `status: "Cancelado"`.
 [ ] TASK-108: Exibir status com `OrderStatusBadge`.
