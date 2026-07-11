@@ -35,7 +35,7 @@ import type { PaymentMethod } from '@shared/models';
             <span class="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-white/80">
               Checkout protegido
             </span>
-            <h1 class="mt-4 text-4xl font-black tracking-tight text-balance sm:text-5xl">
+            <h1 class="mt-4 max-w-3xl text-4xl font-black tracking-tight text-balance sm:text-5xl">
               Finalize sua compra com segurança.
             </h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">

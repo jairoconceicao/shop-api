@@ -66,15 +66,13 @@ import { createProductDetailsState } from './product-details.context';
                   ></div>
                 }
 
-                <div
-                  class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 lg:p-8"
-                >
+                <div class="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:flex-row sm:items-end sm:justify-between lg:p-8">
                   <span
-                    class="text-shop-text rounded-full bg-white/90 px-3 py-1 text-xs font-black tracking-[0.2em] uppercase"
+                    class="text-shop-text inline-flex max-w-full rounded-full bg-white/90 px-3 py-1 text-xs font-black tracking-[0.2em] uppercase"
                   >
                     {{ product.categoria?.titulo ?? 'Produto' }}
                   </span>
-                  <span class="bg-shop-text/85 rounded-full px-3 py-1 text-xs font-bold text-white">
+                  <span class="bg-shop-text/85 inline-flex max-w-full rounded-full px-3 py-1 text-xs font-bold text-white">
                     {{ stockLabel() }}
                   </span>
                 </div>

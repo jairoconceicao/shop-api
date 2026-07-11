@@ -10,10 +10,10 @@ import { map } from 'rxjs';
   template: `
     <header class="sticky top-0 z-50 border-b border-shop-border/80 bg-white/90 backdrop-blur">
       <div class="mx-auto w-full max-w-7xl px-4 py-3 lg:px-6 lg:py-4">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex items-start justify-between gap-4">
           <a
             routerLink="/"
-            class="flex items-center gap-3 text-shop-text transition hover:text-shop-primary"
+            class="min-w-0 flex items-center gap-3 text-shop-text transition hover:text-shop-primary"
             aria-label="Ir para a pagina inicial"
           >
             <span
@@ -28,7 +28,7 @@ import { map } from 'rxjs';
           </a>
 
           @if (isDesktop()) {
-            <div class="flex flex-1 items-center gap-4">
+            <div class="flex min-w-0 flex-1 items-center gap-4">
               <label class="relative flex-1">
                 <span class="sr-only">Buscar produtos</span>
                 <input
@@ -38,7 +38,7 @@ import { map } from 'rxjs';
                 />
               </label>
 
-              <nav class="flex items-center gap-2 text-sm font-semibold">
+              <nav class="flex flex-shrink-0 items-center gap-2 text-sm font-semibold">
                 <a routerLink="/products" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Catalogo</a>
                 <a routerLink="/cadastro" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Criar conta</a>
                 <a routerLink="/cart" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Carrinho</a>

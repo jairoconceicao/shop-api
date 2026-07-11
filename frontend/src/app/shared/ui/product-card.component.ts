@@ -25,13 +25,13 @@ import type { ProductCatalogItem } from '@shared/models';
           ></div>
         }
 
-        <div class="relative flex w-full items-start justify-between gap-3">
+        <div class="relative flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <span
-            class="text-shop-text rounded-full bg-white/90 px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
+            class="text-shop-text inline-flex max-w-full rounded-full bg-white/90 px-3 py-1 text-xs font-bold tracking-[0.2em] uppercase"
           >
             {{ product().categoria?.titulo ?? 'Produto' }}
           </span>
-          <span class="bg-shop-text/85 rounded-full px-3 py-1 text-xs font-bold text-white">
+          <span class="bg-shop-text/85 inline-flex max-w-full rounded-full px-3 py-1 text-xs font-bold text-white">
             {{ stockLabel() }}
           </span>
         </div>
@@ -47,7 +47,7 @@ import type { ProductCatalogItem } from '@shared/models';
           </h3>
         </div>
 
-        <div class="flex items-end justify-between gap-3">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p class="text-shop-text-light text-xs font-bold tracking-[0.2em] uppercase">Preço</p>
             <p class="text-shop-text text-xl font-black">{{ priceLabel() }}</p>
@@ -55,7 +55,7 @@ import type { ProductCatalogItem } from '@shared/models';
 
           <a
             [attr.href]="resolvedCtaLink()"
-            class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover inline-flex rounded-full px-4 py-2 text-sm font-bold transition"
+            class="bg-shop-primary text-shop-text-inverted hover:bg-shop-primary-hover inline-flex justify-center rounded-full px-4 py-2 text-sm font-bold transition"
           >
             {{ ctaLabel() }}
           </a>

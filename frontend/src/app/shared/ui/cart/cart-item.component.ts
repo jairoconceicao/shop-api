@@ -14,7 +14,7 @@ type CartItemLike = {
   imports: [QuantitySelectorComponent],
   template: `
     <article class="rounded-[1.5rem] border border-shop-border bg-white p-4 shadow-soft">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
           <p class="text-shop-text text-lg font-bold">
             Produto #{{ item().produtoId }}
@@ -24,7 +24,7 @@ type CartItemLike = {
           </p>
         </div>
 
-        <p class="text-shop-price text-right text-lg font-black">
+        <p class="text-shop-price text-left text-lg font-black sm:text-right">
           {{ formatCurrency(total()) }}
         </p>
       </div>

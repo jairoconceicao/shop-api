@@ -30,7 +30,7 @@ import { createIncrementalSectionState } from './home-featured-products.context'
           class="border-shop-border shadow-soft overflow-hidden rounded-[2rem] border bg-[linear-gradient(135deg,#08121f_0%,#10243d_55%,#dbeafe_100%)] px-5 py-6 text-white sm:px-6 lg:px-10 lg:py-10"
         >
           <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <div>
+            <div class="min-w-0">
               <span
                 class="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold tracking-[0.24em] text-white/80 uppercase"
               >
@@ -85,7 +85,7 @@ import { createIncrementalSectionState } from './home-featured-products.context'
               @for (shortcut of shortcuts; track shortcut.title) {
                 <a
                   [routerLink]="shortcut.link"
-                  class="group rounded-[1.75rem] border border-white/12 bg-white/10 p-4 transition hover:-translate-y-0.5 hover:bg-white/15"
+                  class="group min-w-0 rounded-[1.75rem] border border-white/12 bg-white/10 p-4 transition hover:-translate-y-0.5 hover:bg-white/15"
                 >
                   <div class="flex items-start justify-between gap-3">
                     <span

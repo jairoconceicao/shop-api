@@ -17,7 +17,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
           </span>
 
           <div class="mt-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+            <div class="min-w-0">
               <h1 class="text-3xl font-black tracking-tight text-shop-text lg:text-4xl">
                 {{ accountTitle() }}
               </h1>

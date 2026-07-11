@@ -25,7 +25,7 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
             <span class="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold tracking-[0.24em] text-white/80 uppercase">
               Carrinho
             </span>
-            <h1 class="mt-4 text-4xl font-black tracking-tight text-balance sm:text-5xl">
+            <h1 class="mt-4 max-w-3xl text-4xl font-black tracking-tight text-balance sm:text-5xl">
               Revise seus itens antes de finalizar a compra.
             </h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">
@@ -51,8 +51,8 @@ import { CartSummaryComponent } from '@shared/ui/cart/cart-summary.component';
           } @else {
             <div class="grid gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:px-10 lg:py-10">
               <section class="space-y-4" aria-labelledby="cart-items-title">
-                <div class="flex items-end justify-between gap-4">
-                  <div>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div class="min-w-0">
                     <p class="text-shop-text-light text-sm font-bold tracking-[0.24em] uppercase">
                       Itens
                     </p>
