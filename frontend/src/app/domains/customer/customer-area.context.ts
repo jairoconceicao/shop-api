@@ -41,8 +41,8 @@ export const customerAreaProfileFormFixture: ProfileFormValue = {
     uf: 'sp',
   },
   celular: {
-    ddd: '(11)',
-    numero: '(11) 99999-9999',
+    ddd: '11',
+    numero: '999999999',
     whatsApp: true,
   },
 };

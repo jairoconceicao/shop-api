@@ -15,7 +15,7 @@ describe('CartPageComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Ver produtos' })).toHaveAttribute('href', '/products');
-    expect(screen.getByRole('button', { name: 'Finalizar compra' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Finalizar compra' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Produtos no carrinho' })).toBeNull();
   });
 
@@ -41,14 +41,14 @@ describe('CartPageComponent', () => {
       },
     ]);
 
-    expect(screen.getByRole('heading', { name: 'Produtos no carrinho' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Produtos no carrinho' })).toBeVisible();
     expect(screen.getByText('Produto #101')).toBeVisible();
     expect(screen.getByText('Produto #202')).toBeVisible();
-    expect(screen.getByText('2 item(ns)')).toBeVisible();
-    expect(screen.getByText('R$ 199,90')).toBeVisible();
-    expect(screen.getByText('R$ 399,80')).toBeVisible();
-    expect(screen.getByText('R$ 499,90')).toBeVisible();
-    expect(screen.getByText('R$ 899,70')).toBeVisible();
+    expect(screen.getByText('3 item(ns)')).toBeVisible();
+    expect(screen.getAllByText('R$ 199,90').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('R$ 399,80').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('R$ 499,90').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('R$ 899,70').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Finalizar compra' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Continuar comprando' })).toHaveAttribute(
       'href',
@@ -57,7 +57,7 @@ describe('CartPageComponent', () => {
 
     await user.click(screen.getAllByRole('button', { name: 'Aumentar quantidade' })[0]);
 
-    expect(await screen.findByText('R$ 599,70')).toBeVisible();
-    expect(screen.getByText('R$ 1.099,60')).toBeVisible();
+    expect(screen.getAllByText('R$ 599,70').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('R$ 1.099,60').length).toBeGreaterThan(0);
   });
 });

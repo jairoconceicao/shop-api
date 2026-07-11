@@ -87,9 +87,9 @@ describe('ProfilePageComponent', () => {
       ],
     });
 
-    await screen.getByRole('button', { name: 'Salvar alteracoes' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alteracoes' }));
 
-    expect(screen.getByText('Informe o nome completo.')).toBeVisible();
+    expect(await screen.findByText('Informe o nome completo.')).toBeVisible();
     expect(screen.getByText('Informe o CPF.')).toBeVisible();
     expect(screen.getByText('Informe um e-mail valido.')).toBeVisible();
     expect(customerStoreMock.updateProfile).not.toHaveBeenCalled();

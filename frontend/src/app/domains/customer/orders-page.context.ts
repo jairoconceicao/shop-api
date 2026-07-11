@@ -18,6 +18,10 @@ export interface OrdersPageContext {
   readonly isLoadingOrders: () => boolean;
   readonly hasOrders: () => boolean;
   readonly ordersError: () => string | null;
+  readonly eyebrow: string;
+  readonly title: string;
+  readonly description: string;
+  readonly accountLinkLabel: string;
   setDataInicio(value: string): void;
   setDataFim(value: string): void;
   clearFilters(): void;
@@ -54,6 +58,10 @@ export function createOrdersPageContext(): OrdersPageContext {
     isLoadingOrders: ordersStore.isLoading,
     hasOrders: ordersStore.hasOrders,
     ordersError: ordersStore.error,
+    eyebrow: 'Meus Pedidos',
+    title: 'Acompanhe seus pedidos',
+    description: 'Veja o status e os detalhes de todas as suas compras.',
+    accountLinkLabel: 'Voltar para conta',
     setDataInicio(value: string): void {
       filtersContext.setDataInicio(value);
       lastLoadedCpf = '';
@@ -87,6 +95,14 @@ export function createOrdersPageContext(): OrdersPageContext {
     ensureCustomerProfileLoaded(): void {
       if (!customerStore.hasProfile() && !customerStore.isLoading()) {
         customerStore.loadProfile();
+        return;
+      }
+
+      const cpf = customerStore.cpf();
+
+      if (customerStore.hasProfile() && cpf && cpf !== lastLoadedCpf) {
+        lastLoadedCpf = cpf;
+        ordersStore.loadOrders(filtersContext.buildOrderListParams(cpf));
       }
     },
   };

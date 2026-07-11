@@ -75,7 +75,7 @@ import { createOrdersPageContext } from './orders-page.context';
           <app-empty-state
             eyebrow="Pedidos"
             title="Nao foi possivel carregar os pedidos"
-            [description]="context.ordersError()"
+            [description]="context.ordersError() ?? 'Erro desconhecido'"
           />
         } @else if (context.hasOrders()) {
           <div class="space-y-4">

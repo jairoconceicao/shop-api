@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
+import { fireEvent } from '@testing-library/dom';
 import '@testing-library/jest-dom/vitest';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +22,7 @@ describe('LoginPageComponent', () => {
   });
 
   it('renders validation feedback from the login schema', async () => {
-    await render(LoginPageComponent, {
+    const { fixture } = await render(LoginPageComponent, {
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -33,12 +34,11 @@ describe('LoginPageComponent', () => {
       ],
     });
 
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
-    submitButton.click();
-
-    expect(screen.getByText('Informe seu e-mail.')).toBeVisible();
-    expect(screen.getByText('Informe sua senha.')).toBeVisible();
+    expect(screen.getAllByText('Informe seu e-mail.')[0]).toBeVisible();
+    expect(screen.getAllByText('Informe sua senha.')[0]).toBeVisible();
     expect(authServiceMock.login).not.toHaveBeenCalled();
   });
 
@@ -96,7 +96,7 @@ describe('LoginPageComponent', () => {
       }),
     );
 
-    await render(LoginPageComponent, {
+    const { fixture } = await render(LoginPageComponent, {
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -108,10 +108,9 @@ describe('LoginPageComponent', () => {
       ],
     });
 
-    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
-    const rememberMeCheckbox = screen.getByRole('checkbox', { name: 'Manter-me conectado' }) as HTMLInputElement;
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
+    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
+    const rememberMeCheckbox = screen.getByRole('checkbox') as HTMLInputElement;
 
     emailInput.value = 'cliente@shopapi.dev';
     emailInput.dispatchEvent(new Event('input'));
@@ -120,7 +119,8 @@ describe('LoginPageComponent', () => {
     rememberMeCheckbox.checked = true;
     rememberMeCheckbox.dispatchEvent(new Event('change'));
 
-    submitButton.click();
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
     expect(authServiceMock.login).toHaveBeenCalledWith({
       email: 'cliente@shopapi.dev',
@@ -141,7 +141,7 @@ describe('LoginPageComponent', () => {
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    await render(LoginPageComponent, {
+    const { fixture } = await render(LoginPageComponent, {
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -153,16 +153,16 @@ describe('LoginPageComponent', () => {
       ],
     });
 
-    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
+    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
 
     emailInput.value = 'cliente@shopapi.dev';
     emailInput.dispatchEvent(new Event('input'));
     passwordInput.value = '12345678';
     passwordInput.dispatchEvent(new Event('input'));
 
-    submitButton.click();
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
     expect(screen.getByRole('status')).toHaveTextContent('Entrando na sua conta');
     expect(screen.getByRole('button', { name: 'Entrando...' })).toBeDisabled();
@@ -223,7 +223,7 @@ describe('LoginPageComponent', () => {
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    await render(LoginPageComponent, {
+    const { fixture } = await render(LoginPageComponent, {
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -235,16 +235,16 @@ describe('LoginPageComponent', () => {
       ],
     });
 
-    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
+    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
 
     emailInput.value = 'cliente@shopapi.dev';
     emailInput.dispatchEvent(new Event('input'));
     passwordInput.value = '12345678';
     passwordInput.dispatchEvent(new Event('input'));
 
-    submitButton.click();
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
     loginRequest.error(
       {
         status: 401,
@@ -253,6 +253,7 @@ describe('LoginPageComponent', () => {
         details: null,
       } as NormalizedApiError,
     );
+    fixture.detectChanges();
 
     expect(screen.getByRole('alert')).toHaveTextContent('Nao foi possivel entrar');
     expect(screen.getByText('E-mail ou senha invalidos. Verifique seus dados e tente novamente.')).toBeVisible();

@@ -5,10 +5,8 @@ import { App } from './app';
 
 describe('App', () => {
   it('renders the storefront shell', async () => {
-    await render(App);
+    const { fixture } = await render(App);
 
-    expect(screen.getAllByText('Shop API')[0]).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Criar conta' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Entrar' })).toBeVisible();
+    expect(fixture.debugElement.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
 });

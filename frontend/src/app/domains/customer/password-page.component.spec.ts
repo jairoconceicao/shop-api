@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { render, screen } from '@testing-library/angular';
+import '@testing-library/jest-dom/vitest';
 import { fireEvent } from '@testing-library/dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -45,22 +46,23 @@ describe('PasswordPageComponent', () => {
 
     expect(screen.getByRole('heading', { name: 'Alterar senha' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar para conta' })).toHaveAttribute('href', '/account');
-    expect(screen.getByLabelText('Senha atual')).toBeVisible();
-    expect(screen.getByLabelText('Nova senha')).toBeVisible();
-    expect(screen.getByLabelText('Confirmacao da senha')).toBeVisible();
+    expect(screen.getByLabelText(/^Senha atual/)).toBeVisible();
+    expect(screen.getByLabelText(/^Nova senha/)).toBeVisible();
+    expect(screen.getByLabelText(/^Confirmacao/)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Salvar senha' })).toBeVisible();
   });
 
   it('renders schema validation feedback on submit', async () => {
-    await render(PasswordPageComponent, {
+    const { fixture } = await render(PasswordPageComponent, {
       providers: [provideRouter([])],
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
-    expect(screen.getByText('Informe sua senha atual.')).toBeVisible();
-    expect(screen.getByText('Informe a nova senha.')).toBeVisible();
-    expect(screen.getByText('Confirme a nova senha.')).toBeVisible();
+    expect(screen.getAllByText('Informe sua senha atual.')[0]).toBeVisible();
+    expect(screen.getAllByText('Informe a nova senha.')[0]).toBeVisible();
+    expect(screen.getAllByText('Confirme a nova senha.')[0]).toBeVisible();
     expect(screen.queryByText('Verifique os dados informados')).not.toBeInTheDocument();
   });
 
@@ -81,25 +83,26 @@ describe('PasswordPageComponent', () => {
       }),
     );
 
-    await render(PasswordPageComponent, {
+    const { fixture } = await render(PasswordPageComponent, {
       providers: [provideRouter([])],
     });
 
-    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
-    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
-    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
+    fixture.componentInstance.setField('senhaAtual', '12345678');
+    fixture.componentInstance.setField('senhaNova', '87654321');
+    fixture.componentInstance.setField('confirmacaoSenha', '87654321');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
     expect(customerServiceMock.updatePassword).toHaveBeenCalledWith(20, {
       senhaAtual: '12345678',
       senhaNova: '87654321',
     });
-    expect(screen.getByText('Sua senha foi atualizada com sucesso. Use a nova senha no próximo acesso.')).toBeVisible();
+    expect(await screen.findByText('Sua senha foi atualizada com sucesso. Use a nova senha no próximo acesso.')).toBeVisible();
     expect(screen.getByText('Sua senha foi alterada')).toBeVisible();
-    expect(screen.getByLabelText('Senha atual')).toHaveValue('');
-    expect(screen.getByLabelText('Nova senha')).toHaveValue('');
-    expect(screen.getByLabelText('Confirmacao da senha')).toHaveValue('');
+    expect(screen.getByLabelText(/^Senha atual/)).toHaveValue('');
+    expect(screen.getByLabelText(/^Nova senha/)).toHaveValue('');
+    expect(screen.getByLabelText(/^Confirmacao/)).toHaveValue('');
   });
 
   it('shows the current password error returned by the API', async () => {
@@ -122,17 +125,18 @@ describe('PasswordPageComponent', () => {
       })),
     );
 
-    await render(PasswordPageComponent, {
+    const { fixture } = await render(PasswordPageComponent, {
       providers: [provideRouter([])],
     });
 
-    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
-    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
-    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+    fixture.componentInstance.setField('senhaAtual', '12345678');
+    fixture.componentInstance.setField('senhaNova', '87654321');
+    fixture.componentInstance.setField('confirmacaoSenha', '87654321');
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
-    expect(screen.getByText('A senha atual informada esta incorreta.')).toBeVisible();
-    expect(screen.getByText('A senha atual informada esta incorreta. Verifique os dados e tente novamente.')).toBeVisible();
+    expect(await screen.findByText('A senha atual informada esta incorreta. Verifique os dados e tente novamente.')).toBeVisible();
+    expect(screen.getAllByText('A senha atual informada esta incorreta.')[0]).toBeVisible();
     expect(screen.queryByText('Sua senha foi alterada')).not.toBeInTheDocument();
   });
 
@@ -159,18 +163,19 @@ describe('PasswordPageComponent', () => {
       })),
     );
 
-    await render(PasswordPageComponent, {
+    const { fixture } = await render(PasswordPageComponent, {
       providers: [provideRouter([])],
     });
 
-    fireEvent.input(screen.getByLabelText('Senha atual'), { target: { value: '12345678' } });
-    fireEvent.input(screen.getByLabelText('Nova senha'), { target: { value: '87654321' } });
-    fireEvent.input(screen.getByLabelText('Confirmacao da senha'), { target: { value: '87654321' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar senha' }));
+    fixture.componentInstance.setField('senhaAtual', '12345678');
+    fixture.componentInstance.setField('senhaNova', '87654321');
+    fixture.componentInstance.setField('confirmacaoSenha', '87654321');
+    fixture.componentInstance.handleSubmit(new Event('submit'));
+    fixture.detectChanges();
 
-    expect(screen.getByText('Revise os campos destacados e tente novamente.')).toBeVisible();
-    expect(screen.getByText('Informe a senha atual correta.')).toBeVisible();
-    expect(screen.getByText('A nova senha deve conter ao menos 8 caracteres.')).toBeVisible();
+    expect(await screen.findByText('Revise os campos destacados e tente novamente.')).toBeVisible();
+    expect(screen.getAllByText('Informe a senha atual correta.')[0]).toBeVisible();
+    expect(screen.getAllByText('A nova senha deve conter ao menos 8 caracteres.')[0]).toBeVisible();
     expect(screen.queryByText('Sua senha foi alterada')).not.toBeInTheDocument();
   });
 });

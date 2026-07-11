@@ -50,7 +50,7 @@ describe('OrdersPageComponent', () => {
       dataInicio: undefined,
       dataFim: undefined,
     });
-    expect(screen.getByRole('heading', { name: 'Meus pedidos' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Acompanhe seus pedidos' })).toBeVisible();
     expect(screen.getByText('Voltar para conta')).toHaveAttribute('href', '/account');
     expect(screen.getByText('Pedido #999')).toBeVisible();
     expect(screen.getByLabelText('Status do pedido')).toHaveTextContent('Criado');

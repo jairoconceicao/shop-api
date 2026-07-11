@@ -1,5 +1,5 @@
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 import { fireEvent } from '@testing-library/dom';
 import { vi } from 'vitest';
@@ -63,18 +63,20 @@ describe('AccountPageComponent', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar conta' }));
 
-    expect(screen.getByRole('heading', { name: 'Confirmar cancelamento da conta' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Confirmar cancelamento da conta' })).toBeVisible();
     expect(
       screen.getByText(
         'Esta ação vai remover permanentemente a conta do cliente. Confirme somente se desejar cancelar o cadastro e perder acesso aos dados vinculados.',
       ),
     ).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Sim, cancelar conta' })).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Sim, cancelar conta' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Manter minha conta' })).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar conta' }));
 
     expect(customerStore.deleteProfile).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('heading', { name: 'Confirmar cancelamento da conta' })).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: 'Confirmar cancelamento da conta' })).toBeNull(),
+    );
   });
 });

@@ -81,11 +81,11 @@ describe('ProductDetailsPageComponent', () => {
     expect(catalogServiceMock.getPublicProductById).toHaveBeenCalledWith(101);
     expect(screen.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
     expect(screen.getByRole('img', { name: 'Notebook Gamer' })).toBeVisible();
-    expect(screen.getByText('Informática')).toBeVisible();
+    expect(screen.getAllByText('Informática').length).toBeGreaterThan(0);
     expect(screen.getByText('R$ 5.999,90')).toBeVisible();
     expect(screen.getByText('Notebook para jogos')).toBeVisible();
     expect(screen.getByText('RTX')).toBeVisible();
-    expect(screen.getByText('12 em estoque')).toBeVisible();
+    expect(screen.getAllByText('12 em estoque').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Comprar agora' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar ao catalogo' })).toHaveAttribute(

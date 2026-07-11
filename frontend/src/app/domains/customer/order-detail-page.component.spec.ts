@@ -1,4 +1,4 @@
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 import { fireEvent } from '@testing-library/dom';
@@ -49,8 +49,11 @@ describe('OrderDetailPageComponent', () => {
       providers: [
         provideRouter([{ path: 'account/orders/:pedidoId', component: OrderDetailPageComponent }]),
         { provide: OrdersStore, useValue: ordersStoreMock },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ pedidoId: '42' }) } },
+        },
       ],
-      route: '/account/orders/42',
     });
 
     expect(ordersStoreMock.loadOrderDetail).toHaveBeenCalledWith('42');
@@ -61,7 +64,7 @@ describe('OrderDetailPageComponent', () => {
     expect(screen.getByRole('button', { name: 'Cancelar pedido' })).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }));
-    expect(screen.getByRole('button', { name: 'Sim, cancelar pedido' })).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Sim, cancelar pedido' })).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar pedido' }));
     expect(ordersStoreMock.cancelOrder).toHaveBeenCalledWith('42');
