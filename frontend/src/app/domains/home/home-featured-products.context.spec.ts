@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PagedResponse } from '@shared/api';
+import type { ApiPagination } from '@shared/api';
 import type { ProductCatalogItem } from '@shared/models';
 
 import { createIncrementalSectionState } from './home-featured-products.context';
@@ -28,7 +28,7 @@ describe('createIncrementalSectionState', () => {
     expect(loader).toHaveBeenCalledWith({ page: 1, size: 4 });
     expect(state.isLoading()).toBe(false);
     expect(state.error()).toBeNull();
-    expect(state.items()).toEqual(firstPageResponse.pagination.data);
+    expect(state.items()).toEqual(firstPageResponse.data);
     expect(state.pagination()).toEqual({
       page: 1,
       size: 4,
@@ -41,8 +41,8 @@ describe('createIncrementalSectionState', () => {
 
     expect(loader).toHaveBeenCalledWith({ page: 2, size: 4 });
     expect(state.items()).toEqual([
-      ...firstPageResponse.pagination.data,
-      ...secondPageResponse.pagination.data,
+      ...firstPageResponse.data,
+      ...secondPageResponse.data,
     ]);
     expect(state.pagination()).toEqual({
       page: 2,
@@ -69,7 +69,7 @@ describe('createIncrementalSectionState', () => {
 
     state.loadMore();
 
-    expect(state.items()).toEqual(firstPageResponse.pagination.data);
+    expect(state.items()).toEqual(firstPageResponse.data);
     expect(state.pagination()).toEqual({
       page: 1,
       size: 4,
@@ -83,47 +83,39 @@ describe('createIncrementalSectionState', () => {
 });
 
 const firstPageResponse = {
-  status: true,
-  message: 'Catalogo de produtos carregado com sucesso.',
-  pagination: {
-    pages: 2,
-    size: 4,
-    totalItems: 2,
-    data: [
-      {
-        produtoId: 101,
-        titulo: 'Notebook Gamer',
-        thumb: null,
-        preco: 5999.9,
-        estoque: 12,
-        categoria: {
-          categoriaId: 1,
-          titulo: 'Informática',
-        },
+  pages: 2,
+  size: 4,
+  totalItems: 2,
+  data: [
+    {
+      produtoId: 101,
+      titulo: 'Notebook Gamer',
+      thumb: null,
+      preco: 5999.9,
+      estoque: 12,
+      categoria: {
+        categoriaId: 1,
+        titulo: 'Informática',
       },
-    ],
-  },
-} satisfies PagedResponse<ProductCatalogItem>;
+    },
+  ],
+} satisfies ApiPagination<ProductCatalogItem>;
 
 const secondPageResponse = {
-  status: true,
-  message: 'Catalogo de produtos carregado com sucesso.',
-  pagination: {
-    pages: 2,
-    size: 4,
-    totalItems: 2,
-    data: [
-      {
-        produtoId: 102,
-        titulo: 'Keyboard Mecânico',
-        thumb: null,
-        preco: 499.9,
-        estoque: 8,
-        categoria: {
-          categoriaId: 2,
-          titulo: 'Periféricos',
-        },
+  pages: 2,
+  size: 4,
+  totalItems: 2,
+  data: [
+    {
+      produtoId: 102,
+      titulo: 'Keyboard Mecânico',
+      thumb: null,
+      preco: 499.9,
+      estoque: 8,
+      categoria: {
+        categoriaId: 2,
+        titulo: 'Periféricos',
       },
-    ],
-  },
-} satisfies PagedResponse<ProductCatalogItem>;
+    },
+  ],
+} satisfies ApiPagination<ProductCatalogItem>;

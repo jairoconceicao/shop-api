@@ -3,7 +3,9 @@ import { map, Observable } from 'rxjs';
 
 import {
   ApiClientService,
+  normalizePaginationData,
   normalizeResponseData,
+  type ApiPagination,
   type ApiResponse,
   type PagedResponse,
 } from '@shared/api';
@@ -23,29 +25,30 @@ export class CatalogService {
 
   listPublicProducts(
     query: PublicProductCatalogQuery = {},
-  ): Observable<PagedResponse<ProductCatalogItem>> {
-    return this.apiClient.get<PagedResponse<ProductCatalogItem>>('/api/v1/produto', {
-      params: {
-        page: query.page ?? 1,
-        size: query.size ?? 4,
-        searchword: query.searchword,
-      },
-    });
+  ): Observable<ApiPagination<ProductCatalogItem>> {
+    return this.apiClient
+      .get<PagedResponse<ProductCatalogItem>>('/api/v1/produto', {
+        params: {
+          page: query.page ?? 1,
+          size: query.size ?? 4,
+          searchword: query.searchword,
+        },
+      })
+      .pipe(map((response: PagedResponse<ProductCatalogItem>) => normalizePaginationData(response)));
   }
 
   listPublicProductsByCategory(
     categoryId: number,
     query: Pick<PublicProductCatalogQuery, 'page' | 'size'> = {},
-  ): Observable<PagedResponse<ProductCatalogItem>> {
-    return this.apiClient.get<PagedResponse<ProductCatalogItem>>(
-      `/api/v1/produto/categoria/${categoryId}`,
-      {
+  ): Observable<ApiPagination<ProductCatalogItem>> {
+    return this.apiClient
+      .get<PagedResponse<ProductCatalogItem>>(`/api/v1/produto/categoria/${categoryId}`, {
         params: {
           page: query.page ?? 1,
           size: query.size ?? 4,
         },
-      },
-    );
+      })
+      .pipe(map((response: PagedResponse<ProductCatalogItem>) => normalizePaginationData(response)));
   }
 
   getPublicProductById(productId: number): Observable<ProductDetails> {

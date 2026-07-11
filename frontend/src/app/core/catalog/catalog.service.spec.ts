@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiClientService, type PagedResponse } from '@shared/api';
+import { ApiClientService, type ApiPagination, type PagedResponse } from '@shared/api';
 import type { ProductCatalogItem, ProductDetails } from '@shared/models';
 
 import { CatalogService } from './catalog.service';
@@ -57,7 +57,7 @@ describe('CatalogService', () => {
     apiClientMock.get.mockReturnValue(of(response));
 
     const service = TestBed.inject(CatalogService);
-    const receivedResponses: PagedResponse<ProductCatalogItem>[] = [];
+    const receivedResponses: ApiPagination<ProductCatalogItem>[] = [];
 
     service.listPublicProducts().subscribe((catalog) => {
       receivedResponses.push(catalog);
@@ -70,7 +70,7 @@ describe('CatalogService', () => {
         searchword: undefined,
       },
     });
-    expect(receivedResponses).toEqual([response]);
+    expect(receivedResponses).toEqual([response.pagination]);
   });
 
   it('lists public products by category through GET /api/v1/produto/categoria/{categoriaId}', () => {
@@ -100,7 +100,7 @@ describe('CatalogService', () => {
     apiClientMock.get.mockReturnValue(of(response));
 
     const service = TestBed.inject(CatalogService);
-    const receivedResponses: PagedResponse<ProductCatalogItem>[] = [];
+    const receivedResponses: ApiPagination<ProductCatalogItem>[] = [];
 
     service.listPublicProductsByCategory(2).subscribe((catalog) => {
       receivedResponses.push(catalog);
@@ -112,7 +112,7 @@ describe('CatalogService', () => {
         size: 4,
       },
     });
-    expect(receivedResponses).toEqual([response]);
+    expect(receivedResponses).toEqual([response.pagination]);
   });
 
   it('loads a public product by id through GET /api/v1/produto/{id}', () => {

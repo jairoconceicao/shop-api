@@ -2,7 +2,7 @@ import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { finalize, Subscription } from 'rxjs';
 
-import { normalizePaginationData, type ApiPagination, type PagedResponse } from '@shared/api';
+import { type ApiPagination } from '@shared/api';
 import { CatalogService, type PublicProductCatalogQuery } from '@core/catalog/catalog.service';
 import type { ProductCatalogItem, ProductDetails } from '@shared/models';
 
@@ -110,7 +110,7 @@ export const CatalogStore = signalStore(
       listSubscription = request$
         .pipe(finalize(() => { listSubscription = null; }))
         .subscribe({
-          next: (response: PagedResponse<ProductCatalogItem>) => applyListResponse(normalizePaginationData(response)),
+          next: (pagination) => applyListResponse(pagination),
           error: () => {
             patchState(store, {
               products: [],

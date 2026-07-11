@@ -1,7 +1,7 @@
 import { DestroyRef, computed, inject, signal, type Signal } from '@angular/core';
 import type { Observable, Subscription } from 'rxjs';
 
-import type { PagedResponse } from '@shared/api';
+import { normalizePaginationData, type ApiPagination, type PagedResponse } from '@shared/api';
 
 interface IncrementalSectionQuery {
   page: number;
@@ -30,7 +30,7 @@ export interface IncrementalSectionPagination {
 }
 
 export function createIncrementalSectionState<T>(
-  loader: (query: IncrementalSectionQuery) => Observable<PagedResponse<T>>,
+  loader: (query: IncrementalSectionQuery) => Observable<ApiPagination<T> | PagedResponse<T>>,
   errorMessage: string,
   pageSize = 4,
 ): IncrementalSectionState<T> {
@@ -79,14 +79,15 @@ export function createIncrementalSectionState<T>(
 
     subscription = loader({ page, size: pageSize }).subscribe({
       next: (response) => {
-        const nextItems = response.pagination.data;
+        const pageInfo = normalizeIncrementalPagination(response);
+        const nextItems = pageInfo.data;
 
         items.set(loadingMore ? [...items(), ...nextItems] : nextItems);
         pagination.set({
           page,
-          size: response.pagination.size,
-          totalItems: response.pagination.totalItems,
-          totalPages: response.pagination.pages,
+          size: pageInfo.size,
+          totalItems: pageInfo.totalItems,
+          totalPages: pageInfo.pages,
         });
         finalize(loadingMore);
       },
@@ -132,4 +133,10 @@ export function createIncrementalSectionState<T>(
     reload,
     loadMore,
   };
+}
+
+function normalizeIncrementalPagination<T>(
+  response: ApiPagination<T> | PagedResponse<T>,
+): ApiPagination<T> {
+  return 'pagination' in response ? normalizePaginationData(response) : response;
 }

@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CatalogService } from '@core/catalog/catalog.service';
+import type { ApiPagination } from '@shared/api';
 import type { ProductCatalogItem, ProductDetails } from '@shared/models';
 
 import { CatalogStore } from './catalog.store';
@@ -74,11 +75,7 @@ describe('CatalogStore', () => {
   it('loads public products and updates pagination state', () => {
     const products = [product(), product({ produtoId: 2 })];
     catalogServiceMock.listPublicProducts.mockReturnValue(
-      of({
-        status: true,
-        message: 'OK',
-        pagination: { pages: 2, size: 12, totalItems: 24, data: products },
-      }),
+      of({ pages: 2, size: 12, totalItems: 24, data: products } satisfies ApiPagination<ProductCatalogItem>),
     );
 
     const store = TestBed.inject(CatalogStore);
@@ -100,11 +97,7 @@ describe('CatalogStore', () => {
 
   it('loads products by category and updates the selected category', () => {
     catalogServiceMock.listPublicProductsByCategory.mockReturnValue(
-      of({
-        status: true,
-        message: 'OK',
-        pagination: { pages: 1, size: 12, totalItems: 1, data: [product()] },
-      }),
+      of({ pages: 1, size: 12, totalItems: 1, data: [product()] } satisfies ApiPagination<ProductCatalogItem>),
     );
 
     const store = TestBed.inject(CatalogStore);
@@ -161,11 +154,7 @@ describe('CatalogStore', () => {
   it('clears the selected product and resets the store', () => {
     catalogServiceMock.getPublicProductById.mockReturnValue(of(details()));
     catalogServiceMock.listPublicProducts.mockReturnValue(
-      of({
-        status: true,
-        message: 'OK',
-        pagination: { pages: 1, size: 12, totalItems: 1, data: [product()] },
-      }),
+      of({ pages: 1, size: 12, totalItems: 1, data: [product()] } satisfies ApiPagination<ProductCatalogItem>),
     );
 
     const store = TestBed.inject(CatalogStore);
