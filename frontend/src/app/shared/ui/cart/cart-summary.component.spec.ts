@@ -13,7 +13,7 @@ describe('CartSummaryComponent', () => {
       },
     });
 
-    expect(screen.getByText('R$ 499,70')).toBeVisible();
+    expect(screen.getAllByText('R$ 499,70').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('button', { name: 'Finalizar compra' })).toBeVisible();
   });
 

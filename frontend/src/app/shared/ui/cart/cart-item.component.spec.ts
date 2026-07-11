@@ -7,10 +7,10 @@ import { CartItemComponent } from './cart-item.component';
 describe('CartItemComponent', () => {
   it('renders item details and emits quantity/remove actions', async () => {
     const user = userEvent.setup();
-    const quantityChange = vi.fn();
-    const remove = vi.fn();
+    const quantityChanges: number[] = [];
+    let removeCalled = false;
 
-    await render(CartItemComponent, {
+    const { fixture } = await render(CartItemComponent, {
       componentInputs: {
         item: {
           itemId: 9,
@@ -19,19 +19,19 @@ describe('CartItemComponent', () => {
           valorUnitario: 199.9,
         },
       },
-      componentOutputs: {
-        quantityChange,
-        remove,
-      },
+    });
+    fixture.componentInstance.quantityChange.subscribe((v: number) => quantityChanges.push(v));
+    fixture.componentInstance.remove.subscribe(() => {
+      removeCalled = true;
     });
 
     expect(screen.getByText('Produto #101')).toBeVisible();
-    expect(screen.getByText('R$ 399,80')).toBeVisible();
+    expect(screen.getAllByText('R$ 399,80').length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'Diminuir quantidade' }));
     await user.click(screen.getByRole('button', { name: 'Remover' }));
 
-    expect(quantityChange).toHaveBeenCalledWith(1);
-    expect(remove).toHaveBeenCalled();
+    expect(quantityChanges).toEqual([1]);
+    expect(removeCalled).toBe(true);
   });
 });

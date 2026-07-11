@@ -158,10 +158,10 @@ describe('OrdersStore', () => {
     const store = TestBed.inject(OrdersStore);
 
     const existingOrder = order({ pedidoId: 42, status: 'Criado' });
-    store.loadOrders({ cpf: '12345678901' });
     orderServiceMock.list.mockReturnValue(
       of({ pages: 1, size: 20, totalItems: 1, data: [existingOrder] }),
     );
+    orderServiceMock.getById.mockReturnValue(of(existingOrder));
     store.loadOrders({ cpf: '12345678901' });
     store.loadOrderDetail(42);
 
@@ -191,7 +191,6 @@ describe('OrdersStore', () => {
     expect(store.canCancel()).toBe(false);
 
     const activeOrder = order({ pedidoId: 1, status: 'Criado' });
-    store.loadOrderDetail(1);
     orderServiceMock.getById.mockReturnValue(of(activeOrder));
     store.loadOrderDetail(1);
 

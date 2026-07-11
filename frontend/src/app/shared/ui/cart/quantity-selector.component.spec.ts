@@ -7,17 +7,16 @@ import { QuantitySelectorComponent } from './quantity-selector.component';
 describe('QuantitySelectorComponent', () => {
   it('emits quantity changes when the controls are used', async () => {
     const user = userEvent.setup();
-    const quantityChange = vi.fn();
+    const emitted: number[] = [];
 
-    await render(QuantitySelectorComponent, {
+    const { fixture } = await render(QuantitySelectorComponent, {
       componentInputs: { quantity: 2 },
-      componentOutputs: { quantityChange },
     });
+    fixture.componentInstance.quantityChange.subscribe((v: number) => emitted.push(v));
 
     await user.click(screen.getByRole('button', { name: 'Diminuir quantidade' }));
     await user.click(screen.getByRole('button', { name: 'Aumentar quantidade' }));
 
-    expect(quantityChange).toHaveBeenNthCalledWith(1, 1);
-    expect(quantityChange).toHaveBeenNthCalledWith(2, 3);
+    expect(emitted).toEqual([1, 3]);
   });
 });
