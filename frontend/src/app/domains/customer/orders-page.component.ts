@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { EmptyStateComponent } from '@shared/ui/states/empty-state.component';
 import { PageContainerComponent } from '@shared/ui/page-container.component';
 
-import { ordersPageContext } from './orders-page.context';
+import { createOrdersPageContext } from './orders-page.context';
 
 @Component({
   selector: 'app-orders-page',
@@ -46,6 +46,10 @@ import { ordersPageContext } from './orders-page.context';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OrdersPageComponent {
-  protected readonly context = ordersPageContext;
+export class OrdersPageComponent implements OnInit {
+  protected readonly context = createOrdersPageContext();
+
+  ngOnInit(): void {
+    this.context.ensureCustomerProfileLoaded();
+  }
 }

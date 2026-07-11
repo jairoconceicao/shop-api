@@ -255,7 +255,7 @@ de perfil.
 
 [x] TASK-101: Criar store de dominio `Checkout` ou `Orders`, conforme organizacao final.
 [x] TASK-102: Implementar rota `/account/orders`.
-[ ] TASK-103: Antes da listagem, garantir que o perfil do cliente com `cpf` foi carregado.
+[x] TASK-103: Antes da listagem, garantir que o perfil do cliente com `cpf` foi carregado.
 [ ] TASK-104: Integrar `GET /api/v1/pedido?cpf={cpf}&page=&size=`.
 [ ] TASK-105: Implementar filtros opcionais por `dataInicio` e `dataFim`.
 [ ] TASK-106: Implementar detalhe de pedido com `GET /api/v1/pedido/{pedidoId}`.

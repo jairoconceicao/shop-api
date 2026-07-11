@@ -1,11 +1,23 @@
-export const ordersPageContext = {
-  eyebrow: 'Conta',
-  title: 'Meus pedidos',
-  description:
-    'Consulte aqui o historico de compras quando os pedidos da sua conta estiverem carregados.',
-  accountLinkLabel: 'Voltar para conta',
-  emptyStateEyebrow: 'Pedidos',
-  emptyStateTitle: 'Nenhum pedido carregado ainda',
-  emptyStateDescription:
-    'A listagem de pedidos depende do CPF do cliente autenticado e sera exibida nesta area.',
-};
+import { computed, inject } from '@angular/core';
+
+import { CustomerStore } from './customer.store';
+
+export interface OrdersPageContext {
+  readonly customerCpf: () => string;
+  readonly hasCustomerProfile: () => boolean;
+  ensureCustomerProfileLoaded(): void;
+}
+
+export function createOrdersPageContext(): OrdersPageContext {
+  const customerStore = inject(CustomerStore);
+
+  return {
+    customerCpf: computed(() => customerStore.cpf()),
+    hasCustomerProfile: computed(() => customerStore.hasProfile()),
+    ensureCustomerProfileLoaded(): void {
+      if (!customerStore.hasProfile() && !customerStore.isLoading()) {
+        customerStore.loadProfile();
+      }
+    },
+  };
+}
