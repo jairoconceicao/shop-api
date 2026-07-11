@@ -48,9 +48,9 @@ import { map } from 'rxjs';
             </div>
           } @else {
             <div class="flex items-center gap-2">
-              <a routerLink="/cadastro" class="rounded-full border border-shop-border px-4 py-2 text-sm font-semibold text-shop-text">Criar conta</a>
-              <a routerLink="/login" class="rounded-full border border-shop-border px-4 py-2 text-sm font-semibold text-shop-text">Entrar</a>
-              <a routerLink="/cart" class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-shop-secondary-soft text-shop-secondary" aria-label="Ir para o carrinho">
+              <a routerLink="/cadastro" class="min-h-11 inline-flex items-center justify-center rounded-full border border-shop-border px-4 py-2.5 text-sm font-semibold text-shop-text">Criar conta</a>
+              <a routerLink="/login" class="min-h-11 inline-flex items-center justify-center rounded-full border border-shop-border px-4 py-2.5 text-sm font-semibold text-shop-text">Entrar</a>
+              <a routerLink="/cart" class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-shop-secondary-soft text-shop-secondary" aria-label="Ir para o carrinho">
                 <span aria-hidden="true">cart</span>
               </a>
             </div>

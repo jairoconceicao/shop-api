@@ -21,6 +21,7 @@ describe('ButtonComponent', () => {
     expect(button).toHaveAttribute('type', 'submit');
     expect(button).toHaveClass('bg-shop-secondary');
     expect(button).toHaveClass('px-6');
+    expect(button).toHaveClass('min-h-11');
   });
 
   it('applies block and disabled state styles and attributes', async () => {
@@ -40,5 +41,6 @@ describe('ButtonComponent', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveClass('w-full');
+    expect(button).toHaveClass('min-h-11');
   });
 });

@@ -28,7 +28,7 @@ export class ButtonComponent {
 
   protected readonly classes = computed(() => {
     const base =
-      'inline-flex items-center justify-center gap-2 font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shop-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60';
+      'inline-flex min-h-11 items-center justify-center gap-2 font-bold transition touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shop-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60';
     const variants: Record<ButtonVariant, string> = {
       primary: 'bg-shop-primary text-shop-text-inverted shadow-[0_18px_34px_rgba(37,99,235,0.22)] hover:bg-shop-primary-hover',
       secondary:
@@ -37,7 +37,7 @@ export class ButtonComponent {
       ghost: 'bg-transparent text-shop-text-muted hover:bg-shop-surface-muted hover:text-shop-text',
     };
     const sizes: Record<ButtonSize, string> = {
-      sm: 'rounded-xl px-4 py-2 text-sm',
+      sm: 'rounded-xl px-4 py-2.5 text-sm',
       md: 'rounded-2xl px-5 py-3 text-sm',
       lg: 'rounded-2xl px-6 py-3.5 text-base',
     };
