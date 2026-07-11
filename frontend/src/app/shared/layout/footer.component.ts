@@ -5,13 +5,12 @@ import { RouterLink } from '@angular/router';
   selector: 'app-footer',
   imports: [RouterLink],
   template: `
-    <footer class="border-t border-shop-border bg-white">
+    <footer class="border-t border-shop-border bg-shop-surface">
       <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 text-sm text-shop-text-muted lg:flex-row lg:items-end lg:justify-between lg:px-6">
         <div class="max-w-xl">
-          <p class="text-base font-bold text-shop-text">Shop API storefront foundation</p>
+          <p class="text-base font-bold text-shop-text">Shop API</p>
           <p class="mt-2">
-            Base Angular 22 com Tailwind v4, Angular CDK e cadeia de qualidade pronta para evoluir catalogo,
-            checkout e area autenticada.
+            Base Angular 22 com Tailwind v4 e Angular CDK, organizada para evoluir catalogo, checkout e area autenticada.
           </p>
         </div>
 

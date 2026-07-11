@@ -18,7 +18,7 @@ describe('AlertComponent', () => {
 
     const alert = screen.getByRole('alert');
 
-    expect(alert).toHaveClass('bg-rose-50');
+    expect(alert).toHaveClass('bg-shop-danger-soft');
     expect(screen.getByText('Atenção')).toBeVisible();
     expect(screen.getByText('Não foi possível salvar sua alteração.')).toBeVisible();
   });

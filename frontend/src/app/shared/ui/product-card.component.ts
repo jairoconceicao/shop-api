@@ -10,7 +10,7 @@ import type { ProductCatalogItem } from '@shared/models';
       class="border-shop-border shadow-soft overflow-hidden rounded-[1.5rem] border bg-white"
     >
       <div
-        class="relative flex min-h-56 items-end overflow-hidden bg-[linear-gradient(135deg,#e0f2fe_0%,#bae6fd_45%,#0f172a_100%)] p-4"
+        class="relative flex min-h-56 items-end overflow-hidden bg-[linear-gradient(135deg,var(--color-shop-primary-soft)_0%,#eff6ff_45%,var(--color-shop-secondary-soft)_100%)] p-4"
       >
         @if (product().thumb) {
           <img
@@ -20,7 +20,7 @@ import type { ProductCatalogItem } from '@shared/models';
           />
         } @else {
           <div
-            class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.26),_transparent_55%),linear-gradient(135deg,#0f172a_0%,#1d4ed8_55%,#bae6fd_100%)]"
+            class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_transparent_55%),linear-gradient(135deg,var(--color-shop-primary)_0%,#60a5fa_55%,var(--color-shop-secondary-soft)_100%)]"
             aria-hidden="true"
           ></div>
         }

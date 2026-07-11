@@ -27,9 +27,9 @@ export class AlertComponent {
     const base = 'rounded-2xl border px-4 py-3';
     const variants: Record<AlertVariant, string> = {
       info: 'border-shop-primary/20 bg-shop-primary-soft text-shop-text',
-      success: 'border-shop-success/20 bg-emerald-50 text-shop-text',
-      warning: 'border-shop-warning/20 bg-amber-50 text-shop-text',
-      danger: 'border-shop-danger/20 bg-rose-50 text-shop-text',
+      success: 'border-shop-success/20 bg-shop-success-soft text-shop-text',
+      warning: 'border-shop-warning/20 bg-shop-warning-soft text-shop-text',
+      danger: 'border-shop-danger/20 bg-shop-danger-soft text-shop-text',
     };
 
     return [base, variants[this.variant()]];

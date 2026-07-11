@@ -8,9 +8,9 @@ import { map } from 'rxjs';
   selector: 'app-header',
   imports: [RouterLink],
   template: `
-    <header class="sticky top-0 z-50 border-b border-shop-border/80 bg-white/90 backdrop-blur">
+    <header class="sticky top-0 z-50 border-b border-shop-border bg-shop-surface backdrop-blur">
       <div class="mx-auto w-full max-w-7xl px-4 py-3 lg:px-6 lg:py-4">
-        <div class="flex items-start justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <a
             routerLink="/"
             class="min-w-0 flex items-center gap-3 text-shop-text transition hover:text-shop-primary"
@@ -23,7 +23,6 @@ import { map } from 'rxjs';
             </span>
             <span>
               <strong class="block text-lg font-black tracking-tight lg:text-xl">Shop API</strong>
-              <span class="block text-xs text-shop-text-muted">Storefront foundation</span>
             </span>
           </a>
 
@@ -33,14 +32,14 @@ import { map } from 'rxjs';
                 <span class="sr-only">Buscar produtos</span>
                 <input
                   type="search"
-                  placeholder="Buscar produtos, marcas e categorias"
-                  class="w-full rounded-full border border-shop-border bg-shop-background px-5 py-3 text-sm text-shop-text outline-none ring-0 transition placeholder:text-shop-text-light focus:border-shop-primary"
+                  placeholder="Buscar produtos..."
+                  class="w-full rounded-xl border border-shop-border bg-shop-background px-5 py-3 text-sm text-shop-text outline-none ring-0 transition placeholder:text-shop-text-light focus:border-shop-primary"
                 />
               </label>
 
               <nav class="flex flex-shrink-0 items-center gap-2 text-sm font-semibold">
-                <a routerLink="/products" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Catalogo</a>
-                <a routerLink="/cadastro" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Criar conta</a>
+                <a routerLink="/products" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Ofertas</a>
+                <a routerLink="/products" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Categorias</a>
                 <a routerLink="/cart" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Carrinho</a>
                 <a routerLink="/account" class="rounded-full px-4 py-2 text-shop-text-muted transition hover:bg-shop-primary-soft hover:text-shop-primary">Conta</a>
                 <a routerLink="/login" class="rounded-full bg-shop-primary px-5 py-2.5 text-shop-text-inverted shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition hover:bg-shop-primary-hover">Entrar</a>
@@ -48,10 +47,9 @@ import { map } from 'rxjs';
             </div>
           } @else {
             <div class="flex items-center gap-2">
-              <a routerLink="/cadastro" class="min-h-11 inline-flex items-center justify-center rounded-full border border-shop-border px-4 py-2.5 text-sm font-semibold text-shop-text">Criar conta</a>
               <a routerLink="/login" class="min-h-11 inline-flex items-center justify-center rounded-full border border-shop-border px-4 py-2.5 text-sm font-semibold text-shop-text">Entrar</a>
               <a routerLink="/cart" class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-shop-secondary-soft text-shop-secondary" aria-label="Ir para o carrinho">
-                <span aria-hidden="true">cart</span>
+                <span aria-hidden="true">🛒</span>
               </a>
             </div>
           }

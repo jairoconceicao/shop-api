@@ -286,7 +286,7 @@ Entregue ate aqui:
 [x] TASK-119: Validar layout em mobile pequeno, mobile grande, tablet e desktop.
 [x] TASK-120: Evitar sobreposicao de textos e componentes em breakpoints suportados.
 [x] TASK-121: Garantir que botoes e alvos de toque sejam confortaveis no mobile.
-[ ] TASK-122: Revisar consistencia visual com `docs/frontend-specs.md`.
+[x] TASK-122: Revisar consistencia visual com `docs/frontend-specs.md`.
 
 ### 16. Testes end-to-end e aceite
 
