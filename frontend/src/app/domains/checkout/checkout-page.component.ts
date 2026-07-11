@@ -324,19 +324,19 @@ import type { PaymentMethod } from '@shared/models';
                       [value]="deliveryAddress().cidade"
                       (valueChange)="setDeliveryAddressField('cidade', $event)"
                     />
-                    <label class="block">
-                      <span class="mb-2 block text-sm font-semibold text-shop-text">
-                        UF
-                        <span class="ml-1 text-shop-danger" aria-hidden="true">*</span>
-                      </span>
-                      <select
-                        class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus:border-shop-primary focus:bg-white focus:ring-2 focus:ring-shop-primary/10"
-                        [value]="deliveryAddress().uf"
-                        (change)="setDeliveryAddressField('uf', getSelectValue($event))"
-                      >
-                        <option value="">Selecione</option>
-                        @for (uf of ufOptions; track uf) {
-                          <option [value]="uf">{{ uf }}</option>
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-semibold text-shop-text">
+                      UF
+                      <span class="ml-1 text-shop-danger" aria-hidden="true">*</span>
+                    </span>
+                    <select
+                      class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus-visible:border-shop-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-shop-primary/10"
+                      [value]="deliveryAddress().uf"
+                      (change)="setDeliveryAddressField('uf', getSelectValue($event))"
+                    >
+                      <option value="">Selecione</option>
+                      @for (uf of ufOptions; track uf) {
+                        <option [value]="uf">{{ uf }}</option>
                         }
                       </select>
                     </label>

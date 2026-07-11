@@ -61,6 +61,7 @@ describe('CheckboxComponent', () => {
     const checkbox = screen.getByRole('checkbox');
 
     expect(checkbox).toBeRequired();
+    expect(checkbox).toHaveClass('focus-visible:ring-2');
     expect(checkbox).toHaveAttribute('aria-describedby');
     expect(screen.getByText('Leia os termos antes de continuar.')).toBeVisible();
     expect(screen.getByRole('alert')).toHaveTextContent('Aceite os termos para seguir.');

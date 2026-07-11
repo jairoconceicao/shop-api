@@ -108,7 +108,7 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByDisplayValue('Sao Paulo')).toBeVisible();
     expect(await screen.findByDisplayValue('SP')).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Selecione a forma de pagamento' })).toBeVisible();
-    expect(screen.getByDisplayValue('Pix')).toBeVisible();
+    expect(screen.getByDisplayValue('Pix')).toHaveClass('focus-visible:ring-2');
     expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Pix');
     expect(await screen.findByRole('button', { name: 'Finalizar pedido' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Revisar carrinho' })).toHaveAttribute('href', '/cart');

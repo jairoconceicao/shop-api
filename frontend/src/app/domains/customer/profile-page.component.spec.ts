@@ -33,6 +33,7 @@ describe('ProfilePageComponent', () => {
     expect(screen.getByDisplayValue('1990-01-01')).toBeVisible();
     expect(screen.getByDisplayValue('cliente@shop.com')).toBeVisible();
     expect(screen.getByDisplayValue('Rua Central')).toBeVisible();
+    expect(screen.getByRole('combobox')).toHaveClass('focus-visible:ring-2');
     expect(screen.getByRole('button', { name: 'Salvar alteracoes' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Voltar para conta' })).toHaveAttribute('href', '/account');
   });

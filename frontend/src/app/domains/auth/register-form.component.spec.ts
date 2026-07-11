@@ -1,7 +1,6 @@
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
-import { fireEvent } from '@testing-library/dom';
 import '@testing-library/jest-dom/vitest';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -57,7 +56,7 @@ describe('RegisterFormComponent', () => {
     expect(screen.getAllByPlaceholderText('Apto 10')[0]).toBeVisible();
     expect(screen.getAllByPlaceholderText('Centro')[0]).toBeVisible();
     expect(screen.getAllByPlaceholderText('Sao Paulo')[0]).toBeVisible();
-    expect(screen.getByRole('combobox')).toBeVisible();
+    expect(screen.getByRole('combobox')).toHaveClass('focus-visible:ring-2');
     expect(screen.getAllByPlaceholderText('11')[0]).toBeVisible();
     expect(screen.getAllByPlaceholderText('99999-9999')[0]).toBeVisible();
     expect(screen.getByRole('checkbox')).toBeVisible();
@@ -71,6 +70,26 @@ describe('RegisterFormComponent', () => {
       '00',
       '00000-0000',
     ]);
+  });
+
+  it('associates the state select with its validation message', async () => {
+    await render(RegisterFormComponent, {
+      providers: [
+        provideRouter([]),
+        provideEnvironmentNgxMask(),
+        {
+          provide: CustomerService,
+          useValue: customerServiceMock,
+        },
+      ],
+    });
+
+    screen.getByRole('button', { name: 'Criar conta' }).click();
+
+    const ufSelect = screen.getByRole('combobox');
+
+    expect(ufSelect).toHaveAttribute('aria-describedby', 'register-uf-error');
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'register-uf-error');
   });
 
   it('renders schema validation feedback when the form is submitted empty', async () => {

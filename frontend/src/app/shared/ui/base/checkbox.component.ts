@@ -15,7 +15,7 @@ import { FormErrorComponent } from './form-error.component';
         [required]="required()"
         [attr.aria-invalid]="isInvalid() ? 'true' : null"
         [attr.aria-describedby]="describedBy() || null"
-        class="mt-1 h-4 w-4 rounded border-shop-border text-shop-primary focus:ring-shop-primary disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-1 h-4 w-4 rounded border-shop-border text-shop-primary focus-visible:ring-2 focus-visible:ring-shop-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
         (change)="handleChange($event)"
         (blur)="blurred.emit()"
       />

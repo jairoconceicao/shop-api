@@ -178,8 +178,9 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
                   <span class="ml-1 text-shop-danger" aria-hidden="true">*</span>
                 </span>
                 <select
-                  class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus:border-shop-primary focus:bg-white focus:ring-2 focus:ring-shop-primary/10"
+                  class="w-full rounded-2xl border border-shop-border bg-shop-background px-4 py-3 text-shop-text outline-none transition focus-visible:border-shop-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-shop-primary/10"
                   [value]="form().endereco.uf"
+                  [attr.aria-describedby]="getFieldErrors('uf') ? 'profile-uf-error' : null"
                   [attr.aria-invalid]="getFieldErrors('uf') ? 'true' : null"
                   (change)="setAddressField('uf', getSelectValue($event))"
                 >
@@ -188,7 +189,7 @@ import { PageContainerComponent } from '@shared/ui/page-container.component';
                     <option [value]="uf">{{ uf }}</option>
                   }
                 </select>
-                <app-form-error [error]="getFieldErrors('uf')" />
+                <app-form-error id="profile-uf-error" [error]="getFieldErrors('uf')" />
               </label>
             </div>
           </article>

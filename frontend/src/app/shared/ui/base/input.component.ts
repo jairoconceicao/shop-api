@@ -108,10 +108,12 @@ export class InputComponent {
 
   protected readonly classes = computed(() => {
     const base =
-      'w-full rounded-2xl border bg-shop-background px-4 py-3 text-shop-text outline-none transition placeholder:text-shop-text-light focus:border-shop-primary focus:bg-white focus:ring-2 focus:ring-shop-primary/10 disabled:cursor-not-allowed disabled:opacity-60';
+      'w-full rounded-2xl border bg-shop-background px-4 py-3 text-shop-text outline-none transition placeholder:text-shop-text-light focus-visible:border-shop-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-shop-primary/10 disabled:cursor-not-allowed disabled:opacity-60';
     return [
       base,
-      this.isInvalid() ? 'border-shop-danger focus:border-shop-danger focus:ring-shop-danger/10' : 'border-shop-border',
+      this.isInvalid()
+        ? 'border-shop-danger focus-visible:border-shop-danger focus-visible:ring-shop-danger/10'
+        : 'border-shop-border',
     ];
   });
 

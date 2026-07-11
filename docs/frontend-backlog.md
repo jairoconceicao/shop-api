@@ -281,7 +281,7 @@ Entregue ate aqui:
 ### 15. Acessibilidade, responsividade e qualidade visual
 
 [x] TASK-116: Validar navegacao por teclado nos fluxos principais.
-[ ] TASK-117: Garantir labels, descricoes de erro e foco visivel nos formularios.
+[x] TASK-117: Garantir labels, descricoes de erro e foco visivel nos formularios.
 [ ] TASK-118: Garantir contraste adequado para tokens do tema.
 [ ] TASK-119: Validar layout em mobile pequeno, mobile grande, tablet e desktop.
 [ ] TASK-120: Evitar sobreposicao de textos e componentes em breakpoints suportados.

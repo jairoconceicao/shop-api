@@ -63,6 +63,7 @@ describe('InputComponent', () => {
     expect(screen.getByText('Nome')).toBeVisible();
     expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true');
     expect(input).toBeRequired();
+    expect(input).toHaveClass('focus-visible:ring-2');
     expect(input).toHaveAttribute('aria-describedby');
     expect(screen.getByText('Use o nome cadastrado.')).toBeVisible();
     expect(screen.getByRole('alert')).toHaveTextContent('Nome obrigatorio');
