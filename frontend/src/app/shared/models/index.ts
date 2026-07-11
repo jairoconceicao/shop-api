@@ -36,6 +36,7 @@ export type {
   OrderCreated,
   OrderItem,
   OrderItemRequest,
+  OrderListParams,
   OrderStatus,
   PaymentMethod,
   UpdateOrderStatusRequest,

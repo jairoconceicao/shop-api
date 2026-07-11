@@ -57,3 +57,11 @@ export interface UpdateOrderStatusRequest {
   status: OrderStatus;
 }
 
+export interface OrderListParams {
+  cpf: string;
+  dataInicio?: string;
+  dataFim?: string;
+  page?: number;
+  size?: number;
+}
+
