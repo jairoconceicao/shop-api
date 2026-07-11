@@ -36,4 +36,12 @@ describe('app routes', () => {
     expect(passwordRoute?.canActivate).toEqual([authGuard]);
     expect(passwordRoute?.title).toBe('Shop API | Alterar senha');
   });
+
+  it('routes account orders to the orders page and keeps it protected', () => {
+    const ordersRoute = routes[0]?.children?.find((route) => route.path === 'account/orders');
+
+    expect(ordersRoute).toBeDefined();
+    expect(ordersRoute?.canActivate).toEqual([authGuard]);
+    expect(ordersRoute?.title).toBe('Shop API | Meus pedidos');
+  });
 });
