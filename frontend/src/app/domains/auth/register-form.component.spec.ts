@@ -73,7 +73,7 @@ describe('RegisterFormComponent', () => {
   });
 
   it('associates the state select with its validation message', async () => {
-    await render(RegisterFormComponent, {
+    const { fixture } = await render(RegisterFormComponent, {
       providers: [
         provideRouter([]),
         provideEnvironmentNgxMask(),
@@ -85,11 +85,14 @@ describe('RegisterFormComponent', () => {
     });
 
     screen.getByRole('button', { name: 'Criar conta' }).click();
+    fixture.detectChanges();
 
     const ufSelect = screen.getByRole('combobox');
+    const ufError = screen.getAllByRole('alert').find((el) => el.id === 'register-uf-error');
 
     expect(ufSelect).toHaveAttribute('aria-describedby', 'register-uf-error');
-    expect(screen.getByRole('alert')).toHaveAttribute('id', 'register-uf-error');
+    expect(ufError).toBeDefined();
+    expect(ufError).toHaveTextContent('UF e obrigatoria.');
   });
 
   it('renders schema validation feedback when the form is submitted empty', async () => {

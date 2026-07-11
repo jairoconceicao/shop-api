@@ -582,6 +582,30 @@ describe('ProductsPageComponent', () => {
     } satisfies PagedResponse<ProductCatalogItem>;
 
     catalogServiceMock.listPublicProducts.mockReturnValue(of(initialPage));
+    catalogServiceMock.listPublicProductsByCategory.mockReturnValue(
+      of({
+        status: true,
+        message: 'Catalogo de produtos carregado com sucesso.',
+        pagination: {
+          pages: 1,
+          size: 8,
+          totalItems: 1,
+          data: [
+            {
+              produtoId: 101,
+              titulo: 'Notebook Gamer',
+              thumb: null,
+              preco: 5999.9,
+              estoque: 12,
+              categoria: {
+                categoriaId: 1,
+                titulo: 'Informática',
+              },
+            },
+          ],
+        },
+      } satisfies PagedResponse<ProductCatalogItem>),
+    );
     categoryServiceMock.listPublicCategories.mockReturnValue(of(categories));
 
     await render(ProductsPageComponent, {

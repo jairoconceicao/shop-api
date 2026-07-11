@@ -3,26 +3,26 @@
 @theme {
   --font-display: 'Segoe UI Variable', 'Trebuchet MS', sans-serif;
   --font-body: 'Segoe UI Variable', 'Trebuchet MS', sans-serif;
-  --color-shop-primary: #2563eb;
-  --color-shop-primary-hover: #1d4ed8;
-  --color-shop-primary-soft: #dbeafe;
-  --color-shop-secondary: #f97316;
-  --color-shop-secondary-hover: #ea580c;
-  --color-shop-secondary-soft: #ffedd5;
+  --color-shop-primary: #1d4ed8;
+  --color-shop-primary-hover: #1e40af;
+  --color-shop-primary-soft: #eff6ff;
+  --color-shop-secondary: #9a3412;
+  --color-shop-secondary-hover: #7c2d12;
+  --color-shop-secondary-soft: #fff7ed;
   --color-shop-background: #f8fafc;
   --color-shop-surface: #ffffff;
   --color-shop-surface-muted: #f1f5f9;
   --color-shop-border: #e2e8f0;
   --color-shop-text: #0f172a;
   --color-shop-text-muted: #64748b;
-  --color-shop-text-light: #94a3b8;
+  --color-shop-text-light: #475569;
   --color-shop-text-inverted: #ffffff;
-  --color-shop-success: #16a34a;
-  --color-shop-success-soft: #dcfce7;
-  --color-shop-warning: #f59e0b;
-  --color-shop-warning-soft: #fef3c7;
-  --color-shop-danger: #dc2626;
-  --color-shop-danger-soft: #fee2e2;
+  --color-shop-success: #15803d;
+  --color-shop-success-soft: #f0fdf4;
+  --color-shop-warning: #b45309;
+  --color-shop-warning-soft: #fefce8;
+  --color-shop-danger: #b91c1c;
+  --color-shop-danger-soft: #fef2f2;
   --shadow-soft: 0 20px 60px rgba(15, 23, 42, 0.08);
 }
 

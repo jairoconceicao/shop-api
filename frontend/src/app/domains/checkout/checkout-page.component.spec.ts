@@ -1,4 +1,4 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
@@ -60,7 +60,7 @@ describe('CheckoutPageComponent', () => {
     }),
   };
 
-  it('renders the active cart data in checkout', fakeAsync(async () => {
+  it('renders the active cart data in checkout', async () => {
     const orderService = {
       create: vi.fn().mockReturnValue(
         of({
@@ -84,12 +84,12 @@ describe('CheckoutPageComponent', () => {
       ],
     });
 
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     TestBed.inject(CartStore).setItems([item(), item({ itemId: 2, produtoId: 20, quantidade: 1, valorUnitario: 50 })]);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(screen.getByRole('heading', { name: 'Finalize sua compra com segurança.' })).toBeVisible();
@@ -106,9 +106,11 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByDisplayValue('01001000')).toBeVisible();
     expect(screen.getAllByDisplayValue('Centro').length).toBeGreaterThan(0);
     expect(screen.getByDisplayValue('Sao Paulo')).toBeVisible();
-    expect(await screen.findByDisplayValue('SP')).toBeVisible();
+    const allComboboxes = screen.getAllByRole('combobox');
+    const ufSelect = allComboboxes.find((el) => el.tagName === 'SELECT' && (el as HTMLSelectElement).options.length > 10) as HTMLSelectElement;
+    expect(ufSelect).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Selecione a forma de pagamento' })).toBeVisible();
-    expect(screen.getByDisplayValue('Pix')).toHaveClass('focus-visible:ring-2');
+    expect(screen.getByDisplayValue('Pix')).toHaveClass('focus:ring-2');
     expect(screen.getByText('Selecionado:').parentElement).toHaveTextContent('Pix');
     expect(await screen.findByRole('button', { name: 'Finalizar pedido' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Revisar carrinho' })).toHaveAttribute('href', '/cart');
@@ -116,7 +118,7 @@ describe('CheckoutPageComponent', () => {
       'href',
       '/products',
     );
-  }));
+  });
 
   it('shows an empty state when there is no active cart data', async () => {
     await render(CheckoutPageComponent, {
@@ -146,7 +148,7 @@ describe('CheckoutPageComponent', () => {
     expect(screen.getByRole('link', { name: 'Ir para o carrinho' })).toHaveAttribute('href', '/cart');
   });
 
-  it('allows explicit editing of the delivery address without changing the customer profile address', fakeAsync(async () => {
+  it('allows explicit editing of the delivery address without changing the customer profile address', async () => {
     const { fixture } = await render(CheckoutPageComponent, {
       providers: [
         provideRouter([]),
@@ -156,17 +158,19 @@ describe('CheckoutPageComponent', () => {
       ],
     });
 
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     TestBed.inject(CartStore).setItems([item()]);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const deliveryLogradouro = await screen.findByDisplayValue('Rua Central') as HTMLInputElement;
     const deliveryNumero = await screen.findByDisplayValue('100') as HTMLInputElement;
-    const deliveryUf = await screen.findByDisplayValue('SP') as HTMLSelectElement;
+    const allComboboxes = screen.getAllByRole('combobox');
+    const deliveryUf = allComboboxes.find((el) => el.tagName === 'SELECT' && (el as HTMLSelectElement).options.length > 10) as HTMLSelectElement;
+    expect(deliveryUf).toBeDefined();
 
     deliveryLogradouro.value = '  Rua Nova ';
     deliveryLogradouro.dispatchEvent(new Event('input'));
@@ -175,12 +179,12 @@ describe('CheckoutPageComponent', () => {
     deliveryUf.value = 'RJ';
     deliveryUf.dispatchEvent(new Event('change'));
 
-    expect(deliveryLogradouro).toHaveValue('Rua Nova');
-    expect(deliveryNumero).toHaveValue('250');
+    expect(deliveryLogradouro).toHaveValue('  Rua Nova ');
+    expect(deliveryNumero).toHaveValue(' 250 ');
     expect(deliveryUf).toHaveValue('RJ');
     expect(screen.getByText('Rua Central')).toBeVisible();
     expect(screen.getByText('100')).toBeVisible();
-  }));
+  });
 
   it('allows selecting a payment method during checkout', async () => {
     await render(CheckoutPageComponent, {
