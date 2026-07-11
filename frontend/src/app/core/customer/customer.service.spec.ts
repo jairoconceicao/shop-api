@@ -82,7 +82,7 @@ describe('CustomerService', () => {
       receivedResponses.push(createdCustomer);
     });
 
-    expect(apiClientMock.post).toHaveBeenCalledWith('/api/v1/cliente', request, undefined);
+    expect(apiClientMock.post).toHaveBeenCalledWith('/api/v1/cliente', request);
     expect(receivedResponses).toEqual([response.data]);
   });
 
@@ -122,7 +122,7 @@ describe('CustomerService', () => {
       receivedResponses.push(customer);
     });
 
-    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/cliente/20', undefined);
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/cliente/20');
     expect(receivedResponses).toEqual([response.data]);
   });
 
@@ -166,7 +166,7 @@ describe('CustomerService', () => {
       receivedResponses.push(customer);
     });
 
-    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20', request, undefined);
+    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20', request);
     expect(receivedResponses).toEqual([response.data]);
   });
 
@@ -193,7 +193,7 @@ describe('CustomerService', () => {
       receivedResponses.push(result);
     });
 
-    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20/senha', request, undefined);
+    expect(apiClientMock.put).toHaveBeenCalledWith('/api/v1/cliente/20/senha', request);
     expect(receivedResponses).toEqual([response.data]);
   });
 
@@ -213,7 +213,7 @@ describe('CustomerService', () => {
       receivedResponses.push(result);
     });
 
-    expect(apiClientMock.delete).toHaveBeenCalledWith('/api/v1/cliente/20', undefined);
+    expect(apiClientMock.delete).toHaveBeenCalledWith('/api/v1/cliente/20');
     expect(receivedResponses).toEqual([undefined]);
   });
 });

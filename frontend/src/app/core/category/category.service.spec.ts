@@ -57,7 +57,7 @@ describe('CategoryService', () => {
       receivedResponses.push(categories);
     });
 
-    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/categoria', undefined);
+    expect(apiClientMock.get).toHaveBeenCalledWith('/api/v1/categoria');
     expect(receivedResponses).toEqual([response.data]);
   });
 });

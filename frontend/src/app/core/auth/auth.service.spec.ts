@@ -79,7 +79,6 @@ describe('AuthService', () => {
         email: 'cliente@shopapi.dev',
         senha: '12345678',
       },
-      undefined,
     );
     expect(receivedSessions).toHaveLength(1);
     expect(receivedSessions[0]).toEqual(response.data);
@@ -136,3 +135,4 @@ describe('AuthService', () => {
     expect(tokenStorageMock.clearToken).toHaveBeenCalledTimes(1);
   });
 });
+
