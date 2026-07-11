@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '@core/auth/auth.service';
+import { resolveAuthLoginRedirectUrl } from '@core/auth/auth-redirect.context';
 import { type NormalizedApiError } from '@shared/api';
 import { ButtonComponent } from '@shared/ui/base/button.component';
 import { CheckboxComponent } from '@shared/ui/base/checkbox.component';
@@ -150,6 +151,8 @@ import {
 })
 export class LoginPageComponent {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
   readonly email = signal('');
   readonly senha = signal('');
@@ -235,6 +238,7 @@ export class LoginPageComponent {
             email: session.email,
           });
           this.loginSuccess.set(true);
+          void this.router.navigateByUrl(resolveAuthLoginRedirectUrl(this.router, this.activatedRoute));
         },
         error: (error: unknown) => {
           this.loginError.set(resolveLoginErrorMessage(error));

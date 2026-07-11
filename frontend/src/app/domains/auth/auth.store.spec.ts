@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -35,6 +36,7 @@ describe('AuthStore', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         AuthStore,
         { provide: AuthService, useValue: authServiceMock },
         { provide: TokenStorageService, useValue: tokenStorageMock },
@@ -104,6 +106,8 @@ describe('AuthStore', () => {
     authServiceMock.logout.mockReturnValue(of(null));
 
     const store = TestBed.inject(AuthStore);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     store.setSession(session());
     store.logout();
@@ -112,6 +116,7 @@ describe('AuthStore', () => {
     expect(store.isAuthenticated()).toBe(false);
     expect(store.session()).toBeNull();
     expect(store.error()).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
   it('can clear the session state independently', () => {

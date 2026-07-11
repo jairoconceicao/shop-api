@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
+import { createAuthLoginRedirectCommands } from './auth-redirect.context';
 import { TokenStorageService } from './token-storage.service';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
@@ -18,14 +19,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   if (!token) {
     return next(request).pipe(
       catchError((error: unknown) => {
-        if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthRequest(request.url)) {
-          tokenStorage.clearSession();
-          void router.navigate(['/login'], {
-            queryParams: {
-              returnUrl: router.url,
-            },
-          });
-        }
+          if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthRequest(request.url)) {
+            tokenStorage.clearSession();
+            void router.navigate(createAuthLoginRedirectCommands(router.url));
+          }
 
         return throwError(() => error);
       }),
@@ -42,11 +39,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthRequest(request.url)) {
         tokenStorage.clearSession();
-        void router.navigate(['/login'], {
-          queryParams: {
-            returnUrl: router.url,
-          },
-        });
+        void router.navigate(createAuthLoginRedirectCommands(router.url));
       }
 
       return throwError(() => error);

@@ -1,8 +1,10 @@
 import { computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { finalize, Subscription } from 'rxjs';
 
 import { AuthService } from '@core/auth/auth.service';
+import { createAuthLoginRedirectCommands } from '@core/auth/auth-redirect.context';
 import { TokenStorageService } from '@core/auth/token-storage.service';
 import type { AuthLoginRequest, AuthSession } from '@shared/models';
 
@@ -33,6 +35,7 @@ export const AuthStore = signalStore(
   })),
   withMethods((store) => {
     const authService = inject(AuthService);
+    const router = inject(Router);
     const tokenStorage = inject(TokenStorageService);
     let authSubscription: Subscription | null = null;
 
@@ -102,6 +105,7 @@ export const AuthStore = signalStore(
           .subscribe({
             next: () => {
               patchState(store, initialState);
+              void router.navigate(createAuthLoginRedirectCommands(null));
             },
             error: () => {
               patchState(store, {
@@ -109,6 +113,7 @@ export const AuthStore = signalStore(
                 isLoading: false,
                 error: 'Nao foi possivel encerrar a sessao.',
               });
+              void router.navigate(createAuthLoginRedirectCommands(null));
             },
           });
       },

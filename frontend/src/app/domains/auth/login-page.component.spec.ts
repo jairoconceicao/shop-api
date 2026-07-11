@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 import { Subject, of } from 'rxjs';
@@ -180,7 +180,7 @@ describe('LoginPageComponent', () => {
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    await render(LoginPageComponent, {
+    const renderResult = await render(LoginPageComponent, {
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -191,6 +191,9 @@ describe('LoginPageComponent', () => {
         },
       ],
     });
+
+    const router = renderResult.fixture.debugElement.injector.get(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
     const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
     const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
@@ -212,9 +215,7 @@ describe('LoginPageComponent', () => {
     });
     loginRequest.complete();
 
-    expect(screen.getByRole('status')).toHaveTextContent('Sessao iniciada');
-    expect(screen.getByText(/A conta cliente@shopapi\.dev foi autenticada com sucesso\./)).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Ir para home' })).toHaveAttribute('href', '/');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/');
   });
 
   it('renders an error state when login fails', async () => {

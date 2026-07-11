@@ -98,13 +98,13 @@ describe('authInterceptor', () => {
     await expect(firstValueFrom(TestBed.runInInjectionContext(() => authInterceptor(request, next)))).rejects.toMatchObject({ status: 401 });
 
     expect(tokenStorageMock.clearSession).toHaveBeenCalledTimes(1);
-    expect(navigateSpy).toHaveBeenCalledWith(
-      ['/login'],
-      expect.objectContaining({
-        queryParams: expect.objectContaining({
+    expect(navigateSpy).toHaveBeenCalledWith([
+      '/login',
+      {
+        queryParams: {
           returnUrl: router.url,
-        }),
-      }),
-    );
+        },
+      },
+    ]);
   });
 });

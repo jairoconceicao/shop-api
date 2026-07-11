@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, type ActivatedRouteSnapshot, type RouterStateSnapshot, type UrlTree } from '@angular/router';
 
+import { createAuthLoginRedirectCommands } from './auth-redirect.context';
 import { TokenStorageService } from './token-storage.service';
 
 export const authGuard = (
@@ -13,9 +14,5 @@ export const authGuard = (
     return true;
   }
 
-  return inject(Router).createUrlTree(['/login'], {
-    queryParams: {
-      returnUrl: state.url,
-    },
-  });
+  return inject(Router).createUrlTree(createAuthLoginRedirectCommands(state.url));
 };
