@@ -297,7 +297,7 @@ negocio ainda nao estao cobertos.
 [x] TASK-124: Criar e2e para login e acesso a rota protegida.
 [x] TASK-125: Criar e2e para cadastro de cliente.
 [x] TASK-126: Criar e2e para busca textual e filtro por categoria.
-[ ] TASK-127: Criar e2e para detalhe do produto e adicionar ao carrinho.
+[x] TASK-127: Criar e2e para detalhe do produto e adicionar ao carrinho.
 [ ] TASK-128: Criar e2e para alterar quantidade e remover item do carrinho.
 [ ] TASK-129: Criar e2e para checkout com criacao de pedido.
 [ ] TASK-130: Criar e2e para area do cliente e alteracao de senha.
