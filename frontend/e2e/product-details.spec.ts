@@ -30,7 +30,7 @@ test('shows product details and redirects anonymous users to login when buying',
 
   await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Notebook Gamer' })).toBeVisible();
-  await expect(page.getByText('12 em estoque')).toBeVisible();
+  await expect(page.getByRole('definition').filter({ hasText: '12 em estoque' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Comprar agora' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Comprar agora' }).click();

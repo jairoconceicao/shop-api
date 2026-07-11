@@ -52,7 +52,8 @@ test('allows anonymous access to the public catalog', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Ver produto' })).toBeVisible();
 
-  await page.getByLabel('Buscar produtos').fill('notebook gamer');
+  const searchInput = page.locator('form app-input input[type="search"]').first();
+  await searchInput.fill('notebook gamer');
   await page.getByRole('button', { name: 'Buscar' }).click();
 
   await expect(page.getByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();

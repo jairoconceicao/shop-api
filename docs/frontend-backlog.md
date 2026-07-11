@@ -302,7 +302,7 @@ negocio ainda nao estao cobertos.
 [x] TASK-129: Criar e2e para checkout com criacao de pedido.
 [x] TASK-130: Criar e2e para area do cliente e alteracao de senha.
 [x] TASK-131: Criar e2e para listagem, detalhe e cancelamento de pedido.
-[ ] TASK-132: Garantir que `lint`, `test`, `build` e `e2e` passam antes da entrega.
+[x] TASK-132: Garantir que `lint`, `test`, `build` e `e2e` passam antes da entrega.
 
 ## Ordem sugerida de entrega
 

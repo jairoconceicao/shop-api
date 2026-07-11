@@ -64,7 +64,8 @@ test('shows the public products catalog', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Ver produto' })).toBeVisible();
 
-  await page.getByLabel('Buscar produtos').fill('notebook gamer');
+  const searchInput = page.locator('form app-input input[type="search"]').first();
+  await searchInput.fill('notebook gamer');
   await page.getByRole('button', { name: 'Buscar' }).click();
 
   await expect(page.getByRole('heading', { name: 'Notebook Gamer Pro' })).toBeVisible();
@@ -155,7 +156,9 @@ test('restores catalog filters from the URL query params', async ({ page }) => {
 
   await page.goto('/products?searchword=notebook%20gamer&categoriaId=2');
 
-  await expect(page.getByLabel('Buscar produtos')).toHaveValue('notebook gamer');
+  await expect(page.locator('form app-input input[type="search"]').first()).toHaveValue(
+    'notebook gamer',
+  );
   await expect(page.getByRole('button', { name: 'Celulares' })).toHaveAttribute(
     'aria-pressed',
     'true',

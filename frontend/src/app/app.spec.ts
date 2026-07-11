@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/angular';
+import { render } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
 
 import { App } from './app';

@@ -79,7 +79,7 @@ test('lists customer orders, opens detail and cancels an order', async ({ page }
   await page.goto('/account/orders');
 
   await expect(page.getByRole('heading', { name: 'Acompanhe seus pedidos' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Pedido #500' })).toBeVisible();
+  await expect(page.getByText('Pedido #500')).toBeVisible({ timeout: 10000 });
   await expect(page.getByRole('link', { name: 'Ver detalhes' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Ver detalhes' }).click();

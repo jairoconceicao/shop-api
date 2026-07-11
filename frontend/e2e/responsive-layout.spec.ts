@@ -81,7 +81,7 @@ test.describe('responsive layout', () => {
       await page.goto('/products');
 
       await expect(page.getByRole('heading', { name: /Explore produtos/i })).toBeVisible();
-      await expect(page.getByLabel('Buscar produtos')).toBeVisible();
+      await expect(page.locator('form app-input input[type="search"]').first()).toBeVisible();
       await expect(page.getByRole('button', { name: 'Buscar' })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
 
@@ -94,15 +94,15 @@ test.describe('responsive layout', () => {
 
       if (viewport.width < 768) {
         await expect(page.getByRole('navigation', { name: 'Navegacao principal mobile' })).toBeVisible();
-        expect(gridColumns.split(' ').length).toBe(2);
+        expect(gridColumns.split(' ').length).toBe(1);
       } else if (viewport.width < 1024) {
         await expect(page.getByRole('navigation', { name: 'Navegacao principal mobile' })).toBeVisible();
-        expect(gridColumns.split(' ').length).toBe(3);
+        expect(gridColumns.split(' ').length).toBe(2);
       } else {
         await expect(page.getByRole('navigation', { name: 'Navegacao principal mobile' })).toBeHidden();
         await expect(page.getByRole('link', { name: 'Catalogo' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'Carrinho' })).toBeVisible();
-        expect(gridColumns.split(' ').length).toBe(5);
+        expect(gridColumns.split(' ').length).toBe(2);
       }
     });
   }

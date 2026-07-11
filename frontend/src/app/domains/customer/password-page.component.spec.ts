@@ -3,7 +3,6 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { render, screen } from '@testing-library/angular';
 import '@testing-library/jest-dom/vitest';
-import { fireEvent } from '@testing-library/dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CustomerService } from '@core/customer/customer.service';

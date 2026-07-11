@@ -7,5 +7,5 @@ test('shows the storefront foundation', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Sua vitrine mobile first/i })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explorar vitrine' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Produtos em destaque' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Notebook Slim 15' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
 });

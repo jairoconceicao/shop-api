@@ -5,7 +5,7 @@ const angular = require('angular-eslint');
 const eslintConfigPrettier = require('eslint-config-prettier');
 
 module.exports = tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'playwright-report/**'] },
+  { ignores: ['dist/**', 'coverage/**', 'playwright-report/**', 'test-results/**', '.angular/cache/**'] },
   {
     files: ['**/*.ts'],
     extends: [eslint.configs.recommended, ...tseslint.configs.recommended, ...angular.configs.tsRecommended],
