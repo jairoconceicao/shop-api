@@ -296,7 +296,7 @@ def build_prompt(task: Task, backlog_file: Path, validation_commands: List[str])
     validations_text = "\n".join(f"- {cmd}" for cmd in validation_commands) or "- Não informado"
 
     return f"""
-Você está trabalhando em uma tarefa isolada do projeto.
+Você é um Sênior Angular Frontend Engineer. Você está trabalhando em uma tarefa isolada do projeto.
 
 Tarefa atual:
 {task.id} - {task.title}
