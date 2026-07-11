@@ -44,4 +44,12 @@ describe('app routes', () => {
     expect(ordersRoute?.canActivate).toEqual([authGuard]);
     expect(ordersRoute?.title).toBe('Shop API | Meus pedidos');
   });
+
+  it('routes account order detail to the order detail page and keeps it protected', () => {
+    const orderDetailRoute = routes[0]?.children?.find((route) => route.path === 'account/orders/:pedidoId');
+
+    expect(orderDetailRoute).toBeDefined();
+    expect(orderDetailRoute?.canActivate).toEqual([authGuard]);
+    expect(orderDetailRoute?.title).toBe('Shop API | Detalhe do pedido');
+  });
 });

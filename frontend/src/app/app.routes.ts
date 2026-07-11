@@ -8,6 +8,7 @@ import { RegisterPageComponent } from '@domains/auth/register-page.component';
 import { ProductDetailsPageComponent } from '@domains/catalog/product-details-page.component';
 import { ProductsPageComponent } from '@domains/catalog/products-page.component';
 import { AccountPageComponent } from '@domains/customer/account-page.component';
+import { OrderDetailPageComponent } from '@domains/customer/order-detail-page.component';
 import { OrdersPageComponent } from '@domains/customer/orders-page.component';
 import { ProfilePageComponent } from '@domains/customer/profile-page.component';
 import { PasswordPageComponent } from '@domains/customer/password-page.component';
@@ -78,6 +79,12 @@ export const routes: Routes = [
         component: OrdersPageComponent,
         canActivate: [authGuard],
         title: 'Shop API | Meus pedidos',
+      },
+      {
+        path: 'account/orders/:pedidoId',
+        component: OrderDetailPageComponent,
+        canActivate: [authGuard],
+        title: 'Shop API | Detalhe do pedido',
       },
     ],
   },

@@ -55,5 +55,6 @@ describe('OrdersPageComponent', () => {
     expect(screen.getByText('Pedido #999')).toBeVisible();
     expect(screen.getByText('Criado')).toBeVisible();
     expect(screen.getByText('1 pedido(s) encontrados')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Ver detalhes' })).toHaveAttribute('href', '/account/orders/999');
   });
 });
