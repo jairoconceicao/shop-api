@@ -14,33 +14,35 @@ import { ProfilePageComponent } from '@domains/customer/profile-page.component';
 import { PasswordPageComponent } from '@domains/customer/password-page.component';
 import { HomePageComponent } from '@domains/home/home-page.component';
 
+import { publicAppRoutes } from './app.routes.context';
+
 export const routes: Routes = [
   {
     path: '',
     component: AppShellComponent,
     children: [
       {
-        path: '',
+        path: publicAppRoutes.home,
         component: HomePageComponent,
         title: 'Shop API | Home',
       },
       {
-        path: 'login',
+        path: publicAppRoutes.login,
         component: LoginPageComponent,
         title: 'Shop API | Login',
       },
       {
-        path: 'cadastro',
+        path: publicAppRoutes.register,
         component: RegisterPageComponent,
         title: 'Shop API | Cadastro',
       },
       {
-        path: 'products',
+        path: publicAppRoutes.products,
         component: ProductsPageComponent,
         title: 'Shop API | Catalogo',
       },
       {
-        path: 'products/:id',
+        path: publicAppRoutes.productDetails,
         component: ProductDetailsPageComponent,
         title: 'Shop API | Detalhe do produto',
       },

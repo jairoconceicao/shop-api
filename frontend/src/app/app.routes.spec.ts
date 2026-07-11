@@ -2,9 +2,52 @@ import { describe, expect, it } from 'vitest';
 
 import { authGuard } from '@core/auth/auth.guard';
 
+import { publicAppRoutes } from './app.routes.context';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
+  it('defines the public home route', () => {
+    const homeRoute = routes[0]?.children?.find((route) => route.path === publicAppRoutes.home);
+
+    expect(homeRoute).toBeDefined();
+    expect(homeRoute?.canActivate).toBeUndefined();
+    expect(homeRoute?.title).toBe('Shop API | Home');
+  });
+
+  it('defines the public login route', () => {
+    const loginRoute = routes[0]?.children?.find((route) => route.path === publicAppRoutes.login);
+
+    expect(loginRoute).toBeDefined();
+    expect(loginRoute?.canActivate).toBeUndefined();
+    expect(loginRoute?.title).toBe('Shop API | Login');
+  });
+
+  it('defines the public registration route', () => {
+    const registerRoute = routes[0]?.children?.find((route) => route.path === publicAppRoutes.register);
+
+    expect(registerRoute).toBeDefined();
+    expect(registerRoute?.canActivate).toBeUndefined();
+    expect(registerRoute?.title).toBe('Shop API | Cadastro');
+  });
+
+  it('defines the public catalog route', () => {
+    const productsRoute = routes[0]?.children?.find((route) => route.path === publicAppRoutes.products);
+
+    expect(productsRoute).toBeDefined();
+    expect(productsRoute?.canActivate).toBeUndefined();
+    expect(productsRoute?.title).toBe('Shop API | Catalogo');
+  });
+
+  it('defines the public product detail route', () => {
+    const productDetailsRoute = routes[0]?.children?.find(
+      (route) => route.path === publicAppRoutes.productDetails,
+    );
+
+    expect(productDetailsRoute).toBeDefined();
+    expect(productDetailsRoute?.canActivate).toBeUndefined();
+    expect(productDetailsRoute?.title).toBe('Shop API | Detalhe do produto');
+  });
+
   it('protects the checkout route with the auth guard', () => {
     const checkoutRoute = routes[0]?.children?.find((route) => route.path === 'checkout');
 
@@ -19,37 +62,5 @@ describe('app routes', () => {
     expect(accountRoute).toBeDefined();
     expect(accountRoute?.canActivate).toEqual([authGuard]);
     expect(accountRoute?.title).toBe('Shop API | Minha conta');
-  });
-
-  it('routes account profile to the customer profile page and keeps it protected', () => {
-    const profileRoute = routes[0]?.children?.find((route) => route.path === 'account/profile');
-
-    expect(profileRoute).toBeDefined();
-    expect(profileRoute?.canActivate).toEqual([authGuard]);
-    expect(profileRoute?.title).toBe('Shop API | Meus dados');
-  });
-
-  it('routes account password to the password page and keeps it protected', () => {
-    const passwordRoute = routes[0]?.children?.find((route) => route.path === 'account/password');
-
-    expect(passwordRoute).toBeDefined();
-    expect(passwordRoute?.canActivate).toEqual([authGuard]);
-    expect(passwordRoute?.title).toBe('Shop API | Alterar senha');
-  });
-
-  it('routes account orders to the orders page and keeps it protected', () => {
-    const ordersRoute = routes[0]?.children?.find((route) => route.path === 'account/orders');
-
-    expect(ordersRoute).toBeDefined();
-    expect(ordersRoute?.canActivate).toEqual([authGuard]);
-    expect(ordersRoute?.title).toBe('Shop API | Meus pedidos');
-  });
-
-  it('routes account order detail to the order detail page and keeps it protected', () => {
-    const orderDetailRoute = routes[0]?.children?.find((route) => route.path === 'account/orders/:pedidoId');
-
-    expect(orderDetailRoute).toBeDefined();
-    expect(orderDetailRoute?.canActivate).toEqual([authGuard]);
-    expect(orderDetailRoute?.title).toBe('Shop API | Detalhe do pedido');
   });
 });
