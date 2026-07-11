@@ -299,7 +299,7 @@ negocio ainda nao estao cobertos.
 [x] TASK-126: Criar e2e para busca textual e filtro por categoria.
 [x] TASK-127: Criar e2e para detalhe do produto e adicionar ao carrinho.
 [x] TASK-128: Criar e2e para alterar quantidade e remover item do carrinho.
-[ ] TASK-129: Criar e2e para checkout com criacao de pedido.
+[x] TASK-129: Criar e2e para checkout com criacao de pedido.
 [ ] TASK-130: Criar e2e para area do cliente e alteracao de senha.
 [ ] TASK-131: Criar e2e para listagem, detalhe e cancelamento de pedido.
 [ ] TASK-132: Garantir que `lint`, `test`, `build` e `e2e` passam antes da entrega.

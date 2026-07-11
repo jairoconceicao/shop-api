@@ -1,18 +1,15 @@
 import { expect, test } from '@playwright/test';
-
-const session = {
-  token: 'jwt-token',
-  tipo: 'Bearer',
-  expiraEm: '2026-07-11T12:00:00Z',
-  usuarioId: 10,
-  clienteId: 20,
-  email: 'cliente@shopapi.dev',
-};
+import {
+  cartCheckoutFlowCustomer,
+  cartCheckoutFlowOrder,
+  cartCheckoutFlowProduct,
+  cartCheckoutFlowSession,
+} from './cart-checkout-flow.context';
 
 test('adds a product to the cart and finalizes the order', async ({ page }) => {
   await page.addInitScript((authSession) => {
     localStorage.setItem('shop-api.auth.session', JSON.stringify(authSession));
-  }, session);
+  }, cartCheckoutFlowSession);
 
   await page.route('**/api/v1/produto/101', async (route) => {
     await route.fulfill({
@@ -20,19 +17,7 @@ test('adds a product to the cart and finalizes the order', async ({ page }) => {
       body: JSON.stringify({
         status: true,
         message: 'Produto carregado com sucesso.',
-        data: {
-          produtoId: 101,
-          titulo: 'Notebook Gamer',
-          descricao: 'Notebook para jogos',
-          modelo: 'RTX',
-          foto: 'https://cdn.shopapi.dev/notebook.jpg',
-          preco: 5999.9,
-          estoque: 12,
-          categoria: {
-            categoriaId: 1,
-            titulo: 'Informática',
-          },
-        },
+        data: cartCheckoutFlowProduct,
       }),
     });
   });
@@ -61,27 +46,7 @@ test('adds a product to the cart and finalizes the order', async ({ page }) => {
       body: JSON.stringify({
         status: true,
         message: 'Cliente carregado com sucesso.',
-        data: {
-          clienteId: 20,
-          cpf: '12345678901',
-          nome: 'Cliente Shop',
-          dataNascimento: '1990-01-01',
-          email: 'cliente@shopapi.dev',
-          endereco: {
-            logradouro: 'Rua Central',
-            numero: '100',
-            complemento: 'Apto 12',
-            cep: '01001000',
-            bairro: 'Centro',
-            cidade: 'Sao Paulo',
-            uf: 'SP',
-          },
-          celular: {
-            ddd: '11',
-            numero: '999999999',
-            whatsApp: true,
-          },
-        },
+        data: cartCheckoutFlowCustomer,
       }),
     });
   });
@@ -97,14 +62,7 @@ test('adds a product to the cart and finalizes the order', async ({ page }) => {
       body: JSON.stringify({
         status: true,
         message: 'Pedido criado com sucesso.',
-        data: {
-          pedidoId: 9999,
-          clienteId: 20,
-          dataPedido: '2026-07-10T12:00:00-03:00',
-          formaPagamento: 'Boleto',
-          status: 'Criado',
-          valorTotal: 5999.9,
-        },
+        data: cartCheckoutFlowOrder,
       }),
     });
   });
@@ -112,7 +70,12 @@ test('adds a product to the cart and finalizes the order', async ({ page }) => {
   await page.goto('/products/101');
 
   await expect(page.getByRole('heading', { name: 'Notebook Gamer' })).toBeVisible();
-  await page.getByRole('button', { name: 'Adicionar ao carrinho' }).click();
+  await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().includes('/api/v1/carrinho/items') && response.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Adicionar ao carrinho' }).click(),
+  ]);
 
   await page.getByRole('link', { name: 'Carrinho' }).click();
 
