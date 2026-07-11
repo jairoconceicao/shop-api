@@ -292,11 +292,11 @@ def git_has_changes(repo_dir: Path) -> bool:
     return bool(status)
 
 
-def build_prompt(task: Task, backlog_file: Path, validation_commands: List[str]) -> str:
+def build_prompt(task: Task, backlog_file: Path, validation_commands: List[str], persona: str) -> str:
     validations_text = "\n".join(f"- {cmd}" for cmd in validation_commands) or "- Não informado"
 
     return f"""
-Você é um Sênior Angular Frontend Engineer. Você está trabalhando em uma tarefa isolada do projeto.
+Você é {persona}. Você está trabalhando em uma tarefa isolada do projeto.
 
 Tarefa atual:
 {task.id} - {task.title}
@@ -530,11 +530,14 @@ def main() -> int:
     parser.add_argument("--keep-branches", action="store_true", help="Não remover branches após merge.")
     parser.add_argument("--use-opencode", action="store_true", help="Usar opencode no lugar do Codex.")
 
+    parser.add_argument("--persona", default="Sênior Software Engineer", help="Persona para passar para o prompt.")
+
     args = parser.parse_args()
 
     repo_dir = Path(args.repo).resolve()
     backlog_file = (repo_dir / args.backlog).resolve()
     logs_dir = repo_dir / ".codex-runs"
+    persona = args.persona
 
     logs_dir.mkdir(parents=True, exist_ok=True)
 
@@ -593,6 +596,7 @@ def main() -> int:
             task=task,
             backlog_file=backlog_file,
             validation_commands=validations,
+            persona=persona,
         )
 
         try:
