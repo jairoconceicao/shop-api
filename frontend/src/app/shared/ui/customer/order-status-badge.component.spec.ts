@@ -1,34 +1,48 @@
-import { render, screen } from '@testing-library/angular';
-import '@testing-library/jest-dom/vitest';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { OrderStatusBadgeComponent } from './order-status-badge.component';
 
+@Component({
+  imports: [OrderStatusBadgeComponent],
+  template: `
+    <app-order-status-badge [status]="status" />
+  `,
+})
+class TestHostComponent {
+  status = '';
+}
+
 describe('OrderStatusBadgeComponent', () => {
-  it('renders a friendly label and semantic variant for processed orders', async () => {
-    await render(OrderStatusBadgeComponent, {
-      componentInputs: {
-        status: 'Processado',
-      },
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
     });
-
-    const badge = screen.getByLabelText('Status do pedido');
-
-    expect(badge).toHaveTextContent('Processado');
-    expect(badge).toHaveClass('bg-shop-success-soft');
-    expect(badge).toHaveClass('text-shop-success');
   });
 
-  it('renders a danger variant for canceled orders', async () => {
-    await render(OrderStatusBadgeComponent, {
-      componentInputs: {
-        status: 'Cancelado',
-      },
-    });
+  it('renders a friendly label and semantic variant for processed orders', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.status = 'Processado';
+    fixture.detectChanges();
 
-    const badge = screen.getByLabelText('Status do pedido');
+    const badge = fixture.debugElement.query(By.css('[aria-label="Status do pedido"]'));
+    expect(badge).toBeTruthy();
+    expect(badge.nativeElement.textContent).toContain('Processado');
+    expect(badge.nativeElement.classList.contains('bg-shop-success-soft')).toBe(true);
+    expect(badge.nativeElement.classList.contains('text-shop-success')).toBe(true);
+  });
 
-    expect(badge).toHaveTextContent('Cancelado');
-    expect(badge).toHaveClass('bg-shop-danger-soft');
-    expect(badge).toHaveClass('text-shop-danger');
+  it('renders a danger variant for canceled orders', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.status = 'Cancelado';
+    fixture.detectChanges();
+
+    const badge = fixture.debugElement.query(By.css('[aria-label="Status do pedido"]'));
+    expect(badge).toBeTruthy();
+    expect(badge.nativeElement.textContent).toContain('Cancelado');
+    expect(badge.nativeElement.classList.contains('bg-shop-danger-soft')).toBe(true);
+    expect(badge.nativeElement.classList.contains('text-shop-danger')).toBe(true);
   });
 });

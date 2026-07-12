@@ -1,22 +1,57 @@
-import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom/vitest';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { QuantitySelectorComponent } from './quantity-selector.component';
 
+@Component({
+  imports: [QuantitySelectorComponent],
+  template: `
+    <app-quantity-selector
+      [quantity]="quantity"
+      [min]="min"
+      (quantityChange)="onQuantityChange($event)"
+    />
+  `,
+})
+class TestHostComponent {
+  quantity = 0;
+  min = 0;
+  onQuantityChange = (v: number) => {};
+}
+
 describe('QuantitySelectorComponent', () => {
-  it('emits quantity changes when the controls are used', async () => {
-    const user = userEvent.setup();
-    const emitted: number[] = [];
-
-    const { fixture } = await render(QuantitySelectorComponent, {
-      componentInputs: { quantity: 2 },
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
     });
-    fixture.componentInstance.quantityChange.subscribe((v: number) => emitted.push(v));
+  });
 
-    await user.click(screen.getByRole('button', { name: 'Diminuir quantidade' }));
-    await user.click(screen.getByRole('button', { name: 'Aumentar quantidade' }));
+  it('emits quantity changes when the controls are used', () => {
+    const emitted: number[] = [];
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.quantity = 2;
+    fixture.componentInstance.onQuantityChange = (v: number) => emitted.push(v);
+    fixture.detectChanges();
 
+    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    const decreaseButton = buttons.find(btn => 
+      btn.nativeElement.getAttribute('aria-label') === 'Diminuir quantidade'
+    );
+    const increaseButton = buttons.find(btn => 
+      btn.nativeElement.getAttribute('aria-label') === 'Aumentar quantidade'
+    );
+
+    expect(decreaseButton).toBeTruthy();
+    expect(increaseButton).toBeTruthy();
+
+    decreaseButton!.nativeElement.click();
+    fixture.detectChanges();
+    expect(emitted).toEqual([1]);
+
+    increaseButton!.nativeElement.click();
+    fixture.detectChanges();
     expect(emitted).toEqual([1, 3]);
   });
 });

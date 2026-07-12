@@ -1,50 +1,51 @@
-import { render, screen } from '@testing-library/angular';
-import '@testing-library/jest-dom/vitest';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { FormErrorComponent } from './form-error.component';
 
+@Component({
+  imports: [FormErrorComponent],
+  template: `
+    <app-form-error [error]="error" />
+  `,
+})
+class TestHostComponent {
+  error: string | string[] | null = null;
+}
+
 describe('FormErrorComponent', () => {
-  it('renders multiple validation messages', async () => {
-    await render(
-      `
-        <app-form-error [error]="error" />
-      `,
-      {
-        imports: [FormErrorComponent],
-        componentProperties: {
-          error: ['Email obrigatorio', 'Email invalido'],
-        },
-      },
-    );
-
-    const alert = screen.getByRole('alert');
-
-    expect(alert).toBeVisible();
-    expect(screen.getByText('Email obrigatorio')).toBeVisible();
-    expect(screen.getByText('Email invalido')).toBeVisible();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    });
   });
 
-  it('renders a single validation message and stays hidden without errors', async () => {
-    const { rerender } = await render(
-      `
-        <app-form-error [error]="error" />
-      `,
-      {
-        imports: [FormErrorComponent],
-        componentProperties: {
-          error: 'Senha obrigatoria',
-        },
-      },
-    );
+  it('renders multiple validation messages', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.error = ['Email obrigatorio', 'Email invalido'];
+    fixture.detectChanges();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Senha obrigatoria');
+    const alert = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Email obrigatorio');
+    expect(fixture.nativeElement.textContent).toContain('Email invalido');
+  });
 
-    await rerender({
-      componentProperties: {
-        error: null,
-      },
-    });
+  it('renders a single validation message and stays hidden without errors', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.error = 'Senha obrigatoria';
+    fixture.detectChanges();
 
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    let alert = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(alert.nativeElement.textContent).toContain('Senha obrigatoria');
+
+    fixture.componentInstance.error = null;
+    fixture.detectChanges();
+
+    alert = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alert).toBeNull();
   });
 });

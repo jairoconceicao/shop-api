@@ -1,20 +1,44 @@
-import { render, screen } from '@testing-library/angular';
-import '@testing-library/jest-dom/vitest';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CartSummaryComponent } from './cart-summary.component';
 
-describe('CartSummaryComponent', () => {
-  it('renders totals and the checkout cta', async () => {
-    await render(CartSummaryComponent, {
-      componentInputs: {
-        subtotal: 499.7,
-        shipping: 0,
-        ctaLabel: 'Finalizar compra',
-      },
-    });
+@Component({
+  imports: [CartSummaryComponent],
+  template: `
+    <app-cart-summary
+      [subtotal]="subtotal"
+      [shipping]="shipping"
+      [ctaLabel]="ctaLabel"
+    />
+  `,
+})
+class TestHostComponent {
+  subtotal = 0;
+  shipping = 0;
+  ctaLabel = '';
+}
 
-    expect(screen.getAllByText('R$ 499,70').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole('button', { name: 'Finalizar compra' })).toBeVisible();
+describe('CartSummaryComponent', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    });
   });
 
+  it('renders totals and the checkout cta', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.subtotal = 499.7;
+    fixture.componentInstance.shipping = 0;
+    fixture.componentInstance.ctaLabel = 'Finalizar compra';
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('R$ 499,70');
+    
+    const button = fixture.debugElement.query(By.css('button'));
+    expect(button).toBeTruthy();
+    expect(button.nativeElement.textContent).toContain('Finalizar compra');
+  });
 });

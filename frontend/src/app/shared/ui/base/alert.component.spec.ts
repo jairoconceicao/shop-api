@@ -1,44 +1,56 @@
-import { render, screen } from '@testing-library/angular';
-import '@testing-library/jest-dom/vitest';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { AlertComponent } from './alert.component';
 
+@Component({
+  imports: [AlertComponent],
+  template: `
+    <app-alert [variant]="variant" [title]="title">
+      {{ content }}
+    </app-alert>
+  `,
+})
+class TestHostComponent {
+  variant: 'info' | 'success' | 'warning' | 'danger' = 'info';
+  title = '';
+  content = '';
+}
+
 describe('AlertComponent', () => {
-  it('renders the alert content with the selected variant', async () => {
-    await render(
-      `
-        <app-alert variant="danger" title="Atenção">
-          Não foi possível salvar sua alteração.
-        </app-alert>
-      `,
-      {
-        imports: [AlertComponent],
-      },
-    );
-
-    const alert = screen.getByRole('alert');
-
-    expect(alert).toHaveClass('bg-shop-danger-soft');
-    expect(screen.getByText('Atenção')).toBeVisible();
-    expect(screen.getByText('Não foi possível salvar sua alteração.')).toBeVisible();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    });
   });
 
-  it('renders the default info variant without a title', async () => {
-    await render(
-      `
-        <app-alert>
-          Seu cadastro foi atualizado.
-        </app-alert>
-      `,
-      {
-        imports: [AlertComponent],
-      },
-    );
+  it('renders the alert content with the selected variant', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.variant = 'danger';
+    fixture.componentInstance.title = 'Atenção';
+    fixture.componentInstance.content = 'Não foi possível salvar sua alteração.';
+    fixture.detectChanges();
 
-    const alert = screen.getByRole('alert');
+    const alert = fixture.debugElement.query(By.css('aside[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(alert.nativeElement.classList.contains('bg-shop-danger-soft')).toBe(true);
+    expect(alert.nativeElement.textContent).toContain('Atenção');
+    expect(alert.nativeElement.textContent).toContain('Não foi possível salvar sua alteração.');
+  });
 
-    expect(alert).toHaveClass('bg-shop-primary-soft');
-    expect(screen.getByText('Seu cadastro foi atualizado.')).toBeVisible();
-    expect(screen.queryByText('Atenção')).not.toBeInTheDocument();
+  it('renders the default info variant without a title', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.componentInstance.variant = 'info';
+    fixture.componentInstance.title = '';
+    fixture.componentInstance.content = 'Seu cadastro foi atualizado.';
+    fixture.detectChanges();
+
+    const alert = fixture.debugElement.query(By.css('aside[role="alert"]'));
+    expect(alert).toBeTruthy();
+    expect(alert.nativeElement.classList.contains('bg-shop-primary-soft')).toBe(true);
+    expect(alert.nativeElement.textContent).toContain('Seu cadastro foi atualizado.');
+    expect(alert.nativeElement.textContent).not.toContain('Atenção');
   });
 });
