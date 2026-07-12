@@ -5,13 +5,15 @@ import { startVitest } from 'vitest/node';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(rootDir, '..');
 
-await startVitest('run', ['--pool=threads'], {
+await startVitest('test', [], {
   run: true,
+  pool: 'threads',
 }, {
   test: {
     environment: 'jsdom',
     globals: true,
     include: ['src/**/*.spec.ts'],
+    setupFiles: ['src/test-setup.ts'],
   },
   resolve: {
     alias: {
