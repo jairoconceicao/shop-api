@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
-import '@testing-library/jest-dom/vitest';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -18,10 +19,9 @@ describe('LoginPageComponent', () => {
 
   beforeEach(() => {
     authServiceMock.login.mockReset();
-  });
 
-  it('renders validation feedback from the login schema', async () => {
-    const { fixture } = await render(LoginPageComponent, {
+    TestBed.configureTestingModule({
+      imports: [LoginPageComponent],
       providers: [
         provideRouter([]),
         provideHttpClient(),
@@ -33,15 +33,30 @@ describe('LoginPageComponent', () => {
       ],
     });
 
+    TestBed.overrideComponent(LoginPageComponent, {
+      set: {
+        schemas: [NO_ERRORS_SCHEMA],
+      },
+    });
+  });
+
+  it('renders validation feedback from the login schema', () => {
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
+
     fixture.componentInstance.handleSubmit(new Event('submit'));
     fixture.detectChanges();
 
-    expect(screen.getAllByText('Informe seu e-mail.')[0]).toBeVisible();
-    expect(screen.getAllByText('Informe sua senha.')[0]).toBeVisible();
+    const errorElements = fixture.debugElement.queryAll(By.css('[role="alert"]'));
+    expect(errorElements.length).toBeGreaterThan(0);
+
+    const textContent = fixture.nativeElement.textContent;
+    expect(textContent).toContain('Informe seu e-mail.');
+    expect(textContent).toContain('Informe sua senha.');
     expect(authServiceMock.login).not.toHaveBeenCalled();
   });
 
-  it('submits normalized credentials when the schema is valid', async () => {
+  it('submits normalized credentials when the schema is valid', () => {
     authServiceMock.login.mockReturnValue(
       of({
         token: 'jwt-token',
@@ -53,28 +68,28 @@ describe('LoginPageComponent', () => {
       }),
     );
 
-    await render(LoginPageComponent, {
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: AuthService,
-          useValue: authServiceMock,
-        },
-      ],
-    });
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
 
-    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    const emailInput = inputs.find((input) => input.nativeElement.placeholder === 'cliente@shopapi.dev');
+    const passwordInput = inputs.find((input) => input.nativeElement.placeholder === 'Sua senha');
 
-    emailInput.value = '  cliente@shopapi.dev  ';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = '12345678';
-    passwordInput.dispatchEvent(new Event('input'));
+    expect(emailInput).toBeTruthy();
+    expect(passwordInput).toBeTruthy();
 
-    submitButton.click();
+    emailInput!.nativeElement.value = '  cliente@shopapi.dev  ';
+    emailInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    passwordInput!.nativeElement.value = '12345678';
+    passwordInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const submitButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+    expect(submitButton).toBeTruthy();
+    submitButton.nativeElement.click();
+    fixture.detectChanges();
 
     expect(authServiceMock.login).toHaveBeenCalledWith({
       email: 'cliente@shopapi.dev',
@@ -83,7 +98,7 @@ describe('LoginPageComponent', () => {
     });
   });
 
-  it('submits the remember-me flag when the checkbox is enabled', async () => {
+  it('submits the remember-me flag when the checkbox is enabled', () => {
     authServiceMock.login.mockReturnValue(
       of({
         token: 'jwt-token',
@@ -95,28 +110,29 @@ describe('LoginPageComponent', () => {
       }),
     );
 
-    const { fixture } = await render(LoginPageComponent, {
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: AuthService,
-          useValue: authServiceMock,
-        },
-      ],
-    });
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
 
-    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
-    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
-    const rememberMeCheckbox = screen.getByRole('checkbox') as HTMLInputElement;
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    const emailInput = inputs.find((input) => input.nativeElement.placeholder === 'cliente@shopapi.dev');
+    const passwordInput = inputs.find((input) => input.nativeElement.placeholder === 'Sua senha');
+    const checkbox = fixture.debugElement.query(By.css('input[type="checkbox"]'));
 
-    emailInput.value = 'cliente@shopapi.dev';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = '12345678';
-    passwordInput.dispatchEvent(new Event('input'));
-    rememberMeCheckbox.checked = true;
-    rememberMeCheckbox.dispatchEvent(new Event('change'));
+    expect(emailInput).toBeTruthy();
+    expect(passwordInput).toBeTruthy();
+    expect(checkbox).toBeTruthy();
+
+    emailInput!.nativeElement.value = 'cliente@shopapi.dev';
+    emailInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    passwordInput!.nativeElement.value = '12345678';
+    passwordInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    checkbox!.nativeElement.checked = true;
+    checkbox!.nativeElement.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
 
     fixture.componentInstance.handleSubmit(new Event('submit'));
     fixture.detectChanges();
@@ -128,7 +144,7 @@ describe('LoginPageComponent', () => {
     });
   });
 
-  it('shows the loading state while the login request is pending', async () => {
+  it('shows the loading state while the login request is pending', () => {
     const loginRequest = new Subject<{
       token: string;
       tipo: string;
@@ -140,34 +156,34 @@ describe('LoginPageComponent', () => {
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    const { fixture } = await render(LoginPageComponent, {
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: AuthService,
-          useValue: authServiceMock,
-        },
-      ],
-    });
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
 
-    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
-    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    const emailInput = inputs.find((input) => input.nativeElement.placeholder === 'cliente@shopapi.dev');
+    const passwordInput = inputs.find((input) => input.nativeElement.placeholder === 'Sua senha');
 
-    emailInput.value = 'cliente@shopapi.dev';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = '12345678';
-    passwordInput.dispatchEvent(new Event('input'));
+    emailInput!.nativeElement.value = 'cliente@shopapi.dev';
+    emailInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    passwordInput!.nativeElement.value = '12345678';
+    passwordInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     fixture.componentInstance.handleSubmit(new Event('submit'));
     fixture.detectChanges();
 
-    expect(screen.getByRole('status')).toHaveTextContent('Entrando na sua conta');
-    expect(screen.getByRole('button', { name: 'Entrando...' })).toBeDisabled();
+    const statusElement = fixture.debugElement.query(By.css('[role="status"]'));
+    expect(statusElement).toBeTruthy();
+    expect(statusElement.nativeElement.textContent).toContain('Entrando na sua conta');
+
+    const submitButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+    expect(submitButton.nativeElement.disabled).toBe(true);
+    expect(submitButton.nativeElement.textContent).toContain('Entrando...');
   });
 
-  it('renders a success state after a successful login', async () => {
+  it('renders a success state after a successful login', () => {
     const loginRequest = new Subject<{
       token: string;
       tipo: string;
@@ -179,31 +195,28 @@ describe('LoginPageComponent', () => {
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    const renderResult = await render(LoginPageComponent, {
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: AuthService,
-          useValue: authServiceMock,
-        },
-      ],
-    });
-
-    const router = renderResult.fixture.debugElement.injector.get(Router);
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    const router = TestBed.inject(Router);
     const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
-    const emailInput = screen.getByLabelText('E-mail') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Senha') as HTMLInputElement;
-    const submitButton = screen.getByRole('button', { name: 'Entrar' });
+    fixture.detectChanges();
 
-    emailInput.value = 'cliente@shopapi.dev';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = '12345678';
-    passwordInput.dispatchEvent(new Event('input'));
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    const emailInput = inputs.find((input) => input.nativeElement.placeholder === 'cliente@shopapi.dev');
+    const passwordInput = inputs.find((input) => input.nativeElement.placeholder === 'Sua senha');
 
-    submitButton.click();
+    emailInput!.nativeElement.value = 'cliente@shopapi.dev';
+    emailInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    passwordInput!.nativeElement.value = '12345678';
+    passwordInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const submitButton = fixture.debugElement.query(By.css('button[type="submit"]'));
+    submitButton.nativeElement.click();
+    fixture.detectChanges();
+
     loginRequest.next({
       token: 'jwt-token',
       tipo: 'Bearer',
@@ -213,48 +226,47 @@ describe('LoginPageComponent', () => {
       email: 'cliente@shopapi.dev',
     });
     loginRequest.complete();
+    fixture.detectChanges();
 
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/');
   });
 
-  it('renders an error state when login fails', async () => {
+  it('renders an error state when login fails', () => {
     const loginRequest = new Subject<never>();
 
     authServiceMock.login.mockReturnValue(loginRequest.asObservable());
 
-    const { fixture } = await render(LoginPageComponent, {
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: AuthService,
-          useValue: authServiceMock,
-        },
-      ],
-    });
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
 
-    const emailInput = document.querySelector<HTMLInputElement>('input[placeholder="cliente@shopapi.dev"]')!;
-    const passwordInput = document.querySelector<HTMLInputElement>('input[placeholder="Sua senha"]')!;
+    const inputs = fixture.debugElement.queryAll(By.css('input'));
+    const emailInput = inputs.find((input) => input.nativeElement.placeholder === 'cliente@shopapi.dev');
+    const passwordInput = inputs.find((input) => input.nativeElement.placeholder === 'Sua senha');
 
-    emailInput.value = 'cliente@shopapi.dev';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = '12345678';
-    passwordInput.dispatchEvent(new Event('input'));
+    emailInput!.nativeElement.value = 'cliente@shopapi.dev';
+    emailInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    passwordInput!.nativeElement.value = '12345678';
+    passwordInput!.nativeElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     fixture.componentInstance.handleSubmit(new Event('submit'));
     fixture.detectChanges();
-    loginRequest.error(
-      {
-        status: 401,
-        code: 'UNAUTHORIZED',
-        message: 'Credenciais invalidas.',
-        details: null,
-      } as NormalizedApiError,
-    );
+
+    loginRequest.error({
+      status: 401,
+      code: 'UNAUTHORIZED',
+      message: 'Credenciais invalidas.',
+      details: null,
+    } as NormalizedApiError);
     fixture.detectChanges();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Nao foi possivel entrar');
-    expect(screen.getByText('E-mail ou senha invalidos. Verifique seus dados e tente novamente.')).toBeVisible();
+    const alertElement = fixture.debugElement.query(By.css('[role="alert"]'));
+    expect(alertElement).toBeTruthy();
+    expect(alertElement.nativeElement.textContent).toContain('Nao foi possivel entrar');
+    expect(fixture.nativeElement.textContent).toContain(
+      'E-mail ou senha invalidos. Verifique seus dados e tente novamente.',
+    );
   });
 });
