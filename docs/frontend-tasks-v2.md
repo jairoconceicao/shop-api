@@ -22,7 +22,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-003: Configurar scripts de desenvolvimento, build, typecheck, lint, testes e testes E2E.
 
-[ ] TASK-004: Configurar ESLint e regras de imports diretos sem barrel global.
+[x] TASK-004: Configurar ESLint e regras de imports diretos sem barrel global.
 
 [ ] TASK-005: Integrar Tailwind CSS v4 ao build do Vite.
 
