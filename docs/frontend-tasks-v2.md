@@ -56,7 +56,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-019: Implementar Button, IconButton e LinkButton com variantes acessíveis.
 
-[ ] TASK-020: Implementar Input, Checkbox, Select, FieldError e FormErrorSummary.
+[x] TASK-020: Implementar Input, Checkbox, Select, FieldError e FormErrorSummary.
 
 [ ] TASK-021: Implementar Card, Surface, Badge e Chip com os tokens do protótipo.
 
