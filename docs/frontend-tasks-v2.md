@@ -24,7 +24,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-004: Configurar ESLint e regras de imports diretos sem barrel global.
 
-[ ] TASK-005: Integrar Tailwind CSS v4 ao build do Vite.
+[x] TASK-005: Integrar Tailwind CSS v4 ao build do Vite.
 
 [ ] TASK-006: Migrar a paleta `brand` e `ink`, raios, tipografia e espaçamento de `docs/ideacao` para tokens do tema.
 
