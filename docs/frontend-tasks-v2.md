@@ -32,7 +32,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-008: Configurar Vitest, Testing Library e ambiente DOM.
 
-[ ] TASK-009: Configurar MSW com inicialização exclusiva para testes e desenvolvimento opt-in.
+[x] TASK-009: Configurar MSW com inicialização exclusiva para testes e desenvolvimento opt-in.
 
 [ ] TASK-010: Configurar Playwright e um teste smoke da SPA.
 
