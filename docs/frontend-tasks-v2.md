@@ -48,7 +48,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-016: Configurar QueryClient com retries apenas para leituras recuperáveis e defaults de cache.
 
-[ ] TASK-017: Compor providers globais de router, query, feedback e stores.
+[x] TASK-017: Compor providers globais de router, query, feedback e stores.
 
 [ ] TASK-018: Criar a árvore inicial de rotas com shells público, loja e conta.
 
