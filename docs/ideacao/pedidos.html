@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>shop. — Meus Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body class="min-h-dvh">
+    <div data-header data-auth="in"></div>
+
+    <main class="container-page py-10">
+      <!-- Cabeçalho com volta -->
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <p class="eyebrow">Área do Cliente</p>
+          <h1 class="section-title mt-1 text-2xl sm:text-3xl">Meus Pedidos</h1>
+        </div>
+        <a href="index.html" class="btn-ghost">← Voltar à loja</a>
+      </div>
+
+      <!-- Filtros -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6">
+        <span class="chip-active">Todos</span>
+        <span class="chip">Em processamento</span>
+        <span class="chip">Enviados</span>
+        <span class="chip">Entregues</span>
+        <span class="chip">Cancelados</span>
+      </div>
+
+      <!-- Lista de pedidos -->
+      <div class="space-y-4">
+        <!-- Pedido 1 -->
+        <article class="surface-raised p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="font-semibold text-zinc-100">#PED-10248</h2>
+                <span class="badge-success">Entregue</span>
+              </div>
+              <p class="mt-1 text-xs text-zinc-500">Realizado em 08/07/2026 · 3 itens</p>
+            </div>
+            <div class="text-right">
+              <p class="price text-lg">R$ 6.287,00</p>
+              <a href="#" class="text-xs text-brand-400 hover:text-brand-300">Ver detalhes →</a>
+            </div>
+          </div>
+          <div class="hairline my-4"></div>
+          <div class="flex items-center gap-3 text-sm text-zinc-400">
+            <span class="badge-neutral">Pix · Aprovado</span>
+            <span class="badge-neutral">Entregue em 11/07</span>
+            <a href="#" class="ml-auto text-zinc-400 hover:text-zinc-100">Comprar novamente</a>
+          </div>
+        </article>
+
+        <!-- Pedido 2 -->
+        <article class="surface-raised p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="font-semibold text-zinc-100">#PED-10312</h2>
+                <span class="badge-warn">Em transporte</span>
+              </div>
+              <p class="mt-1 text-xs text-zinc-500">Realizado em 11/07/2026 · 1 item</p>
+            </div>
+            <div class="text-right">
+              <p class="price text-lg">R$ 4.199,00</p>
+              <a href="#" class="text-xs text-brand-400 hover:text-brand-300">Rastrear →</a>
+            </div>
+          </div>
+          <div class="hairline my-4"></div>
+          <div class="flex items-center gap-3 text-sm text-zinc-400">
+            <span class="badge-neutral">Cartão · 12x</span>
+            <span class="badge-neutral">Chega 15–16/07</span>
+            <a href="#" class="ml-auto text-zinc-400 hover:text-zinc-100">Nota fiscal</a>
+          </div>
+        </article>
+
+        <!-- Pedido 3 -->
+        <article class="surface-raised p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="font-semibold text-zinc-100">#PED-10340</h2>
+                <span class="badge-brand">Processando</span>
+              </div>
+              <p class="mt-1 text-xs text-zinc-500">Realizado em 13/07/2026 · 2 itens</p>
+            </div>
+            <div class="text-right">
+              <p class="price text-lg">R$ 1.328,00</p>
+              <a href="#" class="text-xs text-brand-400 hover:text-brand-300">Ver detalhes →</a>
+            </div>
+          </div>
+          <div class="hairline my-4"></div>
+          <div class="flex items-center gap-3 text-sm text-zinc-400">
+            <span class="badge-neutral">Pix · Em análise</span>
+            <span class="badge-neutral">Confirmação em até 24h</span>
+          </div>
+        </article>
+
+        <!-- Pedido 4 (cancelado) -->
+        <article class="surface-raised p-5 opacity-80">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="font-semibold text-zinc-100">#PED-10198</h2>
+                <span class="badge-danger">Cancelado</span>
+              </div>
+              <p class="mt-1 text-xs text-zinc-500">Realizado em 02/07/2026 · 1 item</p>
+            </div>
+            <div class="text-right">
+              <p class="price text-lg text-zinc-400">R$ 549,00</p>
+              <a href="#" class="text-xs text-zinc-500 hover:text-zinc-300">Detalhes →</a>
+            </div>
+          </div>
+          <div class="hairline my-4"></div>
+          <div class="flex items-center gap-3 text-sm text-zinc-400">
+            <span class="badge-neutral">Reembolso emitido</span>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <div data-footer></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

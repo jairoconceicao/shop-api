@@ -1,0 +1,295 @@
+# Tarefas do Frontend v2 — shop-api
+
+## Regras do backlog
+
+- Cada item deve resultar em uma mudança pequena, revisável e testável.
+- O OpenAPI é a fonte de verdade da integração.
+- Uma tarefa de comportamento exige o teste correspondente antes de ser considerada concluída.
+- Backend e frontend não podem ser combinados na mesma tarefa.
+- A numeração indica identidade, não prioridade; a ordem abaixo expressa as dependências recomendadas.
+
+## Backend
+
+Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrato atual de `openapi.yaml`. Se a integração revelar uma necessidade de CORS ou mudança contratual, ela deverá originar uma nova tarefa de backend, separada deste backlog e aprovada antes da implementação.
+
+## Frontend
+
+### Fase 0 — Fundação
+
+[ ] TASK-001: Criar o projeto Vite com React e TypeScript dentro de `/frontend`.
+
+[ ] TASK-002: Instalar e configurar React Router, TanStack Query, Zustand, Zod e React Hook Form.
+
+[ ] TASK-003: Configurar scripts de desenvolvimento, build, typecheck, lint, testes e testes E2E.
+
+[ ] TASK-004: Configurar ESLint e regras de imports diretos sem barrel global.
+
+[ ] TASK-005: Integrar Tailwind CSS v4 ao build do Vite.
+
+[ ] TASK-006: Migrar a paleta `brand` e `ink`, raios, tipografia e espaçamento de `docs/ideacao` para tokens do tema.
+
+[ ] TASK-007: Criar estilos globais de foco, seleção, superfícies, container e redução de movimento.
+
+[ ] TASK-008: Configurar Vitest, Testing Library e ambiente DOM.
+
+[ ] TASK-009: Configurar MSW com inicialização exclusiva para testes e desenvolvimento opt-in.
+
+[ ] TASK-010: Configurar Playwright e um teste smoke da SPA.
+
+[ ] TASK-011: Criar schema Zod para validar as variáveis `VITE_API_BASE_URL` e ambiente da aplicação.
+
+[ ] TASK-012: Criar schemas Zod dos envelopes `ApiResponse`, `PagedResponse` e `ApiErrorResponse`.
+
+[ ] TASK-013: Criar adapters para normalizar IDs e números recebidos como `number | string`.
+
+[ ] TASK-014: Criar o tipo `AppError` e o mapeamento uniforme de erros HTTP, rede e contrato.
+
+[ ] TASK-015: Implementar o `apiClient` com URL base, JSON, `AbortSignal` e header Bearer opcional.
+
+[ ] TASK-016: Configurar QueryClient com retries apenas para leituras recuperáveis e defaults de cache.
+
+[ ] TASK-017: Compor providers globais de router, query, feedback e stores.
+
+[ ] TASK-018: Criar a árvore inicial de rotas com shells público, loja e conta.
+
+### Fase 1 — Design system e shell
+
+[ ] TASK-019: Implementar Button, IconButton e LinkButton com variantes acessíveis.
+
+[ ] TASK-020: Implementar Input, Checkbox, Select, FieldError e FormErrorSummary.
+
+[ ] TASK-021: Implementar Card, Surface, Badge e Chip com os tokens do protótipo.
+
+[ ] TASK-022: Implementar Dialog e DropdownMenu com foco, Escape e retorno de foco.
+
+[ ] TASK-023: Implementar Toast, InlineAlert, Skeleton, EmptyState e ErrorState.
+
+[ ] TASK-024: Implementar QuantityInput com limites, teclado e nome acessível.
+
+[ ] TASK-025: Implementar Pagination com estado atual e navegação por teclado.
+
+[ ] TASK-026: Implementar ProductImage com dimensões reservadas, texto alternativo e fallback.
+
+[ ] TASK-027: Implementar Header com marca, busca, carrinho e menu do cliente.
+
+[ ] TASK-028: Implementar navegação responsiva por categorias no Header.
+
+[ ] TASK-029: Implementar Footer removendo links e alegações fora do MVP.
+
+[ ] TASK-030: Implementar StoreLayout e AccountLayout responsivos.
+
+[ ] TASK-031: Implementar a página 404 com retorno ao catálogo.
+
+### Fase 2 — Autenticação e cadastro
+
+[ ] TASK-032: Criar o `authStore` versionado com persistência selecionável entre sessionStorage e localStorage.
+
+[ ] TASK-033: Implementar restauração da sessão e invalidação preventiva por `expiraEm`.
+
+[ ] TASK-034: Criar schemas e adapter do contrato de login.
+
+[ ] TASK-035: Implementar serviço e mutation de `POST /api/v1/auth/login`.
+
+[ ] TASK-036: Implementar a página de login sem ação de recuperação de senha.
+
+[ ] TASK-037: Implementar opção “manter conectado” e limpeza segura do formulário de login.
+
+[ ] TASK-038: Implementar ProtectedRoute com `returnTo` limitado a rotas internas.
+
+[ ] TASK-039: Implementar tratamento global de `401` com limpeza de caches privados e redirecionamento.
+
+[ ] TASK-040: Implementar logout remoto e limpeza local resiliente a token expirado.
+
+[ ] TASK-041: Criar schemas e adapter de `CreateClienteRequest` e resposta de cadastro.
+
+[ ] TASK-042: Implementar máscaras de apresentação e normalização de CPF, CEP e celular.
+
+[ ] TASK-043: Implementar formulário de cadastro com endereço único e indicador de WhatsApp.
+
+[ ] TASK-044: Implementar mutation de cadastro e tratamento de `409` e `422` no formulário.
+
+[ ] TASK-045: Implementar redirecionamento do cadastro concluído para o login com mensagem de sucesso.
+
+### Fase 3 — Catálogo e detalhe do produto
+
+[ ] TASK-046: Criar schemas e adapters de categoria, catálogo paginado e detalhe do produto.
+
+[ ] TASK-047: Implementar query de categorias com cache apropriado.
+
+[ ] TASK-048: Implementar query paginada de catálogo com `page`, `size` e `searchword`.
+
+[ ] TASK-049: Implementar query de produtos por `categoriaId`.
+
+[ ] TASK-050: Implementar parser e serializer da URL para busca, categoria e página.
+
+[ ] TASK-051: Implementar ProductCard apenas com dados suportados pelo OpenAPI.
+
+[ ] TASK-052: Implementar hero e estrutura da Home sem promoções, descontos ou alegações de frete.
+
+[ ] TASK-053: Implementar grid do catálogo e iniciar categorias e primeira página em paralelo.
+
+[ ] TASK-054: Implementar envio da busca e navegação voltar/avançar baseada na URL.
+
+[ ] TASK-055: Implementar seleção de categoria e limpeza dos filtros.
+
+[ ] TASK-056: Implementar paginação, skeleton, estado vazio e retry do catálogo.
+
+[ ] TASK-057: Implementar query de detalhe por `produtoId` com tratamento de `404`.
+
+[ ] TASK-058: Implementar página de produto com título, categoria, modelo, descrição, foto, preço e estoque.
+
+[ ] TASK-059: Integrar QuantityInput ao estoque inteiro disponível e ao estado esgotado.
+
+[ ] TASK-060: Implementar o guard que envia visitantes ao login antes de qualquer inclusão no carrinho.
+
+[ ] TASK-061: Implementar o retorno à página de origem após o login sem adicionar item automaticamente.
+
+### Fase 4 — Carrinho autenticado
+
+[ ] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
+
+[ ] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
+
+[ ] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
+
+[ ] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
+
+[ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
+
+[ ] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
+
+[ ] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
+
+[ ] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
+
+[ ] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
+
+[ ] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
+
+[ ] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
+
+[ ] TASK-073: Implementar confirmação e remoção de item por DELETE com rollback em caso de falha.
+
+[ ] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
+
+[ ] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
+
+### Fase 5 — Checkout
+
+[ ] TASK-076: Criar schemas de formulário para endereço de entrega e formas Pix, Cartao e Boleto.
+
+[ ] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
+
+[ ] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
+
+[ ] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
+
+[ ] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
+
+[ ] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
+
+[ ] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
+
+[ ] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
+
+[ ] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
+
+[ ] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
+
+### Fase 6 — Conta do cliente
+
+[ ] TASK-086: Criar schemas e adapters de detalhe, atualização e ID do cliente.
+
+[ ] TASK-087: Implementar query de perfil pelo `clienteId` da sessão.
+
+[ ] TASK-088: Implementar formulário “Meus Dados” com endereço e celular aderentes ao contrato.
+
+[ ] TASK-089: Implementar confirmação específica quando o CPF for alterado.
+
+[ ] TASK-090: Implementar PUT do perfil completo e mapear erros de validação para os campos.
+
+[ ] TASK-091: Implementar invalidação e atualização do cache do perfil após salvar.
+
+[ ] TASK-092: Implementar schema e indicador visual das regras de nova senha.
+
+[ ] TASK-093: Implementar página e mutation de troca de senha.
+
+[ ] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
+
+[ ] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
+
+### Fase 7 — Pedidos
+
+[ ] TASK-096: Criar schemas e adapters de lista, detalhe, status e cancelamento de pedido.
+
+[ ] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
+
+[ ] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
+
+[ ] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
+
+[ ] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
+
+[ ] TASK-101: Implementar query e página de detalhe do pedido.
+
+[ ] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
+
+[ ] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
+
+[ ] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
+
+[ ] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
+
+### Fase 8 — Testes e hardening
+
+[ ] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
+
+[ ] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
+
+[ ] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
+
+[ ] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
+
+[ ] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
+
+[ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
+
+[ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
+
+[ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
+
+[ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
+
+[ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
+
+[ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
+
+[ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
+
+[ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
+
+[ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
+
+[ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
+
+[ ] TASK-121: Criar E2E de edição de dados e troca de senha.
+
+[ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
+
+[ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
+
+[ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
+
+[ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
+
+[ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
+
+[ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
+
+[ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
+
+[ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
+
+[ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
+
+

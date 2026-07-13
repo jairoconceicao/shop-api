@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>shop. — Trocar Senha</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body class="min-h-dvh">
+    <div data-header data-auth="in"></div>
+
+    <main class="container-page py-10 max-w-xl">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <p class="eyebrow">Área do Cliente</p>
+          <h1 class="section-title mt-1 text-2xl sm:text-3xl">Trocar Senha</h1>
+        </div>
+        <a href="index.html" class="btn-ghost">← Voltar à loja</a>
+      </div>
+
+      <!-- Sub-nav da conta -->
+      <nav class="flex flex-wrap gap-2 mb-8">
+        <a href="dados.html" class="chip">Meus dados</a>
+        <a href="senha.html" class="chip-active">Trocar senha</a>
+        <a href="pedidos.html" class="chip">Meus pedidos</a>
+      </nav>
+
+      <form class="surface-raised p-6 sm:p-8 space-y-6" onsubmit="event.preventDefault();">
+        <div>
+          <label class="label" for="atual">Senha atual</label>
+          <input id="atual" type="password" class="input" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <div class="hairline"></div>
+
+        <div>
+          <label class="label" for="nova">Nova senha</label>
+          <input id="nova" type="password" class="input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+          <!-- Indicador de força -->
+          <div class="mt-3 flex items-center gap-2" data-strength>
+            <span class="h-1.5 flex-1 rounded-full bg-ink-700"></span>
+            <span class="h-1.5 flex-1 rounded-full bg-ink-700"></span>
+            <span class="h-1.5 flex-1 rounded-full bg-ink-700"></span>
+            <span class="h-1.5 flex-1 rounded-full bg-ink-700"></span>
+            <span class="text-xs text-zinc-500 ml-2" data-strength-label>—</span>
+          </div>
+          <ul class="mt-4 space-y-1.5 text-xs text-zinc-500">
+            <li data-req="len">• Pelo menos 8 caracteres</li>
+            <li data-req="upper">• Uma letra maiúscula</li>
+            <li data-req="number">• Um número</li>
+            <li data-req="special">• Um caractere especial (!@#$%)</li>
+          </ul>
+        </div>
+
+        <div>
+          <label class="label" for="confirmar">Confirmar nova senha</label>
+          <input id="confirmar" type="password" class="input" placeholder="Repita a nova senha" autocomplete="new-password" />
+          <p class="mt-2 text-xs text-rose-400 hidden" data-mismatch>As senhas não coincidem.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+          <a href="dados.html" class="btn-secondary">Cancelar</a>
+          <button type="submit" class="btn-primary" disabled data-submit>Salvar nova senha</button>
+        </div>
+      </form>
+    </main>
+
+    <div data-footer></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      // Validação de força e coincidência de senha
+      document.addEventListener("DOMContentLoaded", () => {
+        const nova = document.getElementById("nova");
+        const conf = document.getElementById("confirmar");
+        const bars = document.querySelectorAll("[data-strength] span:nth-child(-n+4)");
+        const label = document.querySelector("[data-strength-label]");
+        const mismatch = document.querySelector("[data-mismatch]");
+        const submit = document.querySelector("[data-submit]");
+        const reqs = {
+          len: document.querySelector('[data-req="len"]'),
+          upper: document.querySelector('[data-req="upper"]'),
+          number: document.querySelector('[data-req="number"]'),
+          special: document.querySelector('[data-req="special"]'),
+        };
+
+        const check = () => {
+          const v = nova.value;
+          const ok = {
+            len: v.length >= 8,
+            upper: /[A-Z]/.test(v),
+            number: /\d/.test(v),
+            special: /[!@#$%]/.test(v),
+          };
+          const score = Object.values(ok).filter(Boolean).length;
+          const colors = ["bg-rose-500", "bg-rose-500", "bg-amber-500", "bg-amber-500", "bg-emerald-500"];
+          const labels = ["Muito fraca", "Fraca", "Razoável", "Boa", "Forte"];
+          bars.forEach((b, i) => {
+            b.className = "h-1.5 flex-1 rounded-full " + (i < score ? colors[score] : "bg-ink-700");
+          });
+          label.textContent = score ? labels[score] : "—";
+          Object.entries(ok).forEach(([k, v]) => {
+            reqs[k].classList.toggle("text-emerald-400", v);
+            reqs[k].classList.toggle("text-zinc-500", !v);
+          });
+          const match = conf.value === v && v.length > 0;
+          mismatch.classList.toggle("hidden", !conf.value || match);
+          submit.disabled = !(score === 4 && match);
+        };
+        nova.addEventListener("input", check);
+        conf.addEventListener("input", check);
+      });
+    </script>
+  </body>
+</html>

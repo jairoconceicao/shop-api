@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>shop. — Detalhe do Produto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body class="min-h-dvh">
+    <div data-header data-auth="in"></div>
+
+    <main class="container-page py-8">
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-xs text-zinc-500 mb-6" aria-label="Breadcrumb">
+        <a href="index.html" class="hover:text-zinc-300">Início</a>
+        <span>/</span>
+        <a href="#" class="hover:text-zinc-300">Hardware</a>
+        <span>/</span>
+        <a href="#" class="hover:text-zinc-300">Placas de Vídeo</a>
+        <span>/</span>
+        <span class="text-zinc-300">RTX 4070 Super</span>
+      </nav>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <!-- Galeria -->
+        <section>
+          <div class="surface-raised p-4">
+            <div class="product-media !aspect-[4/3] rounded-xl text-zinc-700 text-5xl font-black">
+              img
+            </div>
+            <div class="mt-4 grid grid-cols-4 gap-3">
+              <div class="product-media !aspect-square rounded-lg text-zinc-700 text-xl font-black ring-2 ring-brand-500/60">1</div>
+              <div class="product-media !aspect-square rounded-lg text-zinc-700 text-xl font-black">2</div>
+              <div class="product-media !aspect-square rounded-lg text-zinc-700 text-xl font-black">3</div>
+              <div class="product-media !aspect-square rounded-lg text-zinc-700 text-xl font-black">4</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Info -->
+        <section>
+          <p class="eyebrow">Placa de Vídeo · NVIDIA</p>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-50 text-balance">
+            VGA RTX 4070 Super 12GB GDDR6X Galax
+          </h1>
+
+          <!-- Rating -->
+          <div class="mt-3 flex items-center gap-3">
+            <div class="flex items-center gap-0.5 text-brand-400" aria-label="Avaliação 4.8 de 5">
+              ★★★★★
+            </div>
+            <span class="text-sm text-zinc-400">4.8</span>
+            <span class="text-sm text-zinc-600">·</span>
+            <a href="#" class="text-sm text-zinc-400 hover:text-zinc-200">214 avaliações</a>
+          </div>
+
+          <!-- Preço -->
+          <div class="mt-6 surface p-5">
+            <div class="flex items-baseline gap-3">
+              <span class="price text-3xl">R$ 4.199</span>
+              <span class="price-strike">R$ 4.799</span>
+            </div>
+            <p class="mt-1 text-sm text-zinc-400">
+              ou 12x de <span class="text-zinc-200 font-semibold">R$ 349,92</span> sem juros
+            </p>
+            <p class="mt-1 text-sm text-emerald-300">
+              5% off no Pix · <span class="font-semibold">R$ 3.989,05</span>
+            </p>
+          </div>
+
+          <!-- Estoque -->
+          <div class="mt-6 flex items-center gap-3">
+            <span class="badge-success">● 18 em estoque</span>
+            <span class="badge-neutral">Entrega em 2–4 dias</span>
+          </div>
+
+          <!-- Quantidade + Ações -->
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <div class="qty" data-qty>
+              <button data-qty-dec aria-label="Diminuir">−</button>
+              <input type="number" value="1" min="1" max="18" aria-label="Quantidade" />
+              <button data-qty-inc aria-label="Aumentar">+</button>
+            </div>
+            <button
+              class="btn-primary flex-1 min-w-[180px]"
+              data-add-to-cart
+              data-id="p2"
+              data-name="RTX 4070 Super 12GB"
+              data-price="4199"
+              data-qty="1"
+            >
+              Adicionar ao carrinho
+            </button>
+          </div>
+
+          <div class="mt-3">
+            <a href="index.html" class="btn-ghost">← Voltar ao catálogo</a>
+          </div>
+
+          <!-- Vantagens -->
+          <ul class="mt-8 grid sm:grid-cols-2 gap-3 text-sm text-zinc-400">
+            <li class="surface px-4 py-3 flex items-center gap-3">🚚 Frete grátis acima de R$ 299</li>
+            <li class="surface px-4 py-3 flex items-center gap-3">↩️ 7 dias para troca</li>
+            <li class="surface px-4 py-3 flex items-center gap-3">🔒 Compra 100% segura</li>
+            <li class="surface px-4 py-3 flex items-center gap-3">⚡ Pix aprovação imediata</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Abas: Descrição / Especificações -->
+      <section class="mt-12">
+        <div class="flex gap-2 border-b border-ink-800">
+          <button class="px-4 py-3 text-sm font-semibold text-zinc-50 border-b-2 border-brand-500">Descrição</button>
+          <button class="px-4 py-3 text-sm font-semibold text-zinc-500 hover:text-zinc-200 border-b-2 border-transparent">Especificações</button>
+          <button class="px-4 py-3 text-sm font-semibold text-zinc-500 hover:text-zinc-200 border-b-2 border-transparent">Avaliações</button>
+        </div>
+
+        <div class="surface-raised mt-6 p-6 sm:p-8">
+          <p class="text-zinc-300 leading-relaxed">
+            A GeForce RTX 4070 Super entrega desempenho de alto nível para jogos
+            em 1440p e criação de conteúdo. Arquitetura Ada Lovelace, 12GB
+            GDDR6X e DLSS 3 com geração de quadros para FPS extremos nos títulos
+            mais recentes. Refrigeração triple-fan para temperaturas baixas
+            mesmo sob carga sustentada.
+          </p>
+
+          <h3 class="mt-8 font-semibold text-zinc-100">Especificações técnicas</h3>
+          <dl class="mt-4 divide-y divide-ink-800 overflow-hidden rounded-xl border border-ink-800">
+            <div class="grid grid-cols-3 px-4 py-3 text-sm">
+              <dt class="text-zinc-500">Memória</dt>
+              <dd class="col-span-2 text-zinc-200">12GB GDDR6X 192-bit</dd>
+            </div>
+            <div class="grid grid-cols-3 px-4 py-3 text-sm">
+              <dt class="text-zinc-500">Boost Clock</dt>
+              <dd class="col-span-2 text-zinc-200">2475 MHz</dd>
+            </div>
+            <div class="grid grid-cols-3 px-4 py-3 text-sm">
+              <dt class="text-zinc-500">CUDA Cores</dt>
+              <dd class="col-span-2 text-zinc-200">7168</dd>
+            </div>
+            <div class="grid grid-cols-3 px-4 py-3 text-sm">
+              <dt class="text-zinc-500">Conector</dt>
+              <dd class="col-span-2 text-zinc-200">3x DisplayPort 1.4a · 1x HDMI 2.1</dd>
+            </div>
+            <div class="grid grid-cols-3 px-4 py-3 text-sm">
+              <dt class="text-zinc-500">Recomendação PSU</dt>
+              <dd class="col-span-2 text-zinc-200">650W</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Relacionados -->
+      <section class="mt-12">
+        <h2 class="section-title mb-6">Você também pode gostar</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <article class="card card-hover">
+            <a href="produto.html" class="product-media"><span class="text-zinc-700 text-3xl font-black">img</span></a>
+            <div class="p-4">
+              <h3 class="font-semibold text-zinc-100 line-clamp-2 text-sm">Fonte 750W 80 Plus Gold Modular</h3>
+              <p class="price mt-2">R$ 549</p>
+              <button class="btn-secondary !py-2 !px-2 text-xs w-full mt-3" data-add-to-cart data-id="r1" data-name="Fonte 750W Gold" data-price="549">Adicionar</button>
+            </div>
+          </article>
+          <article class="card card-hover">
+            <a href="produto.html" class="product-media"><span class="text-zinc-700 text-3xl font-black">img</span></a>
+            <div class="p-4">
+              <h3 class="font-semibold text-zinc-100 line-clamp-2 text-sm">SSD NVMe 1TB PCIe 4.0</h3>
+              <p class="price mt-2">R$ 599</p>
+              <button class="btn-secondary !py-2 !px-2 text-xs w-full mt-3" data-add-to-cart data-id="r2" data-name="SSD NVMe 1TB" data-price="599">Adicionar</button>
+            </div>
+          </article>
+          <article class="card card-hover">
+            <a href="produto.html" class="product-media"><span class="text-zinc-700 text-3xl font-black">img</span></a>
+            <div class="p-4">
+              <h3 class="font-semibold text-zinc-100 line-clamp-2 text-sm">Memória DDR5 32GB 6000MHz</h3>
+              <p class="price mt-2">R$ 749</p>
+              <button class="btn-secondary !py-2 !px-2 text-xs w-full mt-3" data-add-to-cart data-id="r3" data-name="DDR5 32GB" data-price="749">Adicionar</button>
+            </div>
+          </article>
+          <article class="card card-hover">
+            <a href="produto.html" class="product-media"><span class="text-zinc-700 text-3xl font-black">img</span></a>
+            <div class="p-4">
+              <h3 class="font-semibold text-zinc-100 line-clamp-2 text-sm">Monitor 27" 165Hz QHD IPS</h3>
+              <p class="price mt-2">R$ 1.799</p>
+              <button class="btn-secondary !py-2 !px-2 text-xs w-full mt-3" data-add-to-cart data-id="p5" data-name="Monitor 27 165Hz" data-price="1799">Adicionar</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div data-footer></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      // Sincroniza quantidade do seletor com o botão "Adicionar"
+      document.addEventListener("DOMContentLoaded", () => {
+        const qty = document.querySelector("[data-qty]");
+        const btn = document.querySelector("[data-add-to-cart]");
+        if (!qty || !btn) return;
+        qty.addEventListener("qty:change", (e) => (btn.dataset.qty = e.detail));
+      });
+    </script>
+  </body>
+</html>

@@ -319,7 +319,7 @@ Regras obrigatórias:
 - Atualize o arquivo de backlog marcando a tarefa {task.id} como concluída.
 - Não crie commit. O commit será feito pelo script orquestrador.
 - Não faça alterações cosméticas fora do escopo.
-- Consulte as espicificações em `docs/frontend-specs.md`.
+- Consulte as espicificações em `docs/frontend-specification-v2.md` e `docs/frontend-implementation-plan-v2.md`.
 
 Comandos de validação esperados:
 {validations_text}
