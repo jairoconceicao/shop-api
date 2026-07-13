@@ -42,7 +42,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-013: Criar adapters para normalizar IDs e números recebidos como `number | string`.
 
-[ ] TASK-014: Criar o tipo `AppError` e o mapeamento uniforme de erros HTTP, rede e contrato.
+[x] TASK-014: Criar o tipo `AppError` e o mapeamento uniforme de erros HTTP, rede e contrato.
 
 [ ] TASK-015: Implementar o `apiClient` com URL base, JSON, `AbortSignal` e header Bearer opcional.
 
