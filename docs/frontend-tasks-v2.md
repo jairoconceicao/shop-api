@@ -20,7 +20,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-002: Instalar e configurar React Router, TanStack Query, Zustand, Zod e React Hook Form.
 
-[ ] TASK-003: Configurar scripts de desenvolvimento, build, typecheck, lint, testes e testes E2E.
+[x] TASK-003: Configurar scripts de desenvolvimento, build, typecheck, lint, testes e testes E2E.
 
 [ ] TASK-004: Configurar ESLint e regras de imports diretos sem barrel global.
 
