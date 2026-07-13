@@ -38,7 +38,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-011: Criar schema Zod para validar as variáveis `VITE_API_BASE_URL` e ambiente da aplicação.
 
-[ ] TASK-012: Criar schemas Zod dos envelopes `ApiResponse`, `PagedResponse` e `ApiErrorResponse`.
+[x] TASK-012: Criar schemas Zod dos envelopes `ApiResponse`, `PagedResponse` e `ApiErrorResponse`.
 
 [ ] TASK-013: Criar adapters para normalizar IDs e números recebidos como `number | string`.
 
