@@ -30,7 +30,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-007: Criar estilos globais de foco, seleção, superfícies, container e redução de movimento.
 
-[ ] TASK-008: Configurar Vitest, Testing Library e ambiente DOM.
+[x] TASK-008: Configurar Vitest, Testing Library e ambiente DOM.
 
 [ ] TASK-009: Configurar MSW com inicialização exclusiva para testes e desenvolvimento opt-in.
 
