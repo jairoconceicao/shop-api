@@ -54,7 +54,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 1 — Design system e shell
 
-[ ] TASK-019: Implementar Button, IconButton e LinkButton com variantes acessíveis.
+[x] TASK-019: Implementar Button, IconButton e LinkButton com variantes acessíveis.
 
 [ ] TASK-020: Implementar Input, Checkbox, Select, FieldError e FormErrorSummary.
 
