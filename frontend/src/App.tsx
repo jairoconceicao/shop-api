@@ -1,9 +1,6 @@
 import './index.css'
+import { AppRouter } from './app/router/AppRouter'
 
 export function App() {
-  return (
-    <main>
-      <h1>shop-api</h1>
-    </main>
-  )
+  return <AppRouter />
 }

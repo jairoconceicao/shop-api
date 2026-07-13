@@ -5,6 +5,6 @@ test('loads the SPA', async ({ page }) => {
 
   await expect(page).toHaveTitle('shop-api')
   await expect(
-    page.getByRole('heading', { level: 1, name: 'shop-api' }),
+    page.getByRole('heading', { level: 1, name: 'Catálogo' }),
   ).toBeVisible()
 })
