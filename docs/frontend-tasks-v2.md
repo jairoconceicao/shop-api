@@ -40,7 +40,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-012: Criar schemas Zod dos envelopes `ApiResponse`, `PagedResponse` e `ApiErrorResponse`.
 
-[ ] TASK-013: Criar adapters para normalizar IDs e números recebidos como `number | string`.
+[x] TASK-013: Criar adapters para normalizar IDs e números recebidos como `number | string`.
 
 [ ] TASK-014: Criar o tipo `AppError` e o mapeamento uniforme de erros HTTP, rede e contrato.
 
