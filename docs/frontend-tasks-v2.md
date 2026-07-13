@@ -36,7 +36,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-010: Configurar Playwright e um teste smoke da SPA.
 
-[ ] TASK-011: Criar schema Zod para validar as variáveis `VITE_API_BASE_URL` e ambiente da aplicação.
+[x] TASK-011: Criar schema Zod para validar as variáveis `VITE_API_BASE_URL` e ambiente da aplicação.
 
 [ ] TASK-012: Criar schemas Zod dos envelopes `ApiResponse`, `PagedResponse` e `ApiErrorResponse`.
 
