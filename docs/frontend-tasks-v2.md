@@ -46,7 +46,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-015: Implementar o `apiClient` com URL base, JSON, `AbortSignal` e header Bearer opcional.
 
-[ ] TASK-016: Configurar QueryClient com retries apenas para leituras recuperáveis e defaults de cache.
+[x] TASK-016: Configurar QueryClient com retries apenas para leituras recuperáveis e defaults de cache.
 
 [ ] TASK-017: Compor providers globais de router, query, feedback e stores.
 
