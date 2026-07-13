@@ -16,7 +16,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 0 — Fundação
 
-[ ] TASK-001: Criar o projeto Vite com React e TypeScript dentro de `/frontend`.
+[x] TASK-001: Criar o projeto Vite com React e TypeScript dentro de `/frontend`.
 
 [ ] TASK-002: Instalar e configurar React Router, TanStack Query, Zustand, Zod e React Hook Form.
 
