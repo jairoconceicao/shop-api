@@ -28,7 +28,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-006: Migrar a paleta `brand` e `ink`, raios, tipografia e espaçamento de `docs/ideacao` para tokens do tema.
 
-[ ] TASK-007: Criar estilos globais de foco, seleção, superfícies, container e redução de movimento.
+[x] TASK-007: Criar estilos globais de foco, seleção, superfícies, container e redução de movimento.
 
 [ ] TASK-008: Configurar Vitest, Testing Library e ambiente DOM.
 
