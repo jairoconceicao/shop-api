@@ -44,7 +44,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-014: Criar o tipo `AppError` e o mapeamento uniforme de erros HTTP, rede e contrato.
 
-[ ] TASK-015: Implementar o `apiClient` com URL base, JSON, `AbortSignal` e header Bearer opcional.
+[x] TASK-015: Implementar o `apiClient` com URL base, JSON, `AbortSignal` e header Bearer opcional.
 
 [ ] TASK-016: Configurar QueryClient com retries apenas para leituras recuperáveis e defaults de cache.
 
