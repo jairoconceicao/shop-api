@@ -34,7 +34,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-009: Configurar MSW com inicialização exclusiva para testes e desenvolvimento opt-in.
 
-[ ] TASK-010: Configurar Playwright e um teste smoke da SPA.
+[x] TASK-010: Configurar Playwright e um teste smoke da SPA.
 
 [ ] TASK-011: Criar schema Zod para validar as variáveis `VITE_API_BASE_URL` e ambiente da aplicação.
 

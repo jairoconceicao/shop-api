@@ -126,6 +126,8 @@ Thumbs.db
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+frontend/playwright-report/
+frontend/test-results/
 
 *.7z
 *.zip
