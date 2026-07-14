@@ -4,6 +4,19 @@ import { AppError } from '../errors/appError'
 import { createApiClient } from './apiClient'
 
 describe('apiClient', () => {
+  it('notifies unauthorized responses only for authenticated requests', async () => {
+    const onUnauthorized = vi.fn()
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(new Response(null, { status: 401 }))
+    const client = createApiClient({ baseUrl: 'https://api.example.com', fetch, onUnauthorized })
+
+    await expect(client.request('/profile', { token: 'expired-token' })).rejects.toMatchObject({
+      status: 401,
+    })
+    await expect(client.request('/login')).rejects.toMatchObject({ status: 401 })
+
+    expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
+
   it('combines the base URL and path and sends JSON', async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       new Response(JSON.stringify({ data: { id: 1 } }), {

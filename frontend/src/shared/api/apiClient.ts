@@ -4,6 +4,7 @@ import { mapContractError, mapHttpError, mapNetworkError } from '../errors/appEr
 type ApiClientOptions = {
   baseUrl: string | (() => string)
   fetch?: typeof fetch
+  onUnauthorized?: () => void
 }
 
 export type ApiRequestOptions = {
@@ -28,7 +29,11 @@ async function readJson(response: Response): Promise<unknown> {
   return JSON.parse(text) as unknown
 }
 
-export function createApiClient({ baseUrl, fetch: fetchImpl = fetch }: ApiClientOptions) {
+export function createApiClient({
+  baseUrl,
+  fetch: fetchImpl = fetch,
+  onUnauthorized,
+}: ApiClientOptions) {
   return {
     async request<T = unknown>(path: string, options: ApiRequestOptions = {}): Promise<T> {
       const headers = new Headers(options.headers)
@@ -73,6 +78,10 @@ export function createApiClient({ baseUrl, fetch: fetchImpl = fetch }: ApiClient
       }
 
       if (!response.ok) {
+        if (response.status === 401 && options.token) {
+          onUnauthorized?.()
+        }
+
         throw mapHttpError(response.status, body)
       }
 
@@ -83,4 +92,21 @@ export function createApiClient({ baseUrl, fetch: fetchImpl = fetch }: ApiClient
 
 export const apiClient = createApiClient({
   baseUrl: () => parseEnvironment(import.meta.env).VITE_API_BASE_URL,
+  onUnauthorized: () => notifyUnauthorized(),
 })
+
+type UnauthorizedListener = () => void
+
+const unauthorizedListeners = new Set<UnauthorizedListener>()
+
+export function subscribeToUnauthorized(listener: UnauthorizedListener) {
+  unauthorizedListeners.add(listener)
+
+  return () => {
+    unauthorizedListeners.delete(listener)
+  }
+}
+
+function notifyUnauthorized() {
+  unauthorizedListeners.forEach((listener) => listener())
+}
