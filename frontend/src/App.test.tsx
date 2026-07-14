@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -24,12 +25,15 @@ describe('App', () => {
   })
 
   it.each([
-    ['/entrar', 'Entrar'],
+    ['/entrar', 'Entrar na sua conta'],
     ['/cadastro', 'Cadastro'],
   ])('renders the public route %s', (route, heading) => {
+    const queryClient = new QueryClient()
     const { container } = render(
       <MemoryRouter initialEntries={[route]}>
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
       </MemoryRouter>,
     )
 

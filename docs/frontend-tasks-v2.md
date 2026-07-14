@@ -90,7 +90,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-035: Implementar serviço e mutation de `POST /api/v1/auth/login`.
 
-[ ] TASK-036: Implementar a página de login sem ação de recuperação de senha.
+[x] TASK-036: Implementar a página de login sem ação de recuperação de senha.
 
 [ ] TASK-037: Implementar opção “manter conectado” e limpeza segura do formulário de login.
 

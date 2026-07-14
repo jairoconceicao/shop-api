@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AccountLayout } from '../layouts/AccountLayout'
+import { LoginPage } from '../../features/auth/pages/LoginPage'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
@@ -27,7 +28,7 @@ export function AppRouter() {
       </Route>
 
       <Route element={<PublicLayout />}>
-        <Route path="entrar" element={<RoutePlaceholder title="Entrar" />} />
+        <Route path="entrar" element={<LoginPage />} />
         <Route path="cadastro" element={<RoutePlaceholder title="Cadastro" />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
