@@ -191,7 +191,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Depends on: TASK-059, TASK-063
   - Critérios de aceite:
     - Enviar exatamente `produtoId`, `quantidade` e `valorUnitario` conforme o contrato.
-    - Usar exclusivamente o último preço confirmado pela API de produtos, sem recuperar intenção persistida antes do login.
+    - Revalidar o detalhe do produto imediatamente antes da inclusão, usar exclusivamente o preço retornado nessa consulta e tratar mudança ou conflito de preço de forma acionável, reconhecendo o backend como autoridade final e sem recuperar intenção persistida antes do login.
     - Não repetir automaticamente a inclusão e apresentar erro acionável quando ela falhar.
 
 [ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
