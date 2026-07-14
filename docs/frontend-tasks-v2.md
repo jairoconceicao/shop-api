@@ -98,7 +98,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-039: Implementar tratamento global de `401` com limpeza de caches privados e redirecionamento.
 
-[ ] TASK-040: Implementar logout remoto e limpeza local resiliente a token expirado.
+[x] TASK-040: Implementar logout remoto e limpeza local resiliente a token expirado.
 
 [ ] TASK-041: Criar schemas e adapter de `CreateClienteRequest` e resposta de cadastro.
 

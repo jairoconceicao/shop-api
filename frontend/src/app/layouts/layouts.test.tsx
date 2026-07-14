@@ -5,16 +5,24 @@ import { describe, expect, it } from 'vitest'
 import { AccountLayout } from './AccountLayout'
 import { StoreLayout } from './StoreLayout'
 
+function StoreTestProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <MemoryRouter>
+      <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
+    </MemoryRouter>
+  )
+}
+
 describe('StoreLayout', () => {
   it('keeps the store content between the global header and footer', () => {
     const { container } = render(
-      <MemoryRouter>
+      <StoreTestProviders>
         <Routes>
           <Route element={<StoreLayout />}>
             <Route index element={<h1>Catálogo</h1>} />
           </Route>
         </Routes>
-      </MemoryRouter>,
+      </StoreTestProviders>,
     )
 
     const shell = container.querySelector('[data-shell="store"]')
@@ -54,3 +62,4 @@ describe('AccountLayout', () => {
     expect(screen.getByRole('heading', { name: 'Alterar senha' })).toBeInTheDocument()
   })
 })
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
