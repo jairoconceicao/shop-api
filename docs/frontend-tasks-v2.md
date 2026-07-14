@@ -254,13 +254,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir estado vazio com link para o catálogo quando não houver carrinho ou itens.
   - Evidência: commits `b93df6d` e `b44f603`; focused 19/19 e ampla 409/409; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correção do landmark principal duplicado.
 
-[ ] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
-  - Status: READY
+[x] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
+  - Status: DONE
   - Depends on: TASK-071
   - Critérios de aceite:
     - Enviar `PATCH /api/v1/carrinho/items/{itemId}` com a quantidade válida selecionada.
     - Refletir a alteração de forma otimista e restaurar o último carrinho confirmado se a mutação falhar.
     - Apresentar erro acionável e não repetir automaticamente a mutação.
+  - Evidência: commit `aead2aa`; focused 15/15 (service + mutation 5/5 e página 10/10) e ampla 418/418; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (417/418); o teste isolado passou 2/2 e a repetição completa passou 418/418.
 
 [ ] TASK-073: Implementar confirmação e remoção de item por DELETE com rollback em caso de falha.
   - Status: READY
