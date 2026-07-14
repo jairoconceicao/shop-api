@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryObserver } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AppError } from '../../../shared/errors/appError'
 import type { Cart } from '../contracts/cart'
 import { cartQueryKeys } from '../queries/useCartQuery'
+import { useCartSessionStore } from '../store/cartSessionStore'
 import { useDeleteCartItemMutation } from './useDeleteCartItemMutation'
 
 const { deleteCartItem } = vi.hoisted(() => ({ deleteCartItem: vi.fn() }))
@@ -19,6 +20,7 @@ const cart: Cart = { customerId: 20, id: 900, createdAt: 'date', items: [
 ] }
 
 function setup() {
+  useCartSessionStore.setState({ cartIdsByCustomer: { '20': 900 } })
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   client.setQueryData(key, cart)
   const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -36,6 +38,25 @@ describe('useDeleteCartItemMutation', () => {
     resolve({ itemId: 8, productId: 2 })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(deleteCartItem).toHaveBeenCalledWith(8, 'token')
+    expect(client.getQueryData<Cart>(key)?.items.map((item) => item.id)).toEqual([7, 8, 9])
+  })
+
+  it('keeps HTTP success but restores only the removed item when canonical GET fails', async () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '20': 900 } })
+    deleteCartItem.mockResolvedValue({ itemId: 8, productId: 2 })
+    const { client, result } = setup()
+    const observer = new QueryObserver(client, {
+      queryKey: key, queryFn: () => Promise.reject(new Error('GET failed')),
+      staleTime: Infinity, retry: false,
+    })
+    const unsubscribe = observer.subscribe(() => undefined)
+
+    await act(() => result.current.mutateAsync(8))
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(client.getQueryData<Cart>(key)?.items.map((item) => item.id)).toEqual([7, 8, 9])
+    expect(client.getQueryState(key)?.status).toBe('error')
+    unsubscribe()
   })
 
   it('selectively restores the item between its surviving anchors while preserving concurrent changes', async () => {

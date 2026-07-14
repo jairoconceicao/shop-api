@@ -2,11 +2,25 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type { AppError } from '../../../shared/errors/appError'
 import type { Cart, CartItem, CartItemIdentifier } from '../contracts/cart'
-import { cartCache, reconcileActiveCart } from '../cache/cartCache'
+import { cartCache, reconcileActiveCart, updateExistingCart } from '../cache/cartCache'
 import { updateCartItem } from '../services/updateCartItemService'
 
 type Options = { customerId: number; cartId: number; itemId: number; token: string }
 type Context = { previousItem?: CartItem }
+
+function restorePreviousItem(
+  queryClient: ReturnType<typeof useQueryClient>,
+  customerId: number,
+  cartId: number,
+  itemId: number,
+  previousItem: CartItem | undefined,
+) {
+  if (!previousItem) return
+  updateExistingCart(queryClient, customerId, cartId, (current) => ({
+    ...current,
+    items: current.items.map((item) => item.id === itemId ? previousItem : item),
+  }))
+}
 
 export function useUpdateCartItemMutation({ customerId, cartId, itemId, token }: Options) {
   const queryClient = useQueryClient()
@@ -31,12 +45,13 @@ export function useUpdateCartItemMutation({ customerId, cartId, itemId, token }:
       return { previousItem }
     },
     onError: (_error, _quantity, context) => {
-      if (!context?.previousItem || !queryClient.getQueryData(queryKey)) return
-      queryClient.setQueryData<Cart>(queryKey, (current) => current && ({
-        ...current,
-        items: current.items.map((item) => item.id === itemId ? context.previousItem! : item),
-      }))
+      restorePreviousItem(queryClient, customerId, cartId, itemId, context?.previousItem)
     },
-    onSuccess: async () => reconcileActiveCart(queryClient, customerId, cartId),
+    onSuccess: async (_result, _quantity, context) => {
+      const reconciled = await reconcileActiveCart(queryClient, customerId, cartId)
+      if (!reconciled) {
+        restorePreviousItem(queryClient, customerId, cartId, itemId, context?.previousItem)
+      }
+    },
   })
 }

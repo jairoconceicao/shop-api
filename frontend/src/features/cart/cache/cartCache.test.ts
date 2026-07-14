@@ -26,7 +26,7 @@ describe('cartCache', () => {
       queryKey: cartCache.query.detail(20, 200), queryFn: other,
     })
 
-    await expect(reconcileActiveCart(client, 10, 100)).resolves.toBeUndefined()
+    await expect(reconcileActiveCart(client, 10, 100)).resolves.toBe(false)
     expect(target).toHaveBeenCalledOnce()
     expect(other).not.toHaveBeenCalled()
     unsubscribe()
@@ -40,10 +40,10 @@ describe('cartCache', () => {
       queryKey: cartCache.query.detail(10, 100), queryFn: fetcher,
     })
 
-    await reconcileActiveCart(client, 10, 100)
+    await expect(reconcileActiveCart(client, 10, 100)).resolves.toBe(false)
     useCartSessionStore.getState().removeCartId(10)
     client.removeQueries({ queryKey: cartCache.query.detail(10, 100), exact: true })
-    await reconcileActiveCart(client, 10, 100)
+    await expect(reconcileActiveCart(client, 10, 100)).resolves.toBe(false)
 
     expect(fetcher).not.toHaveBeenCalled()
     expect(client.getQueryCache().find({ queryKey: cartCache.query.detail(10, 100) })).toBeUndefined()

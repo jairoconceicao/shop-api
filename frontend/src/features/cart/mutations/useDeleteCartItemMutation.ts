@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type { AppError } from '../../../shared/errors/appError'
 import type { Cart, CartItem, CartItemIdentifier } from '../contracts/cart'
-import { cartCache, reconcileActiveCart } from '../cache/cartCache'
+import { cartCache, reconcileActiveCart, updateExistingCart } from '../cache/cartCache'
 import { deleteCartItem } from '../services/deleteCartItemService'
 
 type Options = { customerId: number; cartId: number; token: string }
@@ -60,12 +60,18 @@ export function useDeleteCartItemMutation({ customerId, cartId, token }: Options
       return context
     },
     onError: (_error, _itemId, context) => {
-      if (!context?.item || !queryClient.getQueryData(queryKey)) return
-      queryClient.setQueryData<Cart>(queryKey, (current) => current && ({
-        ...current,
-        items: restoreItem(current.items, context),
+      if (!context?.item) return
+      updateExistingCart(queryClient, customerId, cartId, (current) => ({
+        ...current, items: restoreItem(current.items, context),
       }))
     },
-    onSuccess: async () => reconcileActiveCart(queryClient, customerId, cartId),
+    onSuccess: async (_result, _itemId, context) => {
+      const reconciled = await reconcileActiveCart(queryClient, customerId, cartId)
+      if (!reconciled && context?.item) {
+        updateExistingCart(queryClient, customerId, cartId, (current) => ({
+          ...current, items: restoreItem(current.items, context),
+        }))
+      }
+    },
   })
 }

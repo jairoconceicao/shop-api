@@ -19,6 +19,7 @@ const cart: Cart = { customerId: 20, id: 900, createdAt: 'date', items: [
 ] }
 
 function setup() {
+  useCartSessionStore.setState({ cartIdsByCustomer: { '20': 900 } })
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   client.setQueryData(key, cart)
   const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -50,7 +51,7 @@ describe('useUpdateCartItemMutation', () => {
     unsubscribe()
   })
 
-  it('optimistically updates only the target item and keeps it after success', async () => {
+  it('restores the confirmed item when success cannot reconcile an inactive cache', async () => {
     let resolve!: (value: { itemId: number; productId: number }) => void
     updateCartItem.mockReturnValue(new Promise((done) => { resolve = done }))
     const { client, result } = setup()
@@ -59,8 +60,26 @@ describe('useUpdateCartItemMutation', () => {
     expect(client.getQueryData<Cart>(key)?.items[1].quantity).toBe(2)
     resolve({ itemId: 7, productId: 1 })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(client.getQueryData<Cart>(key)?.items[0].quantity).toBe(4)
+    expect(client.getQueryData<Cart>(key)?.items[0].quantity).toBe(1)
     expect(updateCartItem).toHaveBeenCalledWith(7, 'token', { quantidade: 4 })
+  })
+
+  it('keeps HTTP success but restores only the confirmed item when canonical GET fails', async () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '20': 900 } })
+    updateCartItem.mockResolvedValue({ itemId: 7, productId: 1 })
+    const { client, result } = setup()
+    const observer = new QueryObserver(client, {
+      queryKey: key, queryFn: () => Promise.reject(new Error('GET failed')),
+      staleTime: Infinity, retry: false,
+    })
+    const unsubscribe = observer.subscribe(() => undefined)
+
+    await act(() => result.current.mutateAsync(4))
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(client.getQueryData<Cart>(key)?.items.map((item) => item.quantity)).toEqual([1, 2])
+    expect(client.getQueryState(key)?.status).toBe('error')
+    unsubscribe()
   })
 
   it('rolls back only the target item while preserving concurrent cache changes', async () => {
