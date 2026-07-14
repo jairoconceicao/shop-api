@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -60,7 +60,7 @@ function renderHomePage(initialEntry = '/') {
     )
   }
 
-  return render(<HomePage />, { wrapper: Wrapper })
+  return { ...render(<HomePage />, { wrapper: Wrapper }), queryClient }
 }
 
 describe('HomePage', () => {
@@ -157,5 +157,87 @@ describe('HomePage', () => {
       'lg:grid-cols-3',
       'xl:grid-cols-4',
     )
+  })
+
+  it.each([
+    ['catálogo geral', '/'],
+    ['categoria', '/?categoriaId=9'],
+  ])('shows a stable product skeleton grid during the initial %s request', async (_, initialEntry) => {
+    fetchCatalog.mockReturnValue(new Promise(() => undefined))
+    fetchProductsByCategory.mockReturnValue(new Promise(() => undefined))
+
+    renderHomePage(initialEntry)
+
+    const skeletonGrid = await screen.findByTestId('catalog-skeleton-grid')
+    expect(skeletonGrid).toHaveClass('grid', 'sm:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+    expect(screen.getAllByTestId('product-card-skeleton')).toHaveLength(8)
+    expect(screen.queryByTestId('catalog-grid')).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Paginação do catálogo' })).not.toBeInTheDocument()
+  })
+
+  it('uses backend metadata for the result summary and general catalog pagination', async () => {
+    fetchCatalog.mockResolvedValue({
+      ...catalogPage,
+      pagination: { pages: 4, size: 20, totalItems: 62 },
+    })
+
+    renderHomePage('/?searchword=teclado&page=2')
+
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+    expect(screen.getByText('62 produtos · 20 por página')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Paginação do catálogo' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página 2' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('never renders pagination for a category response', async () => {
+    fetchProductsByCategory.mockResolvedValue({
+      ...catalogPage,
+      pagination: { pages: 8, size: 20, totalItems: 150 },
+    })
+
+    renderHomePage('/?categoriaId=9')
+
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Paginação do catálogo' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['catálogo geral', '/', fetchCatalog],
+    ['categoria', '/?categoriaId=9', fetchProductsByCategory],
+  ])('retries the active %s query from its error state', async (_, initialEntry, activeRequest) => {
+    activeRequest.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(catalogPage)
+
+    renderHomePage(initialEntry)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar novamente' }))
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+    expect(activeRequest).toHaveBeenCalledTimes(2)
+  })
+
+  it('renders an empty state whose action clears every filter', async () => {
+    fetchCatalog.mockResolvedValue({ products: [], pagination: { pages: 3, size: 20, totalItems: 0 } })
+
+    renderHomePage('/?searchword=ausente&page=3&unknown=discard')
+
+    expect(await screen.findByText('Nenhum produto encontrado')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Limpar filtros' })).toHaveAttribute('href', '/')
+    expect(screen.queryByTestId('catalog-grid')).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Paginação do catálogo' })).not.toBeInTheDocument()
+  })
+
+  it('keeps existing products visible while a background refetch is pending', async () => {
+    let resolveRefetch!: (value: typeof catalogPage) => void
+    fetchCatalog
+      .mockResolvedValueOnce(catalogPage)
+      .mockReturnValueOnce(new Promise((resolve) => { resolveRefetch = resolve }))
+
+    const { queryClient } = renderHomePage()
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+
+    void queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    await waitFor(() => expect(fetchCatalog).toHaveBeenCalledTimes(2))
+    expect(screen.getByText('Teclado mecânico')).toBeInTheDocument()
+    expect(screen.queryByTestId('catalog-skeleton-grid')).not.toBeInTheDocument()
+    resolveRefetch(catalogPage)
   })
 })

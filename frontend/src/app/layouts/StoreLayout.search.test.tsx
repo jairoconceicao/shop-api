@@ -67,6 +67,31 @@ beforeEach(() => {
 })
 
 describe('StoreLayout catalog search', () => {
+  it('pushes canonical pagination URLs and restores request and UI through history', async () => {
+    fetchCatalog.mockImplementation(async ({ page }: { page: number }) => ({
+      products: [{ id: page, title: `Produto página ${page}`, thumbnail: null, price: 10, stock: 1, category: { id: 1, title: 'Geral' } }],
+      pagination: { pages: 3, size: 20, totalItems: 41 },
+    }))
+    renderStore('/?searchword=ssd&page=2')
+
+    expect(await screen.findByText('Produto página 2')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Página 3' }))
+    expect(await screen.findByText('Produto página 3')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=ssd&page=3')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar histórico' }))
+    expect(await screen.findByText('Produto página 2')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página 2' })).toHaveAttribute('aria-current', 'page')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Avançar histórico' }))
+    expect(await screen.findByText('Produto página 3')).toBeInTheDocument()
+    expect(fetchCatalog).toHaveBeenCalledWith({ page: 3, size: 20, searchword: 'ssd' }, expect.any(AbortSignal))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Página 1' }))
+    expect(await screen.findByText('Produto página 1')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=ssd')
+  })
+
   it('troca endpoint e produtos ao navegar por categoria e pelo histórico', async () => {
     fetchCategories.mockResolvedValue([{ id: 7, title: 'Games', description: null }])
     fetchCatalog.mockResolvedValue({
