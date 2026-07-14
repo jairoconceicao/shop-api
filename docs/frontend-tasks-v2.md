@@ -114,7 +114,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-046: Criar schemas e adapters de categoria, catálogo paginado e detalhe do produto.
 
-[ ] TASK-047: Implementar query de categorias com cache apropriado.
+[x] TASK-047: Implementar query de categorias com cache apropriado.
 
 [ ] TASK-048: Implementar query paginada de catálogo com `page`, `size` e `searchword`.
 
