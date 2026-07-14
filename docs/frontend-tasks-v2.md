@@ -218,13 +218,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Oferecer retry manual para falhas recuperáveis da consulta.
   - Evidência: commits `5ed23a0` e `d5dee59`; focused 14/14 e ampla 386/386; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
-  - Status: READY
+[x] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
+  - Status: DONE
   - Depends on: TASK-067
   - Critérios de aceite:
     - Remover somente o vínculo do cliente autenticado quando a leitura do carrinho conhecido retornar `404`.
     - Atualizar a UI para o estado sem carrinho e permitir que a próxima inclusão crie outro carrinho.
     - Não descartar o vínculo em erros de rede ou outros status HTTP.
+  - Evidência: commit `34088a5`; focused 17/17 e ampla 393/393; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
   - Status: READY
