@@ -62,7 +62,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-022: Implementar Dialog e DropdownMenu com foco, Escape e retorno de foco.
 
-[ ] TASK-023: Implementar Toast, InlineAlert, Skeleton, EmptyState e ErrorState.
+[x] TASK-023: Implementar Toast, InlineAlert, Skeleton, EmptyState e ErrorState.
 
 [ ] TASK-024: Implementar QuantityInput com limites, teclado e nome acessível.
 
