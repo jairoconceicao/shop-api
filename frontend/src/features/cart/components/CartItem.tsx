@@ -62,7 +62,10 @@ export function CartItem({
 
         <div aria-label="Ações do item" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>{quantityControl}</div>
-          <div>{product ? actions : fallbackAction}</div>
+          <div className="flex flex-wrap gap-3">
+            {actions}
+            {product ? null : fallbackAction}
+          </div>
         </div>
       </div>
     </Card>

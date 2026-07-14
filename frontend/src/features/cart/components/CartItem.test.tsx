@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { CartItem as CartItemContract } from '../contracts/cart'
 import type { CartProductResult } from '../queries/useCartProductsQuery'
@@ -76,11 +76,26 @@ describe('CartItem', () => {
   })
 
   it('keeps cart data and actionable fallback content when enrichment fails', () => {
-    renderItem({
-      status: 'error',
-      productId: 42,
-      error: new Error('sensitive upstream failure'),
-    })
+    const onRemove = vi.fn()
+    const onRetry = vi.fn()
+
+    render(
+      <MemoryRouter>
+        <CartItem
+          actions={<button onClick={onRemove} type="button">Remover</button>}
+          fallbackAction={(
+            <button onClick={onRetry} type="button">Tentar novamente</button>
+          )}
+          item={item}
+          productResult={{
+            status: 'error',
+            productId: 42,
+            error: new Error('sensitive upstream failure'),
+          }}
+          quantityControl={<button type="button">Alterar quantidade</button>}
+        />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByRole('heading', { name: 'Produto 42' })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Produto 42' })).toHaveTextContent(
@@ -92,8 +107,10 @@ describe('CartItem', () => {
     )
     expect(screen.getByRole('button', { name: 'Tentar novamente' }))
       .toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Remover' }))
-      .not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(onRemove).toHaveBeenCalledOnce()
+    expect(onRetry).toHaveBeenCalledOnce()
     expect(screen.getByText('R$ 349,90')).toBeInTheDocument()
     expect(screen.getByText('R$ 699,80')).toBeInTheDocument()
     expect(screen.queryByText(/sensitive upstream failure/i)).not.toBeInTheDocument()
