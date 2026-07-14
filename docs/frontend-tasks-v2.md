@@ -245,13 +245,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir fallback acionável quando o produto não puder ser hidratado, sem ocultar nem quebrar os demais itens.
   - Evidência: commits `8e25d9c` e `a3e76fe`; focused 3/3 e ampla 403/403; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings. A primeira execução ampla apresentou flake preexistente em `useLogoutMutation.test.tsx`, e a repetição completa passou com 403/403.
 
-[ ] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
-  - Status: READY
+[x] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
+  - Status: DONE
   - Depends on: TASK-068, TASK-070
   - Critérios de aceite:
     - Proteger `/carrinho` e renderizar os itens confirmados com estados de carregamento e erro recuperável.
     - Calcular subtotal a partir dos itens e exibir total equivalente, sem frete, descontos ou valores inventados.
     - Exibir estado vazio com link para o catálogo quando não houver carrinho ou itens.
+  - Evidência: commits `b93df6d` e `b44f603`; focused 19/19 e ampla 409/409; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correção do landmark principal duplicado.
 
 [ ] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
   - Status: READY
