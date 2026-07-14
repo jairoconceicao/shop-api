@@ -444,6 +444,7 @@ def run_codex(
             str(repo_dir),
             "--sandbox",
             sandbox,
+            "--yolo",
         ]
         if use_json:
             command.append("--json")
