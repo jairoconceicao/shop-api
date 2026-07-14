@@ -171,13 +171,15 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Cobrir restauração, migração e remoção seletiva com testes do store.
   - Evidência: commits `837416f` e `730291f`; focused 10/10 e ampla 324/324; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved sem findings.
 
-[ ] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
-  - Status: READY
+[x] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
+  - Status: DONE
   - Depends on: TASK-061
   - Critérios de aceite:
     - Validar os envelopes e dados de criação, leitura, inclusão, atualização e remoção definidos no `openapi.yaml`.
     - Normalizar IDs, quantidades e valores recebidos como `number | string` sem acrescentar campos ausentes do contrato.
     - Rejeitar respostas inválidas com erro de contrato e cobrir casos válidos e inválidos por testes.
+  - Evidência: commit `7c6a5b0`; focused 23/23 e ampla 347/347; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved.
+  - Finding pendente: MINOR — ampliar a cobertura explícita de IDs unsafe e números não finitos para todos os campos numéricos na revisão final.
 
 [ ] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
   - Status: READY
