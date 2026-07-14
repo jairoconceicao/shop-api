@@ -3,6 +3,8 @@ import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLogoutMutation } from '../../features/auth/mutations/useLogoutMutation'
 import { useAuthStore } from '../../features/auth/store/authStore'
 import { parseCatalogUrl, serializeCatalogUrl } from '../../features/catalog/routing/catalogUrl'
+import { parseCategoryId } from '../../features/catalog/routing/catalogUrl'
+import { useCategoriesQuery } from '../../features/catalog/queries/useCategoriesQuery'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -12,13 +14,17 @@ export function StoreLayout() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const catalogUrl = parseCatalogUrl(searchParams)
+  const categoriesQuery = useCategoriesQuery()
+  const selectedCategoryId = parseCategoryId(catalogUrl.categoriaId)
 
   return (
     <div className="flex min-h-dvh flex-col" data-shell="store">
       <CatalogHeader
         key={searchParams.toString()}
         initialSearchword={catalogUrl.searchword ?? ''}
-        categoriaId={catalogUrl.categoriaId}
+        categoriaId={selectedCategoryId === undefined ? undefined : String(selectedCategoryId)}
+        categories={categoriesQuery.data}
+        selectedCategoryId={selectedCategoryId}
         customer={session ? { name: 'Cliente', email: session.email } : null}
         onSignOut={session ? () => logoutMutation.mutate(session.token) : undefined}
         navigate={navigate}
@@ -34,6 +40,8 @@ export function StoreLayout() {
 interface CatalogHeaderProps {
   initialSearchword: string
   categoriaId?: string
+  categories?: React.ComponentProps<typeof Header>['categories']
+  selectedCategoryId?: number
   customer: React.ComponentProps<typeof Header>['customer']
   onSignOut: React.ComponentProps<typeof Header>['onSignOut']
   navigate: ReturnType<typeof useNavigate>
@@ -42,6 +50,8 @@ interface CatalogHeaderProps {
 function CatalogHeader({
   initialSearchword,
   categoriaId,
+  categories,
+  selectedCategoryId,
   customer,
   onSignOut,
   navigate,
@@ -55,6 +65,8 @@ function CatalogHeader({
 
   return (
     <Header
+      categories={categories}
+      selectedCategoryId={selectedCategoryId}
       customer={customer}
       onSignOut={onSignOut}
       searchword={searchword}

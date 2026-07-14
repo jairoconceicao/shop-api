@@ -6,13 +6,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HomePage } from './HomePage'
 
-const { fetchCatalog, fetchCategories } = vi.hoisted(() => ({
+const { fetchCatalog, fetchCategories, fetchProductsByCategory } = vi.hoisted(() => ({
   fetchCatalog: vi.fn(),
   fetchCategories: vi.fn(),
+  fetchProductsByCategory: vi.fn(),
 }))
 
 vi.mock('../services/catalogService', () => ({ fetchCatalog }))
 vi.mock('../services/categoryService', () => ({ fetchCategories }))
+vi.mock('../services/productsByCategoryService', () => ({ fetchProductsByCategory }))
 
 const catalogPage = {
   products: [
@@ -39,8 +41,10 @@ const catalogPage = {
 beforeEach(() => {
   fetchCatalog.mockReset()
   fetchCategories.mockReset()
+  fetchProductsByCategory.mockReset()
   fetchCatalog.mockResolvedValue(catalogPage)
   fetchCategories.mockResolvedValue([])
+  fetchProductsByCategory.mockResolvedValue(catalogPage)
 })
 
 function renderHomePage(initialEntry = '/') {
@@ -111,14 +115,32 @@ describe('HomePage', () => {
     expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
   })
 
-  it('derives page and searchword from the catalog URL', async () => {
-    renderHomePage('/?searchword=ssd&page=3&categoriaId=9')
+  it('derives page and searchword from the catalog URL without a category', async () => {
+    renderHomePage('/?searchword=ssd&page=3')
 
     await waitFor(() => expect(fetchCatalog).toHaveBeenCalledWith(
       { page: 3, size: 20, searchword: 'ssd' },
       expect.any(AbortSignal),
     ))
   })
+
+  it('usa exclusivamente o endpoint por categoria para um categoriaId válido', async () => {
+    renderHomePage('/?searchword=ssd&page=3&categoriaId=9')
+
+    await waitFor(() => expect(fetchProductsByCategory).toHaveBeenCalledWith(9, expect.any(AbortSignal)))
+    expect(fetchCatalog).not.toHaveBeenCalled()
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+  })
+
+  it.each(['0', '-1', '1.5', 'abc', '9007199254740992'])(
+    'trata categoriaId inválido %s como catálogo geral sem request inválido',
+    async (categoriaId) => {
+      renderHomePage(`/?categoriaId=${categoriaId}`)
+
+      await waitFor(() => expect(fetchCatalog).toHaveBeenCalledOnce())
+      expect(fetchProductsByCategory).not.toHaveBeenCalled()
+    },
+  )
 
   it('renders catalog products in a responsive grid using product cards', async () => {
     const { container } = renderHomePage()

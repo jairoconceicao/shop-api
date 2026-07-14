@@ -1,6 +1,12 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { fetchCategories } = vi.hoisted(() => ({ fetchCategories: vi.fn() }))
+vi.mock('../../features/catalog/services/categoryService', () => ({ fetchCategories }))
+
+beforeEach(() => fetchCategories.mockResolvedValue([]))
 
 import { AccountLayout } from './AccountLayout'
 import { StoreLayout } from './StoreLayout'
@@ -32,6 +38,27 @@ describe('StoreLayout', () => {
     expect(shell?.querySelector('main')).toHaveClass('min-w-0', 'flex-1')
     expect(shell?.querySelector('footer')).toBeInTheDocument()
   })
+
+  it('carrega categorias reais também em rotas filhas', async () => {
+    fetchCategories.mockResolvedValue([{ id: 7, title: 'Games', description: null }])
+
+    render(
+      <MemoryRouter initialEntries={['/carrinho?searchword=console&page=3']}>
+        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+          <Routes>
+            <Route element={<StoreLayout />}>
+              <Route path="carrinho" element={<h1>Carrinho</h1>} />
+            </Route>
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('link', { name: 'Games' })).toHaveAttribute(
+      'href',
+      '/?searchword=console&categoriaId=7',
+    )
+  })
 })
 
 describe('AccountLayout', () => {
@@ -62,4 +89,3 @@ describe('AccountLayout', () => {
     expect(screen.getByRole('heading', { name: 'Alterar senha' })).toBeInTheDocument()
   })
 })
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

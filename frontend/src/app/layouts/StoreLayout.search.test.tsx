@@ -6,13 +6,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from '../../features/catalog/pages/HomePage'
 import { StoreLayout } from './StoreLayout'
 
-const { fetchCatalog, fetchCategories } = vi.hoisted(() => ({
+const { fetchCatalog, fetchCategories, fetchProductsByCategory } = vi.hoisted(() => ({
   fetchCatalog: vi.fn(),
   fetchCategories: vi.fn(),
+  fetchProductsByCategory: vi.fn(),
 }))
 
 vi.mock('../../features/catalog/services/catalogService', () => ({ fetchCatalog }))
 vi.mock('../../features/catalog/services/categoryService', () => ({ fetchCategories }))
+vi.mock('../../features/catalog/services/productsByCategoryService', () => ({ fetchProductsByCategory }))
 
 function NavigationProbe() {
   const location = useLocation()
@@ -58,11 +60,40 @@ function renderStore(initialEntry: string) {
 beforeEach(() => {
   fetchCatalog.mockReset()
   fetchCategories.mockReset()
+  fetchProductsByCategory.mockReset()
   fetchCatalog.mockResolvedValue({ products: [], pagination: { pages: 1, size: 20, totalItems: 0 } })
   fetchCategories.mockResolvedValue([])
+  fetchProductsByCategory.mockResolvedValue({ products: [], pagination: { pages: 1, size: 20, totalItems: 0 } })
 })
 
 describe('StoreLayout catalog search', () => {
+  it('troca endpoint e produtos ao navegar por categoria e pelo histórico', async () => {
+    fetchCategories.mockResolvedValue([{ id: 7, title: 'Games', description: null }])
+    fetchCatalog.mockResolvedValue({
+      products: [{ id: 1, title: 'Produto geral', thumbnail: null, price: 10, stock: 1, category: { id: 1, title: 'Geral' } }],
+      pagination: { pages: 1, size: 20, totalItems: 1 },
+    })
+    fetchProductsByCategory.mockResolvedValue({
+      products: [{ id: 7, title: 'Produto da categoria', thumbnail: null, price: 20, stock: 1, category: { id: 7, title: 'Games' } }],
+      pagination: { pages: 1, size: 20, totalItems: 1 },
+    })
+    renderStore('/?searchword=console&page=2')
+
+    expect(await screen.findByText('Produto geral')).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('link', { name: 'Games' }))
+
+    expect(await screen.findByText('Produto da categoria')).toBeInTheDocument()
+    expect(screen.queryByText('Produto geral')).not.toBeInTheDocument()
+    expect(fetchProductsByCategory).toHaveBeenCalledWith(7, expect.any(AbortSignal))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar histórico' }))
+    expect(await screen.findByText('Produto geral')).toBeInTheDocument()
+    expect(screen.queryByText('Produto da categoria')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Avançar histórico' }))
+    expect(await screen.findByText('Produto da categoria')).toBeInTheDocument()
+  })
+
   it('submits canonical search URL preserving category and resets page', async () => {
     renderStore('/?categoriaId=7&page=4')
     const inputs = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })
@@ -74,10 +105,8 @@ describe('StoreLayout catalog search', () => {
     expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent(
       '/?searchword=teclado+gamer&categoriaId=7',
     )
-    await waitFor(() => expect(fetchCatalog).toHaveBeenCalledWith(
-      { page: 1, size: 20, searchword: 'teclado gamer' },
-      expect.any(AbortSignal),
-    ))
+    await waitFor(() => expect(fetchProductsByCategory).toHaveBeenCalledWith(7, expect.any(AbortSignal)))
+    expect(fetchCatalog).not.toHaveBeenCalled()
   })
 
   it('uses push history and synchronizes both inputs and query on back and forward', async () => {
@@ -134,9 +163,7 @@ describe('StoreLayout catalog search', () => {
     expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent(
       '/?searchword=teclado&categoriaId=7',
     )
-    await waitFor(() => expect(fetchCatalog).toHaveBeenCalledWith(
-      { page: 1, size: 20, searchword: 'teclado' },
-      expect.any(AbortSignal),
-    ))
+    await waitFor(() => expect(fetchProductsByCategory).toHaveBeenCalledWith(7, expect.any(AbortSignal)))
+    expect(fetchCatalog).not.toHaveBeenCalled()
   })
 })
