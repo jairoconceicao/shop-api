@@ -154,7 +154,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-059: Integrar QuantityInput ao estoque inteiro disponível e ao estado esgotado.
   - Evidência: commits `d69af40` e `1ff33d3`; focused 19/19 (root page 15/15), catálogo + App 121/121; typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT de `setState` durante render corrigido com reducer/effect.
 
-[ ] TASK-060: Implementar o guard que envia visitantes ao login antes de qualquer inclusão no carrinho.
+[x] TASK-060: Implementar o guard que envia visitantes ao login antes de qualquer inclusão no carrinho.
+  - Evidência: commit `6d5212e`; RED 2 falhas de redirect; focused 36/36; ampla 145/146 com única baseline temporal preexistente em `authStore` autorizada; typecheck/lint/diff PASS; reviewer SPEC+QUALITY approved sem findings; zero cart request/persistence/auto-add.
 
 [x] TASK-061: Implementar o retorno à página de origem após o login sem adicionar item automaticamente.
 
