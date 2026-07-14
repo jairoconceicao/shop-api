@@ -82,7 +82,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 2 — Autenticação e cadastro
 
-[ ] TASK-032: Criar o `authStore` versionado com persistência selecionável entre sessionStorage e localStorage.
+[x] TASK-032: Criar o `authStore` versionado com persistência selecionável entre sessionStorage e localStorage.
 
 [ ] TASK-033: Implementar restauração da sessão e invalidação preventiva por `expiraEm`.
 
