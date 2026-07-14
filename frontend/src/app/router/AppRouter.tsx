@@ -7,6 +7,7 @@ import { ProductDetailPage } from '../../features/catalog/pages/ProductDetailPag
 import { CartPage } from '../../features/cart/pages/CartPage'
 import { RegistrationPage } from '../../features/customer/pages/RegistrationPage'
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
+import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
@@ -20,7 +21,9 @@ export function AppRouter() {
         <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="carrinho" element={<CartPage />} />
-          <Route path="checkout" element={<RoutePlaceholder title="Checkout" />} />
+          <Route element={<CheckoutGuard />}>
+            <Route path="checkout" element={<RoutePlaceholder title="Checkout" />} />
+          </Route>
           <Route
             path="pedido-confirmado/:pedidoId"
             element={<RoutePlaceholder title="Pedido confirmado" />}

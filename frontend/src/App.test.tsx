@@ -5,6 +5,8 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import { useAuthStore } from './features/auth/store/authStore'
+import { cartQueryKeys } from './features/cart/queries/useCartQuery'
+import { useCartSessionStore } from './features/cart/store/cartSessionStore'
 import { server } from './shared/testing/server'
 
 const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
@@ -32,6 +34,7 @@ describe('App', () => {
 
   beforeEach(() => {
     queryClient.clear()
+    useCartSessionStore.setState({ cartIdsByCustomer: {} })
     fetchProductDetail.mockReset()
     fetchProductDetail.mockResolvedValue({
       id: 42,
@@ -114,7 +117,6 @@ describe('App', () => {
 
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
-    ['/checkout', 'Checkout'],
     ['/pedido-confirmado/7', 'Pedido confirmado'],
     ['/pedidos', 'Pedidos'],
     ['/pedidos/7', 'Detalhes do pedido'],
@@ -122,6 +124,21 @@ describe('App', () => {
     const { container } = renderApp(route)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  it('renders the checkout store route with a confirmed non-empty cart', () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '20': 30 } })
+    queryClient.setQueryData(cartQueryKeys.detail(20, 30), {
+      customerId: 20,
+      id: 30,
+      createdAt: '2026-07-14T12:00:00Z',
+      items: [{ id: 40, productId: 50, quantity: 1, unitPrice: 99.9 }],
+    })
+
+    const { container } = renderApp('/checkout')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Checkout' })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
