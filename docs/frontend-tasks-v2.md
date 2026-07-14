@@ -355,16 +355,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Adaptar a resposta `201` para `PedidoCriadoResponse` e cobrir request e response em testes de serviço.
   - Evidência: commit `d1d102c`; RED confirmado por módulo ausente; teste focado do serviço 4/4 e revisão agregada 18/18; suíte ampla 521/521; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
-  - Status: READY
+[x] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
+  - Status: DONE
   - Depends on: TASK-082
   - Critérios de aceite:
     - Desabilitar o CTA e ignorar nova confirmação enquanto a mutação estiver pendente.
     - Apresentar mensagens acionáveis para conflitos `409` e validações `422`, preservando os dados editados.
     - Reabilitar a confirmação após falha sem disparar mais de uma requisição por tentativa.
+  - Evidência: commits `2aa3c1d` e `b4b3052`; RED confirmado por módulo ausente, CTA ainda habilitado, ausência de alertas acionáveis, segunda requisição após `201` e mutation privada retida no logout; testes focados 12/12; suíte ampla 528/528; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-083
   - Critérios de aceite:
     - Remover o `carrinhoId` somente do cliente autenticado após resposta `201` adaptada com sucesso.
