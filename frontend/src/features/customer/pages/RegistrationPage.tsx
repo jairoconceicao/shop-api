@@ -9,11 +9,13 @@ import {
   normalizePostalCode,
   splitCellPhone,
 } from '../../../shared/formatting/personalData'
+import { AppError } from '../../../shared/errors/appError'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { Checkbox } from '../../../shared/ui/forms/Checkbox'
 import { FormErrorSummary, type FormError } from '../../../shared/ui/forms/FormErrorSummary'
 import { Input } from '../../../shared/ui/forms/Input'
 import { createCustomerRequestSchema, type CreateCustomerRequest } from '../contracts/registration'
+import { useRegistrationMutation } from '../mutations/useRegistrationMutation'
 
 type RegistrationFormValues = {
   cpf: string
@@ -30,6 +32,43 @@ type RegistrationFormValues = {
   uf: string
   celular: string
   whatsApp: boolean
+}
+
+type RegistrationField = keyof RegistrationFormValues
+
+type ApiNotification = {
+  message?: unknown
+  propertyName?: unknown
+}
+
+const API_FIELD_MAP: Record<string, RegistrationField> = {
+  cpf: 'cpf',
+  nome: 'nome',
+  datanascimento: 'dataNascimento',
+  email: 'email',
+  senha: 'senha',
+  logradouro: 'logradouro',
+  numero: 'numero',
+  complemento: 'complemento',
+  cep: 'cep',
+  bairro: 'bairro',
+  cidade: 'cidade',
+  uf: 'uf',
+  ddd: 'celular',
+  celular: 'celular',
+}
+
+function getRemoteFieldErrors(details: unknown) {
+  if (!Array.isArray(details)) return []
+
+  return details.flatMap((detail: ApiNotification) => {
+    if (typeof detail?.message !== 'string' || typeof detail.propertyName !== 'string') return []
+
+    const property = detail.propertyName.split('.').at(-1)?.toLocaleLowerCase() ?? ''
+    const field = API_FIELD_MAP[property]
+
+    return field ? [{ field, message: detail.message }] : []
+  })
 }
 
 export interface RegistrationPageProps {
@@ -60,18 +99,37 @@ function toRequest(values: RegistrationFormValues): CreateCustomerRequest {
 
 const required = (message: string) => ({ required: message })
 
-export function RegistrationPage({ onSubmit = () => undefined }: RegistrationPageProps) {
+export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
+  const registrationMutation = useRegistrationMutation()
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    setError,
+    formState: { errors },
   } = useForm<RegistrationFormValues>({ defaultValues: { whatsApp: false } })
 
-  const submitRegistration = handleSubmit(async (values) => onSubmit(toRequest(values)))
-  const formErrors = Object.entries(errors).flatMap(([field, error]) =>
+  const submitRegistration = handleSubmit(async (values) => {
+    try {
+      const request = toRequest(values)
+      await (onSubmit === undefined
+        ? registrationMutation.mutateAsync(request)
+        : onSubmit(request))
+    } catch (error) {
+      if (error instanceof AppError) {
+        getRemoteFieldErrors(error.details).forEach(({ field, message }) => {
+          setError(field, { type: 'server', message })
+        })
+      }
+    }
+  })
+  const remoteFieldErrors = getRemoteFieldErrors(registrationMutation.error?.details)
+  const formErrors: FormError[] = Object.entries(errors).flatMap(([field, error]) =>
     error.message ? [{ fieldId: `registration-${field}`, message: error.message } satisfies FormError] : [],
   )
+  if (registrationMutation.error && remoteFieldErrors.length === 0) {
+    formErrors.push({ message: registrationMutation.error.message })
+  }
   const cpfField = register('cpf', {
     ...required('Informe seu CPF.'),
     validate: (value) => normalizeCpf(value).length === 11 || 'Informe um CPF com 11 dígitos.',
@@ -123,8 +181,8 @@ export function RegistrationPage({ onSubmit = () => undefined }: RegistrationPag
             <Checkbox id="registration-whatsApp" label="Este celular também é WhatsApp" {...register('whatsApp')} />
           </fieldset>
 
-          <Button className="w-full sm:w-auto" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Cadastrando…' : 'Criar conta'}
+          <Button className="w-full sm:w-auto" disabled={registrationMutation.isPending} type="submit">
+            {registrationMutation.isPending ? 'Cadastrando…' : 'Criar conta'}
           </Button>
         </form>
 

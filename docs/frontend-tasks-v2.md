@@ -106,7 +106,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-043: Implementar formulário de cadastro com endereço único e indicador de WhatsApp.
 
-[ ] TASK-044: Implementar mutation de cadastro e tratamento de `409` e `422` no formulário.
+[x] TASK-044: Implementar mutation de cadastro e tratamento de `409` e `422` no formulário.
 
 [ ] TASK-045: Implementar redirecionamento do cadastro concluído para o login com mensagem de sucesso.
 
