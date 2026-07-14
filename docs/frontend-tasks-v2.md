@@ -102,7 +102,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-041: Criar schemas e adapter de `CreateClienteRequest` e resposta de cadastro.
 
-[ ] TASK-042: Implementar máscaras de apresentação e normalização de CPF, CEP e celular.
+[x] TASK-042: Implementar máscaras de apresentação e normalização de CPF, CEP e celular.
 
 [ ] TASK-043: Implementar formulário de cadastro com endereço único e indicador de WhatsApp.
 
