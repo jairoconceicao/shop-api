@@ -131,7 +131,9 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `9353902`; testes focados 14/14; typecheck/lint PASS; reviewer approved.
   - MINOR pendente para composição na TASK-053: adicionar `scroll-margin` à seção `#catalogo` de `HomePage.tsx` sob o header sticky.
 
-[ ] TASK-053: Implementar grid do catálogo e iniciar categorias e primeira página em paralelo.
+[x] TASK-053: Implementar grid do catálogo e iniciar categorias e primeira página em paralelo.
+  - Evidência: commit `8179671`; RED 3 falhas; Home 4/4 e catálogo 62/62; typecheck/lint/diff-check PASS; reviewer SPEC+QUALITY approved; `scroll-margin` pendente da TASK-052 resolvido.
+  - MINOR pendente sem bloqueio: o `h2` do `ProductCard` achata a hierarquia sob o `h2` Catálogo.
 
 [ ] TASK-054: Implementar envio da busca e navegação voltar/avançar baseada na URL.
 
