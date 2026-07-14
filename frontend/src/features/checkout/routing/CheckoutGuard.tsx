@@ -58,5 +58,5 @@ export function CheckoutGuard() {
     )
   }
 
-  return <Outlet />
+  return <Outlet context={{ cart: data, profile: profileQuery.data }} />
 }
