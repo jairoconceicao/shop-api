@@ -190,13 +190,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não repetir automaticamente a mutação nem persistir vínculo em caso de falha.
   - Evidência: commit `89d9f84`; focused 6/6 e ampla 353/353; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
-  - Status: READY
+[x] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
+  - Status: DONE
   - Depends on: TASK-059, TASK-063
   - Critérios de aceite:
     - Enviar exatamente `produtoId`, `quantidade` e `valorUnitario` conforme o contrato.
     - Revalidar o detalhe do produto imediatamente antes da inclusão, usar exclusivamente o preço retornado nessa consulta e tratar mudança ou conflito de preço de forma acionável, reconhecendo o backend como autoridade final e sem recuperar intenção persistida antes do login.
     - Não repetir automaticamente a inclusão e apresentar erro acionável quando ela falhar.
+  - Evidência: commit `0e5c0e9`; focused 10/10 e ampla 363/363; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
   - Status: READY
