@@ -26,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
       />
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <p className="truncate text-sm text-zinc-400">{product.category.title}</p>
-        <h2 className="break-words text-lg font-semibold text-zinc-100">
+        <h2 className="line-clamp-2 break-words text-lg font-semibold text-zinc-100">
           {product.title}
         </h2>
         <p className="text-xl font-bold text-zinc-100">
