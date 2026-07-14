@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 
 import { AccountLayout } from '../layouts/AccountLayout'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
+import { HomePage } from '../../features/catalog/pages/HomePage'
 import { RegistrationPage } from '../../features/customer/pages/RegistrationPage'
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
 import { PublicLayout } from '../layouts/PublicLayout'
@@ -13,7 +14,7 @@ export function AppRouter() {
   return (
     <Routes>
       <Route element={<StoreLayout />}>
-        <Route index element={<RoutePlaceholder title="Catálogo" />} />
+        <Route index element={<HomePage />} />
         <Route path="produtos/:produtoId" element={<RoutePlaceholder title="Produto" />} />
         <Route element={<ProtectedRoute />}>
           <Route path="carrinho" element={<RoutePlaceholder title="Carrinho" />} />
