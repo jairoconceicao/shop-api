@@ -34,7 +34,7 @@ describe('App', () => {
   })
 
   it.each([
-    ['/', 'Catálogo'],
+    ['/', 'Encontre produtos para o seu dia a dia'],
     ['/produtos/42', 'Produto'],
     ['/carrinho', 'Carrinho'],
     ['/checkout', 'Checkout'],
