@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { MemoryRouter, useLocation } from 'react-router-dom'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import { useAuthStore } from './features/auth/store/authStore'
+import { server } from './shared/testing/server'
 
 const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
 vi.mock('./features/catalog/services/productDetailService', () => ({ fetchProductDetail }))
@@ -15,10 +17,17 @@ describe('App', () => {
     return render(
       <MemoryRouter initialEntries={[route]}>
         <QueryClientProvider client={queryClient}>
+          <LocationProbe />
           <App />
         </QueryClientProvider>
       </MemoryRouter>,
     )
+  }
+
+  function LocationProbe() {
+    const location = useLocation()
+
+    return <output data-testid="current-location">{`${location.pathname}${location.search}${location.hash}`}</output>
   }
 
   beforeEach(() => {
@@ -53,6 +62,54 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Notebook Pro 14' })).toBeInTheDocument()
     expect(fetchProductDetail).toHaveBeenCalledWith(42, expect.any(AbortSignal))
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('returns from the real login flow to the exact product URL without adding automatically', async () => {
+    let cartRequests = 0
+    useAuthStore.getState().clearSession()
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(
+      http.post('https://api.example.com/api/v1/auth/login', () =>
+        HttpResponse.json({
+          status: true,
+          data: {
+            token: 'header.payload.signature',
+            tipo: 'Bearer',
+            expiraEm: '2099-01-01T00:00:00Z',
+            usuarioId: 10,
+            clienteId: 20,
+            email: 'cliente@exemplo.com',
+          },
+        }),
+      ),
+      http.post('https://api.example.com/api/v1/carrinho/criar', () => {
+        cartRequests += 1
+        return HttpResponse.json({})
+      }),
+      http.post('https://api.example.com/api/v1/carrinho/items', () => {
+        cartRequests += 1
+        return HttpResponse.json({})
+      }),
+    )
+    renderApp('/produtos/42?origem=catalogo#comprar')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Entrar na sua conta' })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'cliente@exemplo.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'senha-secreta' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Notebook Pro 14' })).toBeInTheDocument()
+    await waitFor(() => expect(useAuthStore.getState().session?.clienteId).toBe(20))
+    expect(screen.getByTestId('current-location')).toHaveTextContent(
+      '/produtos/42?origem=catalogo#comprar',
+    )
+    expect(cartRequests).toBe(0)
   })
 
   it.each([
