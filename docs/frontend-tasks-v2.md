@@ -163,32 +163,116 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 ### Fase 4 — Carrinho autenticado
 
 [ ] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
+  - Status: READY
+  - Depends on: TASK-061
+  - Critérios de aceite:
+    - Persistir somente o vínculo `clienteId` → `carrinhoId`, com versão e migração explícitas, sem duplicar dados do carrinho remoto.
+    - Permitir consultar, definir e remover o vínculo de um cliente sem afetar os demais; logout pode conservá-lo.
+    - Cobrir restauração, migração e remoção seletiva com testes do store.
 
 [ ] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
+  - Status: READY
+  - Depends on: TASK-061
+  - Critérios de aceite:
+    - Validar os envelopes e dados de criação, leitura, inclusão, atualização e remoção definidos no `openapi.yaml`.
+    - Normalizar IDs, quantidades e valores recebidos como `number | string` sem acrescentar campos ausentes do contrato.
+    - Rejeitar respostas inválidas com erro de contrato e cobrir casos válidos e inválidos por testes.
 
 [ ] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
+  - Status: READY
+  - Depends on: TASK-062, TASK-063
+  - Critérios de aceite:
+    - Enviar a requisição autenticada sem body e validar a resposta de criação.
+    - Associar o `carrinhoId` retornado ao `clienteId` autenticado somente após resposta bem-sucedida.
+    - Não repetir automaticamente a mutação nem persistir vínculo em caso de falha.
 
 [ ] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
+  - Status: READY
+  - Depends on: TASK-059, TASK-063
+  - Critérios de aceite:
+    - Enviar exatamente `produtoId`, `quantidade` e `valorUnitario` conforme o contrato.
+    - Usar exclusivamente o último preço confirmado pela API de produtos, sem recuperar intenção persistida antes do login.
+    - Não repetir automaticamente a inclusão e apresentar erro acionável quando ela falhar.
 
 [ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
+  - Status: READY
+  - Depends on: TASK-064, TASK-065
+  - Critérios de aceite:
+    - Uma confirmação explícita em “Adicionar” deve reutilizar o vínculo existente ou executar criação → inclusão na ordem correta.
+    - Impedir submissões concorrentes da mesma ação e informar sucesso somente após a inclusão confirmada.
+    - Não criar carrinho, persistir item ou concluir inclusão automaticamente no retorno do login.
 
 [ ] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
+  - Status: READY
+  - Depends on: TASK-062, TASK-063
+  - Critérios de aceite:
+    - Consultar o carrinho autenticado pelo ID associado ao cliente e manter a resposta completa no TanStack Query.
+    - Com ID ausente, representar carrinho vazio sem emitir requisição com ID sentinela ou inválido.
+    - Oferecer retry manual para falhas recuperáveis da consulta.
 
 [ ] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
+  - Status: READY
+  - Depends on: TASK-067
+  - Critérios de aceite:
+    - Remover somente o vínculo do cliente autenticado quando a leitura do carrinho conhecido retornar `404`.
+    - Atualizar a UI para o estado sem carrinho e permitir que a próxima inclusão crie outro carrinho.
+    - Não descartar o vínculo em erros de rede ou outros status HTTP.
 
 [ ] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
+  - Status: READY
+  - Depends on: TASK-057, TASK-067
+  - Critérios de aceite:
+    - Deduplicar os `produtoId` dos itens e hidratar os produtos únicos em paralelo com `Promise.all`.
+    - Reutilizar o cache de detalhe por `produtoId`, sem armazenar produtos ou itens no Zustand.
+    - Isolar falhas por produto para que um detalhe indisponível não impeça a exibição dos demais itens.
 
 [ ] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
+  - Status: READY
+  - Depends on: TASK-026, TASK-063, TASK-069
+  - Critérios de aceite:
+    - Exibir imagem, título e dados hidratados do produto junto ao preço e à quantidade confirmados no item do carrinho.
+    - Reservar espaço de imagem, manter nome acessível e reorganizar conteúdo e ações para uma coluna em telas pequenas.
+    - Exibir fallback acionável quando o produto não puder ser hidratado, sem ocultar nem quebrar os demais itens.
 
 [ ] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
+  - Status: READY
+  - Depends on: TASK-068, TASK-070
+  - Critérios de aceite:
+    - Proteger `/carrinho` e renderizar os itens confirmados com estados de carregamento e erro recuperável.
+    - Calcular subtotal a partir dos itens e exibir total equivalente, sem frete, descontos ou valores inventados.
+    - Exibir estado vazio com link para o catálogo quando não houver carrinho ou itens.
 
 [ ] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
+  - Status: READY
+  - Depends on: TASK-071
+  - Critérios de aceite:
+    - Enviar `PATCH /api/v1/carrinho/items/{itemId}` com a quantidade válida selecionada.
+    - Refletir a alteração de forma otimista e restaurar o último carrinho confirmado se a mutação falhar.
+    - Apresentar erro acionável e não repetir automaticamente a mutação.
 
 [ ] TASK-073: Implementar confirmação e remoção de item por DELETE com rollback em caso de falha.
+  - Status: READY
+  - Depends on: TASK-071
+  - Critérios de aceite:
+    - Exigir confirmação acessível antes de chamar `DELETE /api/v1/carrinho/items/{itemId}`.
+    - Refletir a remoção de forma otimista e restaurar o último carrinho confirmado se a mutação falhar.
+    - Apresentar erro acionável e não repetir automaticamente a mutação.
 
 [ ] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
+  - Status: READY
+  - Depends on: TASK-027, TASK-067
+  - Critérios de aceite:
+    - Derivar o badge da soma das quantidades do último carrinho confirmado pelo backend.
+    - Exibir zero ou ocultar o contador quando não houver carrinho confirmado, sem usar estado otimista ou duplicado no Zustand.
+    - Atualizar o valor de forma acessível sem provocar recarga completa da SPA.
 
 [ ] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
+  - Status: READY
+  - Depends on: TASK-064, TASK-065, TASK-072, TASK-073, TASK-074
+  - Critérios de aceite:
+    - Manter uma estratégia única de query keys para reconciliar criação, inclusão, atualização e remoção com o carrinho confirmado.
+    - Atualizar ou invalidar os caches afetados após sucesso, incluindo lista, resumo e badge, sem duplicar respostas completas em stores locais.
+    - Preservar o rollback das mutações e cobrir a convergência do cache com testes de integração.
 
 ### Fase 5 — Checkout
 
