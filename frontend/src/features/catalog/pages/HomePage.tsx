@@ -1,4 +1,11 @@
+import { ProductCard } from '../components/ProductCard'
+import { useCatalogQuery } from '../queries/useCatalogQuery'
+import { useCategoriesQuery } from '../queries/useCategoriesQuery'
+
 export function HomePage() {
+  useCategoriesQuery()
+  const { data } = useCatalogQuery({ page: 1, size: 20 })
+
   return (
     <>
       <section className="border-b border-ink-700/70 bg-ink-900">
@@ -21,13 +28,21 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="container-page py-10 sm:py-14" id="catalogo">
+      <section className="container-page scroll-mt-32 py-10 sm:py-14" id="catalogo">
         <header>
           <h2 className="text-2xl font-bold text-zinc-50 sm:text-3xl">Catálogo</h2>
           <p className="mt-2 text-sm text-zinc-400 sm:text-base">
             Explore os produtos disponíveis por categoria.
           </p>
         </header>
+        <div
+          className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          data-testid="catalog-grid"
+        >
+          {data?.products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </section>
     </>
   )
