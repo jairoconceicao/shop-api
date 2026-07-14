@@ -86,7 +86,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-033: Implementar restauração da sessão e invalidação preventiva por `expiraEm`.
 
-[ ] TASK-034: Criar schemas e adapter do contrato de login.
+[x] TASK-034: Criar schemas e adapter do contrato de login.
 
 [ ] TASK-035: Implementar serviço e mutation de `POST /api/v1/auth/login`.
 
