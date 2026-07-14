@@ -46,13 +46,13 @@ describe('fetchProductsByCategory', () => {
     )
   })
 
-  it('encodes the category path segment', async () => {
+  it('uses the requested category id in the category path', async () => {
     const client = { request: vi.fn().mockResolvedValue(response) }
 
-    await fetchProductsByCategory(-1, new AbortController().signal, client)
+    await fetchProductsByCategory(987, new AbortController().signal, client)
 
     expect(client.request).toHaveBeenCalledWith(
-      `/api/v1/produto/categoria/${encodeURIComponent(String(-1))}`,
+      '/api/v1/produto/categoria/987',
       expect.any(Object),
     )
   })
