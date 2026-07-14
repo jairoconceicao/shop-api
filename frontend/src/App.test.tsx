@@ -114,7 +114,6 @@ describe('App', () => {
 
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
-    ['/carrinho', 'Carrinho'],
     ['/checkout', 'Checkout'],
     ['/pedido-confirmado/7', 'Pedido confirmado'],
     ['/pedidos', 'Pedidos'],
@@ -123,6 +122,15 @@ describe('App', () => {
     const { container } = renderApp(route)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  it('renders the real empty cart page in the protected store route', () => {
+    const { container } = renderApp('/carrinho')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Carrinho' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explorar catálogo' })).toHaveAttribute('href', '/')
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
