@@ -148,7 +148,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-057: Implementar query de detalhe por `produtoId` com tratamento de `404`.
   - Evidência: commits `3afa6f2` e `f0c7b1d`; RED por módulos ausentes e regressão de query inválida; focused 17/17 e catálogo 94/94; typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT do sentinel `/produto/0` corrigido.
 
-[ ] TASK-058: Implementar página de produto com título, categoria, modelo, descrição, foto, preço e estoque.
+[x] TASK-058: Implementar página de produto com título, categoria, modelo, descrição, foto, preço e estoque.
+  - Evidência: commit `6a1d63b`; RED por módulo/página ausente; focused 20/20 e page + App + catálogo 114/114; typecheck/lint/diff PASS; reviewer SPEC approved e QUALITY approved com MINOR; finding MINOR pendente: estado de erro recuperável usa `h2` em `ErrorState`, sem `h1` de página.
 
 [ ] TASK-059: Integrar QuantityInput ao estoque inteiro disponível e ao estado esgotado.
 
