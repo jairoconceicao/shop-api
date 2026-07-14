@@ -112,7 +112,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 3 — Catálogo e detalhe do produto
 
-[ ] TASK-046: Criar schemas e adapters de categoria, catálogo paginado e detalhe do produto.
+[x] TASK-046: Criar schemas e adapters de categoria, catálogo paginado e detalhe do produto.
 
 [ ] TASK-047: Implementar query de categorias com cache apropriado.
 
