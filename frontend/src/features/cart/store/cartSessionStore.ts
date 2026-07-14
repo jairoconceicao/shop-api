@@ -22,14 +22,20 @@ function sanitizeCartIdsByCustomer(value: unknown): CartIdsByCustomer {
     return {}
   }
 
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      ([customerId, cartId]) => isPositiveInteger(Number(customerId)) && isPositiveInteger(cartId),
-    ),
-  )
+  const sanitized: CartIdsByCustomer = {}
+
+  for (const [customerId, cartId] of Object.entries(value)) {
+    const numericCustomerId = Number(customerId)
+
+    if (isPositiveInteger(numericCustomerId) && isPositiveInteger(cartId)) {
+      sanitized[String(numericCustomerId)] = cartId
+    }
+  }
+
+  return sanitized
 }
 
-function migrateCartSession(persistedState: unknown) {
+function sanitizePersistedCartSession(persistedState: unknown) {
   if (!persistedState || typeof persistedState !== 'object' || Array.isArray(persistedState)) {
     return { cartIdsByCustomer: {} }
   }
@@ -37,6 +43,10 @@ function migrateCartSession(persistedState: unknown) {
   const { cartIdsByCustomer } = persistedState as { cartIdsByCustomer?: unknown }
 
   return { cartIdsByCustomer: sanitizeCartIdsByCustomer(cartIdsByCustomer) }
+}
+
+function migrateCartSession(persistedState: unknown) {
+  return sanitizePersistedCartSession(persistedState)
 }
 
 const cartSessionStorage: StateStorage = {
@@ -89,6 +99,10 @@ export const useCartSessionStore = create<CartSessionState>()(
       storage: createJSONStorage(() => cartSessionStorage),
       partialize: ({ cartIdsByCustomer }) => ({ cartIdsByCustomer }),
       migrate: migrateCartSession,
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...sanitizePersistedCartSession(persistedState),
+      }),
     },
   ),
 )

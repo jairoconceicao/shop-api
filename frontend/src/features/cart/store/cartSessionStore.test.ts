@@ -98,6 +98,39 @@ describe('useCartSessionStore', () => {
     expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({})
   })
 
+  it('sanitizes a corrupted current-version payload without restoring remote fields', async () => {
+    window.localStorage.setItem(
+      CART_SESSION_STORE_KEY,
+      JSON.stringify({
+        state: {
+          cartIdsByCustomer: { '10': 100, invalid: 200, '20': 'cart' },
+          remoteCart: { items: [{ id: 1 }] },
+        },
+        version: CART_SESSION_STORE_VERSION,
+      }),
+    )
+
+    await useCartSessionStore.persist.rehydrate()
+
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '10': 100 })
+    expect('remoteCart' in useCartSessionStore.getState()).toBe(false)
+  })
+
+  it('canonicalizes numeric customer keys restored from legacy storage', async () => {
+    window.localStorage.setItem(
+      CART_SESSION_STORE_KEY,
+      JSON.stringify({
+        state: { cartIdsByCustomer: { '010': 100 } },
+        version: 0,
+      }),
+    )
+
+    await useCartSessionStore.persist.rehydrate()
+
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '10': 100 })
+    expect(useCartSessionStore.getState().getCartId(10)).toBe(100)
+  })
+
   it('keeps the in-memory map usable when localStorage is unavailable', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('Storage unavailable')
