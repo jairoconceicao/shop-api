@@ -68,7 +68,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-025: Implementar Pagination com estado atual e navegação por teclado.
 
-[ ] TASK-026: Implementar ProductImage com dimensões reservadas, texto alternativo e fallback.
+[x] TASK-026: Implementar ProductImage com dimensões reservadas, texto alternativo e fallback.
 
 [ ] TASK-027: Implementar Header com marca, busca, carrinho e menu do cliente.
 
