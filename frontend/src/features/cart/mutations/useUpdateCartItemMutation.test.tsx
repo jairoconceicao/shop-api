@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryObserver } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AppError } from '../../../shared/errors/appError'
 import type { Cart } from '../contracts/cart'
 import { cartQueryKeys } from '../queries/useCartQuery'
+import { useCartSessionStore } from '../store/cartSessionStore'
 import { useUpdateCartItemMutation } from './useUpdateCartItemMutation'
 
 const { updateCartItem } = vi.hoisted(() => ({ updateCartItem: vi.fn() }))
@@ -26,6 +27,29 @@ function setup() {
 }
 
 describe('useUpdateCartItemMutation', () => {
+  it('keeps the badge snapshot optimistic until success awaits the canonical backend cart', async () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '20': 900 } })
+    updateCartItem.mockResolvedValue({ itemId: 7, productId: 1 })
+    const { client, result } = setup()
+    const canonical = { ...cart, items: [{ ...cart.items[0], quantity: 3 }, cart.items[1]] }
+    let release!: () => void
+    const observer = new QueryObserver(client, {
+      queryKey: key,
+      queryFn: () => new Promise<Cart>((resolve) => { release = () => resolve(canonical) }),
+      staleTime: Infinity,
+    })
+    const unsubscribe = observer.subscribe(() => undefined)
+
+    let mutation!: Promise<unknown>
+    act(() => { mutation = result.current.mutateAsync(4) })
+    await waitFor(() => expect(client.getQueryData<Cart>(key)?.items[0].quantity).toBe(4))
+    expect(result.current.isPending).toBe(true)
+
+    await act(async () => { release(); await mutation })
+    expect(client.getQueryData<Cart>(key)?.items[0].quantity).toBe(3)
+    unsubscribe()
+  })
+
   it('optimistically updates only the target item and keeps it after success', async () => {
     let resolve!: (value: { itemId: number; productId: number }) => void
     updateCartItem.mockReturnValue(new Promise((done) => { resolve = done }))

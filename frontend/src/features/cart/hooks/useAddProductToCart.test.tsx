@@ -47,9 +47,10 @@ describe('useAddProductToCart', () => {
     await act(() => result.current.addProduct(request))
 
     expect(order).toEqual(['create', 'add'])
-    expect(createMutateAsync).toHaveBeenCalledWith({ token: 'token', customerId: 20 })
+    expect(createMutateAsync).toHaveBeenCalledWith({ token: 'token', customerId: 20, reconcile: false })
     expect(addMutateAsync).toHaveBeenCalledWith({
-      token: 'token', productId: 42, quantity: 2, displayedUnitPrice: 349.9,
+      token: 'token', customerId: 20, cartId: 100,
+      productId: 42, quantity: 2, displayedUnitPrice: 349.9,
     })
     expect(result.current.isSuccess).toBe(true)
   })

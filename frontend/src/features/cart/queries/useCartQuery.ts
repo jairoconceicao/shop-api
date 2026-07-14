@@ -2,17 +2,12 @@ import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { AppError } from '../../../shared/errors/appError'
-import { privateCacheMeta } from '../../../shared/query/privateCache'
 import { useAuthStore } from '../../auth/store/authStore'
+import { cartCache } from '../cache/cartCache'
 import { getCart } from '../services/getCartService'
 import { useCartSessionStore } from '../store/cartSessionStore'
 
-export const cartQueryKeys = {
-  all: ['cart'] as const,
-  details: () => [...cartQueryKeys.all, 'detail'] as const,
-  detail: (customerId: number | null, cartId: number | null) =>
-    [...cartQueryKeys.details(), customerId, cartId] as const,
-}
+export const cartQueryKeys = cartCache.query
 
 export function cartQueryOptions(
   customerId: number | undefined,
@@ -31,7 +26,7 @@ export function cartQueryOptions(
       return getCart(cartId, token, signal)
     },
     enabled: customerId !== undefined && cartId !== undefined && hasValidToken,
-    meta: privateCacheMeta,
+    meta: cartCache.meta,
   })
 }
 

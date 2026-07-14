@@ -5,6 +5,7 @@ import type { CartItem } from '../contracts/cart'
 import { useAuthStore } from '../../auth/store/authStore'
 import { useCartQuery } from '../queries/useCartQuery'
 import { useCartSessionStore } from '../store/cartSessionStore'
+import { cartCache } from '../cache/cartCache'
 
 type OptimisticMutation = {
   kind: 'update' | 'delete'
@@ -13,13 +14,14 @@ type OptimisticMutation = {
 }
 
 function isActiveCartMutation(
-  mutation: { options: { mutationKey?: readonly unknown[] } },
+  mutation: { options: { mutationKey?: readonly unknown[]; meta?: Record<string, unknown> } },
   customerId: number | undefined,
   cartId: number | undefined,
 ) {
   const key = mutation.options.mutationKey
 
-  return key?.[0] === 'cart'
+  return mutation.options.meta?.private === true
+    && key?.[0] === cartCache.query.all[0]
     && key[1] === 'item'
     && (key[2] === 'update' || key[2] === 'delete')
     && key[3] === customerId
@@ -61,5 +63,5 @@ export function useConfirmedCartCount() {
     setConfirmedCount(rawCount)
   }
 
-  return !cartQuery.hasCart || cartQuery.isError ? 0 : confirmedCount
+  return !cartQuery.hasCart || cartQuery.data === undefined ? 0 : confirmedCount
 }

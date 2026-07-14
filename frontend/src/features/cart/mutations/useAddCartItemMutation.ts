@@ -4,6 +4,7 @@ import { productQueryKeys } from '../../catalog/queries/useProductDetailQuery'
 import { fetchProductDetail } from '../../catalog/services/productDetailService'
 import { AppError } from '../../../shared/errors/appError'
 import type { AddedCartItem } from '../contracts/cart'
+import { cartCache, reconcileActiveCart } from '../cache/cartCache'
 import { addCartItem } from '../services/addCartItemService'
 
 type AddCartItemVariables = {
@@ -11,12 +12,16 @@ type AddCartItemVariables = {
   productId: number
   quantity: number
   displayedUnitPrice: number
+  customerId: number
+  cartId: number
 }
 
 export function useAddCartItemMutation() {
   const queryClient = useQueryClient()
 
   return useMutation<AddedCartItem, AppError, AddCartItemVariables>({
+    mutationKey: cartCache.mutation.add(0, 0),
+    meta: cartCache.meta,
     retry: false,
     mutationFn: async ({ token, productId, quantity, displayedUnitPrice }) => {
       const product = await fetchProductDetail(productId, new AbortController().signal)
@@ -41,6 +46,9 @@ export function useAddCartItemMutation() {
         quantidade: quantity,
         valorUnitario: product.price,
       })
+    },
+    onSuccess: async (_item, { customerId, cartId }) => {
+      await reconcileActiveCart(queryClient, customerId, cartId)
     },
   })
 }

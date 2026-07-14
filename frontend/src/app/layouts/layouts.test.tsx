@@ -130,6 +130,7 @@ describe('StoreLayout', () => {
     let release!: () => void
     const pending = client.getMutationCache().build(client, {
       mutationKey,
+      meta: { private: true },
       mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
       onMutate: () => context,
     })

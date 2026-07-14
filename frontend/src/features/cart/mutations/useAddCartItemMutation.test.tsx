@@ -20,6 +20,7 @@ const product: ProductDetail = {
   id: 42, title: 'Produto', description: null, model: null, photo: null,
   price: 349.9, stock: 5, category: { id: 1, title: 'Categoria' },
 }
+const cacheIdentity = { customerId: 20, cartId: 100 }
 
 function createHarness() {
   const queryClient = new QueryClient()
@@ -44,6 +45,7 @@ describe('useAddCartItemMutation', () => {
     const { result } = renderHook(() => useAddCartItemMutation(), { wrapper })
 
     await act(() => result.current.mutateAsync({
+      ...cacheIdentity,
       token: 'token', productId: 42, quantity: 2, displayedUnitPrice: 349.9,
     }))
 
@@ -63,6 +65,7 @@ describe('useAddCartItemMutation', () => {
     const { result } = renderHook(() => useAddCartItemMutation(), { wrapper })
 
     await expect(act(() => result.current.mutateAsync({
+      ...cacheIdentity,
       token: 'token', productId: 42, quantity: 2, displayedUnitPrice: 349.9,
     }))).rejects.toMatchObject({
       kind: 'http', status: 409, code: 'PRODUCT_PRICE_CHANGED',
@@ -79,6 +82,7 @@ describe('useAddCartItemMutation', () => {
     const { result } = renderHook(() => useAddCartItemMutation(), { wrapper })
 
     await expect(act(() => result.current.mutateAsync({
+      ...cacheIdentity,
       token: 'token', productId: 42, quantity: 1, displayedUnitPrice: 349.9,
     }))).rejects.toBe(error)
     expect(addCartItem).not.toHaveBeenCalled()
@@ -93,6 +97,7 @@ describe('useAddCartItemMutation', () => {
     const { result } = renderHook(() => useAddCartItemMutation(), { wrapper })
 
     await expect(act(() => result.current.mutateAsync({
+      ...cacheIdentity,
       token: 'token', productId: 42, quantity: 1, displayedUnitPrice: 349.9,
     }))).rejects.toBe(conflict)
     expect(addCartItem).toHaveBeenCalledOnce()
@@ -104,6 +109,7 @@ describe('useAddCartItemMutation', () => {
     const { result } = renderHook(() => useAddCartItemMutation(), { wrapper })
 
     act(() => result.current.mutate({
+      ...cacheIdentity,
       token: 'token', productId: 42, quantity: 1, displayedUnitPrice: 349.9,
     }))
 

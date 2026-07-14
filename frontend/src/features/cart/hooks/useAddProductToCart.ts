@@ -37,12 +37,16 @@ export function useAddProductToCart() {
     try {
       const existingCartId = useCartSessionStore.getState().getCartId(session.clienteId)
 
-      if (existingCartId === undefined) {
-        await createCart.mutateAsync({ token: session.token, customerId: session.clienteId })
-      }
+      const cartId = existingCartId ?? (await createCart.mutateAsync({
+        token: session.token,
+        customerId: session.clienteId,
+        reconcile: false,
+      })).id
 
       await addCartItem.mutateAsync({
         token: session.token,
+        customerId: session.clienteId,
+        cartId,
         productId,
         quantity,
         displayedUnitPrice,

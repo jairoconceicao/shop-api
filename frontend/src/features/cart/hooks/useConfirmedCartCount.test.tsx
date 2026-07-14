@@ -61,6 +61,20 @@ describe('useConfirmedCartCount', () => {
     expect(setup(client).result.current).toBe(0)
   })
 
+  it('preserva o último total confirmado quando um refetch em background falha', () => {
+    useAuthStore.setState({ session })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    const client = createClient()
+    const key = cartQueryKeys.detail(10, 100)
+    const confirmed = cart([{ id: 1, quantity: 2 }])
+    client.setQueryData(key, confirmed)
+    client.getQueryCache().find({ queryKey: key })?.setState({
+      status: 'error', error: new Error('background'), data: confirmed,
+    })
+
+    expect(setup(client).result.current).toBe(2)
+  })
+
   it.each([
     ['update', ['cart', 'item', 'update', 10, 100, 1]],
     ['delete', ['cart', 'item', 'delete', 10, 100]],
@@ -76,6 +90,7 @@ describe('useConfirmedCartCount', () => {
     let release!: () => void
     const pending = client.getMutationCache().build(client, {
       mutationKey,
+      meta: { private: true },
       mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
     })
     let execution!: Promise<void>
@@ -121,6 +136,7 @@ describe('useConfirmedCartCount', () => {
     let release!: () => void
     const pending = client.getMutationCache().build(client, {
       mutationKey,
+      meta: { private: true },
       mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
       onMutate: () => context,
     })
@@ -142,6 +158,7 @@ describe('useConfirmedCartCount', () => {
     let release!: () => void
     const pending = client.getMutationCache().build(client, {
       mutationKey: ['cart', 'item', 'update', 10, 100, 1],
+      meta: { private: true },
       mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
       onMutate: () => ({ previousItem: { id: 1, productId: 1, quantity: 2, unitPrice: 10 } }),
     })

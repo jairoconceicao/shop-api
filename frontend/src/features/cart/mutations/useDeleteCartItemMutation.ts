@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type { AppError } from '../../../shared/errors/appError'
-import { privateCacheMeta } from '../../../shared/query/privateCache'
 import type { Cart, CartItem, CartItemIdentifier } from '../contracts/cart'
-import { cartQueryKeys } from '../queries/useCartQuery'
+import { cartCache, reconcileActiveCart } from '../cache/cartCache'
 import { deleteCartItem } from '../services/deleteCartItemService'
 
 type Options = { customerId: number; cartId: number; token: string }
@@ -34,11 +33,11 @@ function restoreItem(items: CartItem[], context: Context): CartItem[] {
 
 export function useDeleteCartItemMutation({ customerId, cartId, token }: Options) {
   const queryClient = useQueryClient()
-  const queryKey = cartQueryKeys.detail(customerId, cartId)
+  const queryKey = cartCache.query.detail(customerId, cartId)
 
   return useMutation<CartItemIdentifier, AppError, number, Context>({
-    mutationKey: ['cart', 'item', 'delete', customerId, cartId],
-    meta: privateCacheMeta,
+    mutationKey: cartCache.mutation.delete(customerId, cartId),
+    meta: cartCache.meta,
     retry: false,
     mutationFn: (itemId) => deleteCartItem(itemId, token),
     onMutate: async (itemId) => {
@@ -67,5 +66,6 @@ export function useDeleteCartItemMutation({ customerId, cartId, token }: Options
         items: restoreItem(current.items, context),
       }))
     },
+    onSuccess: async () => reconcileActiveCart(queryClient, customerId, cartId),
   })
 }
