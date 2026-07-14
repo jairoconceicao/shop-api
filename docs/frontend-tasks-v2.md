@@ -142,7 +142,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-060: Implementar o guard que envia visitantes ao login antes de qualquer inclusão no carrinho.
 
-[ ] TASK-061: Implementar o retorno à página de origem após o login sem adicionar item automaticamente.
+[x] TASK-061: Implementar o retorno à página de origem após o login sem adicionar item automaticamente.
 
 ### Fase 4 — Carrinho autenticado
 

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { PropsWithChildren } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '../../../shared/testing/server'
@@ -15,11 +15,22 @@ function renderPage(initialState?: unknown) {
   })
   const wrapper = ({ children }: PropsWithChildren) => (
     <MemoryRouter initialEntries={[{ pathname: '/entrar', state: initialState }]}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route path="entrar" element={children} />
+          <Route path="produtos/:produtoId" element={<ReturnDestination />} />
+        </Routes>
+      </QueryClientProvider>
     </MemoryRouter>
   )
 
   return render(<LoginPage />, { wrapper })
+}
+
+function ReturnDestination() {
+  const location = useLocation()
+
+  return <p>{`${location.pathname}${location.search}${location.hash}`}</p>
 }
 
 describe('LoginPage', () => {
@@ -90,6 +101,43 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText('E-mail')).toHaveValue('')
     expect(screen.getByLabelText('Senha')).toHaveValue('')
     expect(screen.getByRole('checkbox', { name: 'Manter conectado' })).not.toBeChecked()
+  })
+
+  it('returns to the origin after login without adding an item automatically', async () => {
+    let cartRequests = 0
+    server.use(
+      http.post('https://api.example.com/api/v1/auth/login', () =>
+        HttpResponse.json({
+          status: true,
+          data: {
+            token: 'header.payload.signature',
+            tipo: 'Bearer',
+            expiraEm: '2026-07-14T18:00:00-03:00',
+            usuarioId: 10,
+            clienteId: 20,
+            email: 'cliente@exemplo.com',
+          },
+        }),
+      ),
+      http.post('https://api.example.com/api/v1/carrinho/criar', () => {
+        cartRequests += 1
+        return HttpResponse.json({})
+      }),
+      http.post('https://api.example.com/api/v1/carrinho/:carrinhoId/itens', () => {
+        cartRequests += 1
+        return HttpResponse.json({})
+      }),
+    )
+    renderPage({ returnTo: '/produtos/42?origem=catalogo#comprar' })
+
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'cliente@exemplo.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'senha-secreta' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+
+    expect(await screen.findByText('/produtos/42?origem=catalogo#comprar')).toBeInTheDocument()
+    expect(cartRequests).toBe(0)
   })
 
   it('shows an authentication error and has no password recovery action', async () => {
