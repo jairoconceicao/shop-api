@@ -16,26 +16,28 @@ function isRealCustomerId(customerId: number | undefined): customerId is number 
 export function checkoutProfileQueryOptions(
   customerId: number | undefined,
   token: string | undefined,
+  enabled = true,
 ) {
   const hasValidToken = token !== undefined && token.trim().length > 0
   const hasRealCustomerId = isRealCustomerId(customerId)
+  const canFetch = enabled && hasRealCustomerId && hasValidToken
 
   return queryOptions({
     queryKey: checkoutProfileQueryKeys.detail(hasRealCustomerId ? customerId : null),
     queryFn: ({ signal }) => {
-      if (!hasRealCustomerId || !hasValidToken) {
+      if (!canFetch) {
         throw new Error('Customer session is unavailable')
       }
 
       return getCheckoutProfile(customerId, token, signal)
     },
-    enabled: hasRealCustomerId && hasValidToken,
+    enabled: canFetch,
     meta: privateCacheMeta,
   })
 }
 
-export function useCheckoutProfileQuery() {
+export function useCheckoutProfileQuery(enabled = true) {
   const session = useAuthStore((state) => state.session)
 
-  return useQuery(checkoutProfileQueryOptions(session?.clienteId, session?.token))
+  return useQuery(checkoutProfileQueryOptions(session?.clienteId, session?.token, enabled))
 }

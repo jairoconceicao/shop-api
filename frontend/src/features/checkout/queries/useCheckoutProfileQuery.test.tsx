@@ -55,6 +55,15 @@ describe('useCheckoutProfileQuery', () => {
     expect(query?.meta).toEqual({ private: true })
   })
 
+  it('stays disabled while its checkout consumer has not confirmed the cart', async () => {
+    const { wrapper } = createHarness()
+    const { result } = renderHook(() => useCheckoutProfileQuery(false), { wrapper })
+
+    expect(result.current.fetchStatus).toBe('idle')
+    await act(() => result.current.refetch())
+    expect(getCheckoutProfile).not.toHaveBeenCalled()
+  })
+
   it.each([
     [undefined, undefined],
     [0, 'access-token'],

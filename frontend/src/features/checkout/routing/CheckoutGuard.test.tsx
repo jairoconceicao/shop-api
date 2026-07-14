@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -16,7 +16,19 @@ const cartQuery: {
   isPending: false,
 }
 
+const { profileQuery, useCheckoutProfileQuery } = vi.hoisted(() => {
+  const profileQuery = {
+    data: undefined as { customerId: number; address: { cep: string } } | undefined,
+    isError: false,
+    isPending: false,
+    refetch: vi.fn(),
+  }
+
+  return { profileQuery, useCheckoutProfileQuery: vi.fn(() => profileQuery) }
+})
+
 vi.mock('../../cart/queries/useCartQuery', () => ({ useCartQuery: () => cartQuery }))
+vi.mock('../queries/useCheckoutProfileQuery', () => ({ useCheckoutProfileQuery }))
 
 function renderGuard() {
   return render(
@@ -37,6 +49,11 @@ describe('CheckoutGuard', () => {
     cartQuery.hasCart = true
     cartQuery.isError = false
     cartQuery.isPending = false
+    profileQuery.data = undefined
+    profileQuery.isError = false
+    profileQuery.isPending = false
+    profileQuery.refetch.mockReset()
+    useCheckoutProfileQuery.mockClear()
   })
 
   it('exibe carregamento sem liberar o checkout enquanto aguarda o carrinho confirmado', () => {
@@ -79,8 +96,63 @@ describe('CheckoutGuard', () => {
       items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }],
     }
 
+    profileQuery.data = { customerId: 1, address: { cep: '12345678' } }
     renderGuard()
 
     expect(screen.getByRole('heading', { name: 'Formulário de checkout' })).toBeInTheDocument()
+    expect(useCheckoutProfileQuery).toHaveBeenCalledWith(true)
+  })
+
+  it('mantém a pré-carga desabilitada antes de confirmar um carrinho não vazio', () => {
+    cartQuery.isPending = true
+
+    renderGuard()
+
+    expect(useCheckoutProfileQuery).toHaveBeenCalledWith(false)
+  })
+
+  it('exibe carregamento do endereço sem liberar o checkout', () => {
+    cartQuery.data = {
+      customerId: 1,
+      id: 2,
+      createdAt: '2026-07-14T12:00:00Z',
+      items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }],
+    }
+    profileQuery.isPending = true
+
+    renderGuard()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando endereço de entrega')
+    expect(screen.queryByRole('heading', { name: 'Formulário de checkout' })).not.toBeInTheDocument()
+  })
+
+  it('exibe erro acionável e tenta carregar o endereço novamente', () => {
+    cartQuery.data = {
+      customerId: 1,
+      id: 2,
+      createdAt: '2026-07-14T12:00:00Z',
+      items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }],
+    }
+    profileQuery.isError = true
+
+    renderGuard()
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível carregar o endereço')
+    expect(profileQuery.refetch).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('heading', { name: 'Formulário de checkout' })).not.toBeInTheDocument()
+  })
+
+  it('não libera o checkout sem perfil válido mesmo após a consulta encerrar', () => {
+    cartQuery.data = {
+      customerId: 1,
+      id: 2,
+      createdAt: '2026-07-14T12:00:00Z',
+      items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }],
+    }
+
+    renderGuard()
+
+    expect(screen.queryByRole('heading', { name: 'Formulário de checkout' })).not.toBeInTheDocument()
   })
 })

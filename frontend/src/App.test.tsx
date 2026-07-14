@@ -127,7 +127,31 @@ describe('App', () => {
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
-  it('renders the checkout store route with a confirmed non-empty cart', () => {
+  it('preloads the customer address before rendering the checkout store route', async () => {
+    let customerRequests = 0
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(
+      http.get('https://api.example.com/api/v1/cliente/20', ({ request }) => {
+        customerRequests += 1
+        expect(request.headers.get('Authorization')).toBe('Bearer header.payload.signature')
+
+        return HttpResponse.json({
+          status: true,
+          data: {
+            clienteId: 20,
+            cpf: '12345678901',
+            nome: 'Cliente',
+            dataNascimento: '1990-01-01',
+            email: 'cliente@exemplo.com',
+            endereco: {
+              logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678',
+              bairro: 'Centro', cidade: 'Sao Paulo', uf: 'SP',
+            },
+            celular: { ddd: '11', numero: '999999999', whatsApp: true },
+          },
+        })
+      }),
+    )
     useCartSessionStore.setState({ cartIdsByCustomer: { '20': 30 } })
     queryClient.setQueryData(cartQueryKeys.detail(20, 30), {
       customerId: 20,
@@ -138,7 +162,8 @@ describe('App', () => {
 
     const { container } = renderApp('/checkout')
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Checkout' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Checkout' })).toBeInTheDocument()
+    expect(customerRequests).toBe(1)
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
