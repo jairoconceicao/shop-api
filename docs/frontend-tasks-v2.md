@@ -227,13 +227,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não descartar o vínculo em erros de rede ou outros status HTTP.
   - Evidência: commit `34088a5`; focused 17/17 e ampla 393/393; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
-  - Status: READY
+[x] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
+  - Status: DONE
   - Depends on: TASK-057, TASK-067
   - Critérios de aceite:
     - Deduplicar os `produtoId` dos itens e hidratar os produtos únicos em paralelo com `Promise.all`.
     - Reutilizar o cache de detalhe por `produtoId`, sem armazenar produtos ou itens no Zustand.
     - Isolar falhas por produto para que um detalhe indisponível não impeça a exibição dos demais itens.
+  - Evidência: commits `8a1a746` e `273a99c`; focused 7/7 e ampla 400/400; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
   - Status: READY
