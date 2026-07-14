@@ -281,13 +281,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Atualizar o valor de forma acessível sem provocar recarga completa da SPA.
   - Evidência: commits `7fe1863` e `ef5d3a7`; focused 29/29 (revisor) e ampla 441/441; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correções do snapshot confirmado em mount pendente e do escopo por cliente/carrinho. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (435/436), e as repetições completas passaram com 436/436 e, após as correções, 441/441.
 
-[ ] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
-  - Status: READY
+[x] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
+  - Status: DONE
   - Depends on: TASK-064, TASK-065, TASK-072, TASK-073, TASK-074
   - Critérios de aceite:
     - Manter uma estratégia única de query keys para reconciliar criação, inclusão, atualização e remoção com o carrinho confirmado.
     - Atualizar ou invalidar os caches afetados após sucesso, incluindo lista, resumo e badge, sem duplicar respostas completas em stores locais.
     - Preservar o rollback das mutações e cobrir a convergência do cache com testes de integração.
+  - Evidência: commits `0f8bf44` e `625ebc5`; focused 59/59 e ampla 448/448; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correção da restauração conservadora do snapshot confirmado quando o refetch canônico falha. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (447/448), e a repetição completa passou 448/448.
 
 ### Fase 5 — Checkout
 
