@@ -132,6 +132,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Explorar catálogo' })).toHaveAttribute('href', '/')
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
   it.each([

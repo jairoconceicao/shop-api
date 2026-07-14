@@ -136,12 +136,12 @@ export function CartPage() {
   }
 
   return (
-    <main className="container-page py-8 sm:py-10 lg:py-12">
+    <div className="container-page py-8 sm:py-10 lg:py-12">
       <header className="mb-6 sm:mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">Carrinho</h1>
         <p className="mt-2 text-zinc-400">Revise os itens confirmados antes de continuar.</p>
       </header>
       {content}
-    </main>
+    </div>
   )
 }
