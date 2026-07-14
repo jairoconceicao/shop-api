@@ -111,7 +111,7 @@ describe('CheckoutPage', () => {
     expect(screen.getByLabelText('Logradouro')).not.toHaveClass('sm:col-span-2')
   })
 
-  it('sends only one order while a double confirmation is pending and disables the CTA', async () => {
+  it('sends only one order during pending and keeps the synchronous lock after success', async () => {
     let release!: () => void
     let requests = 0
     server.use(http.post('*/api/v1/pedido', async () => {
@@ -132,6 +132,29 @@ describe('CheckoutPage', () => {
     expect(requests).toBe(1)
     release()
     await waitFor(() => expect(button).not.toBeDisabled())
+    fireEvent.click(button)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(requests).toBe(1)
+  })
+
+  it('releases the synchronous lock after failure and allows one retry', async () => {
+    let requests = 0
+    server.use(http.post('*/api/v1/pedido', () => {
+      requests += 1
+      return requests === 1
+        ? HttpResponse.json({ error: { message: 'Conflito.' } }, { status: 409 })
+        : HttpResponse.json({ status: true, data: {
+          pedidoId: 99, clienteId: 7, dataPedido: '2026-07-14T14:00:00Z',
+          formaPagamento: 'Pix', status: 'Criado', valorTotal: 100,
+        } }, { status: 201 })
+    }))
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    await screen.findByText('Revise o carrinho antes de tentar novamente.')
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+
+    await waitFor(() => expect(requests).toBe(2))
   })
 
   it.each([

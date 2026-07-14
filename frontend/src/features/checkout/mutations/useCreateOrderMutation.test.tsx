@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../auth/store/authStore'
+import { clearPrivateCache } from '../../../shared/query/privateCache'
 import { useCreateOrderMutation } from './useCreateOrderMutation'
 
 const { createOrder } = vi.hoisted(() => ({ createOrder: vi.fn() }))
@@ -57,5 +58,27 @@ describe('useCreateOrderMutation', () => {
     }, 'access-token')
     expect(response).toBe(created)
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
+  })
+
+  it('marks order creation private so logout cleanup removes its variables and response', async () => {
+    createOrder.mockResolvedValueOnce({
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    })
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    await act(async () => { await result.current.mutateAsync({ values, cart }) })
+    const mutation = client.getMutationCache().find({ mutationKey: ['checkout', 'create-order'] })
+    expect(mutation?.state.variables).toEqual({ values, cart })
+    expect(mutation?.state.data).toMatchObject({ id: 99 })
+
+    clearPrivateCache(client)
+
+    expect(client.getMutationCache().find({ mutationKey: ['checkout', 'create-order'] }))
+      .toBeUndefined()
   })
 })

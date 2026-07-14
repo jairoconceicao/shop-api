@@ -94,7 +94,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       createOrderMutation.reset()
       createOrderMutation.mutate(
         { values: parsed.data, cart },
-        { onSettled: () => { submissionInFlightRef.current = false } },
+        { onError: () => { submissionInFlightRef.current = false } },
       )
       return
     }

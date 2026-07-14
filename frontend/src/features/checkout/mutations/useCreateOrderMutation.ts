@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
 import { AppError } from '../../../shared/errors/appError'
+import { privateCacheMeta } from '../../../shared/query/privateCache'
 import type { Cart } from '../../cart/contracts/cart'
 import { useAuthStore } from '../../auth/store/authStore'
 import { buildOrderItems } from '../adapters/confirmedCartItems'
@@ -18,6 +19,7 @@ export function useCreateOrderMutation() {
 
   return useMutation<CreatedOrder, AppError, CreateOrderMutationVariables>({
     mutationKey: ['checkout', 'create-order'],
+    meta: privateCacheMeta,
     mutationFn: ({ values, cart }) => {
       if (!token) {
         throw new AppError({
