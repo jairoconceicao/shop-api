@@ -124,15 +124,69 @@ describe('useCartQuery', () => {
     expect(getCart).toHaveBeenCalledTimes(2)
   })
 
-  it('preserves a cart association after a 404', async () => {
-    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+  it('removes only the stale association and its exact cache after a 404', async () => {
+    localStorage.clear()
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100, '20': 200 } })
     getCart.mockRejectedValue(new AppError({ kind: 'http', status: 404, message: 'Ausente.' }))
-    const { wrapper } = createHarness()
+    const { queryClient, wrapper } = createHarness()
+    queryClient.setQueryData(cartQueryKeys.detail(20, 200), { id: 200 })
+    queryClient.setQueryData(cartQueryKeys.detail(10, 101), { id: 101 })
+    const { result } = renderHook(() => useCartQuery(), { wrapper })
+
+    await waitFor(() => expect(result.current.hasCart).toBe(false))
+    expect(result.current.data).toBeUndefined()
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(getCart).toHaveBeenCalledTimes(1)
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '20': 200 })
+    expect(localStorage.getItem('shop-api:cart-session')).not.toContain('"10":100')
+    expect(queryClient.getQueryCache().find({ queryKey: cartQueryKeys.detail(10, 100) })).toBeUndefined()
+    expect(queryClient.getQueryData(cartQueryKeys.detail(20, 200))).toEqual({ id: 200 })
+    expect(queryClient.getQueryData(cartQueryKeys.detail(10, 101))).toEqual({ id: 101 })
+
+    await act(() => result.current.refetch())
+    expect(getCart).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    new AppError({ kind: 'network', message: 'Sem conexão.' }),
+    new AppError({ kind: 'http', status: 401, message: 'Não autorizado.' }),
+    new AppError({ kind: 'http', status: 422, message: 'Inválido.' }),
+    new AppError({ kind: 'http', status: 500, message: 'Falha.' }),
+    new AppError({ kind: 'contract', message: 'Contrato inválido.' }),
+    new Error('Falha comum.'),
+  ])('preserves the association for errors other than an AppError HTTP 404', async (error) => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    getCart.mockRejectedValue(error)
+    const { queryClient, wrapper } = createHarness()
     const { result } = renderHook(() => useCartQuery(), { wrapper })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(result.current.hasCart).toBe(true)
     expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '10': 100 })
+    expect(queryClient.getQueryCache().find({ queryKey: cartQueryKeys.detail(10, 100) })).toBeDefined()
+  })
+
+  it('does not let a late 404 remove a replacement association after a customer switch', async () => {
+    let rejectOldRequest!: (error: unknown) => void
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100, '20': 200 } })
+    getCart.mockImplementation((cartId: number) =>
+      cartId === 100
+        ? new Promise((_, reject) => { rejectOldRequest = reject })
+        : Promise.resolve({ customerId: 20, id: 200, createdAt: '', items: [] }),
+    )
+    const { wrapper } = createHarness()
+    const { result } = renderHook(() => useCartQuery(), { wrapper })
+
+    await waitFor(() => expect(getCart).toHaveBeenCalledTimes(1))
+    act(() => {
+      useCartSessionStore.getState().setCartId(10, 101)
+      useAuthStore.setState({ session: session(20) })
+    })
+    await waitFor(() => expect(result.current.data?.id).toBe(200))
+    act(() => rejectOldRequest(new AppError({ kind: 'http', status: 404, message: 'Ausente.' })))
+
+    await waitFor(() => expect(getCart).toHaveBeenCalledTimes(2))
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '10': 101, '20': 200 })
   })
 
   it('switches customer subscriptions and keeps every private cache entry isolated', async () => {
