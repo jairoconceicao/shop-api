@@ -38,6 +38,33 @@ describe('Header', () => {
     expect(screen.queryByRole('menuitem', { name: 'Sair' })).not.toBeInTheDocument()
   })
 
+  it('exibe a quantidade do carrinho com nome acessível e badge visual', () => {
+    const { container, rerender } = renderHeader({ cartCount: 1 })
+
+    expect(screen.getByRole('link', { name: 'Carrinho com 1 item' })).toHaveAttribute('href', '/carrinho')
+    expect(container.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
+
+    rerender(
+      <MemoryRouter>
+        <Header
+          searchword=""
+          onSearchwordChange={() => undefined}
+          onSearchSubmit={() => undefined}
+          cartCount={3}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'Carrinho com 3 itens' })).toBeInTheDocument()
+  })
+
+  it('não exibe badge quando o contador confirmado é zero', () => {
+    renderHeader({ cartCount: 0 })
+
+    expect(screen.getByRole('link', { name: 'Carrinho' })).toBeInTheDocument()
+    expect(screen.queryByText('0')).not.toBeInTheDocument()
+  })
+
   it('envia o valor controlado da busca', () => {
     const onSearchwordChange = vi.fn()
     const onSearchSubmit = vi.fn()

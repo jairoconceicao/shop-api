@@ -2,11 +2,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act } from '@testing-library/react'
+
+import { useAuthStore } from '../../features/auth/store/authStore'
+import { cartQueryKeys } from '../../features/cart/queries/useCartQuery'
+import { useCartSessionStore } from '../../features/cart/store/cartSessionStore'
 
 const { fetchCategories } = vi.hoisted(() => ({ fetchCategories: vi.fn() }))
 vi.mock('../../features/catalog/services/categoryService', () => ({ fetchCategories }))
 
-beforeEach(() => fetchCategories.mockResolvedValue([]))
+beforeEach(() => {
+  fetchCategories.mockResolvedValue([])
+  useAuthStore.setState({ session: null })
+  useCartSessionStore.setState({ cartIdsByCustomer: {} })
+})
 
 import { AccountLayout } from './AccountLayout'
 import { StoreLayout } from './StoreLayout'
@@ -58,6 +67,43 @@ describe('StoreLayout', () => {
       'href',
       '/?searchword=console&categoriaId=7',
     )
+  })
+
+  it('atualiza o contador confirmado do Header pelo cache sem reload', async () => {
+    useAuthStore.setState({
+      session: {
+        token: 'token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z',
+        usuarioId: 1, clienteId: 10, email: 'cliente@shop.test',
+      },
+    })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
+    const key = cartQueryKeys.detail(10, 100)
+    client.setQueryData(key, {
+      customerId: 10, id: 100, createdAt: '2026-01-01T00:00:00Z',
+      items: [{ id: 1, productId: 2, quantity: 2, unitPrice: 10 }],
+    })
+
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={client}>
+          <Routes>
+            <Route element={<StoreLayout />}>
+              <Route index element={<h1>Catálogo</h1>} />
+            </Route>
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'Carrinho com 2 itens' })).toBeInTheDocument()
+
+    act(() => client.setQueryData(key, {
+      customerId: 10, id: 100, createdAt: '2026-01-01T00:00:00Z',
+      items: [{ id: 1, productId: 2, quantity: 4, unitPrice: 10 }],
+    }))
+
+    expect(await screen.findByRole('link', { name: 'Carrinho com 4 itens' })).toBeInTheDocument()
   })
 })
 
