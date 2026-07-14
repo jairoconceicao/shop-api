@@ -328,16 +328,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir validações por campo e resumo de erros antes de permitir a confirmação.
   - Evidência: commits `0d29796` e `e82753d`; RED confirmado por módulo ausente e por 2 falhas esperadas de acessibilidade/composição; testes focados 12/12 e de integração 16/16; suíte 503/503 (uma execução anterior expôs flake preexistente com 500/501, seguido pelo teste isolado 2/2 e rerun completo 501/501); typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
-  - Status: READY
+[x] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
+  - Status: DONE
   - Depends on: TASK-079
   - Critérios de aceite:
     - Produzir somente `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` no nível raiz.
     - Rejeitar `clienteId`, `carrinhoId` e demais propriedades raiz desconhecidas.
     - Preservar em cada item `itemId`, `produtoId`, `quantidade` e `valorUnitario` conforme o contrato da API.
+  - Evidência: commit `c80418f`; RED confirmado por módulo ausente; teste focado 10/10; suíte ampla 513/513; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-080
   - Critérios de aceite:
     - Mapear os itens exclusivamente do dado confirmado da query do carrinho, sem usar valores otimistas ou dados visuais hidratados.
