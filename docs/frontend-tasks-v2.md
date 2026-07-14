@@ -292,16 +292,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 5 — Checkout
 
-[ ] TASK-076: Criar schemas de formulário para endereço de entrega e formas Pix, Cartao e Boleto.
-  - Status: READY
+[x] TASK-076: Criar schemas de formulário para endereço de entrega e formas Pix, Cartao e Boleto.
+  - Status: DONE
   - Depends on: TASK-075
   - Critérios de aceite:
     - Validar os sete campos do endereço de entrega (`logradouro`, `numero`, `complemento`, `cep`, `bairro`, `cidade` e `uf`) antes da confirmação.
     - Aceitar exatamente `Pix`, `Cartao` e `Boleto` como formas de pagamento.
     - Rejeitar valores ou propriedades fora do contrato com testes unitários do schema.
+  - Evidência: commits `8ab6a88` e `53ca4f7`; RED confirmado pelo comportamento anterior e GREEN focado 18/18; suíte 469/469; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-076
   - Critérios de aceite:
     - Manter `/checkout` sob a proteção de sessão existente e preservar o retorno seguro ao login.
