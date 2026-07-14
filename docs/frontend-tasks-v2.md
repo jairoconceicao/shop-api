@@ -319,16 +319,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Apresentar carregamento e erro acionável quando a pré-carga não puder ser concluída.
   - Evidência: commits `3687a67` e `e841dc4`; RED confirmado por módulos ausentes e 6 falhas comportamentais de integração; testes focados e de integração 42/42; suíte 498/498; typecheck/lint/build/diff-check PASS; reviewer aprovado nos dois gates sem findings.
 
-[ ] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
-  - Status: READY
+[x] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
+  - Status: DONE
   - Depends on: TASK-078
   - Critérios de aceite:
     - Renderizar resumo do carrinho, endereço editável e seleção acessível de `Pix`, `Cartao` ou `Boleto` em desktop e mobile.
     - Manter edições do endereço somente no estado do formulário de checkout, sem chamar endpoint de atualização do cliente.
     - Exibir validações por campo e resumo de erros antes de permitir a confirmação.
+  - Evidência: commits `0d29796` e `e82753d`; RED confirmado por módulo ausente e por 2 falhas esperadas de acessibilidade/composição; testes focados 12/12 e de integração 16/16; suíte 503/503 (uma execução anterior expôs flake preexistente com 500/501, seguido pelo teste isolado 2/2 e rerun completo 501/501); typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-079
   - Critérios de aceite:
     - Produzir somente `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` no nível raiz.
