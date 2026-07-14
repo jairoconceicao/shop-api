@@ -146,3 +146,10 @@ Ao terminar o lote, apresentar:
 - testes executados;
 - findings pendentes;
 - mudanças realizadas no backlog.
+
+Se você utilizar worktree:
+
+- garanta que as alterações sejam comitadas na branch do lote
+- libere o worktree com segurança
+- suba para o repositório remoto a branch do lote.
+
