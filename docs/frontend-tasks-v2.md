@@ -199,13 +199,15 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não repetir automaticamente a inclusão e apresentar erro acionável quando ela falhar.
   - Evidência: commit `0e5c0e9`; focused 10/10 e ampla 363/363; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
-  - Status: READY
+[x] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
+  - Status: DONE
   - Depends on: TASK-064, TASK-065
   - Critérios de aceite:
     - Uma confirmação explícita em “Adicionar” deve reutilizar o vínculo existente ou executar criação → inclusão na ordem correta.
     - Impedir submissões concorrentes da mesma ação e informar sucesso somente após a inclusão confirmada.
     - Não criar carrinho, persistir item ou concluir inclusão automaticamente no retorno do login.
+  - Evidência: commit `ececf8d`; focused 54/54 e ampla 372/372; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings bloqueantes.
+  - Finding pendente: MINOR — ampliar a cobertura explícita para troca de sessão durante o fluxo, retorno pós-login, ciclo de preço alterado e asserts diretos das mutations.
 
 [ ] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
   - Status: READY
