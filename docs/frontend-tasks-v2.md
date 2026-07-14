@@ -118,7 +118,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-048: Implementar query paginada de catálogo com `page`, `size` e `searchword`.
 
-[ ] TASK-049: Implementar query de produtos por `categoriaId`.
+[x] TASK-049: Implementar query de produtos por `categoriaId`.
+  - Evidência: commit `2a63a27`; testes focused 6/6 e catalog 32/32; typecheck/lint PASS; reviewer approved; suíte/build mantêm baselines aceitas fora de escopo.
 
 [ ] TASK-050: Implementar parser e serializer da URL para busca, categoria e página.
 
