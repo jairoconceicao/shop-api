@@ -135,7 +135,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `8179671`; RED 3 falhas; Home 4/4 e catálogo 62/62; typecheck/lint/diff-check PASS; reviewer SPEC+QUALITY approved; `scroll-margin` pendente da TASK-052 resolvido.
   - MINOR pendente sem bloqueio: o `h2` do `ProductCard` achata a hierarquia sob o `h2` Catálogo.
 
-[ ] TASK-054: Implementar envio da busca e navegação voltar/avançar baseada na URL.
+[x] TASK-054: Implementar envio da busca e navegação voltar/avançar baseada na URL.
+  - Evidência: commits `0a3a02f` e `85c4290`; RED inicial 5 falhas e regressão de rota filha em RED; testes finais layouts + catálogo 75/75 (root focused 67/67); typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT de busca fora da Home corrigido.
 
 [ ] TASK-055: Implementar seleção de categoria e limpeza dos filtros.
 
