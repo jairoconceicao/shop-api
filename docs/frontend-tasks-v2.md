@@ -346,16 +346,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Impedir a montagem quando o carrinho confirmado estiver ausente ou vazio.
   - Evidência: commit `c42cb6f`; RED confirmado por módulo ausente; teste focado 4/4; suíte ampla 517/517; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
-  - Status: READY
+[x] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
+  - Status: DONE
   - Depends on: TASK-081
   - Critérios de aceite:
     - Enviar `POST /api/v1/pedido` autenticado com o request produzido pelo adapter estrito.
     - Gerar `dataPedido` por `new Date().toISOString()` no instante de cada confirmação, e não na abertura da página.
     - Adaptar a resposta `201` para `PedidoCriadoResponse` e cobrir request e response em testes de serviço.
+  - Evidência: commit `d1d102c`; RED confirmado por módulo ausente; teste focado do serviço 4/4 e revisão agregada 18/18; suíte ampla 521/521; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-082
   - Critérios de aceite:
     - Desabilitar o CTA e ignorar nova confirmação enquanto a mutação estiver pendente.
