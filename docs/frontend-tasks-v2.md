@@ -125,7 +125,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `468437a`; testes focused 19/19 e catalog 51/51; typecheck/lint PASS; reviewer approved; suíte/build mantêm baselines aceitas fora de escopo.
 
 [x] TASK-051: Implementar ProductCard apenas com dados suportados pelo OpenAPI.
-  - Evidência: commits `ea595f3`, `739fdea` e `06d3754`; teste focused 7/7; typecheck/lint PASS; reviewer approved; suíte/build mantêm baselines aceitas fora de escopo.
+  - Evidência: commits `ea595f3`, `739fdea` e `06d3754`; teste focused 7/7; typecheck/lint PASS; reviewer approved; correção `line-clamp-2` validada em RED/GREEN 7/7 e revisão final atendida; suíte/build mantêm baselines aceitas fora de escopo.
 
 [ ] TASK-052: Implementar hero e estrutura da Home sem promoções, descontos ou alegações de frete.
 

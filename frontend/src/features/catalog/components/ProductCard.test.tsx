@@ -37,6 +37,9 @@ describe('ProductCard', () => {
       screen.getByRole('heading', { name: 'Teclado mecânico ABNT2' }),
     ).toBeInTheDocument()
     expect(
+      screen.getByRole('heading', { name: 'Teclado mecânico ABNT2' }),
+    ).toHaveClass('line-clamp-2')
+    expect(
       screen.getByRole('img', { name: 'Teclado mecânico ABNT2' }),
     ).toHaveAttribute('src', '/teclado.webp')
     expect(screen.getByText('R$ 349,90')).toBeInTheDocument()
