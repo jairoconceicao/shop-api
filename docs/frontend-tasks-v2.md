@@ -288,7 +288,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter uma estratégia única de query keys para reconciliar criação, inclusão, atualização e remoção com o carrinho confirmado.
     - Atualizar ou invalidar os caches afetados após sucesso, incluindo lista, resumo e badge, sem duplicar respostas completas em stores locais.
     - Preservar o rollback das mutações e cobrir a convergência do cache com testes de integração.
-  - Evidência: commits `0f8bf44` e `625ebc5`; focused 59/59 e ampla 448/448; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correção da restauração conservadora do snapshot confirmado quando o refetch canônico falha. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (447/448), e a repetição completa passou 448/448.
+  - Evidência: commits `0f8bf44`, `625ebc5` e `01decb1`; focused 28/28 (revisor) e ampla 451/451; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT após a serialização das mutações por item e o bloqueio cruzado da UI. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (450/451); o teste isolado passou 2/2 e a repetição completa passou 451/451.
 
 ### Fase 5 — Checkout
 
