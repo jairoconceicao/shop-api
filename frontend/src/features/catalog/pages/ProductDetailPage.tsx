@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
@@ -7,6 +7,7 @@ import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
 import { ProductImage } from '../../../shared/ui/media/ProductImage'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
+import { isAuthSessionExpired, useAuthStore } from '../../auth/store/authStore'
 import type { ProductDetail } from '../contracts/catalog'
 import { isProductNotFoundError, useProductDetailQuery } from '../queries/useProductDetailQuery'
 import { parseProductId } from '../routing/productId'
@@ -53,6 +54,8 @@ function ProductDetailSkeleton() {
 }
 
 function ProductPurchaseControls({ availableStock }: { availableStock: number }) {
+  const location = useLocation()
+  const navigate = useNavigate()
   const isSoldOut = availableStock < 1
   const maximumQuantity = Math.max(1, availableStock)
   const [quantity, updateQuantity] = useReducer(
@@ -65,6 +68,16 @@ function ProductPurchaseControls({ availableStock }: { availableStock: number })
     updateQuantity(quantity)
   }, [maximumQuantity, quantity])
 
+  function handleAddToCart() {
+    const session = useAuthStore.getState().session
+
+    if (!session || isAuthSessionExpired(session)) {
+      const returnTo = `${location.pathname}${location.search}${location.hash}`
+      void navigate('/entrar', { replace: true, state: { returnTo } })
+      return
+    }
+  }
+
   return (
     <div className="mt-6 flex flex-col items-start gap-4">
       <QuantityInput
@@ -75,7 +88,7 @@ function ProductPurchaseControls({ availableStock }: { availableStock: number })
         disabled={isSoldOut}
         onChange={updateQuantity}
       />
-      <Button disabled={isSoldOut}>Adicionar ao carrinho</Button>
+      <Button disabled={isSoldOut} onClick={handleAddToCart}>Adicionar ao carrinho</Button>
     </div>
   )
 }
