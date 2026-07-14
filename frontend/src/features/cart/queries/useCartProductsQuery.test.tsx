@@ -4,7 +4,10 @@ import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ProductDetail } from '../../catalog/contracts/catalog'
-import { productQueryKeys } from '../../catalog/queries/useProductDetailQuery'
+import {
+  productQueryKeys,
+  useProductDetailQuery,
+} from '../../catalog/queries/useProductDetailQuery'
 import type { CartItem } from '../contracts/cart'
 import {
   cartProductsQueryKeys,
@@ -110,7 +113,7 @@ describe('useCartProductsQuery', () => {
     expect(fetchProductDetail).not.toHaveBeenCalled()
   })
 
-  it('refetches the current set and reacts when the product set changes', async () => {
+  it('preserves successful details on refetch and reacts when the product set changes', async () => {
     fetchProductDetail.mockImplementation(async (id: number) => product(id))
     const { wrapper } = createHarness()
     const { result, rerender } = renderHook(
@@ -120,10 +123,40 @@ describe('useCartProductsQuery', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     await act(() => result.current.refetch())
-    await waitFor(() => expect(fetchProductDetail).toHaveBeenCalledTimes(2))
+    expect(fetchProductDetail).toHaveBeenCalledTimes(1)
 
     rerender({ items: [item(3), item(2)] })
     await waitFor(() => expect(result.current.data?.map(({ productId }) => productId)).toEqual([2, 3]))
     expect(fetchProductDetail).toHaveBeenCalledWith(3, expect.any(AbortSignal))
+  })
+
+  it('retries only failed products without evicting successful details', async () => {
+    fetchProductDetail
+      .mockImplementationOnce(async () => product(1))
+      .mockRejectedValueOnce(new Error('Unavailable'))
+      .mockImplementationOnce(async () => product(2))
+    const { wrapper } = createHarness()
+    const { result } = renderHook(() => useCartProductsQuery([item(1), item(2)]), { wrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.[1]?.status).toBe('error')
+    await act(() => result.current.refetch())
+    await waitFor(() => expect(result.current.data?.[1]?.status).toBe('success'))
+
+    expect(fetchProductDetail.mock.calls.map(([productId]) => productId)).toEqual([1, 2, 2])
+  })
+
+  it('preserves a concurrently observed product detail during refetch', async () => {
+    fetchProductDetail.mockImplementation(async (id: number) => product(id))
+    const { wrapper } = createHarness()
+    const detail = renderHook(() => useProductDetailQuery('1'), { wrapper })
+    await waitFor(() => expect(detail.result.current.isSuccess).toBe(true))
+    const cartProducts = renderHook(() => useCartProductsQuery([item(1), item(2)]), { wrapper })
+    await waitFor(() => expect(cartProducts.result.current.isSuccess).toBe(true))
+
+    await act(() => cartProducts.result.current.refetch())
+
+    expect(detail.result.current.data).toEqual(product(1))
+    expect(fetchProductDetail.mock.calls.map(([productId]) => productId)).toEqual([1, 2])
   })
 })

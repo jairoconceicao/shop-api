@@ -54,17 +54,6 @@ export function cartProductsQueryOptions(
 export function useCartProductsQuery(items: readonly CartItem[]) {
   const queryClient = useQueryClient()
   const productIds = useMemo(() => uniqueSortedProductIds(items), [items])
-  const query = useQuery(cartProductsQueryOptions(productIds, queryClient))
 
-  const refetch = (...args: Parameters<typeof query.refetch>) => {
-    productIds.forEach((productId) => {
-      queryClient.removeQueries({
-        queryKey: productDetailQueryOptions(String(productId)).queryKey,
-        exact: true,
-      })
-    })
-    return query.refetch(...args)
-  }
-
-  return { ...query, refetch }
+  return useQuery(cartProductsQueryOptions(productIds, queryClient))
 }
