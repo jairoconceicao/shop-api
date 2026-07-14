@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
+import { useAuthStore } from '../../auth/store/authStore'
 import { ProductDetailPage } from './ProductDetailPage'
 
 const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
@@ -27,9 +28,22 @@ function renderPage(route = '/produtos/42') {
     return <QueryClientProvider client={queryClient}><MemoryRouter initialEntries={[route]}>{children}</MemoryRouter></QueryClientProvider>
   }
   return {
-    ...render(<Routes><Route path="produtos/:produtoId" element={<ProductDetailPage />} /></Routes>, { wrapper: Wrapper }),
+    ...render(
+      <Routes>
+        <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
+        <Route path="entrar" element={<LoginDestination />} />
+      </Routes>,
+      { wrapper: Wrapper },
+    ),
     queryClient,
   }
+}
+
+function LoginDestination() {
+  const location = useLocation()
+  const navigationType = useNavigationType()
+
+  return <p data-testid="login-destination">{JSON.stringify({ location, navigationType })}</p>
 }
 
 function ProductNavigation() {
@@ -55,6 +69,7 @@ function renderNavigablePage() {
 }
 
 beforeEach(() => {
+  useAuthStore.getState().clearSession()
   fetchProductDetail.mockReset()
   fetchProductDetail.mockResolvedValue(product)
 })
@@ -75,6 +90,60 @@ describe('ProductDetailPage', () => {
     expect(document.body).not.toHaveTextContent(/avaliaç|galeria|desconto|pix|parcel|frete|vantagens|especificações|relacionados|comprar agora/i)
     expect(screen.getByRole('spinbutton', { name: 'Quantidade' })).toHaveValue(1)
     expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeEnabled()
+  })
+
+  it('sends a visitor to login with the exact current URL and no persisted purchase data', async () => {
+    renderPage('/produtos/42?origem=catalogo#comprar')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
+
+    const destination = JSON.parse(screen.getByTestId('login-destination').textContent ?? '')
+    expect(destination.navigationType).toBe('REPLACE')
+    expect(destination.location).toMatchObject({ pathname: '/entrar', search: '', hash: '' })
+    expect(destination.location.state).toEqual({
+      returnTo: '/produtos/42?origem=catalogo#comprar',
+    })
+    expect(localStorage).toHaveLength(0)
+    expect(sessionStorage).toHaveLength(0)
+    expect(fetchProductDetail).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends an expired session to login before any cart behavior', async () => {
+    useAuthStore.getState().setSession({
+      token: 'expired-token',
+      tipo: 'Bearer',
+      expiraEm: '2000-01-01T00:00:00.000Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@exemplo.com',
+    }, 'session')
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
+
+    const destination = JSON.parse(screen.getByTestId('login-destination').textContent ?? '')
+    expect(destination.navigationType).toBe('REPLACE')
+    expect(destination.location).toMatchObject({ pathname: '/entrar' })
+    expect(destination.location.state).toEqual({ returnTo: '/produtos/42' })
+    expect(fetchProductDetail).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps an authenticated customer on the product without cart side effects', async () => {
+    useAuthStore.getState().setSession({
+      token: 'valid-token',
+      tipo: 'Bearer',
+      expiraEm: '2999-01-01T00:00:00.000Z',
+      usuarioId: 10,
+      clienteId: 20,
+      email: 'cliente@exemplo.com',
+    }, 'session')
+    renderPage('/produtos/42?origem=catalogo#comprar')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
+
+    expect(screen.getByRole('heading', { name: product.title })).toBeInTheDocument()
+    expect(screen.queryByTestId('login-destination')).not.toBeInTheDocument()
+    expect(fetchProductDetail).toHaveBeenCalledTimes(1)
   })
 
   it('renders neutral fallbacks for nullable fields', async () => {
@@ -159,6 +228,8 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Diminuir quantidade' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Aumentar quantidade' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar ao carrinho' }))
+    expect(screen.queryByTestId('login-destination')).not.toBeInTheDocument()
   })
 
   it('preserves quantity on refetch and clamps it when stock decreases', async () => {
