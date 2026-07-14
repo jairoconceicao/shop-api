@@ -21,7 +21,13 @@ export function productDetailQueryOptions(routeProductId: string | undefined) {
 
   return queryOptions({
     queryKey: productQueryKeys.detail(productId ?? 0),
-    queryFn: ({ signal }) => fetchProductDetail(productId ?? 0, signal),
+    queryFn: ({ signal }) => {
+      if (productId === undefined) {
+        throw new Error('Invalid product id')
+      }
+
+      return fetchProductDetail(productId, signal)
+    },
     enabled: productId !== undefined,
   })
 }

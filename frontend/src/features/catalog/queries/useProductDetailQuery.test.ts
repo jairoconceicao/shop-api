@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { QueryClient } from '@tanstack/react-query'
 
 import { AppError } from '../../../shared/errors/appError'
 import {
@@ -14,6 +15,10 @@ const { fetchProductDetail } = vi.hoisted(() => ({
 vi.mock('../services/productDetailService', () => ({ fetchProductDetail }))
 
 describe('productDetailQueryOptions', () => {
+  beforeEach(() => {
+    fetchProductDetail.mockClear()
+  })
+
   it('uses a stable detail key for the canonical product id', () => {
     expect(productDetailQueryOptions('42').queryKey).toEqual([
       'catalog',
@@ -29,6 +34,18 @@ describe('productDetailQueryOptions', () => {
   it('disables the query when the route id is invalid', () => {
     expect(productDetailQueryOptions(undefined).enabled).toBe(false)
     expect(productDetailQueryOptions('01').enabled).toBe(false)
+  })
+
+  it('rejects an invalid query locally without calling the detail service', async () => {
+    const options = productDetailQueryOptions(undefined)
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    await expect(client.fetchQuery(options)).rejects.toThrow(
+      'Invalid product id',
+    )
+    expect(fetchProductDetail).not.toHaveBeenCalled()
   })
 
   it('forwards the query AbortSignal to the detail service', async () => {
