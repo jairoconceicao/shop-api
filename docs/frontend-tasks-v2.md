@@ -141,7 +141,9 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-055: Implementar seleção de categoria e limpeza dos filtros.
   - Evidência: commit `bf36018`; RED 4 falhas; layouts + catálogo 85/85; typecheck/lint/diff PASS; reviewer SPEC+QUALITY approved sem findings; endpoints exclusivos, IDs inválidos e histórico cobertos.
 
-[ ] TASK-056: Implementar paginação, skeleton, estado vazio e retry do catálogo.
+[x] TASK-056: Implementar paginação, skeleton, estado vazio e retry do catálogo.
+  - Evidência: commit `af04e6c`; RED 6 falhas; Home 19/19 e layouts + catálogo 94/94; typecheck/lint/diff PASS; reviewer SPEC+QUALITY approved sem findings.
+  - Build FAIL por baseline preexistente em `main.tsx` (`top-level await` em `enableMocking`), confirmado no BASE e fora do diff; dívida separada.
 
 [ ] TASK-057: Implementar query de detalhe por `produtoId` com tratamento de `404`.
 
