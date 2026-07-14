@@ -26,7 +26,6 @@ describe('App', () => {
   it.each([
     ['/entrar', 'Entrar'],
     ['/cadastro', 'Cadastro'],
-    ['/rota-inexistente', 'Página não encontrada'],
   ])('renders the public route %s', (route, heading) => {
     const { container } = render(
       <MemoryRouter initialEntries={[route]}>
@@ -35,6 +34,18 @@ describe('App', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="public"]')).toBeInTheDocument()
+  })
+
+  it('renders the not found page with a return to the catalog', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/rota-inexistente']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Voltar ao catálogo' })).toHaveAttribute('href', '/')
     expect(container.querySelector('[data-shell="public"]')).toBeInTheDocument()
   })
 

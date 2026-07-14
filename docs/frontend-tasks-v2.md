@@ -78,7 +78,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-030: Implementar StoreLayout e AccountLayout responsivos.
 
-[ ] TASK-031: Implementar a página 404 com retorno ao catálogo.
+[x] TASK-031: Implementar a página 404 com retorno ao catálogo.
 
 ### Fase 2 — Autenticação e cadastro
 

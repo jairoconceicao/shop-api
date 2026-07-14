@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import { AccountLayout } from '../layouts/AccountLayout'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
+import { NotFoundPage } from './NotFoundPage'
 import { RoutePlaceholder } from './RoutePlaceholder'
 
 export function AppRouter() {
@@ -28,7 +29,7 @@ export function AppRouter() {
       <Route element={<PublicLayout />}>
         <Route path="entrar" element={<RoutePlaceholder title="Entrar" />} />
         <Route path="cadastro" element={<RoutePlaceholder title="Cadastro" />} />
-        <Route path="*" element={<RoutePlaceholder title="Página não encontrada" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )
