@@ -1,9 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { act, render } from '@testing-library/react'
+import { createElement } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { AuthSessionInitializer } from './AuthSessionInitializer'
 import {
   AUTH_STORE_KEY,
   AUTH_STORE_VERSION,
   type AuthSession,
+  isAuthSessionExpired,
   useAuthStore,
 } from './authStore'
 
@@ -18,8 +22,8 @@ const session: AuthSession = {
 
 describe('useAuthStore', () => {
   beforeEach(() => {
-    localStorage.clear()
-    sessionStorage.clear()
+    window.localStorage.clear()
+    window.sessionStorage.clear()
     useAuthStore.setState({ session: null, persistence: 'session' })
   })
 
@@ -28,8 +32,8 @@ describe('useAuthStore', () => {
   it('persists a non-permanent session in sessionStorage with a version', () => {
     useAuthStore.getState().setSession(session, 'session')
 
-    expect(localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
-    expect(JSON.parse(sessionStorage.getItem(AUTH_STORE_KEY) ?? '')).toEqual({
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    expect(JSON.parse(window.sessionStorage.getItem(AUTH_STORE_KEY) ?? '')).toEqual({
       state: { session, persistence: 'session' },
       version: AUTH_STORE_VERSION,
     })
@@ -39,8 +43,8 @@ describe('useAuthStore', () => {
     useAuthStore.getState().setSession(session, 'session')
     useAuthStore.getState().setSession(session, 'local')
 
-    expect(sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
-    expect(localStorage.getItem(AUTH_STORE_KEY)).not.toBeNull()
+    expect(window.sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).not.toBeNull()
   })
 
   it('clears the session from memory and both storages', () => {
@@ -49,7 +53,54 @@ describe('useAuthStore', () => {
     useAuthStore.getState().clearSession()
 
     expect(useAuthStore.getState().session).toBeNull()
-    expect(localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
-    expect(sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    expect(window.sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+  })
+
+  it('identifies missing, invalid and elapsed expiration data as expired', () => {
+    expect(isAuthSessionExpired(session, Date.parse(session.expiraEm) - 1)).toBe(false)
+    expect(isAuthSessionExpired(session, Date.parse(session.expiraEm))).toBe(true)
+    expect(isAuthSessionExpired({ ...session, expiraEm: 'invalid-date' })).toBe(true)
+    expect(isAuthSessionExpired({ ...session, token: '' })).toBe(true)
+  })
+
+  it('restores a persisted session that has not expired', async () => {
+    window.localStorage.setItem(
+      AUTH_STORE_KEY,
+      JSON.stringify({ state: { session, persistence: 'local' }, version: AUTH_STORE_VERSION }),
+    )
+
+    await useAuthStore.persist.rehydrate()
+
+    expect(useAuthStore.getState()).toMatchObject({ session, persistence: 'local' })
+  })
+
+  it('invalidates an expired restored session and removes its persistence', async () => {
+    const expiredSession = { ...session, expiraEm: '2000-01-01T00:00:00.000Z' }
+    window.localStorage.setItem(
+      AUTH_STORE_KEY,
+      JSON.stringify({
+        state: { session: expiredSession, persistence: 'local' },
+        version: AUTH_STORE_VERSION,
+      }),
+    )
+
+    await useAuthStore.persist.rehydrate()
+
+    expect(useAuthStore.getState().session).toBeNull()
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+  })
+
+  it('invalidates the active session when its expiration is reached', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-14T11:59:59.000Z'))
+    useAuthStore.getState().setSession(session, 'session')
+    render(createElement(AuthSessionInitializer))
+
+    act(() => vi.advanceTimersByTime(1_000))
+
+    expect(useAuthStore.getState().session).toBeNull()
+    expect(window.sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    vi.useRealTimers()
   })
 })

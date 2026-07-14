@@ -20,6 +20,7 @@ type AuthState = {
   persistence: AuthPersistence
   setSession: (session: AuthSession, persistence: AuthPersistence) => void
   clearSession: () => void
+  invalidateExpiredSession: (now?: number) => void
 }
 
 type BrowserStorageName = 'localStorage' | 'sessionStorage'
@@ -64,6 +65,12 @@ const authStateStorage: StateStorage = {
   },
 }
 
+export function isAuthSessionExpired(session: AuthSession, now = Date.now()) {
+  const expiration = Date.parse(session.expiraEm)
+
+  return !session.token.trim() || !Number.isFinite(expiration) || expiration <= now
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -77,12 +84,20 @@ export const useAuthStore = create<AuthState>()(
         set({ session: null, persistence: 'session' })
         authStateStorage.removeItem?.(AUTH_STORE_KEY)
       },
+      invalidateExpiredSession: (now = Date.now()) => {
+        const session = useAuthStore.getState().session
+
+        if (session && isAuthSessionExpired(session, now)) {
+          useAuthStore.getState().clearSession()
+        }
+      },
     }),
     {
       name: AUTH_STORE_KEY,
       version: AUTH_STORE_VERSION,
       storage: createJSONStorage(() => authStateStorage),
       partialize: ({ session, persistence }) => ({ session, persistence }),
+      onRehydrateStorage: () => (state) => state?.invalidateExpiredSession(),
     },
   ),
 )
