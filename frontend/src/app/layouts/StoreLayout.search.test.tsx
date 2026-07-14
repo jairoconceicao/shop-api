@@ -33,7 +33,15 @@ function renderStore(initialEntry: string) {
     [
       {
         element: <NavigationProbe />,
-        children: [{ element: <StoreLayout />, children: [{ index: true, element: <HomePage /> }] }],
+        children: [
+          {
+            element: <StoreLayout />,
+            children: [
+              { index: true, element: <HomePage /> },
+              { path: 'carrinho', element: <h1>Carrinho</h1> },
+            ],
+          },
+        ],
       },
     ],
     { initialEntries: [initialEntry] },
@@ -114,5 +122,21 @@ describe('StoreLayout catalog search', () => {
     expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent(
       '/?categoriaId=7',
     )
+  })
+
+  it('submits search from a child route to the catalog pathname', async () => {
+    renderStore('/carrinho?categoriaId=7&page=2')
+    const input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    fireEvent.change(input, { target: { value: '  teclado  ' } })
+    fireEvent.submit(input.closest('form')!)
+
+    expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent(
+      '/?searchword=teclado&categoriaId=7',
+    )
+    await waitFor(() => expect(fetchCatalog).toHaveBeenCalledWith(
+      { page: 1, size: 20, searchword: 'teclado' },
+      expect.any(AbortSignal),
+    ))
   })
 })
