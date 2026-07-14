@@ -127,7 +127,9 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-051: Implementar ProductCard apenas com dados suportados pelo OpenAPI.
   - Evidência: commits `ea595f3`, `739fdea`, `06d3754` e `5186605`; teste focused 7/7; typecheck/lint PASS; reviewer approved; correção `line-clamp-2` validada em RED/GREEN 7/7 e revisão final atendida; suíte/build mantêm baselines aceitas fora de escopo.
 
-[ ] TASK-052: Implementar hero e estrutura da Home sem promoções, descontos ou alegações de frete.
+[x] TASK-052: Implementar hero e estrutura da Home sem promoções, descontos ou alegações de frete.
+  - Evidência: commit `9353902`; testes focados 14/14; typecheck/lint PASS; reviewer approved.
+  - MINOR pendente para composição na TASK-053: adicionar `scroll-margin` à seção `#catalogo` de `HomePage.tsx` sob o header sticky.
 
 [ ] TASK-053: Implementar grid do catálogo e iniciar categorias e primeira página em paralelo.
 
