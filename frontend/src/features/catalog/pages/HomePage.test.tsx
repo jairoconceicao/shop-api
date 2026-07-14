@@ -43,7 +43,7 @@ beforeEach(() => {
   fetchCategories.mockResolvedValue([])
 })
 
-function renderHomePage() {
+function renderHomePage(initialEntry = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -51,7 +51,7 @@ function renderHomePage() {
   function Wrapper({ children }: PropsWithChildren) {
     return (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter>{children}</MemoryRouter>
+        <MemoryRouter initialEntries={[initialEntry]}>{children}</MemoryRouter>
       </QueryClientProvider>
     )
   }
@@ -109,6 +109,15 @@ describe('HomePage', () => {
     resolveCategories([])
     resolveCatalog(catalogPage)
     expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+  })
+
+  it('derives page and searchword from the catalog URL', async () => {
+    renderHomePage('/?searchword=ssd&page=3&categoriaId=9')
+
+    await waitFor(() => expect(fetchCatalog).toHaveBeenCalledWith(
+      { page: 3, size: 20, searchword: 'ssd' },
+      expect.any(AbortSignal),
+    ))
   })
 
   it('renders catalog products in a responsive grid using product cards', async () => {
