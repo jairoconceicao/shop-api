@@ -70,7 +70,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-026: Implementar ProductImage com dimensões reservadas, texto alternativo e fallback.
 
-[ ] TASK-027: Implementar Header com marca, busca, carrinho e menu do cliente.
+[x] TASK-027: Implementar Header com marca, busca, carrinho e menu do cliente.
 
 [ ] TASK-028: Implementar navegação responsiva por categorias no Header.
 
