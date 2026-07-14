@@ -337,16 +337,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Preservar em cada item `itemId`, `produtoId`, `quantidade` e `valorUnitario` conforme o contrato da API.
   - Evidência: commit `c80418f`; RED confirmado por módulo ausente; teste focado 10/10; suíte ampla 513/513; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
-  - Status: READY
+[x] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
+  - Status: DONE
   - Depends on: TASK-080
   - Critérios de aceite:
     - Mapear os itens exclusivamente do dado confirmado da query do carrinho, sem usar valores otimistas ou dados visuais hidratados.
     - Preservar `itemId`, `produtoId`, `quantidade` e `valorUnitario` de cada item confirmado.
     - Impedir a montagem quando o carrinho confirmado estiver ausente ou vazio.
+  - Evidência: commit `c42cb6f`; RED confirmado por módulo ausente; teste focado 4/4; suíte ampla 517/517; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-081
   - Critérios de aceite:
     - Enviar `POST /api/v1/pedido` autenticado com o request produzido pelo adapter estrito.
