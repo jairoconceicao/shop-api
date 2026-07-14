@@ -151,7 +151,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-058: Implementar página de produto com título, categoria, modelo, descrição, foto, preço e estoque.
   - Evidência: commit `6a1d63b`; RED por módulo/página ausente; focused 20/20 e page + App + catálogo 114/114; typecheck/lint/diff PASS; reviewer SPEC approved e QUALITY approved com MINOR; finding MINOR pendente: estado de erro recuperável usa `h2` em `ErrorState`, sem `h1` de página.
 
-[ ] TASK-059: Integrar QuantityInput ao estoque inteiro disponível e ao estado esgotado.
+[x] TASK-059: Integrar QuantityInput ao estoque inteiro disponível e ao estado esgotado.
+  - Evidência: commits `d69af40` e `1ff33d3`; focused 19/19 (root page 15/15), catálogo + App 121/121; typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT de `setState` durante render corrigido com reducer/effect.
 
 [ ] TASK-060: Implementar o guard que envia visitantes ao login antes de qualquer inclusão no carrinho.
 
