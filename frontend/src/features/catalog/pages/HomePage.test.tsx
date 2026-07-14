@@ -1,16 +1,67 @@
-import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, waitFor } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HomePage } from './HomePage'
 
+const { fetchCatalog, fetchCategories } = vi.hoisted(() => ({
+  fetchCatalog: vi.fn(),
+  fetchCategories: vi.fn(),
+}))
+
+vi.mock('../services/catalogService', () => ({ fetchCatalog }))
+vi.mock('../services/categoryService', () => ({ fetchCategories }))
+
+const catalogPage = {
+  products: [
+    {
+      id: 17,
+      title: 'Teclado mecânico',
+      thumbnail: null,
+      price: 349.9,
+      stock: 8,
+      category: { id: 4, title: 'Periféricos' },
+    },
+    {
+      id: 23,
+      title: 'Mouse sem fio',
+      thumbnail: null,
+      price: 129.9,
+      stock: 0,
+      category: { id: 4, title: 'Periféricos' },
+    },
+  ],
+  pagination: { pages: 1, size: 20, totalItems: 2 },
+}
+
+beforeEach(() => {
+  fetchCatalog.mockReset()
+  fetchCategories.mockReset()
+  fetchCatalog.mockResolvedValue(catalogPage)
+  fetchCategories.mockResolvedValue([])
+})
+
+function renderHomePage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+
+  function Wrapper({ children }: PropsWithChildren) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
+    )
+  }
+
+  return render(<HomePage />, { wrapper: Wrapper })
+}
+
 describe('HomePage', () => {
   it('presents a neutral hero with a real link to the catalog section', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>,
-    )
+    const { container } = renderHomePage()
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Encontre produtos para o seu dia a dia' }),
@@ -19,19 +70,61 @@ describe('HomePage', () => {
       'href',
       '#catalogo',
     )
-    expect(container.querySelector('section#catalogo')).toBeInTheDocument()
+    expect(container.querySelector('section#catalogo')).toHaveClass('scroll-mt-32')
     expect(screen.getByRole('heading', { level: 2, name: 'Catálogo' })).toBeInTheDocument()
   })
 
   it('does not present unsupported promotional claims', () => {
-    render(
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>,
-    )
+    renderHomePage()
 
     expect(document.body).not.toHaveTextContent(
       /promoção|desconto|oferta|frete|entrega (?:rápida|grátis)|mais vendidos/i,
+    )
+  })
+
+  it('starts categories and the first catalog page before either request resolves', async () => {
+    let resolveCatalog!: (value: typeof catalogPage) => void
+    let resolveCategories!: (value: []) => void
+    fetchCatalog.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCatalog = resolve
+      }),
+    )
+    fetchCategories.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCategories = resolve
+      }),
+    )
+
+    renderHomePage()
+
+    await waitFor(() => {
+      expect(fetchCategories).toHaveBeenCalledOnce()
+      expect(fetchCatalog).toHaveBeenCalledWith(
+        { page: 1, size: 20 },
+        expect.any(AbortSignal),
+      )
+    })
+
+    resolveCategories([])
+    resolveCatalog(catalogPage)
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+  })
+
+  it('renders catalog products in a responsive grid using product cards', async () => {
+    const { container } = renderHomePage()
+
+    expect(await screen.findByText('Teclado mecânico')).toBeInTheDocument()
+    expect(screen.getByText('Mouse sem fio')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Ver detalhes' })[0]).toHaveAttribute(
+      'href',
+      '/produtos/17',
+    )
+    expect(container.querySelector('[data-testid="catalog-grid"]')).toHaveClass(
+      'grid',
+      'sm:grid-cols-2',
+      'lg:grid-cols-3',
+      'xl:grid-cols-4',
     )
   })
 })
