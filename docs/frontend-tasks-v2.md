@@ -310,16 +310,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir estado de carregamento ou erro enquanto o último carrinho confirmado ainda não permite decidir o acesso.
   - Evidência: commit `ddf45bb`; RED confirmado pela ausência inicial do `CheckoutGuard`; testes focados e de integração 19/19; suíte 475/475; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
-  - Status: READY
+[x] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
+  - Status: DONE
   - Depends on: TASK-077
   - Critérios de aceite:
     - Consultar `GET /api/v1/cliente/{clienteId}` com o token e o `clienteId` da sessão válida.
     - Adaptar o endereço retornado para os valores iniciais do formulário sem alterar o perfil persistido.
     - Apresentar carregamento e erro acionável quando a pré-carga não puder ser concluída.
+  - Evidência: commits `3687a67` e `e841dc4`; RED confirmado por módulos ausentes e 6 falhas comportamentais de integração; testes focados e de integração 42/42; suíte 498/498; typecheck/lint/build/diff-check PASS; reviewer aprovado nos dois gates sem findings.
 
 [ ] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-078
   - Critérios de aceite:
     - Renderizar resumo do carrinho, endereço editável e seleção acessível de `Pix`, `Cartao` ou `Boleto` em desktop e mobile.
