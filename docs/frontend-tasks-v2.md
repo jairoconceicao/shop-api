@@ -88,7 +88,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-034: Criar schemas e adapter do contrato de login.
 
-[ ] TASK-035: Implementar serviço e mutation de `POST /api/v1/auth/login`.
+[x] TASK-035: Implementar serviço e mutation de `POST /api/v1/auth/login`.
 
 [ ] TASK-036: Implementar a página de login sem ação de recuperação de senha.
 
