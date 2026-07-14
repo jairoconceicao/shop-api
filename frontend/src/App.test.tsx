@@ -6,7 +6,20 @@ import { App } from './App'
 import { useAuthStore } from './features/auth/store/authStore'
 
 describe('App', () => {
+  const queryClient = new QueryClient()
+
+  function renderApp(route: string) {
+    return render(
+      <MemoryRouter initialEntries={[route]}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+  }
+
   beforeEach(() => {
+    queryClient.clear()
     useAuthStore.getState().setSession(
       {
         token: 'header.payload.signature',
@@ -29,11 +42,7 @@ describe('App', () => {
     ['/pedidos', 'Pedidos'],
     ['/pedidos/7', 'Detalhes do pedido'],
   ])('renders the store route %s', (route, heading) => {
-    const { container } = render(
-      <MemoryRouter initialEntries={[route]}>
-        <App />
-      </MemoryRouter>,
-    )
+    const { container } = renderApp(route)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
@@ -41,27 +50,16 @@ describe('App', () => {
 
   it.each([
     ['/entrar', 'Entrar na sua conta'],
-    ['/cadastro', 'Cadastro'],
+    ['/cadastro', 'Cadastro de cliente'],
   ])('renders the public route %s', (route, heading) => {
-    const queryClient = new QueryClient()
-    const { container } = render(
-      <MemoryRouter initialEntries={[route]}>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </MemoryRouter>,
-    )
+    const { container } = renderApp(route)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="public"]')).toBeInTheDocument()
   })
 
   it('renders the not found page with a return to the catalog', () => {
-    const { container } = render(
-      <MemoryRouter initialEntries={['/rota-inexistente']}>
-        <App />
-      </MemoryRouter>,
-    )
+    const { container } = renderApp('/rota-inexistente')
 
     expect(screen.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voltar ao catálogo' })).toHaveAttribute('href', '/')
@@ -72,11 +70,7 @@ describe('App', () => {
     ['/minha-conta/dados', 'Dados pessoais'],
     ['/minha-conta/senha', 'Alterar senha'],
   ])('nests the account route %s inside the store shell', (route, heading) => {
-    const { container } = render(
-      <MemoryRouter initialEntries={[route]}>
-        <App />
-      </MemoryRouter>,
-    )
+    const { container } = renderApp(route)
 
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()

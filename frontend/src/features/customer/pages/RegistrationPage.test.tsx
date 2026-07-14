@@ -119,7 +119,7 @@ describe('RegistrationPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
 
-    expect(await screen.findByText(message)).toBeVisible()
+    expect(await screen.findAllByText(message)).toHaveLength(2)
     expect(screen.getByLabelText(label)).toHaveAccessibleDescription(message)
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Cliente Exemplo')
     expect(screen.getByLabelText('Senha')).toHaveValue('Senha@123')

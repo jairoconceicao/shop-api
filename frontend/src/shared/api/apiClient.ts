@@ -31,7 +31,7 @@ async function readJson(response: Response): Promise<unknown> {
 
 export function createApiClient({
   baseUrl,
-  fetch: fetchImpl = fetch,
+  fetch: fetchImpl,
   onUnauthorized,
 }: ApiClientOptions) {
   return {
@@ -50,7 +50,7 @@ export function createApiClient({
       let response: Response
 
       try {
-        response = await fetchImpl(
+        response = await (fetchImpl ?? fetch)(
           joinUrl(typeof baseUrl === 'function' ? baseUrl() : baseUrl, path),
           {
             method: options.method ?? 'GET',
