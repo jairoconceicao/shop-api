@@ -64,7 +64,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-023: Implementar Toast, InlineAlert, Skeleton, EmptyState e ErrorState.
 
-[ ] TASK-024: Implementar QuantityInput com limites, teclado e nome acessível.
+[x] TASK-024: Implementar QuantityInput com limites, teclado e nome acessível.
 
 [ ] TASK-025: Implementar Pagination com estado atual e navegação por teclado.
 
