@@ -60,7 +60,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-021: Implementar Card, Surface, Badge e Chip com os tokens do protótipo.
 
-[ ] TASK-022: Implementar Dialog e DropdownMenu com foco, Escape e retorno de foco.
+[x] TASK-022: Implementar Dialog e DropdownMenu com foco, Escape e retorno de foco.
 
 [ ] TASK-023: Implementar Toast, InlineAlert, Skeleton, EmptyState e ErrorState.
 
