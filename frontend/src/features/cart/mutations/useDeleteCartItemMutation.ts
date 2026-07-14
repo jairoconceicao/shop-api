@@ -37,7 +37,7 @@ export function useDeleteCartItemMutation({ customerId, cartId, token }: Options
   const queryKey = cartQueryKeys.detail(customerId, cartId)
 
   return useMutation<CartItemIdentifier, AppError, number, Context>({
-    mutationKey: ['cart', 'item', 'delete'],
+    mutationKey: ['cart', 'item', 'delete', customerId, cartId],
     meta: privateCacheMeta,
     retry: false,
     mutationFn: (itemId) => deleteCartItem(itemId, token),

@@ -62,8 +62,8 @@ describe('useConfirmedCartCount', () => {
   })
 
   it.each([
-    ['update', ['cart', 'item', 1, 'quantity']],
-    ['delete', ['cart', 'item', 'delete']],
+    ['update', ['cart', 'item', 'update', 10, 100, 1]],
+    ['delete', ['cart', 'item', 'delete', 10, 100]],
   ])('congela o último total durante %s otimista e atualiza ao concluir', async (_name, mutationKey) => {
     useAuthStore.setState({ session })
     useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
@@ -104,6 +104,52 @@ describe('useConfirmedCartCount', () => {
     await act(async () => { execution = pending.execute(undefined); await Promise.resolve() })
     act(() => client.setQueryData(key, cart([{ id: 1, quantity: 1 }, { id: 2, quantity: 2 }])))
     await waitFor(() => expect(result.current).toBe(3))
+    await act(async () => { release(); await execution })
+  })
+
+  it.each([
+    ['update', ['cart', 'item', 'update', 10, 100, 1], { previousItem: { id: 1, productId: 1, quantity: 2, unitPrice: 10 } }, 9, 3],
+    ['delete', ['cart', 'item', 'delete', 10, 100], { item: { id: 1, productId: 1, quantity: 2, unitPrice: 10 } }, 1, 3],
+  ])('reconstrói o total confirmado ao montar durante %s pendente', async (_name, mutationKey, context, optimisticQuantity, expected) => {
+    useAuthStore.setState({ session })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    const client = createClient()
+    const key = cartQueryKeys.detail(10, 100)
+    client.setQueryData(key, cart([{ id: 2, quantity: 1 }]))
+    if (_name === 'update') client.setQueryData(key, cart([{ id: 1, quantity: optimisticQuantity }, { id: 2, quantity: 1 }]))
+
+    let release!: () => void
+    const pending = client.getMutationCache().build(client, {
+      mutationKey,
+      mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
+      onMutate: () => context,
+    })
+    let execution!: Promise<void>
+    await act(async () => { execution = pending.execute(optimisticQuantity); await Promise.resolve() })
+
+    expect(setup(client).result.current).toBe(expected)
+    await act(async () => { release(); await execution })
+  })
+
+  it('não congela o novo carrinho por mutation pendente da identidade anterior', async () => {
+    useAuthStore.setState({ session })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100, '20': 200 } })
+    const client = createClient()
+    client.setQueryData(cartQueryKeys.detail(10, 100), cart([{ id: 1, quantity: 8 }]))
+    client.setQueryData(cartQueryKeys.detail(20, 200), {
+      ...cart([{ id: 2, quantity: 4 }]), customerId: 20, id: 200,
+    })
+    let release!: () => void
+    const pending = client.getMutationCache().build(client, {
+      mutationKey: ['cart', 'item', 'update', 10, 100, 1],
+      mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
+      onMutate: () => ({ previousItem: { id: 1, productId: 1, quantity: 2, unitPrice: 10 } }),
+    })
+    let execution!: Promise<void>
+    await act(async () => { execution = pending.execute(8); await Promise.resolve() })
+
+    useAuthStore.setState({ session: { ...session, clienteId: 20 } })
+    expect(setup(client).result.current).toBe(4)
     await act(async () => { release(); await execution })
   })
 })

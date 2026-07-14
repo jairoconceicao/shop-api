@@ -13,7 +13,7 @@ export function useUpdateCartItemMutation({ customerId, cartId, itemId, token }:
   const queryKey = cartQueryKeys.detail(customerId, cartId)
 
   return useMutation<CartItemIdentifier, AppError, number, Context>({
-    mutationKey: ['cart', 'item', itemId, 'quantity'],
+    mutationKey: ['cart', 'item', 'update', customerId, cartId, itemId],
     scope: { id: `cart-item-${itemId}` },
     retry: false,
     mutationFn: (quantity) => updateCartItem(itemId, token, { quantidade: quantity }),

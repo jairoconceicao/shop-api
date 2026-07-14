@@ -105,6 +105,49 @@ describe('StoreLayout', () => {
 
     expect(await screen.findByRole('link', { name: 'Carrinho com 4 itens' })).toBeInTheDocument()
   })
+
+  it.each([
+    ['update', ['cart', 'item', 'update', 10, 100, 1], { previousItem: { id: 1, productId: 2, quantity: 2, unitPrice: 10 } }, 8],
+    ['delete', ['cart', 'item', 'delete', 10, 100], { item: { id: 1, productId: 2, quantity: 2, unitPrice: 10 } }, undefined],
+  ])('monta o Header com total confirmado durante %s pendente', async (_name, mutationKey, context, optimisticQuantity) => {
+    useAuthStore.setState({
+      session: {
+        token: 'token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z',
+        usuarioId: 1, clienteId: 10, email: 'cliente@shop.test',
+      },
+    })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
+    client.setQueryData(cartQueryKeys.detail(10, 100), {
+      customerId: 10, id: 100, createdAt: '2026-01-01T00:00:00Z',
+      items: optimisticQuantity === undefined
+        ? [{ id: 2, productId: 3, quantity: 1, unitPrice: 5 }]
+        : [
+            { id: 1, productId: 2, quantity: optimisticQuantity, unitPrice: 10 },
+            { id: 2, productId: 3, quantity: 1, unitPrice: 5 },
+          ],
+    })
+    let release!: () => void
+    const pending = client.getMutationCache().build(client, {
+      mutationKey,
+      mutationFn: () => new Promise<void>((resolve) => { release = resolve }),
+      onMutate: () => context,
+    })
+    const execution = pending.execute(optimisticQuantity)
+    await Promise.resolve()
+
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={client}>
+          <Routes><Route element={<StoreLayout />}><Route index element={<h1>Catálogo</h1>} /></Route></Routes>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'Carrinho com 3 itens' })).toBeInTheDocument()
+    release()
+    await execution
+  })
 })
 
 describe('AccountLayout', () => {
