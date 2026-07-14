@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import {
   formatCellPhone,
@@ -100,6 +100,7 @@ function toRequest(values: RegistrationFormValues): CreateCustomerRequest {
 const required = (message: string) => ({ required: message })
 
 export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
+  const navigate = useNavigate()
   const registrationMutation = useRegistrationMutation()
   const {
     register,
@@ -115,6 +116,7 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
       await (onSubmit === undefined
         ? registrationMutation.mutateAsync(request)
         : onSubmit(request))
+      navigate('/entrar', { replace: true, state: { registrationSucceeded: true } })
     } catch (error) {
       if (error instanceof AppError) {
         getRemoteFieldErrors(error.details).forEach(({ field, message }) => {

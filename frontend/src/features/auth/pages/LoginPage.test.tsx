@@ -9,12 +9,12 @@ import { server } from '../../../shared/testing/server'
 import { useAuthStore } from '../store/authStore'
 import { LoginPage } from './LoginPage'
 
-function renderPage() {
+function renderPage(initialState?: unknown) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   })
   const wrapper = ({ children }: PropsWithChildren) => (
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[{ pathname: '/entrar', state: initialState }]}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </MemoryRouter>
   )
@@ -26,6 +26,15 @@ describe('LoginPage', () => {
   beforeEach(() => {
     useAuthStore.getState().clearSession()
     vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+  })
+
+  it('shows the registration confirmation received through navigation state', () => {
+    renderPage({ registrationSucceeded: true })
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cadastro concluído')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Sua conta foi criada. Entre com as credenciais cadastradas.',
+    )
   })
 
   it('validates credentials before sending the login request', async () => {

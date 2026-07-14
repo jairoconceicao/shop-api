@@ -1,5 +1,10 @@
 export type LoginLocationState = {
   returnTo?: unknown
+  registrationSucceeded?: unknown
+}
+
+export function hasRegistrationSucceeded(state: unknown) {
+  return (state as LoginLocationState | null)?.registrationSucceeded === true
 }
 
 export function getInternalReturnTo(state: unknown, fallback = '/') {

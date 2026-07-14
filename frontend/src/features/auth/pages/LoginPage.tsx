@@ -2,11 +2,12 @@ import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
+import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { FormErrorSummary } from '../../../shared/ui/forms/FormErrorSummary'
 import { Input } from '../../../shared/ui/forms/Input'
 import { loginRequestSchema, type LoginRequest } from '../contracts/login'
 import { useLoginMutation } from '../mutations/useLoginMutation'
-import { getInternalReturnTo } from '../routing/returnTo'
+import { getInternalReturnTo, hasRegistrationSucceeded } from '../routing/returnTo'
 import { useAuthStore } from '../store/authStore'
 
 const EMAIL_REQUIRED_MESSAGE = 'Informe seu e-mail.'
@@ -70,6 +71,12 @@ export function LoginPage() {
             Bem-vindo de volta. Acesse seus pedidos e dados.
           </p>
         </div>
+
+        {hasRegistrationSucceeded(location.state) ? (
+          <InlineAlert className="mt-6" title="Cadastro concluído" variant="success">
+            Sua conta foi criada. Entre com as credenciais cadastradas.
+          </InlineAlert>
+        ) : null}
 
         <form className="mt-8 space-y-5" noValidate onSubmit={submitLogin}>
           <FormErrorSummary errors={formErrors} />

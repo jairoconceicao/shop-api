@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PropsWithChildren, ReactElement } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
+import { LoginPage } from '../../auth/pages/LoginPage'
 import { RegistrationPage } from './RegistrationPage'
 
 function fill(label: string, value: string) {
@@ -85,6 +86,22 @@ describe('RegistrationPage', () => {
     expect(screen.getAllByText('Informe o logradouro.').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Informe o celular.').length).toBeGreaterThan(0)
     expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('redirects a successful registration to login with a confirmation', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    renderPage(
+      <Routes>
+        <Route path="/" element={<RegistrationPage onSubmit={onSubmit} />} />
+        <Route path="/entrar" element={<LoginPage />} />
+      </Routes>,
+    )
+    fillValidRegistration()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Cadastro concluído')
+    expect(onSubmit).toHaveBeenCalledOnce()
   })
 
   it.each([
