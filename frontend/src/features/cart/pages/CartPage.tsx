@@ -1,4 +1,7 @@
+import { useRef, useState } from 'react'
+
 import { Button } from '../../../shared/ui/buttons/Button'
+import { getButtonClasses } from '../../../shared/ui/buttons/buttonStyles'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
@@ -6,12 +9,14 @@ import { EmptyState } from '../../../shared/ui/states/EmptyState'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { Card } from '../../../shared/ui/surfaces/Card'
+import { Dialog } from '../../../shared/ui/overlays/Dialog'
 import { useAuthStore } from '../../auth/store/authStore'
 import { CartItem } from '../components/CartItem'
 import type { CartItem as CartItemContract } from '../contracts/cart'
 import { useCartProductsQuery, type CartProductResult } from '../queries/useCartProductsQuery'
 import { useCartQuery } from '../queries/useCartQuery'
 import { useUpdateCartItemMutation } from '../mutations/useUpdateCartItemMutation'
+import { useDeleteCartItemMutation } from '../mutations/useDeleteCartItemMutation'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -136,6 +141,16 @@ export function CartPage() {
   const cartQuery = useCartQuery()
   const items = cartQuery.data?.items ?? []
   const productsQuery = useCartProductsQuery(items)
+  const [selectedItem, setSelectedItem] = useState<{ id: number; title: string } | null>(null)
+  const [removalAnnouncement, setRemovalAnnouncement] = useState('')
+  const cancelRemovalRef = useRef<HTMLButtonElement>(null)
+  const pageTitleRef = useRef<HTMLHeadingElement>(null)
+  const submittingRemovalRef = useRef(false)
+  const deleteMutation = useDeleteCartItemMutation({
+    customerId: cartQuery.data?.customerId ?? 0,
+    cartId: cartQuery.data?.id ?? 0,
+    token: token ?? '',
+  })
 
   let content
 
@@ -179,7 +194,23 @@ export function CartPage() {
             return (
               <li key={item.id}>
                 <CartItem
-                  actions={null}
+                  actions={token ? (
+                    <Button
+                      aria-label={`Remover ${productResult.status === 'success' ? productResult.product.title : `Produto ${item.productId}`}`}
+                      onClick={() => {
+                        deleteMutation.reset()
+                        setRemovalAnnouncement('')
+                        setSelectedItem({
+                          id: item.id,
+                          title: productResult.status === 'success' ? productResult.product.title : `Produto ${item.productId}`,
+                        })
+                      }}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      Remover
+                    </Button>
+                  ) : null}
                   fallbackAction={(
                     <Button
                       aria-label={`Tentar carregar Produto ${item.productId} novamente`}
@@ -206,10 +237,61 @@ export function CartPage() {
   return (
     <div className="container-page py-8 sm:py-10 lg:py-12">
       <header className="mb-6 sm:mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">Carrinho</h1>
+        <h1 ref={pageTitleRef} className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl" tabIndex={-1}>Carrinho</h1>
         <p className="mt-2 text-zinc-400">Revise os itens confirmados antes de continuar.</p>
       </header>
       {content}
+      <span aria-live="polite" className="sr-only">{removalAnnouncement}</span>
+      <Dialog
+        description={selectedItem ? `Você deseja remover ${selectedItem.title}? Esta ação pode ser tentada novamente se falhar.` : undefined}
+        initialFocusRef={cancelRemovalRef}
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) setSelectedItem(null)
+        }}
+        open={selectedItem !== null}
+        title="Remover item do carrinho?"
+      >
+        {deleteMutation.isError ? (
+          <InlineAlert title="Não foi possível remover o item" variant="error" />
+        ) : null}
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            ref={cancelRemovalRef}
+            type="button"
+            className={getButtonClasses({ variant: 'secondary', size: 'md' })}
+            disabled={deleteMutation.isPending}
+            onClick={() => setSelectedItem(null)}
+          >
+            Cancelar
+          </button>
+          <Button
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (!selectedItem || deleteMutation.isPending || submittingRemovalRef.current) return
+              submittingRemovalRef.current = true
+              const title = selectedItem.title
+              deleteMutation.mutate(selectedItem.id, {
+                onError: () => {
+                  submittingRemovalRef.current = false
+                },
+                onSuccess: () => {
+                  submittingRemovalRef.current = false
+                  setRemovalAnnouncement(`${title} removido do carrinho`)
+                  setSelectedItem(null)
+                  requestAnimationFrame(() => pageTitleRef.current?.focus())
+                },
+              })
+            }}
+            variant="danger"
+          >
+            {deleteMutation.isPending
+              ? 'Removendo…'
+              : deleteMutation.isError
+                ? 'Tentar remover novamente'
+                : 'Remover item'}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Cart } from '../contracts/cart'
 import { CartPage } from './CartPage'
 
-const { cartQuery, productsQuery, updateMutation, useCartProductsQuery, useUpdateCartItemMutation } = vi.hoisted(() => ({
+const { cartQuery, deleteMutation, productsQuery, updateMutation, useCartProductsQuery, useDeleteCartItemMutation, useUpdateCartItemMutation } = vi.hoisted(() => ({
   cartQuery: {
     data: undefined as Cart | undefined,
     hasCart: false,
@@ -19,7 +19,9 @@ const { cartQuery, productsQuery, updateMutation, useCartProductsQuery, useUpdat
     refetch: vi.fn(),
   },
   useCartProductsQuery: vi.fn(),
+  useDeleteCartItemMutation: vi.fn(),
   useUpdateCartItemMutation: vi.fn(),
+  deleteMutation: { error: null as Error | null, isError: false, isPending: false, isSuccess: false, mutate: vi.fn(), reset: vi.fn() },
   updateMutation: { error: null as Error | null, isError: false, isPending: false, isSuccess: false, mutate: vi.fn(), reset: vi.fn() },
 }))
 
@@ -29,6 +31,9 @@ vi.mock('../queries/useCartProductsQuery', () => ({
 }))
 vi.mock('../mutations/useUpdateCartItemMutation', () => ({
   useUpdateCartItemMutation: (options: unknown) => useUpdateCartItemMutation(options),
+}))
+vi.mock('../mutations/useDeleteCartItemMutation', () => ({
+  useDeleteCartItemMutation: (options: unknown) => useDeleteCartItemMutation(options),
 }))
 vi.mock('../../auth/store/authStore', () => ({ useAuthStore: (selector: (state: unknown) => unknown) => selector({ session: { token: 'token' } }) }))
 
@@ -79,6 +84,10 @@ describe('CartPage', () => {
     updateMutation.mutate.mockReset()
     updateMutation.reset.mockReset()
     useUpdateCartItemMutation.mockReset().mockReturnValue(updateMutation)
+    Object.assign(deleteMutation, { error: null, isError: false, isPending: false, isSuccess: false })
+    deleteMutation.mutate.mockReset()
+    deleteMutation.reset.mockReset()
+    useDeleteCartItemMutation.mockReset().mockReturnValue(deleteMutation)
   })
 
   it('shows the empty state without a cart association and still calls hydration at the top level', () => {
@@ -186,5 +195,82 @@ describe('CartPage', () => {
     updateMutation.isSuccess = true
     renderPage()
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Quantidade atualizada'))
+  })
+
+  it('requires an accessible confirmation with safe initial focus before deleting', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Segundo' }))
+    const dialog = screen.getByRole('dialog', { name: 'Remover item do carrinho?' })
+    expect(within(dialog).getByText(/Segundo/)).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Cancelar' })).toHaveFocus()
+    expect(deleteMutation.mutate).not.toHaveBeenCalled()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Remover item' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Remover item' }))
+    expect(deleteMutation.mutate).toHaveBeenCalledOnce()
+    expect(deleteMutation.mutate).toHaveBeenCalledWith(8, expect.objectContaining({ onSuccess: expect.any(Function) }))
+  })
+
+  it('locks confirmation while pending and keeps the selected item in the dialog after optimistic unmount', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    const view = renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Segundo' }))
+    Object.assign(deleteMutation, { isPending: true })
+    Object.assign(cartQuery, { data: { ...cart, items: [] } })
+    view.rerender(<MemoryRouter><CartPage /></MemoryRouter>)
+
+    const dialog = screen.getByRole('dialog', { name: 'Remover item do carrinho?' })
+    expect(within(dialog).getByText(/Segundo/)).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Removendo…' })).toBeDisabled()
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('keeps a failed deletion open and retries only by explicit action', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    Object.assign(deleteMutation, { isError: true, error: new Error('private') })
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Segundo' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('Não foi possível remover o item')
+    expect(within(dialog).queryByText('private')).not.toBeInTheDocument()
+    expect(deleteMutation.mutate).not.toHaveBeenCalled()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tentar remover novamente' }))
+    expect(deleteMutation.mutate).toHaveBeenCalledWith(8, expect.objectContaining({ onError: expect.any(Function) }))
+  })
+
+  it('reflects optimistic totals and restores them with the item after rollback', () => {
+    Object.assign(cartQuery, { data: cart, hasCart: true })
+    productsQuery.data = [product(1, 'Primeiro'), product(2, 'Segundo')]
+    const view = renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Segundo' }))
+
+    Object.assign(deleteMutation, { isPending: true })
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[1]] } })
+    view.rerender(<MemoryRouter><CartPage /></MemoryRouter>)
+    expect(within(screen.getByRole('complementary', { name: 'Resumo do carrinho' })).getByText('Total').nextElementSibling).toHaveTextContent('R$ 49,90')
+
+    Object.assign(deleteMutation, { isPending: false, isError: true })
+    Object.assign(cartQuery, { data: cart })
+    view.rerender(<MemoryRouter><CartPage /></MemoryRouter>)
+    expect(within(screen.getByRole('complementary', { name: 'Resumo do carrinho' })).getByText('Total').nextElementSibling).toHaveTextContent('R$ 300,90')
+    expect(screen.getByRole('dialog')).toHaveTextContent('Não foi possível remover o item')
+  })
+
+  it('closes, announces success and recovers focus after deletion succeeds', async () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    deleteMutation.mutate.mockImplementation((_itemId: number, options: { onSuccess?: () => void }) => options.onSuccess?.())
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Segundo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remover item' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByText('Segundo removido do carrinho')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Carrinho' })).toHaveFocus())
   })
 })
