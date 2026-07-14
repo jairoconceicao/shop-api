@@ -1,10 +1,25 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { App } from './App'
+import { useAuthStore } from './features/auth/store/authStore'
 
 describe('App', () => {
+  beforeEach(() => {
+    useAuthStore.getState().setSession(
+      {
+        token: 'header.payload.signature',
+        tipo: 'Bearer',
+        expiraEm: '2099-01-01T00:00:00Z',
+        usuarioId: 10,
+        clienteId: 20,
+        email: 'cliente@exemplo.com',
+      },
+      'session',
+    )
+  })
+
   it.each([
     ['/', 'Catálogo'],
     ['/produtos/42', 'Produto'],

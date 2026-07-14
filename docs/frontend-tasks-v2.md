@@ -94,7 +94,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-037: Implementar opção “manter conectado” e limpeza segura do formulário de login.
 
-[ ] TASK-038: Implementar ProtectedRoute com `returnTo` limitado a rotas internas.
+[x] TASK-038: Implementar ProtectedRoute com `returnTo` limitado a rotas internas.
 
 [ ] TASK-039: Implementar tratamento global de `401` com limpeza de caches privados e redirecionamento.
 

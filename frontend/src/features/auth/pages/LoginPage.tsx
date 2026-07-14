@@ -1,11 +1,12 @@
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { FormErrorSummary } from '../../../shared/ui/forms/FormErrorSummary'
 import { Input } from '../../../shared/ui/forms/Input'
 import { loginRequestSchema, type LoginRequest } from '../contracts/login'
 import { useLoginMutation } from '../mutations/useLoginMutation'
+import { getInternalReturnTo } from '../routing/returnTo'
 import { useAuthStore } from '../store/authStore'
 
 const EMAIL_REQUIRED_MESSAGE = 'Informe seu e-mail.'
@@ -18,6 +19,8 @@ type LoginFormValues = LoginRequest & {
 
 export function LoginPage() {
   const setSession = useAuthStore((state) => state.setSession)
+  const location = useLocation()
+  const navigate = useNavigate()
   const loginMutation = useLoginMutation()
   const {
     register,
@@ -38,6 +41,7 @@ export function LoginPage() {
       const session = await loginMutation.mutateAsync(parsedValues.data)
       setSession(session, values.manterConectado ? 'local' : 'session')
       reset()
+      navigate(getInternalReturnTo(location.state), { replace: true })
     } catch {
       // The mutation error is rendered in the form summary.
     } finally {
