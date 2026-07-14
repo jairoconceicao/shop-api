@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { useOutletContext } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
+import { AppError } from '../../../shared/errors/appError'
+import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { FormErrorSummary, type FormError } from '../../../shared/ui/forms/FormErrorSummary'
 import { Input } from '../../../shared/ui/forms/Input'
 import { Card } from '../../../shared/ui/surfaces/Card'
@@ -13,6 +15,7 @@ import {
   type PaymentMethod,
 } from '../contracts/checkout'
 import type { CheckoutProfile } from '../contracts/customerProfile'
+import { useCreateOrderMutation } from '../mutations/useCreateOrderMutation'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -60,7 +63,9 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   const cart = props.cart ?? routeContext?.cart
   const profile = props.profile ?? routeContext?.profile
   const errorSummaryRef = useRef<HTMLDivElement>(null)
+  const submissionInFlightRef = useRef(false)
   const [invalidSubmissions, setInvalidSubmissions] = useState(0)
+  const createOrderMutation = useCreateOrderMutation()
   const {
     register,
     handleSubmit,
@@ -72,7 +77,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       : undefined,
   })
 
-  const submit = handleSubmit((values) => {
+  const submitValidValues = (values: CheckoutFormValues) => {
     const parsed = checkoutFormSchema.safeParse({
       ...values,
       enderecoEntrega: {
@@ -82,7 +87,17 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       },
     })
 
-    if (parsed.success) return
+    if (parsed.success) {
+      if (!cart || submissionInFlightRef.current || createOrderMutation.isPending) return
+
+      submissionInFlightRef.current = true
+      createOrderMutation.reset()
+      createOrderMutation.mutate(
+        { values: parsed.data, cart },
+        { onSettled: () => { submissionInFlightRef.current = false } },
+      )
+      return
+    }
 
     parsed.error.issues.forEach((issue) => {
       const field = issue.path.at(-1)
@@ -93,7 +108,10 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       setError(path, { type: 'validate', message: fieldMessages[field as keyof typeof fieldMessages] })
     })
     setInvalidSubmissions((count) => count + 1)
-  })
+  }
+  // React Hook Form invokes this callback only from the form submit event.
+  // eslint-disable-next-line react-hooks/refs
+  const submit = handleSubmit(submitValidValues)
 
   const formErrors: FormError[] = addressFields.flatMap(([field]) => {
     const message = errors.enderecoEntrega?.[field]?.message
@@ -102,6 +120,13 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   if (errors.formaPagamento?.message) {
     formErrors.push({ fieldId: 'checkout-payment-Pix', message: errors.formaPagamento.message })
   }
+
+  const submissionError = createOrderMutation.error
+  const submissionErrorMessage = submissionError instanceof AppError && submissionError.status === 409
+    ? 'Revise o carrinho antes de tentar novamente.'
+    : submissionError instanceof AppError && submissionError.status === 422
+      ? 'Revise os dados do pedido e tente novamente.'
+      : 'Tente confirmar novamente. Se o problema continuar, volte ao carrinho.'
 
   useEffect(() => {
     if (invalidSubmissions > 0) errorSummaryRef.current?.focus()
@@ -122,6 +147,11 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start" noValidate onSubmit={submit}>
         <div className="space-y-6">
           <FormErrorSummary errors={formErrors} ref={errorSummaryRef} />
+          {submissionError ? (
+            <InlineAlert title="Não foi possível confirmar o pedido" variant="error">
+              {submissionErrorMessage}
+            </InlineAlert>
+          ) : null}
 
           <Card className="p-5 sm:p-6">
             <fieldset className="grid gap-5 sm:grid-cols-2">
@@ -168,7 +198,9 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
               <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
               <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
             </dl>
-            <Button className="mt-6 w-full" type="submit">Confirmar pedido</Button>
+            <Button className="mt-6 w-full" disabled={createOrderMutation.isPending} type="submit">
+              {createOrderMutation.isPending ? 'Confirmando pedido...' : 'Confirmar pedido'}
+            </Button>
             <p className="mt-3 text-xs text-zinc-500">A confirmação do pedido será concluída na próxima etapa.</p>
           </Card>
         </aside>
