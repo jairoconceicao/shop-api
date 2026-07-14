@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 
 import { AccountLayout } from '../layouts/AccountLayout'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
+import { RegistrationPage } from '../../features/customer/pages/RegistrationPage'
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
@@ -32,7 +33,7 @@ export function AppRouter() {
 
       <Route element={<PublicLayout />}>
         <Route path="entrar" element={<LoginPage />} />
-        <Route path="cadastro" element={<RoutePlaceholder title="Cadastro" />} />
+        <Route path="cadastro" element={<RegistrationPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

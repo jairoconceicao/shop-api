@@ -104,7 +104,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-042: Implementar máscaras de apresentação e normalização de CPF, CEP e celular.
 
-[ ] TASK-043: Implementar formulário de cadastro com endereço único e indicador de WhatsApp.
+[x] TASK-043: Implementar formulário de cadastro com endereço único e indicador de WhatsApp.
 
 [ ] TASK-044: Implementar mutation de cadastro e tratamento de `409` e `422` no formulário.
 
