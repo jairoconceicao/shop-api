@@ -100,7 +100,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-040: Implementar logout remoto e limpeza local resiliente a token expirado.
 
-[ ] TASK-041: Criar schemas e adapter de `CreateClienteRequest` e resposta de cadastro.
+[x] TASK-041: Criar schemas e adapter de `CreateClienteRequest` e resposta de cadastro.
 
 [ ] TASK-042: Implementar máscaras de apresentação e normalização de CPF, CEP e celular.
 
