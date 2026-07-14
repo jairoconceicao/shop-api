@@ -236,13 +236,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Isolar falhas por produto para que um detalhe indisponível não impeça a exibição dos demais itens.
   - Evidência: commits `8a1a746` e `273a99c`; focused 7/7 e ampla 400/400; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
-  - Status: READY
+[x] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
+  - Status: DONE
   - Depends on: TASK-026, TASK-063, TASK-069
   - Critérios de aceite:
     - Exibir imagem, título e dados hidratados do produto junto ao preço e à quantidade confirmados no item do carrinho.
     - Reservar espaço de imagem, manter nome acessível e reorganizar conteúdo e ações para uma coluna em telas pequenas.
     - Exibir fallback acionável quando o produto não puder ser hidratado, sem ocultar nem quebrar os demais itens.
+  - Evidência: commits `8e25d9c` e `a3e76fe`; focused 3/3 e ampla 403/403; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings. A primeira execução ampla apresentou flake preexistente em `useLogoutMutation.test.tsx`, e a repetição completa passou com 403/403.
 
 [ ] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
   - Status: READY
