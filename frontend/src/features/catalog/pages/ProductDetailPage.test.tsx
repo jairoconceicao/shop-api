@@ -170,6 +170,7 @@ describe('ProductDetailPage', () => {
       .mockResolvedValueOnce(product)
       .mockReturnValueOnce(refetchResult)
       .mockResolvedValueOnce({ ...product, stock: 0 })
+      .mockResolvedValueOnce({ ...product, stock: 6 })
     const { queryClient } = renderPage()
     const input = await screen.findByRole('spinbutton', { name: 'Quantidade' })
 
@@ -187,6 +188,10 @@ describe('ProductDetailPage', () => {
     await waitFor(() => expect(screen.getByText('Esgotado')).toBeInTheDocument())
     expect(input).toHaveValue(1)
     expect(input).toBeDisabled()
+
+    await queryClient.invalidateQueries({ queryKey: ['catalog', 'products', 'detail', 42] })
+    await waitFor(() => expect(input).toBeEnabled())
+    expect(input).toHaveValue(1)
   })
 
   it('resets quantity when the product changes', async () => {
