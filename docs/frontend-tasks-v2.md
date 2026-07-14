@@ -72,7 +72,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-027: Implementar Header com marca, busca, carrinho e menu do cliente.
 
-[ ] TASK-028: Implementar navegação responsiva por categorias no Header.
+[x] TASK-028: Implementar navegação responsiva por categorias no Header.
 
 [ ] TASK-029: Implementar Footer removendo links e alegações fora do MVP.
 

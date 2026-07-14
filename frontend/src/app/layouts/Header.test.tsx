@@ -43,6 +43,30 @@ describe('Header', () => {
     )
   })
 
+  it('oferece navegação SPA pelas categorias em uma faixa horizontal', () => {
+    const { container } = renderHeader({
+      categories: [
+        { id: 10, title: 'Informática' },
+        { id: 20, title: 'Casa e cozinha' },
+      ],
+    })
+
+    const navigation = screen.getByRole('navigation', { name: 'Categorias de produtos' })
+    expect(navigation).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Todas as categorias' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Informática' })).toHaveAttribute(
+      'href',
+      '/?categoria=10',
+    )
+    expect(screen.getByRole('link', { name: 'Casa e cozinha' })).toHaveAttribute(
+      'href',
+      '/?categoria=20',
+    )
+    expect(container.querySelector('.overflow-x-auto')).toContainElement(
+      navigation.querySelector('ul'),
+    )
+  })
+
   it('reflete o cliente autenticado e oferece suas ações', () => {
     const onSignOut = vi.fn()
     renderHeader({ customer: { name: 'João Cliente', email: 'joao@exemplo.com' }, onSignOut })

@@ -8,7 +8,13 @@ export interface HeaderCustomer {
   email: string
 }
 
+export interface HeaderCategory {
+  id: number
+  title: string
+}
+
 export interface HeaderProps {
+  categories?: readonly HeaderCategory[]
   customer?: HeaderCustomer | null
   onSignOut?: () => void
 }
@@ -110,7 +116,36 @@ function CustomerMenu({ customer, onSignOut }: HeaderProps) {
   )
 }
 
-export function Header({ customer = null, onSignOut }: HeaderProps) {
+function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
+  return (
+    <nav aria-label="Categorias de produtos" className="border-t border-ink-800">
+      <div className="container-page overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="flex min-w-max items-center gap-1 py-2">
+          <li>
+            <Link
+              className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-medium text-brand-400 hover:bg-ink-800 hover:text-brand-300"
+              to="/"
+            >
+              Todas as categorias
+            </Link>
+          </li>
+          {categories?.map((category) => (
+            <li key={category.id}>
+              <Link
+                className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm text-zinc-300 hover:bg-ink-800 hover:text-zinc-50"
+                to={`/?categoria=${encodeURIComponent(category.id)}`}
+              >
+                {category.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  )
+}
+
+export function Header({ categories = [], customer = null, onSignOut }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur-xl">
       <div className="container-page py-2.5">
@@ -149,6 +184,7 @@ export function Header({ customer = null, onSignOut }: HeaderProps) {
           <SearchForm />
         </div>
       </div>
+      <CategoryNavigation categories={categories} />
     </header>
   )
 }
