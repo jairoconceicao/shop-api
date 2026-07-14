@@ -76,7 +76,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-029: Implementar Footer removendo links e alegações fora do MVP.
 
-[ ] TASK-030: Implementar StoreLayout e AccountLayout responsivos.
+[x] TASK-030: Implementar StoreLayout e AccountLayout responsivos.
 
 [ ] TASK-031: Implementar a página 404 com retorno ao catálogo.
 

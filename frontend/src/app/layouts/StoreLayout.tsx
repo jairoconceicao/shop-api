@@ -4,9 +4,9 @@ import { Header } from './Header'
 
 export function StoreLayout() {
   return (
-    <div data-shell="store">
+    <div className="flex min-h-dvh flex-col" data-shell="store">
       <Header />
-      <main>
+      <main className="min-w-0 flex-1">
         <Outlet />
       </main>
       <Footer />
