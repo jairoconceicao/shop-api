@@ -66,7 +66,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-024: Implementar QuantityInput com limites, teclado e nome acessível.
 
-[ ] TASK-025: Implementar Pagination com estado atual e navegação por teclado.
+[x] TASK-025: Implementar Pagination com estado atual e navegação por teclado.
 
 [ ] TASK-026: Implementar ProductImage com dimensões reservadas, texto alternativo e fallback.
 
