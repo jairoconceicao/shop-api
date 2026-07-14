@@ -138,7 +138,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 [x] TASK-054: Implementar envio da busca e navegação voltar/avançar baseada na URL.
   - Evidência: commits `0a3a02f` e `85c4290`; RED inicial 5 falhas e regressão de rota filha em RED; testes finais layouts + catálogo 75/75 (root focused 67/67); typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT de busca fora da Home corrigido.
 
-[ ] TASK-055: Implementar seleção de categoria e limpeza dos filtros.
+[x] TASK-055: Implementar seleção de categoria e limpeza dos filtros.
+  - Evidência: commit `bf36018`; RED 4 falhas; layouts + catálogo 85/85; typecheck/lint/diff PASS; reviewer SPEC+QUALITY approved sem findings; endpoints exclusivos, IDs inválidos e histórico cobertos.
 
 [ ] TASK-056: Implementar paginação, skeleton, estado vazio e retry do catálogo.
 
