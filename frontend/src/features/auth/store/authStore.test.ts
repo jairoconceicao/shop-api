@@ -65,6 +65,8 @@ describe('useAuthStore', () => {
   })
 
   it('restores a persisted session that has not expired', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-14T11:59:59.000Z'))
     window.localStorage.setItem(
       AUTH_STORE_KEY,
       JSON.stringify({ state: { session, persistence: 'local' }, version: AUTH_STORE_VERSION }),
@@ -73,6 +75,7 @@ describe('useAuthStore', () => {
     await useAuthStore.persist.rehydrate()
 
     expect(useAuthStore.getState()).toMatchObject({ session, persistence: 'local' })
+    vi.useRealTimers()
   })
 
   it('invalidates an expired restored session and removes its persistence', async () => {
