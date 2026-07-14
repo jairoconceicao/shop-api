@@ -162,13 +162,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 4 — Carrinho autenticado
 
-[ ] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
-  - Status: READY
+[x] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
+  - Status: DONE
   - Depends on: TASK-061
   - Critérios de aceite:
     - Persistir somente o vínculo `clienteId` → `carrinhoId`, com versão e migração explícitas, sem duplicar dados do carrinho remoto.
     - Permitir consultar, definir e remover o vínculo de um cliente sem afetar os demais; logout pode conservá-lo.
     - Cobrir restauração, migração e remoção seletiva com testes do store.
+  - Evidência: commits `837416f` e `730291f`; focused 10/10 e ampla 324/324; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved sem findings.
 
 [ ] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
   - Status: READY
