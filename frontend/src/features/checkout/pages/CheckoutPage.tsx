@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useOutletContext } from 'react-router-dom'
 
@@ -58,6 +59,8 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   const routeContext = useOutletContext<CheckoutRouteContext | undefined>()
   const cart = props.cart ?? routeContext?.cart
   const profile = props.profile ?? routeContext?.profile
+  const errorSummaryRef = useRef<HTMLDivElement>(null)
+  const [invalidSubmissions, setInvalidSubmissions] = useState(0)
   const {
     register,
     handleSubmit,
@@ -89,6 +92,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
         : 'formaPagamento'
       setError(path, { type: 'validate', message: fieldMessages[field as keyof typeof fieldMessages] })
     })
+    setInvalidSubmissions((count) => count + 1)
   })
 
   const formErrors: FormError[] = addressFields.flatMap(([field]) => {
@@ -98,6 +102,10 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   if (errors.formaPagamento?.message) {
     formErrors.push({ fieldId: 'checkout-payment-Pix', message: errors.formaPagamento.message })
   }
+
+  useEffect(() => {
+    if (invalidSubmissions > 0) errorSummaryRef.current?.focus()
+  }, [invalidSubmissions])
 
   const subtotal = (cart?.items ?? []).reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -113,7 +121,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
 
       <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start" noValidate onSubmit={submit}>
         <div className="space-y-6">
-          <FormErrorSummary errors={formErrors} />
+          <FormErrorSummary errors={formErrors} ref={errorSummaryRef} />
 
           <Card className="p-5 sm:p-6">
             <fieldset className="grid gap-5 sm:grid-cols-2">
@@ -122,13 +130,13 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
               {addressFields.map(([field, label, autoComplete]) => (
                 <Input
                   autoComplete={autoComplete}
-                  className={field === 'logradouro' ? 'sm:col-span-2' : undefined}
                   error={errors.enderecoEntrega?.[field]?.message}
                   id={`checkout-${field}`}
                   inputMode={field === 'cep' ? 'numeric' : undefined}
                   key={field}
                   label={label}
                   maxLength={field === 'uf' ? 2 : undefined}
+                  wrapperClassName={field === 'logradouro' ? 'sm:col-span-2' : undefined}
                   {...register(`enderecoEntrega.${field}`)}
                 />
               ))}

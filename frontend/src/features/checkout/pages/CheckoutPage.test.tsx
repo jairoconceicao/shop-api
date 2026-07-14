@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CheckoutPage } from './CheckoutPage'
 
@@ -30,24 +31,61 @@ describe('CheckoutPage', () => {
       .toEqual(['Pix', 'Cartao', 'Boleto'])
   })
 
-  it('keeps address edits local and validates fields with an actionable summary', async () => {
+  it('keeps address edits local and focuses the actionable summary after invalid submit', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
     render(<CheckoutPage cart={cart} profile={profile} />)
 
-    fireEvent.change(screen.getByLabelText('Logradouro'), { target: { value: '' } })
+    const street = screen.getByLabelText('Logradouro')
+    fireEvent.change(street, { target: { value: 'Rua editada apenas no pedido' } })
+    expect(street).toHaveValue('Rua editada apenas no pedido')
+    expect(profile.address.logradouro).toBe('Rua das Flores')
+    fireEvent.change(street, { target: { value: '' } })
     fireEvent.change(screen.getByLabelText('UF'), { target: { value: 'S' } })
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Revise os campos destacados')
+    const summary = await screen.findByRole('alert')
+    expect(summary).toHaveTextContent('Revise os campos destacados')
+    await waitFor(() => expect(summary).toHaveFocus())
     expect(screen.getByLabelText('Logradouro')).toHaveAccessibleDescription('Informe o logradouro.')
     expect(screen.getByRole('link', { name: 'Informe o logradouro.' }))
       .toHaveAttribute('href', '#checkout-logradouro')
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
   })
 
-  it('allows selecting Pix, Cartao, or Boleto without creating an order', () => {
+  it('allows selecting every supported payment without creating an order', () => {
     render(<CheckoutPage cart={cart} profile={profile} />)
 
-    const boleto = screen.getByRole('radio', { name: 'Boleto' })
-    fireEvent.click(boleto)
-    expect(boleto).toBeChecked()
+    for (const name of ['Pix', 'Cartão', 'Boleto']) {
+      const payment = screen.getByRole('radio', { name })
+      fireEvent.click(payment)
+      expect(payment).toBeChecked()
+    }
+  })
+
+  it('consumes the cart and profile delivered by the outlet context', () => {
+    function ContextRoute() {
+      return <Outlet context={{ cart, profile }} />
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/checkout']}>
+        <Routes>
+          <Route element={<ContextRoute />}>
+            <Route path="checkout" element={<CheckoutPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByLabelText('Logradouro')).toHaveValue('Rua das Flores')
+    expect(screen.getAllByText('R$ 100,00')).toHaveLength(2)
+  })
+
+  it('applies the wide grid span to the field wrapper', () => {
+    render(<CheckoutPage cart={cart} profile={profile} />)
+
+    expect(screen.getByLabelText('Logradouro').parentElement).toHaveClass('sm:col-span-2')
+    expect(screen.getByLabelText('Logradouro')).not.toHaveClass('sm:col-span-2')
   })
 })
