@@ -31,6 +31,12 @@ describe('deliveryAddressSchema', () => {
     expect(deliveryAddressSchema.parse(validAddress)).toEqual(validAddress)
   })
 
+  it('accepts a two-letter UF independent of casing', () => {
+    const address = { ...validAddress, uf: 'sp' }
+
+    expect(deliveryAddressSchema.parse(address)).toEqual(address)
+  })
+
   it.each([undefined, null, 'Apto 12'])(
     'accepts optional or nullable complemento: %s',
     (complemento) => {
@@ -47,9 +53,7 @@ describe('deliveryAddressSchema', () => {
     ['numero', '   '],
     ['bairro', ''],
     ['cidade', ''],
-    ['cep', '12345-678'],
     ['uf', 'S'],
-    ['uf', 'sp'],
   ])('rejects invalid %s', (field, value) => {
     expect(() =>
       deliveryAddressSchema.parse({ ...validAddress, [field]: value }),
@@ -57,9 +61,31 @@ describe('deliveryAddressSchema', () => {
   })
 
   it('rejects unknown address properties', () => {
-    expect(() =>
-      deliveryAddressSchema.parse({ ...validAddress, referencia: 'Próximo à praça' }),
-    ).toThrow()
+    const result = deliveryAddressSchema.safeParse({
+      ...validAddress,
+      referencia: 'Próximo à praça',
+    })
+
+    expect(result.success).toBe(false)
+    if (result.success) return
+
+    expect(result.error.issues).toContainEqual(
+      expect.objectContaining({ code: 'unrecognized_keys', path: [] }),
+    )
+  })
+
+  it('rejects a formatted CEP at the cep path', () => {
+    const result = deliveryAddressSchema.safeParse({
+      ...validAddress,
+      cep: '12345-678',
+    })
+
+    expect(result.success).toBe(false)
+    if (result.success) return
+
+    expect(result.error.issues).toContainEqual(
+      expect.objectContaining({ code: 'invalid_format', path: ['cep'] }),
+    )
   })
 })
 
