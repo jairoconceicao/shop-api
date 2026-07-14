@@ -9,7 +9,7 @@ function LocationProbe() {
   return <output aria-label="Localização atual">{`${location.pathname}${location.search}`}</output>
 }
 
-function renderHeader(props: Partial<React.ComponentProps<typeof Header>> = {}) {
+function renderHeader(props: Partial<React.ComponentProps<typeof Header>> = {}, initialEntry = '/') {
   const headerProps = {
     searchword: '',
     onSearchwordChange: () => undefined,
@@ -18,7 +18,7 @@ function renderHeader(props: Partial<React.ComponentProps<typeof Header>> = {}) 
   }
 
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <Header {...headerProps} />
       <LocationProbe />
     </MemoryRouter>,
@@ -67,15 +67,38 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: 'Todas as categorias' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Informática' })).toHaveAttribute(
       'href',
-      '/?categoria=10',
+      '/?categoriaId=10',
     )
     expect(screen.getByRole('link', { name: 'Casa e cozinha' })).toHaveAttribute(
       'href',
-      '/?categoria=20',
+      '/?categoriaId=20',
     )
     expect(container.querySelector('.overflow-x-auto')).toContainElement(
       navigation.querySelector('ul'),
     )
+  })
+
+  it('preserva a busca, remove a página e marca a categoria selecionada', () => {
+    renderHeader({
+      categories: [{ id: 10, title: 'Informática' }],
+      selectedCategoryId: 10,
+      searchword: 'ssd',
+    }, '/?searchword=ssd&categoriaId=10&page=4')
+
+    expect(screen.getByRole('link', { name: 'Informática' })).toHaveAttribute(
+      'href',
+      '/?searchword=ssd&categoriaId=10',
+    )
+    expect(screen.getByRole('link', { name: 'Informática' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Todas as categorias' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('limpa todos os filtros ao selecionar todas as categorias', () => {
+    renderHeader({ selectedCategoryId: 10 }, '/?searchword=ssd&categoriaId=10&page=4')
+
+    expect(screen.getByRole('link', { name: 'Todas as categorias' })).toHaveAttribute('href', '/')
+    fireEvent.click(screen.getByRole('link', { name: 'Todas as categorias' }))
+    expect(screen.getByLabelText('Localização atual')).toHaveTextContent(/^\/$/)
   })
 
   it('reflete o cliente autenticado e oferece suas ações', () => {

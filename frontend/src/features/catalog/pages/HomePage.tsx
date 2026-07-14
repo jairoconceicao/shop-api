@@ -3,17 +3,37 @@ import { useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/ProductCard'
 import { useCatalogQuery } from '../queries/useCatalogQuery'
 import { useCategoriesQuery } from '../queries/useCategoriesQuery'
-import { parseCatalogUrl } from '../routing/catalogUrl'
+import { useProductsByCategoryQuery } from '../queries/useProductsByCategoryQuery'
+import { parseCatalogUrl, parseCategoryId } from '../routing/catalogUrl'
+
+function GeneralCatalog({ page, searchword }: { page: number; searchword?: string }) {
+  const { data } = useCatalogQuery({
+    page,
+    size: 20,
+    ...(searchword ? { searchword } : {}),
+  })
+
+  return <CatalogGrid products={data?.products} />
+}
+
+function CategoryCatalog({ categoryId }: { categoryId: number }) {
+  const { data } = useProductsByCategoryQuery(categoryId)
+  return <CatalogGrid products={data?.products} />
+}
+
+function CatalogGrid({ products }: { products?: readonly React.ComponentProps<typeof ProductCard>['product'][] }) {
+  return (
+    <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="catalog-grid">
+      {products?.map((product) => <ProductCard key={product.id} product={product} />)}
+    </div>
+  )
+}
 
 export function HomePage() {
   const [searchParams] = useSearchParams()
   const catalogUrl = parseCatalogUrl(searchParams)
+  const categoryId = parseCategoryId(catalogUrl.categoriaId)
   useCategoriesQuery()
-  const { data } = useCatalogQuery({
-    page: catalogUrl.page,
-    size: 20,
-    ...(catalogUrl.searchword ? { searchword: catalogUrl.searchword } : {}),
-  })
 
   return (
     <>
@@ -44,14 +64,11 @@ export function HomePage() {
             Explore os produtos disponíveis por categoria.
           </p>
         </header>
-        <div
-          className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          data-testid="catalog-grid"
-        >
-          {data?.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {categoryId === undefined ? (
+          <GeneralCatalog page={catalogUrl.page} searchword={catalogUrl.searchword} />
+        ) : (
+          <CategoryCatalog categoryId={categoryId} />
+        )}
       </section>
     </>
   )

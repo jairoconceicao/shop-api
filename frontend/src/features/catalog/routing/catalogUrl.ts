@@ -7,6 +7,13 @@ export interface CatalogUrlState {
 const DEFAULT_PAGE = 1
 const CANONICAL_POSITIVE_INTEGER = /^[1-9]\d*$/
 
+export function parseCategoryId(value: string | undefined): number | undefined {
+  if (!value || !CANONICAL_POSITIVE_INTEGER.test(value)) return undefined
+
+  const categoryId = Number(value)
+  return Number.isSafeInteger(categoryId) ? categoryId : undefined
+}
+
 function normalizeOptionalValue(value: string | null): string | undefined {
   const normalized = value?.trim()
   return normalized ? normalized : undefined

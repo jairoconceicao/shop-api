@@ -2,6 +2,7 @@ import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
 import { DropdownMenu } from '../../shared/ui/overlays/DropdownMenu'
+import { serializeCatalogUrl } from '../../features/catalog/routing/catalogUrl'
 
 export interface HeaderCustomer {
   name: string
@@ -15,6 +16,7 @@ export interface HeaderCategory {
 
 export interface HeaderProps {
   categories?: readonly HeaderCategory[]
+  selectedCategoryId?: number
   customer?: HeaderCustomer | null
   onSignOut?: () => void
   searchword: string
@@ -126,7 +128,11 @@ function CustomerMenu({ customer, onSignOut }: Pick<HeaderProps, 'customer' | 'o
   )
 }
 
-function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
+function CategoryNavigation({
+  categories,
+  searchword,
+  selectedCategoryId,
+}: Pick<HeaderProps, 'categories' | 'searchword' | 'selectedCategoryId'>) {
   return (
     <nav aria-label="Categorias de produtos" className="border-t border-ink-800">
       <div className="container-page overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -135,6 +141,7 @@ function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
             <Link
               className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-medium text-brand-400 hover:bg-ink-800 hover:text-brand-300"
               to="/"
+              aria-current={selectedCategoryId === undefined ? 'page' : undefined}
             >
               Todas as categorias
             </Link>
@@ -143,7 +150,15 @@ function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
             <li key={category.id}>
               <Link
                 className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm text-zinc-300 hover:bg-ink-800 hover:text-zinc-50"
-                to={`/?categoria=${encodeURIComponent(category.id)}`}
+                to={{
+                  pathname: '/',
+                  search: `?${serializeCatalogUrl({
+                    searchword,
+                    categoriaId: String(category.id),
+                    page: 1,
+                  }).toString()}`,
+                }}
+                aria-current={selectedCategoryId === category.id ? 'page' : undefined}
               >
                 {category.title}
               </Link>
@@ -157,6 +172,7 @@ function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
 
 export function Header({
   categories = [],
+  selectedCategoryId,
   customer = null,
   onSignOut,
   searchword,
@@ -209,7 +225,11 @@ export function Header({
           />
         </div>
       </div>
-      <CategoryNavigation categories={categories} />
+      <CategoryNavigation
+        categories={categories}
+        searchword={searchword}
+        selectedCategoryId={selectedCategoryId}
+      />
     </header>
   )
 }
