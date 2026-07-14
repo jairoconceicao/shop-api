@@ -80,3 +80,69 @@ Required for every changed behavior. Domain → unit; Application → fakes; API
 
 - **SEMPRE** separe tarefas de backend e frontend.
 - Toda tarefa deve ser pequena e rastreável.
+
+## Workflow de implementação de tasks
+
+O agente principal deve atuar somente como orquestrador.
+
+### Fonte das tasks
+
+As tasks estão em:
+
+`docs/frontend-tasks-v2.md`
+
+Uma task pode ser executada somente quando:
+
+- seu status for `READY`;
+- todas as tasks listadas em `Depends on` estiverem `DONE`;
+- seus critérios de aceite estiverem definidos;
+- não houver outra task ativa alterando os mesmos componentes.
+
+### Workflow obrigatório por task
+
+Para cada task selecionada:
+
+1. Registrar o commit atual como BASE_COMMIT.
+2. Delegar a análise a um agente explorador.
+3. Aguardar o relatório do agente explorador.
+4. Delegar a implementação a um agente implementador.
+5. Aguardar a implementação e os testes.
+6. Gerar o diff entre BASE_COMMIT e HEAD.
+7. Delegar a revisão um agente revisor.
+8. Caso existam findings CRITICAL ou IMPORTANT:
+   - delegar as correções ao agente implementador;
+   - executar os testes novamente;
+   - enviar novamente ao agente revisor.
+9. Somente após ambas as aprovações:
+   - atualizar a task para `DONE`;
+   - registrar testes e commit no backlog;
+   - criar um commit final, caso ainda existam mudanças pendentes.
+
+### Restrições
+
+- Não executar dois agentes com permissão de escrita simultaneamente no mesmo checkout.
+- Não implementar tasks com dependências incompletas.
+- Não alterar escopo sem registrar a decisão.
+- Não marcar uma task como concluída com testes falhando.
+- Não ignorar findings CRITICAL ou IMPORTANT.
+- Não trabalhar diretamente na branch main.
+- Cada task deve possuir seu próprio commit ou conjunto claramente identificado de commits.
+
+### Formato dos commits
+
+`feat(TASK-ID): descrição`
+
+`fix(TASK-ID): descrição`
+
+`test(TASK-ID): descrição`
+
+### Resultado final
+
+Ao terminar o lote, apresentar:
+
+- tasks concluídas;
+- tasks bloqueadas;
+- commits criados;
+- testes executados;
+- findings pendentes;
+- mudanças realizadas no backlog.
