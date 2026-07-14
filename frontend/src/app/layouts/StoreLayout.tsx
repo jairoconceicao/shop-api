@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, useSearchParams } from 'react-router-dom'
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLogoutMutation } from '../../features/auth/mutations/useLogoutMutation'
 import { useAuthStore } from '../../features/auth/store/authStore'
 import { parseCatalogUrl, serializeCatalogUrl } from '../../features/catalog/routing/catalogUrl'
@@ -9,7 +9,8 @@ import { Header } from './Header'
 export function StoreLayout() {
   const session = useAuthStore((state) => state.session)
   const logoutMutation = useLogoutMutation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const catalogUrl = parseCatalogUrl(searchParams)
 
   return (
@@ -20,7 +21,7 @@ export function StoreLayout() {
         categoriaId={catalogUrl.categoriaId}
         customer={session ? { name: 'Cliente', email: session.email } : null}
         onSignOut={session ? () => logoutMutation.mutate(session.token) : undefined}
-        setSearchParams={setSearchParams}
+        navigate={navigate}
       />
       <main className="min-w-0 flex-1">
         <Outlet />
@@ -35,7 +36,7 @@ interface CatalogHeaderProps {
   categoriaId?: string
   customer: React.ComponentProps<typeof Header>['customer']
   onSignOut: React.ComponentProps<typeof Header>['onSignOut']
-  setSearchParams: ReturnType<typeof useSearchParams>[1]
+  navigate: ReturnType<typeof useNavigate>
 }
 
 function CatalogHeader({
@@ -43,15 +44,13 @@ function CatalogHeader({
   categoriaId,
   customer,
   onSignOut,
-  setSearchParams,
+  navigate,
 }: CatalogHeaderProps) {
   const [searchword, setSearchword] = useState(initialSearchword)
 
   function handleSearchSubmit() {
-    setSearchParams(
-      serializeCatalogUrl({ searchword, categoriaId, page: 1 }),
-      { replace: false },
-    )
+    const search = serializeCatalogUrl({ searchword, categoriaId, page: 1 }).toString()
+    navigate({ pathname: '/', search: search ? `?${search}` : '' }, { replace: false })
   }
 
   return (
