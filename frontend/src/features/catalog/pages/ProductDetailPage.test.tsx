@@ -6,10 +6,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
 import { useAuthStore } from '../../auth/store/authStore'
+import { useCartSessionStore } from '../../cart/store/cartSessionStore'
 import { ProductDetailPage } from './ProductDetailPage'
 
-const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
+const { addCartItem, createCart, fetchProductDetail } = vi.hoisted(() => ({
+  addCartItem: vi.fn(),
+  createCart: vi.fn(),
+  fetchProductDetail: vi.fn(),
+}))
 vi.mock('../services/productDetailService', () => ({ fetchProductDetail }))
+vi.mock('../../cart/services/createCartService', () => ({ createCart }))
+vi.mock('../../cart/services/addCartItemService', () => ({ addCartItem }))
 
 const product = {
   id: 42,
@@ -70,6 +77,10 @@ function renderNavigablePage() {
 
 beforeEach(() => {
   useAuthStore.getState().clearSession()
+  useCartSessionStore.setState({ cartIdsByCustomer: {} })
+  localStorage.removeItem('shop-api:cart-session')
+  addCartItem.mockReset().mockResolvedValue({ itemId: 7 })
+  createCart.mockReset().mockResolvedValue({ id: 100 })
   fetchProductDetail.mockReset()
   fetchProductDetail.mockResolvedValue(product)
 })
@@ -128,7 +139,7 @@ describe('ProductDetailPage', () => {
     expect(fetchProductDetail).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps an authenticated customer on the product without cart side effects', async () => {
+  it('creates a missing cart and announces success only after the item is confirmed', async () => {
     useAuthStore.getState().setSession({
       token: 'valid-token',
       tipo: 'Bearer',
@@ -141,9 +152,75 @@ describe('ProductDetailPage', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
 
-    expect(screen.getByRole('heading', { name: product.title })).toBeInTheDocument()
+    expect(await screen.findByRole('status')).toHaveTextContent('Produto adicionado ao carrinho')
     expect(screen.queryByTestId('login-destination')).not.toBeInTheDocument()
-    expect(fetchProductDetail).toHaveBeenCalledTimes(1)
+    expect(createCart).toHaveBeenCalledWith('valid-token')
+    expect(addCartItem).toHaveBeenCalledWith('valid-token', {
+      produtoId: 42, quantidade: 1, valorUnitario: product.price,
+    })
+    expect(fetchProductDetail).toHaveBeenCalledTimes(2)
+  })
+
+  it('reuses the customer cart and sends the selected quantity', async () => {
+    useAuthStore.getState().setSession({
+      token: 'valid-token', tipo: 'Bearer', expiraEm: '2999-01-01T00:00:00.000Z',
+      usuarioId: 10, clienteId: 20, email: 'cliente@exemplo.com',
+    }, 'session')
+    useCartSessionStore.getState().setCartId(20, 100)
+    renderPage()
+    fireEvent.change(await screen.findByRole('spinbutton', { name: 'Quantidade' }), {
+      target: { value: '3' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar ao carrinho' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Produto adicionado ao carrinho')
+    expect(createCart).not.toHaveBeenCalled()
+    expect(addCartItem).toHaveBeenCalledWith('valid-token', expect.objectContaining({ quantidade: 3 }))
+  })
+
+  it('disables all purchase controls and blocks a second click while adding', async () => {
+    useAuthStore.getState().setSession({
+      token: 'snapshot-token', tipo: 'Bearer', expiraEm: '2999-01-01T00:00:00.000Z',
+      usuarioId: 10, clienteId: 20, email: 'cliente@exemplo.com',
+    }, 'session')
+    let resolveCreate!: (cart: { id: number }) => void
+    createCart.mockReturnValue(new Promise((resolve) => { resolveCreate = resolve }))
+    renderPage()
+    const addButton = await screen.findByRole('button', { name: 'Adicionar ao carrinho' })
+
+    fireEvent.click(addButton)
+    fireEvent.click(addButton)
+
+    expect(screen.getByRole('button', { name: 'Adicionando…' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Adicionando…' })).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade' })).toBeDisabled()
+    await waitFor(() => expect(createCart).toHaveBeenCalledOnce())
+    expect(screen.queryByText('Produto adicionado ao carrinho')).not.toBeInTheDocument()
+
+    resolveCreate({ id: 100 })
+    expect(await screen.findByRole('status')).toHaveTextContent('Produto adicionado ao carrinho')
+  })
+
+  it('shows an actionable error and requires a new click after inclusion fails', async () => {
+    useAuthStore.getState().setSession({
+      token: 'valid-token', tipo: 'Bearer', expiraEm: '2999-01-01T00:00:00.000Z',
+      usuarioId: 10, clienteId: 20, email: 'cliente@exemplo.com',
+    }, 'session')
+    addCartItem.mockRejectedValueOnce(new AppError({ kind: 'network', message: 'Sem conexão.' }))
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Adicionar ao carrinho' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sem conexão.')
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeEnabled()
+    expect(addCartItem).toHaveBeenCalledOnce()
+    expect(useCartSessionStore.getState().getCartId(20)).toBe(100)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Produto adicionado ao carrinho')
+    expect(createCart).toHaveBeenCalledOnce()
+    expect(addCartItem).toHaveBeenCalledTimes(2)
   })
 
   it('renders neutral fallbacks for nullable fields', async () => {

@@ -4,10 +4,12 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
+import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { ProductImage } from '../../../shared/ui/media/ProductImage'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { isAuthSessionExpired, useAuthStore } from '../../auth/store/authStore'
+import { useAddProductToCart } from '../../cart/hooks/useAddProductToCart'
 import type { ProductDetail } from '../contracts/catalog'
 import { isProductNotFoundError, useProductDetailQuery } from '../queries/useProductDetailQuery'
 import { parseProductId } from '../routing/productId'
@@ -53,11 +55,15 @@ function ProductDetailSkeleton() {
   )
 }
 
-function ProductPurchaseControls({ availableStock }: { availableStock: number }) {
+function ProductPurchaseControls({ product, availableStock }: {
+  product: ProductDetail
+  availableStock: number
+}) {
   const location = useLocation()
   const navigate = useNavigate()
   const isSoldOut = availableStock < 1
   const maximumQuantity = Math.max(1, availableStock)
+  const addToCart = useAddProductToCart()
   const [quantity, updateQuantity] = useReducer(
     (currentQuantity: number, requestedQuantity: number) =>
       Math.min(requestedQuantity, maximumQuantity),
@@ -76,6 +82,13 @@ function ProductPurchaseControls({ availableStock }: { availableStock: number })
       void navigate('/entrar', { replace: true, state: { returnTo } })
       return
     }
+
+    void addToCart.addProduct({
+      session,
+      productId: product.id,
+      quantity,
+      displayedUnitPrice: product.price,
+    })
   }
 
   return (
@@ -85,10 +98,28 @@ function ProductPurchaseControls({ availableStock }: { availableStock: number })
         value={quantity}
         min={1}
         max={maximumQuantity}
-        disabled={isSoldOut}
+        disabled={isSoldOut || addToCart.isPending}
         onChange={updateQuantity}
       />
-      <Button disabled={isSoldOut} onClick={handleAddToCart}>Adicionar ao carrinho</Button>
+      <Button
+        aria-busy={addToCart.isPending}
+        disabled={isSoldOut || addToCart.isPending}
+        onClick={handleAddToCart}
+      >
+        {addToCart.isPending ? 'Adicionando…' : 'Adicionar ao carrinho'}
+      </Button>
+      {addToCart.error ? (
+        <InlineAlert
+          title="Não foi possível adicionar o produto"
+          variant="error"
+          action={<Button variant="secondary" onClick={handleAddToCart}>Tentar novamente</Button>}
+        >
+          {addToCart.error.message}
+        </InlineAlert>
+      ) : null}
+      {addToCart.isSuccess ? (
+        <InlineAlert title="Produto adicionado ao carrinho" variant="success" />
+      ) : null}
     </div>
   )
 }
@@ -119,7 +150,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
             <div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{brlFormatter.format(product.price)}</dd></div>
             <div><dt className="sr-only">Estoque</dt><dd>{stockLabel}</dd></div>
           </dl>
-          <ProductPurchaseControls availableStock={availableStock} />
+          <ProductPurchaseControls product={product} availableStock={availableStock} />
         </div>
       </div>
       <div className="mt-10 border-t border-ink-700 pt-8" data-testid="product-description">
