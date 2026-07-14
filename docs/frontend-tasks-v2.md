@@ -301,16 +301,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Rejeitar valores ou propriedades fora do contrato com testes unitários do schema.
   - Evidência: commits `8ab6a88` e `53ca4f7`; RED confirmado pelo comportamento anterior e GREEN focado 18/18; suíte 469/469; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
-  - Status: READY
+[x] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
+  - Status: DONE
   - Depends on: TASK-076
   - Critérios de aceite:
     - Manter `/checkout` sob a proteção de sessão existente e preservar o retorno seguro ao login.
     - Redirecionar carrinho inexistente ou confirmado sem itens para `/carrinho` sem renderizar o formulário.
     - Exibir estado de carregamento ou erro enquanto o último carrinho confirmado ainda não permite decidir o acesso.
+  - Evidência: commit `ddf45bb`; RED confirmado pela ausência inicial do `CheckoutGuard`; testes focados e de integração 19/19; suíte 475/475; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-077
   - Critérios de aceite:
     - Consultar `GET /api/v1/cliente/{clienteId}` com o token e o `clienteId` da sessão válida.
