@@ -1,13 +1,17 @@
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
+import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
+import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
 import { EmptyState } from '../../../shared/ui/states/EmptyState'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { Card } from '../../../shared/ui/surfaces/Card'
+import { useAuthStore } from '../../auth/store/authStore'
 import { CartItem } from '../components/CartItem'
 import type { CartItem as CartItemContract } from '../contracts/cart'
 import { useCartProductsQuery, type CartProductResult } from '../queries/useCartProductsQuery'
 import { useCartQuery } from '../queries/useCartQuery'
+import { useUpdateCartItemMutation } from '../mutations/useUpdateCartItemMutation'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -76,7 +80,59 @@ function CartSummary({ items }: { items: readonly CartItemContract[] }) {
   )
 }
 
+function CartItemQuantityControl({
+  cartId,
+  customerId,
+  item,
+  max,
+  title,
+  token,
+}: {
+  cartId: number
+  customerId: number
+  item: CartItemContract
+  max: number
+  title: string
+  token: string
+}) {
+  const mutation = useUpdateCartItemMutation({ customerId, cartId, itemId: item.id, token })
+  const retryQuantity = mutation.variables ?? item.quantity
+
+  return (
+    <div className="space-y-3">
+      <QuantityInput
+        disabled={mutation.isPending}
+        label={`Quantidade de ${title}`}
+        max={Math.max(1, Math.floor(max))}
+        onChange={(quantity) => {
+          mutation.reset()
+          mutation.mutate(quantity)
+        }}
+        value={item.quantity}
+      />
+      {mutation.isError ? (
+        <InlineAlert
+          title="Não foi possível atualizar a quantidade"
+          variant="error"
+          action={(
+            <Button
+              aria-label="Tentar atualizar quantidade novamente"
+              onClick={() => mutation.mutate(retryQuantity)}
+              size="sm"
+              variant="secondary"
+            >
+              Tentar novamente
+            </Button>
+          )}
+        />
+      ) : null}
+      {mutation.isSuccess ? <InlineAlert title="Quantidade atualizada" variant="success" /> : null}
+    </div>
+  )
+}
+
 export function CartPage() {
+  const token = useAuthStore((state) => state.session?.token)
   const cartQuery = useCartQuery()
   const items = cartQuery.data?.items ?? []
   const productsQuery = useCartProductsQuery(items)
@@ -107,6 +163,18 @@ export function CartPage() {
           {items.map((item) => {
             const productResult = productsById.get(item.productId)
               ?? unavailableProduct(item.productId)
+            const quantityControl = productResult.status === 'success'
+              && productResult.product.stock >= 1
+              && token ? (
+              <CartItemQuantityControl
+                cartId={cartQuery.data!.id}
+                customerId={cartQuery.data!.customerId}
+                item={item}
+                max={productResult.product.stock}
+                title={productResult.product.title}
+                token={token}
+              />
+            ) : null
 
             return (
               <li key={item.id}>
@@ -124,7 +192,7 @@ export function CartPage() {
                   )}
                   item={item}
                   productResult={productResult}
-                  quantityControl={null}
+                  quantityControl={quantityControl}
                 />
               </li>
             )

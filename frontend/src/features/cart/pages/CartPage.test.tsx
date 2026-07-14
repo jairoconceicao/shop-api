@@ -1,11 +1,11 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Cart } from '../contracts/cart'
 import { CartPage } from './CartPage'
 
-const { cartQuery, productsQuery, useCartProductsQuery } = vi.hoisted(() => ({
+const { cartQuery, productsQuery, updateMutation, useCartProductsQuery, useUpdateCartItemMutation } = vi.hoisted(() => ({
   cartQuery: {
     data: undefined as Cart | undefined,
     hasCart: false,
@@ -19,12 +19,18 @@ const { cartQuery, productsQuery, useCartProductsQuery } = vi.hoisted(() => ({
     refetch: vi.fn(),
   },
   useCartProductsQuery: vi.fn(),
+  useUpdateCartItemMutation: vi.fn(),
+  updateMutation: { error: null as Error | null, isError: false, isPending: false, isSuccess: false, mutate: vi.fn(), reset: vi.fn() },
 }))
 
 vi.mock('../queries/useCartQuery', () => ({ useCartQuery: () => cartQuery }))
 vi.mock('../queries/useCartProductsQuery', () => ({
   useCartProductsQuery: (items: unknown[]) => useCartProductsQuery(items),
 }))
+vi.mock('../mutations/useUpdateCartItemMutation', () => ({
+  useUpdateCartItemMutation: (options: unknown) => useUpdateCartItemMutation(options),
+}))
+vi.mock('../../auth/store/authStore', () => ({ useAuthStore: (selector: (state: unknown) => unknown) => selector({ session: { token: 'token' } }) }))
 
 const cart: Cart = {
   customerId: 20,
@@ -69,6 +75,10 @@ describe('CartPage', () => {
     cartQuery.refetch.mockReset()
     productsQuery.refetch.mockReset()
     useCartProductsQuery.mockReset().mockReturnValue(productsQuery)
+    Object.assign(updateMutation, { error: null, isError: false, isPending: false, isSuccess: false })
+    updateMutation.mutate.mockReset()
+    updateMutation.reset.mockReset()
+    useUpdateCartItemMutation.mockReset().mockReturnValue(updateMutation)
   })
 
   it('shows the empty state without a cart association and still calls hydration at the top level', () => {
@@ -138,5 +148,43 @@ describe('CartPage', () => {
     renderPage()
 
     expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeInTheDocument()
+  })
+
+  it('updates quantity within product stock and locks the control while pending', () => {
+    Object.assign(cartQuery, { data: cart, hasCart: true })
+    productsQuery.data = [product(1, 'Primeiro'), product(2, 'Segundo')]
+    updateMutation.isPending = true
+    renderPage()
+
+    const quantity = screen.getByRole('spinbutton', { name: 'Quantidade de Segundo' })
+    expect(quantity).toHaveAttribute('max', '10')
+    expect(quantity).toBeDisabled()
+    expect(useUpdateCartItemMutation).toHaveBeenCalledWith({ customerId: 20, cartId: 900, itemId: 8, token: 'token' })
+  })
+
+  it('does not offer quantity editing when product hydration failed', () => {
+    Object.assign(cartQuery, { data: cart, hasCart: true })
+    productsQuery.data = [{ status: 'error', productId: 2, error: new Error('fail') }, product(1, 'Primeiro')]
+    renderPage()
+    expect(screen.queryByRole('spinbutton', { name: /Produto 2/ })).not.toBeInTheDocument()
+  })
+
+  it('shows an actionable update error and retries the selected quantity manually', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    Object.assign(updateMutation, { isError: true, error: new Error('private') })
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar atualizar quantidade novamente' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível atualizar a quantidade')
+    expect(screen.queryByText('private')).not.toBeInTheDocument()
+    expect(updateMutation.mutate).toHaveBeenCalledWith(2)
+  })
+
+  it('announces success only after the mutation resolves', async () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    updateMutation.isSuccess = true
+    renderPage()
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Quantidade atualizada'))
   })
 })
