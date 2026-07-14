@@ -17,16 +17,18 @@ export function cartQueryOptions(
   cartId: number | undefined,
   token: string | undefined,
 ) {
+  const hasValidToken = token !== undefined && token.trim().length > 0
+
   return queryOptions({
     queryKey: cartQueryKeys.detail(customerId ?? null, cartId ?? null),
     queryFn: ({ signal }) => {
-      if (cartId === undefined || token === undefined) {
+      if (cartId === undefined || !hasValidToken) {
         throw new Error('Cart association is unavailable')
       }
 
       return getCart(cartId, token, signal)
     },
-    enabled: customerId !== undefined && cartId !== undefined && token !== undefined,
+    enabled: customerId !== undefined && cartId !== undefined && hasValidToken,
     meta: privateCacheMeta,
   })
 }

@@ -48,6 +48,18 @@ describe('useCartQuery', () => {
     expect(enabled).not.toHaveProperty('gcTime')
   })
 
+  it.each(['', '   '])('disables the query for an invalid token %#', async (token) => {
+    useAuthStore.setState({ session: session(10, token) })
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    const { wrapper } = createHarness()
+    const { result } = renderHook(() => useCartQuery(), { wrapper })
+
+    expect(result.current.hasCart).toBe(true)
+    expect(result.current.fetchStatus).toBe('idle')
+    await act(() => result.current.refetch())
+    expect(getCart).not.toHaveBeenCalled()
+  })
+
   it('uses a private customer/cart key without exposing the token', () => {
     useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
     getCart.mockResolvedValue({ customerId: 10, id: 100, createdAt: '', items: [] })
