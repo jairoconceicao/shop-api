@@ -301,7 +301,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Rejeitar valores ou propriedades fora do contrato com testes unitários do schema.
 
 [ ] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-076
   - Critérios de aceite:
     - Manter `/checkout` sob a proteção de sessão existente e preservar o retorno seguro ao login.
@@ -309,7 +309,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir estado de carregamento ou erro enquanto o último carrinho confirmado ainda não permite decidir o acesso.
 
 [ ] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-077
   - Critérios de aceite:
     - Consultar `GET /api/v1/cliente/{clienteId}` com o token e o `clienteId` da sessão válida.
@@ -317,7 +317,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Apresentar carregamento e erro acionável quando a pré-carga não puder ser concluída.
 
 [ ] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-078
   - Critérios de aceite:
     - Renderizar resumo do carrinho, endereço editável e seleção acessível de `Pix`, `Cartao` ou `Boleto` em desktop e mobile.
@@ -325,7 +325,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir validações por campo e resumo de erros antes de permitir a confirmação.
 
 [ ] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-079
   - Critérios de aceite:
     - Produzir somente `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` no nível raiz.
@@ -333,7 +333,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Preservar em cada item `itemId`, `produtoId`, `quantidade` e `valorUnitario` conforme o contrato da API.
 
 [ ] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-080
   - Critérios de aceite:
     - Mapear os itens exclusivamente do dado confirmado da query do carrinho, sem usar valores otimistas ou dados visuais hidratados.
@@ -341,7 +341,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Impedir a montagem quando o carrinho confirmado estiver ausente ou vazio.
 
 [ ] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-081
   - Critérios de aceite:
     - Enviar `POST /api/v1/pedido` autenticado com o request produzido pelo adapter estrito.
@@ -349,7 +349,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Adaptar a resposta `201` para `PedidoCriadoResponse` e cobrir request e response em testes de serviço.
 
 [ ] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-082
   - Critérios de aceite:
     - Desabilitar o CTA e ignorar nova confirmação enquanto a mutação estiver pendente.
@@ -357,7 +357,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Reabilitar a confirmação após falha sem disparar mais de uma requisição por tentativa.
 
 [ ] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-083
   - Critérios de aceite:
     - Remover o `carrinhoId` somente do cliente autenticado após resposta `201` adaptada com sucesso.
@@ -365,11 +365,11 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não limpar vínculo nem caches de sucesso quando a criação falhar.
 
 [ ] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
-  - Status: READY
+  - Status: BLOCKED
   - Depends on: TASK-084
   - Critérios de aceite:
     - Abrir `/pedido-confirmado/{pedidoId}` após `201` e exibir identificador, data, forma de pagamento, status e valor total retornados.
-    - Preservar apenas a resposta de confirmação em `sessionStorage` para restaurar a mesma confirmação após refresh da rota, validando o `pedidoId` da URL.
+    - Exibir os dados somente a partir do state/cache privado em memória e, após refresh, mostrar estado de confirmação indisponível com ação para voltar à loja.
     - Usar texto neutro de pedido criado, sem alegar autorização do pagamento, entrega ou emissão de nota fiscal.
 
 ### Fase 6 — Conta do cliente

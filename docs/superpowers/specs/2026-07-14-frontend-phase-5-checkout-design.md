@@ -8,7 +8,7 @@ Implementar RF-070 a RF-078: proteger o checkout, pré-carregar o endereço do c
 
 `/checkout` continua sob `ProtectedRoute`. Um guard específico aguarda a query do carrinho confirmado e só libera a página para sessão válida e carrinho não vazio; caso contrário retorna a `/carrinho`. A página consulta `GET /api/v1/cliente/{clienteId}`, inicializa React Hook Form com o endereço e valida com Zod. Alterar esses campos nunca chama `PUT /cliente`.
 
-O formulário oferece exatamente `Pix`, `Cartao` e `Boleto`. O resumo visual pode hidratar produtos, mas os itens enviados são derivados exclusivamente do último `Cart` confirmado. A mutação gera `new Date().toISOString()` no clique, cria o request pelo adapter estrito e chama `POST /api/v1/pedido`.
+O formulário oferece exatamente `Pix`, `Cartao` e `Boleto`. O resumo visual pode hidratar produtos, mas os itens enviados são derivados exclusivamente do último `Cart` confirmado. Na TASK-082, o serviço de envio gera `new Date().toISOString()` imediatamente antes de criar o request pelo adapter estrito e chamar `POST /api/v1/pedido`.
 
 ## Contratos e decisão sobre `itemId`
 
@@ -18,9 +18,9 @@ O endereço usa `logradouro`, `numero`, `complemento`, `cep`, `bairro`, `cidade`
 
 ## Sucesso, refresh e caches
 
-Após `201`, a aplicação guarda a resposta normalizada sob uma chave versionada de `sessionStorage`, indexada implicitamente pelo `pedidoId`, remove o vínculo local do carrinho daquele cliente, remove o cache do carrinho concluído, invalida caches de pedidos e navega para `/pedido-confirmado/{pedidoId}`.
+Após `201`, a aplicação mantém a resposta normalizada apenas em state de navegação e/ou cache privado em memória, remove o vínculo local do carrinho daquele cliente, remove o cache do carrinho concluído, invalida caches de pedidos e navega para `/pedido-confirmado/{pedidoId}`.
 
-A confirmação lê primeiro o navigation state e depois esse snapshot mínimo. Um refresh na mesma aba restaura a confirmação somente quando o `pedidoId` da URL coincide. Snapshot ausente, inválido ou de outro pedido produz estado seguro com link para pedidos, sem consultar detalhe nesta fase. Essa persistência não contém token, endereço, itens ou dados de pagamento adicionais.
+A confirmação aceita os dados somente quando o `pedidoId` do state/cache coincide com o parâmetro da URL. Um refresh perde esse estado intencionalmente e mostra confirmação indisponível com CTA para voltar à loja (`/`), sem inventar detalhes nem consultar o endpoint de pedido nesta fase. Logout e limpeza do cache privado eliminam qualquer confirmação em memória; nada é gravado em `localStorage` ou `sessionStorage`.
 
 ## Erros, concorrência e linguagem
 
@@ -28,4 +28,4 @@ Enquanto o POST está pendente, o CTA fica desabilitado e uma segunda tentativa 
 
 ## Testes
 
-Testes unitários cobrem schemas/adapters e persistência da confirmação. Testes de serviço cobrem perfil e POST. Testes de hooks cobrem data no envio, duplicidade, erros e reconciliação. Testes de rota/página cobrem guards, edição local, payload, sucesso e refresh. Cada task executa seu teste focado; ao fim, `npm test`, `npm run typecheck`, `npm run lint` e `npm run build` devem passar.
+Testes unitários cobrem schemas/adapters e cache em memória da confirmação. Testes de serviço cobrem perfil, geração da data e POST. Testes de hooks cobrem duplicidade, erros e reconciliação. Testes de rota/página cobrem guards, edição local, payload, sucesso e fallback após refresh. Cada task executa seu teste focado; ao fim, `npm --prefix frontend test`, `npm --prefix frontend run typecheck`, `npm --prefix frontend run lint` e `npm --prefix frontend run build` devem passar.

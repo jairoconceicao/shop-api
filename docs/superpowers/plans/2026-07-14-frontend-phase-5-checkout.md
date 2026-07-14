@@ -25,9 +25,9 @@
 
 **Interfaces:** Produces `paymentMethodSchema`, `deliveryAddressSchema`, `checkoutFormSchema`, `PaymentMethod`, `DeliveryAddress`, `CheckoutFormValues`.
 
-- [ ] Escrever testes que aceitam endereço completo e cada método, e rejeitam método/propriedade desconhecida; executar `npm test -- src/features/checkout/contracts/checkout.test.ts` e esperar FAIL por módulo ausente.
+- [ ] Escrever testes que aceitam endereço completo e cada método, e rejeitam método/propriedade desconhecida; executar `npm --prefix frontend test -- src/features/checkout/contracts/checkout.test.ts` e esperar FAIL por módulo ausente.
 - [ ] Implementar schemas Zod estritos: strings não vazias, CEP com 8 dígitos, UF com 2 letras, `complemento` opcional/nullable e enum `['Pix','Cartao','Boleto']`.
-- [ ] Reexecutar o teste focado esperando PASS; executar `npm run typecheck`; commit `feat(TASK-076): Criar schemas do checkout`.
+- [ ] Reexecutar o teste focado com `npm --prefix frontend test -- src/features/checkout/contracts/checkout.test.ts` esperando PASS; executar `npm --prefix frontend run typecheck`; commit `feat(TASK-076): Criar schemas do checkout`.
 
 ### Task 077: Guard de carrinho não vazio
 
@@ -37,7 +37,7 @@
 
 - [ ] Testar loading, erro, ausência/vazio redirecionando para `/carrinho`, e carrinho não vazio liberando outlet; comando focado deve falhar antes da implementação.
 - [ ] Implementar guard com `Navigate replace`, `Skeleton`/`ErrorState`, e aninhá-lo dentro de `ProtectedRoute` na rota checkout.
-- [ ] Rodar teste focado e `npm run typecheck` esperando PASS; commit `feat(TASK-077): Proteger acesso ao checkout`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/routing/CheckoutGuard.test.tsx` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-077): Proteger acesso ao checkout`.
 
 ### Task 078: Pré-carga do endereço
 
@@ -47,7 +47,7 @@
 
 - [ ] Testar adaptação do envelope de `GET /api/v1/cliente/{clienteId}`, normalização do endereço e query desabilitada sem sessão; testes focados devem falhar por módulos ausentes.
 - [ ] Implementar schema de transporte, adapter, serviço com `signal` e query key `['customer','checkout-profile',clienteId]` marcada privada.
-- [ ] Rodar testes focados e typecheck esperando PASS; commit `feat(TASK-078): Precarregar endereco do checkout`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/services/getCheckoutProfileService.test.ts src/features/checkout/queries/useCheckoutProfileQuery.test.tsx` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-078): Precarregar endereco do checkout`.
 
 ### Task 079: Página e formulário
 
@@ -57,7 +57,7 @@
 
 - [ ] Testar loading/erro, preenchimento do perfil, edição local, três pagamentos, validação e resumo do carrinho; teste focado deve falhar.
 - [ ] Implementar React Hook Form com resolver Zod local compatível, inputs existentes, radio group semântico, `FormErrorSummary`, subtotal/total sem frete/desconto; não chamar PUT de cliente.
-- [ ] Rodar teste focado, typecheck e lint esperando PASS; commit `feat(TASK-079): Implementar pagina de checkout`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx`, `npm --prefix frontend run typecheck` e `npm --prefix frontend run lint` esperando PASS; commit `feat(TASK-079): Implementar pagina de checkout`.
 
 ### Task 080: Adapter estrito do pedido
 
@@ -67,7 +67,7 @@
 
 - [ ] Testar root exato, rejeição de `clienteId`/`carrinhoId`, itens com `itemId/produtoId/quantidade/valorUnitario` e resposta 201; teste deve falhar inicialmente.
 - [ ] Implementar schemas `.strict()`, normalização numérica e mapeamento entre nomes internos e transporte; nenhuma omissão de `itemId`.
-- [ ] Rodar teste focado e typecheck esperando PASS; commit `feat(TASK-080): Criar adapter de pedido`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/contracts/order.test.ts` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-080): Criar adapter de pedido`.
 
 ### Task 081: Itens do estado confirmado
 
@@ -77,27 +77,27 @@
 
 - [ ] Testar mapeamento exato e rejeição de carrinho ausente/vazio, demonstrando que campos hidratados não entram no resultado; teste focado deve falhar.
 - [ ] Implementar função pura que copia `id→itemId`, `productId→produtoId`, `quantity→quantidade`, `unitPrice→valorUnitario` e lança `TypeError` para vazio.
-- [ ] Rodar teste focado e typecheck esperando PASS; commit `feat(TASK-081): Montar itens confirmados do pedido`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/adapters/confirmedCartItems.test.ts` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-081): Montar itens confirmados do pedido`.
 
 ### Task 082: Serviço de criação
 
 **Files:** Create `frontend/src/features/checkout/services/createOrderService.ts` and `.test.ts`.
 
-**Interfaces:** Produces `createOrder(request: CreateOrderRequest, token: string, signal?: AbortSignal): Promise<CreatedOrder>`; consumes `apiClient` and order adapters.
+**Interfaces:** Produces `createOrder(input: Omit<CreateOrderRequest, 'dataPedido'>, token: string, now?: () => Date, signal?: AbortSignal): Promise<CreatedOrder>`; consumes `apiClient` and order adapters and generates `dataPedido` immediately before the POST.
 
-- [ ] Com relógio fixo no chamador de teste, verificar POST `/api/v1/pedido`, bearer token, ISO e resposta adaptada; teste focado deve falhar.
-- [ ] Implementar serviço que valida o request e usa `apiClient.post`; manter geração de data fora do serviço para ocorrer no submit.
-- [ ] Rodar teste focado e typecheck esperando PASS; commit `feat(TASK-082): Criar pedido pelo checkout`.
+- [ ] Injetar relógio fixo no teste e verificar que `createOrder` acrescenta `dataPedido: now().toISOString()` imediatamente antes do POST `/api/v1/pedido`, além do bearer token e da resposta adaptada; executar `npm --prefix frontend test -- src/features/checkout/services/createOrderService.test.ts` esperando FAIL.
+- [ ] Implementar o serviço para montar e validar o request com o ISO gerado no próprio envio e então chamar `apiClient.post`; o valor não pode ser calculado na página nem na abertura do checkout.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/services/createOrderService.test.ts` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-082): Criar pedido pelo checkout`.
 
 ### Task 083: Mutação, data e duplicidade
 
 **Files:** Create `frontend/src/features/checkout/mutations/useCreateOrderMutation.ts` and `.test.tsx`; Modify `CheckoutPage.tsx` and test.
 
-**Interfaces:** Consumes form values plus confirmed `Cart`; Produces mutation whose `mutate` builds items and uses `new Date().toISOString()` immediately before `createOrder`.
+**Interfaces:** Consumes form values plus confirmed `Cart`; Produces mutation whose `mutate` builds items and delegates the timestamp-at-send boundary to `createOrder` from TASK-082.
 
-- [ ] Testar ISO no clique, um POST em clique duplo, CTA `disabled` durante pending e mensagens específicas para `AppError` 409/422 preservando campos; testes devem falhar.
+- [ ] Testar um POST em clique duplo, CTA `disabled` durante pending e mensagens específicas para `AppError` 409/422 preservando campos; testes devem falhar.
 - [ ] Implementar mutation e submissão com guarda síncrona por ref além de `isPending`; mapear erros para alerta acionável e liberar ref em `onSettled`.
-- [ ] Rodar testes focados, typecheck e lint esperando PASS; commit `feat(TASK-083): Controlar envio do checkout`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/mutations/useCreateOrderMutation.test.tsx src/features/checkout/pages/CheckoutPage.test.tsx`, `npm --prefix frontend run typecheck` e `npm --prefix frontend run lint` esperando PASS; commit `feat(TASK-083): Controlar envio do checkout`.
 
 ### Task 084: Reconciliação após 201
 
@@ -107,17 +107,17 @@
 
 - [ ] Testar que sucesso remove somente vínculo corrente, remove query do carrinho e invalida `orders`; testar que 409/422 não executam efeitos; teste deve falhar.
 - [ ] Implementar efeitos em `onSuccess` somente após resposta adaptada, capturando customer/cart IDs da tentativa confirmada.
-- [ ] Rodar testes focados e typecheck esperando PASS; commit `feat(TASK-084): Reconciliar caches apos pedido`.
+- [ ] Rodar `npm --prefix frontend test -- src/features/checkout/mutations/useCreateOrderMutation.test.tsx` e `npm --prefix frontend run typecheck` esperando PASS; commit `feat(TASK-084): Reconciliar caches apos pedido`.
 
-### Task 085: Confirmação restaurável
+### Task 085: Confirmação privada em memória
 
-**Files:** Create `frontend/src/features/checkout/storage/orderConfirmationStorage.ts`, `.test.ts`, `pages/OrderConfirmationPage.tsx`, `.test.tsx`; Modify mutation, `CheckoutPage.tsx`, `AppRouter.tsx` and tests.
+**Files:** Create `frontend/src/features/checkout/cache/orderConfirmationCache.ts`, `.test.ts`, `pages/OrderConfirmationPage.tsx`, `.test.tsx`; Modify mutation, `CheckoutPage.tsx`, `AppRouter.tsx` and tests.
 
-**Interfaces:** Produces key `shop-api:order-confirmation`, version `1`, `save/read/clearOrderConfirmation`, and page route `/pedido-confirmado/:pedidoId`.
+**Interfaces:** Produces private in-memory query key `['private','order-confirmation',pedidoId]` and page route `/pedido-confirmado/:pedidoId`; consumes navigation state and the private QueryClient cache without browser persistence.
 
-- [ ] Testar storage versionado/sanitizado, correspondência do ID, navegação após 201, refresh restaurado, ausência inválida e textos sem promessas proibidas; testes devem falhar.
-- [ ] Implementar snapshot somente de `CreatedOrder`, leitura protegida de sessionStorage, navigation state e página com ID, data, método, status e total; mismatch mostra estado seguro e link `/pedidos`.
-- [ ] Rodar testes focados, `npm test`, `npm run typecheck`, `npm run lint` e `npm run build`, todos esperando exit 0; commit `feat(TASK-085): Exibir confirmacao do pedido`.
+- [ ] Testar cache privado e correspondência do ID, navegação após 201, refresh/ausência mostrando confirmação indisponível, limpeza privada e textos sem promessas proibidas; executar `npm --prefix frontend test -- src/features/checkout/cache/orderConfirmationCache.test.ts src/features/checkout/pages/OrderConfirmationPage.test.tsx` esperando FAIL.
+- [ ] Implementar escrita/leitura somente em navigation state e QueryClient privado; página válida mostra ID, data, método, status e total, enquanto mismatch ou refresh mostra estado seguro com CTA para `/`; integrar a chave à limpeza de caches privados no logout.
+- [ ] Rodar testes focados e depois `npm --prefix frontend test`, `npm --prefix frontend run typecheck`, `npm --prefix frontend run lint` e `npm --prefix frontend run build`, todos esperando exit 0; commit `feat(TASK-085): Exibir confirmacao do pedido`.
 
 ## Fechamento por task e do lote
 
