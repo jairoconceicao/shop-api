@@ -5,6 +5,7 @@ import { useAuthStore } from '../../features/auth/store/authStore'
 import { parseCatalogUrl, serializeCatalogUrl } from '../../features/catalog/routing/catalogUrl'
 import { parseCategoryId } from '../../features/catalog/routing/catalogUrl'
 import { useCategoriesQuery } from '../../features/catalog/queries/useCategoriesQuery'
+import { useConfirmedCartCount } from '../../features/cart/hooks/useConfirmedCartCount'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -16,6 +17,7 @@ export function StoreLayout() {
   const catalogUrl = parseCatalogUrl(searchParams)
   const categoriesQuery = useCategoriesQuery()
   const selectedCategoryId = parseCategoryId(catalogUrl.categoriaId)
+  const cartCount = useConfirmedCartCount()
 
   return (
     <div className="flex min-h-dvh flex-col" data-shell="store">
@@ -27,6 +29,7 @@ export function StoreLayout() {
         selectedCategoryId={selectedCategoryId}
         customer={session ? { name: 'Cliente', email: session.email } : null}
         onSignOut={session ? () => logoutMutation.mutate(session.token) : undefined}
+        cartCount={cartCount}
         navigate={navigate}
       />
       <main className="min-w-0 flex-1">
@@ -44,6 +47,7 @@ interface CatalogHeaderProps {
   selectedCategoryId?: number
   customer: React.ComponentProps<typeof Header>['customer']
   onSignOut: React.ComponentProps<typeof Header>['onSignOut']
+  cartCount: React.ComponentProps<typeof Header>['cartCount']
   navigate: ReturnType<typeof useNavigate>
 }
 
@@ -54,6 +58,7 @@ function CatalogHeader({
   selectedCategoryId,
   customer,
   onSignOut,
+  cartCount,
   navigate,
 }: CatalogHeaderProps) {
   const [searchword, setSearchword] = useState(initialSearchword)
@@ -69,6 +74,7 @@ function CatalogHeader({
       selectedCategoryId={selectedCategoryId}
       customer={customer}
       onSignOut={onSignOut}
+      cartCount={cartCount}
       searchword={searchword}
       onSearchwordChange={setSearchword}
       onSearchSubmit={handleSearchSubmit}

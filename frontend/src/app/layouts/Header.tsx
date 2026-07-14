@@ -19,6 +19,7 @@ export interface HeaderProps {
   selectedCategoryId?: number
   customer?: HeaderCustomer | null
   onSignOut?: () => void
+  cartCount?: number
   searchword: string
   onSearchwordChange: (value: string) => void
   onSearchSubmit: () => void
@@ -175,10 +176,15 @@ export function Header({
   selectedCategoryId,
   customer = null,
   onSignOut,
+  cartCount = 0,
   searchword,
   onSearchwordChange,
   onSearchSubmit,
 }: HeaderProps) {
+  const cartLabel = cartCount > 0
+    ? `Carrinho com ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`
+    : 'Carrinho'
+
   return (
     <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur-xl">
       <div className="container-page py-2.5">
@@ -202,9 +208,9 @@ export function Header({
 
           <nav className="ml-auto flex items-center gap-1" aria-label="Ações da loja">
             <Link
-              className="flex min-h-10 items-center gap-2 rounded-xl px-3 text-zinc-200 hover:bg-ink-750"
+              className="relative flex min-h-10 items-center gap-2 rounded-xl px-3 text-zinc-200 hover:bg-ink-750"
               to="/carrinho"
-              aria-label="Carrinho"
+              aria-label={cartLabel}
             >
               <Icon>
                 <circle cx="9" cy="20" r="1" />
@@ -212,6 +218,15 @@ export function Header({
                 <path d="M3 3h2l2.4 12.4A2 2 0 0 0 9.4 17h8.2a2 2 0 0 0 2-1.6L22 7H6" />
               </Icon>
               <span className="hidden text-sm lg:inline">Carrinho</span>
+              {cartCount > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute right-0 top-0 grid min-h-5 min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-xs font-bold leading-none text-ink-950"
+                >
+                  {cartCount}
+                </span>
+              ) : null}
+              <span className="sr-only" aria-live="polite">{cartLabel}</span>
             </Link>
             <CustomerMenu customer={customer} onSignOut={onSignOut} />
           </nav>

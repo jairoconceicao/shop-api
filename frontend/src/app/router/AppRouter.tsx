@@ -4,6 +4,7 @@ import { AccountLayout } from '../layouts/AccountLayout'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
 import { HomePage } from '../../features/catalog/pages/HomePage'
 import { ProductDetailPage } from '../../features/catalog/pages/ProductDetailPage'
+import { CartPage } from '../../features/cart/pages/CartPage'
 import { RegistrationPage } from '../../features/customer/pages/RegistrationPage'
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
 import { PublicLayout } from '../layouts/PublicLayout'
@@ -18,7 +19,7 @@ export function AppRouter() {
         <Route index element={<HomePage />} />
         <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="carrinho" element={<RoutePlaceholder title="Carrinho" />} />
+          <Route path="carrinho" element={<CartPage />} />
           <Route path="checkout" element={<RoutePlaceholder title="Checkout" />} />
           <Route
             path="pedido-confirmado/:pedidoId"

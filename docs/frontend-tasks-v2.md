@@ -162,33 +162,133 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 4 — Carrinho autenticado
 
-[ ] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
+[x] TASK-062: Criar o `cartSessionStore` versionado para mapear `clienteId` a `carrinhoId`.
+  - Status: DONE
+  - Depends on: TASK-061
+  - Critérios de aceite:
+    - Persistir somente o vínculo `clienteId` → `carrinhoId`, com versão e migração explícitas, sem duplicar dados do carrinho remoto.
+    - Permitir consultar, definir e remover o vínculo de um cliente sem afetar os demais; logout pode conservá-lo.
+    - Cobrir restauração, migração e remoção seletiva com testes do store.
+  - Evidência: commits `837416f` e `730291f`; focused 10/10 e ampla 324/324; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved sem findings.
 
-[ ] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
+[x] TASK-063: Criar schemas e adapters dos contratos de carrinho e itens.
+  - Status: DONE
+  - Depends on: TASK-061
+  - Critérios de aceite:
+    - Validar os envelopes e dados de criação, leitura, inclusão, atualização e remoção definidos no `openapi.yaml`.
+    - Normalizar IDs, quantidades e valores recebidos como `number | string` sem acrescentar campos ausentes do contrato.
+    - Rejeitar respostas inválidas com erro de contrato e cobrir casos válidos e inválidos por testes.
+  - Evidência: commit `7c6a5b0`; focused 23/23 e ampla 347/347; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved.
+  - Finding pendente: MINOR — ampliar a cobertura explícita de IDs unsafe e números não finitos para todos os campos numéricos na revisão final.
 
-[ ] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
+[x] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
+  - Status: DONE
+  - Depends on: TASK-062, TASK-063
+  - Critérios de aceite:
+    - Enviar a requisição autenticada sem body e validar a resposta de criação.
+    - Associar o `carrinhoId` retornado ao `clienteId` autenticado somente após resposta bem-sucedida.
+    - Não repetir automaticamente a mutação nem persistir vínculo em caso de falha.
+  - Evidência: commit `89d9f84`; focused 6/6 e ampla 353/353; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
+[x] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
+  - Status: DONE
+  - Depends on: TASK-059, TASK-063
+  - Critérios de aceite:
+    - Enviar exatamente `produtoId`, `quantidade` e `valorUnitario` conforme o contrato.
+    - Revalidar o detalhe do produto imediatamente antes da inclusão, usar exclusivamente o preço retornado nessa consulta e tratar mudança ou conflito de preço de forma acionável, reconhecendo o backend como autoridade final e sem recuperar intenção persistida antes do login.
+    - Não repetir automaticamente a inclusão e apresentar erro acionável quando ela falhar.
+  - Evidência: commit `0e5c0e9`; focused 10/10 e ampla 363/363; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
+[x] TASK-066: Orquestrar criação do carrinho e inclusão do primeiro item como uma única ação de UI.
+  - Status: DONE
+  - Depends on: TASK-064, TASK-065
+  - Critérios de aceite:
+    - Uma confirmação explícita em “Adicionar” deve reutilizar o vínculo existente ou executar criação → inclusão na ordem correta.
+    - Impedir submissões concorrentes da mesma ação e informar sucesso somente após a inclusão confirmada.
+    - Não criar carrinho, persistir item ou concluir inclusão automaticamente no retorno do login.
+  - Evidência: commit `ececf8d`; focused 54/54 e ampla 372/372; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings bloqueantes.
+  - Finding pendente: MINOR — ampliar a cobertura explícita para troca de sessão durante o fluxo, retorno pós-login, ciclo de preço alterado e asserts diretos das mutations.
 
-[ ] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
+[x] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
+  - Status: DONE
+  - Depends on: TASK-062, TASK-063
+  - Critérios de aceite:
+    - Consultar o carrinho autenticado pelo ID associado ao cliente e manter a resposta completa no TanStack Query.
+    - Com ID ausente, representar carrinho vazio sem emitir requisição com ID sentinela ou inválido.
+    - Oferecer retry manual para falhas recuperáveis da consulta.
+  - Evidência: commits `5ed23a0` e `d5dee59`; focused 14/14 e ampla 386/386; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
+[x] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
+  - Status: DONE
+  - Depends on: TASK-067
+  - Critérios de aceite:
+    - Remover somente o vínculo do cliente autenticado quando a leitura do carrinho conhecido retornar `404`.
+    - Atualizar a UI para o estado sem carrinho e permitir que a próxima inclusão crie outro carrinho.
+    - Não descartar o vínculo em erros de rede ou outros status HTTP.
+  - Evidência: commit `34088a5`; focused 17/17 e ampla 393/393; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
+[x] TASK-069: Implementar hidratação deduplicada e paralela dos produtos únicos do carrinho.
+  - Status: DONE
+  - Depends on: TASK-057, TASK-067
+  - Critérios de aceite:
+    - Deduplicar os `produtoId` dos itens e hidratar os produtos únicos em paralelo com `Promise.all`.
+    - Reutilizar o cache de detalhe por `produtoId`, sem armazenar produtos ou itens no Zustand.
+    - Isolar falhas por produto para que um detalhe indisponível não impeça a exibição dos demais itens.
+  - Evidência: commits `8a1a746` e `273a99c`; focused 7/7 e ampla 400/400; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
+[x] TASK-070: Implementar CartItem com imagem, título, preço, quantidade e fallback de produto.
+  - Status: DONE
+  - Depends on: TASK-026, TASK-063, TASK-069
+  - Critérios de aceite:
+    - Exibir imagem, título e dados hidratados do produto junto ao preço e à quantidade confirmados no item do carrinho.
+    - Reservar espaço de imagem, manter nome acessível e reorganizar conteúdo e ações para uma coluna em telas pequenas.
+    - Exibir fallback acionável quando o produto não puder ser hidratado, sem ocultar nem quebrar os demais itens.
+  - Evidência: commits `8e25d9c` e `a3e76fe`; focused 3/3 e ampla 403/403; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings. A primeira execução ampla apresentou flake preexistente em `useLogoutMutation.test.tsx`, e a repetição completa passou com 403/403.
 
-[ ] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
+[x] TASK-071: Implementar página do carrinho com lista, subtotal, total e estado vazio.
+  - Status: DONE
+  - Depends on: TASK-068, TASK-070
+  - Critérios de aceite:
+    - Proteger `/carrinho` e renderizar os itens confirmados com estados de carregamento e erro recuperável.
+    - Calcular subtotal a partir dos itens e exibir total equivalente, sem frete, descontos ou valores inventados.
+    - Exibir estado vazio com link para o catálogo quando não houver carrinho ou itens.
+  - Evidência: commits `b93df6d` e `b44f603`; focused 19/19 e ampla 409/409; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correção do landmark principal duplicado.
 
-[ ] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
+[x] TASK-072: Implementar atualização de quantidade por PATCH com rollback em caso de falha.
+  - Status: DONE
+  - Depends on: TASK-071
+  - Critérios de aceite:
+    - Enviar `PATCH /api/v1/carrinho/items/{itemId}` com a quantidade válida selecionada.
+    - Refletir a alteração de forma otimista e restaurar o último carrinho confirmado se a mutação falhar.
+    - Apresentar erro acionável e não repetir automaticamente a mutação.
+  - Evidência: commit `aead2aa`; focused 15/15 (service + mutation 5/5 e página 10/10) e ampla 418/418; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (417/418); o teste isolado passou 2/2 e a repetição completa passou 418/418.
 
-[ ] TASK-073: Implementar confirmação e remoção de item por DELETE com rollback em caso de falha.
+[x] TASK-073: Implementar confirmação e remoção de item por DELETE com rollback em caso de falha.
+  - Status: DONE
+  - Depends on: TASK-071
+  - Critérios de aceite:
+    - Exigir confirmação acessível antes de chamar `DELETE /api/v1/carrinho/items/{itemId}`.
+    - Refletir a remoção de forma otimista e restaurar o último carrinho confirmado se a mutação falhar.
+    - Apresentar erro acionável e não repetir automaticamente a mutação.
+  - Evidência: commit `2ebb07d`; focused 20/20 e ampla 428/428; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
+[x] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
+  - Status: DONE
+  - Depends on: TASK-027, TASK-067
+  - Critérios de aceite:
+    - Derivar o badge da soma das quantidades do último carrinho confirmado pelo backend.
+    - Exibir zero ou ocultar o contador quando não houver carrinho confirmado, sem usar estado otimista ou duplicado no Zustand.
+    - Atualizar o valor de forma acessível sem provocar recarga completa da SPA.
+  - Evidência: commits `7fe1863` e `ef5d3a7`; focused 29/29 (revisor) e ampla 441/441; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correções do snapshot confirmado em mount pendente e do escopo por cliente/carrinho. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (435/436), e as repetições completas passaram com 436/436 e, após as correções, 441/441.
 
-[ ] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
+[x] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
+  - Status: DONE
+  - Depends on: TASK-064, TASK-065, TASK-072, TASK-073, TASK-074
+  - Critérios de aceite:
+    - Manter uma estratégia única de query keys para reconciliar criação, inclusão, atualização e remoção com o carrinho confirmado.
+    - Atualizar ou invalidar os caches afetados após sucesso, incluindo lista, resumo e badge, sem duplicar respostas completas em stores locais.
+    - Preservar o rollback das mutações e cobrir a convergência do cache com testes de integração.
+  - Evidência: commits `0f8bf44`, `625ebc5` e `01decb1`; focused 28/28 (revisor) e ampla 451/451; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT após a serialização das mutações por item e o bloqueio cruzado da UI. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (450/451); o teste isolado passou 2/2 e a repetição completa passou 451/451.
 
 ### Fase 5 — Checkout
 
