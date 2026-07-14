@@ -272,13 +272,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Apresentar erro acionável e não repetir automaticamente a mutação.
   - Evidência: commit `2ebb07d`; focused 20/20 e ampla 428/428; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
-  - Status: READY
+[x] TASK-074: Implementar badge do Header derivado do carrinho confirmado.
+  - Status: DONE
   - Depends on: TASK-027, TASK-067
   - Critérios de aceite:
     - Derivar o badge da soma das quantidades do último carrinho confirmado pelo backend.
     - Exibir zero ou ocultar o contador quando não houver carrinho confirmado, sem usar estado otimista ou duplicado no Zustand.
     - Atualizar o valor de forma acessível sem provocar recarga completa da SPA.
+  - Evidência: commits `7fe1863` e `ef5d3a7`; focused 29/29 (revisor) e ampla 441/441; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings após correções do snapshot confirmado em mount pendente e do escopo por cliente/carrinho. A primeira execução ampla apresentou o flake preexistente em `useLogoutMutation.test.tsx` (435/436), e as repetições completas passaram com 436/436 e, após as correções, 441/441.
 
 [ ] TASK-075: Invalidar e atualizar os caches necessários após cada mutação do carrinho.
   - Status: READY
