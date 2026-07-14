@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Cart } from '../contracts/cart'
 import { CartPage } from './CartPage'
 
-const { cartQuery, deleteMutation, productsQuery, updateMutation, useCartProductsQuery, useDeleteCartItemMutation, useUpdateCartItemMutation } = vi.hoisted(() => ({
+const { cartQuery, deleteMutation, productsQuery, updateMutation, useCartProductsQuery, useDeleteCartItemMutation, useUpdateCartItemMutation, useIsMutating } = vi.hoisted(() => ({
   cartQuery: {
     data: undefined as Cart | undefined,
     hasCart: false,
@@ -21,8 +21,14 @@ const { cartQuery, deleteMutation, productsQuery, updateMutation, useCartProduct
   useCartProductsQuery: vi.fn(),
   useDeleteCartItemMutation: vi.fn(),
   useUpdateCartItemMutation: vi.fn(),
+  useIsMutating: vi.fn<(filters?: { mutationKey?: readonly unknown[] }) => number>().mockReturnValue(0),
   deleteMutation: { error: null as Error | null, isError: false, isPending: false, isSuccess: false, mutate: vi.fn(), reset: vi.fn() },
   updateMutation: { error: null as Error | null, isError: false, isPending: false, isSuccess: false, mutate: vi.fn(), reset: vi.fn() },
+}))
+
+vi.mock('@tanstack/react-query', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@tanstack/react-query')>(),
+  useIsMutating,
 }))
 
 vi.mock('../queries/useCartQuery', () => ({ useCartQuery: () => cartQuery }))
@@ -88,6 +94,7 @@ describe('CartPage', () => {
     deleteMutation.mutate.mockReset()
     deleteMutation.reset.mockReset()
     useDeleteCartItemMutation.mockReset().mockReturnValue(deleteMutation)
+    useIsMutating.mockReset().mockReturnValue(0)
   })
 
   it('shows the empty state without a cart association and still calls hydration at the top level', () => {
@@ -171,6 +178,26 @@ describe('CartPage', () => {
     expect(useUpdateCartItemMutation).toHaveBeenCalledWith({ customerId: 20, cartId: 900, itemId: 8, token: 'token' })
   })
 
+  it('locks removal while the same item quantity update is pending', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    useIsMutating.mockImplementation((filters) => filters?.mutationKey?.[2] === 'update' ? 1 : 0)
+
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Remover Segundo' })).toBeDisabled()
+  })
+
+  it('locks quantity while deletion of the same item is pending', () => {
+    Object.assign(cartQuery, { data: { ...cart, items: [cart.items[0]] }, hasCart: true })
+    productsQuery.data = [product(2, 'Segundo')]
+    useIsMutating.mockImplementation((filters) => filters?.mutationKey?.[2] === 'delete' ? 1 : 0)
+
+    renderPage()
+
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade de Segundo' })).toBeDisabled()
+  })
+
   it('does not offer quantity editing when product hydration failed', () => {
     Object.assign(cartQuery, { data: cart, hasCart: true })
     productsQuery.data = [{ status: 'error', productId: 2, error: new Error('fail') }, product(1, 'Primeiro')]
@@ -210,7 +237,7 @@ describe('CartPage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Remover item' }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Remover item' }))
     expect(deleteMutation.mutate).toHaveBeenCalledOnce()
-    expect(deleteMutation.mutate).toHaveBeenCalledWith(8, expect.objectContaining({ onSuccess: expect.any(Function) }))
+    expect(deleteMutation.mutate).toHaveBeenCalledWith(undefined, expect.objectContaining({ onSuccess: expect.any(Function) }))
   })
 
   it('locks confirmation while pending and keeps the selected item in the dialog after optimistic unmount', () => {
@@ -240,7 +267,7 @@ describe('CartPage', () => {
     expect(within(dialog).queryByText('private')).not.toBeInTheDocument()
     expect(deleteMutation.mutate).not.toHaveBeenCalled()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Tentar remover novamente' }))
-    expect(deleteMutation.mutate).toHaveBeenCalledWith(8, expect.objectContaining({ onError: expect.any(Function) }))
+    expect(deleteMutation.mutate).toHaveBeenCalledWith(undefined, expect.objectContaining({ onError: expect.any(Function) }))
   })
 
   it('reflects optimistic totals and restores them with the item after rollback', () => {

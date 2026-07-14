@@ -24,7 +24,7 @@ function setup() {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   client.setQueryData(key, cart)
   const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  const hook = renderHook(() => useDeleteCartItemMutation({ customerId: 20, cartId: 900, token: 'token' }), { wrapper })
+  const hook = renderHook(() => useDeleteCartItemMutation({ customerId: 20, cartId: 900, itemId: 8, token: 'token' }), { wrapper })
   return { client, ...hook }
 }
 
@@ -33,7 +33,7 @@ describe('useDeleteCartItemMutation', () => {
     let resolve!: (value: { itemId: number; productId: number }) => void
     deleteCartItem.mockReturnValue(new Promise((done) => { resolve = done }))
     const { client, result } = setup()
-    act(() => result.current.mutate(8))
+    act(() => result.current.mutate())
     await waitFor(() => expect(client.getQueryData<Cart>(key)?.items.map((item) => item.id)).toEqual([7, 9]))
     resolve({ itemId: 8, productId: 2 })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -51,7 +51,7 @@ describe('useDeleteCartItemMutation', () => {
     })
     const unsubscribe = observer.subscribe(() => undefined)
 
-    await act(() => result.current.mutateAsync(8))
+    await act(() => result.current.mutateAsync())
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(client.getQueryData<Cart>(key)?.items.map((item) => item.id)).toEqual([7, 8, 9])
@@ -63,7 +63,7 @@ describe('useDeleteCartItemMutation', () => {
     let reject!: (error: Error) => void
     deleteCartItem.mockReturnValue(new Promise((_, fail) => { reject = fail }))
     const { client, result } = setup()
-    act(() => result.current.mutate(8))
+    act(() => result.current.mutate())
     await waitFor(() => expect(client.getQueryData<Cart>(key)?.items.map((item) => item.id)).toEqual([7, 9]))
     client.setQueryData<Cart>(key, (current) => current && ({
       ...current,
@@ -78,7 +78,7 @@ describe('useDeleteCartItemMutation', () => {
     let reject!: (error: Error) => void
     deleteCartItem.mockReturnValue(new Promise((_, fail) => { reject = fail }))
     const { client, result } = setup()
-    act(() => result.current.mutate(8))
+    act(() => result.current.mutate())
     await waitFor(() => expect(client.getQueryData<Cart>(key)?.items).toHaveLength(2))
     client.setQueryData<Cart>(key, (current) => current && ({ ...current, items: [current.items[0], cart.items[1], current.items[1]] }))
     reject(new AppError({ kind: 'network', message: 'fail' }))
@@ -90,7 +90,7 @@ describe('useDeleteCartItemMutation', () => {
     let reject!: (error: Error) => void
     deleteCartItem.mockReturnValue(new Promise((_, fail) => { reject = fail }))
     const { client, result } = setup()
-    act(() => result.current.mutate(8))
+    act(() => result.current.mutate())
     await waitFor(() => expect(client.getQueryData<Cart>(key)?.items).toHaveLength(2))
     client.removeQueries({ queryKey: key, exact: true })
     reject(new AppError({ kind: 'network', message: 'logout' }))

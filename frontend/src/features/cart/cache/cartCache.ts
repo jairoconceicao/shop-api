@@ -16,10 +16,33 @@ const mutation = {
   add: (customerId: number, cartId: number) => ['cart', 'item', 'add', customerId, cartId] as const,
   update: (customerId: number, cartId: number, itemId: number) =>
     ['cart', 'item', 'update', customerId, cartId, itemId] as const,
-  delete: (customerId: number, cartId: number) => ['cart', 'item', 'delete', customerId, cartId] as const,
+  delete: (customerId: number, cartId: number, itemId: number) =>
+    ['cart', 'item', 'delete', customerId, cartId, itemId] as const,
 }
 
-export const cartCache = { query, mutation, meta: privateCacheMeta }
+const scope = {
+  item: (customerId: number, cartId: number, itemId: number) =>
+    `cart-item-${customerId}-${cartId}-${itemId}`,
+}
+
+export const cartCache = { query, mutation, scope, meta: privateCacheMeta }
+
+export async function waitForCartItemMutation(
+  queryClient: QueryClient,
+  mutationKey: readonly unknown[],
+): Promise<void> {
+  const mutationCache = queryClient.getMutationCache()
+  const hasPending = () => mutationCache.findAll({ mutationKey, exact: true, status: 'pending' }).length > 0
+  if (!hasPending()) return
+
+  await new Promise<void>((resolve) => {
+    const unsubscribe = mutationCache.subscribe(() => {
+      if (hasPending()) return
+      unsubscribe()
+      resolve()
+    })
+  })
+}
 
 export function updateExistingCart(
   queryClient: QueryClient,

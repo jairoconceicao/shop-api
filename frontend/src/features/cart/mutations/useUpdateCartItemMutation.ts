@@ -29,7 +29,7 @@ export function useUpdateCartItemMutation({ customerId, cartId, itemId, token }:
   return useMutation<CartItemIdentifier, AppError, number, Context>({
     mutationKey: cartCache.mutation.update(customerId, cartId, itemId),
     meta: cartCache.meta,
-    scope: { id: `cart-item-${itemId}` },
+    scope: { id: cartCache.scope.item(customerId, cartId, itemId) },
     retry: false,
     mutationFn: (quantity) => updateCartItem(itemId, token, { quantidade: quantity }),
     onMutate: async (quantity) => {

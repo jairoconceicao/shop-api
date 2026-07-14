@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useIsMutating } from '@tanstack/react-query'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { getButtonClasses } from '../../../shared/ui/buttons/buttonStyles'
@@ -17,6 +18,7 @@ import { useCartProductsQuery, type CartProductResult } from '../queries/useCart
 import { useCartQuery } from '../queries/useCartQuery'
 import { useUpdateCartItemMutation } from '../mutations/useUpdateCartItemMutation'
 import { useDeleteCartItemMutation } from '../mutations/useDeleteCartItemMutation'
+import { cartCache } from '../cache/cartCache'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -101,12 +103,15 @@ function CartItemQuantityControl({
   token: string
 }) {
   const mutation = useUpdateCartItemMutation({ customerId, cartId, itemId: item.id, token })
+  const isDeleting = useIsMutating({
+    mutationKey: cartCache.mutation.delete(customerId, cartId, item.id), exact: true,
+  }) > 0
   const retryQuantity = mutation.variables ?? item.quantity
 
   return (
     <div className="space-y-3">
       <QuantityInput
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || isDeleting}
         label={`Quantidade de ${title}`}
         max={Math.max(1, Math.floor(max))}
         onChange={(quantity) => {
@@ -136,6 +141,19 @@ function CartItemQuantityControl({
   )
 }
 
+function RemoveItemButton({ cartId, customerId, itemId, label, onClick }: {
+  cartId: number; customerId: number; itemId: number; label: string; onClick: () => void
+}) {
+  const isUpdating = useIsMutating({
+    mutationKey: cartCache.mutation.update(customerId, cartId, itemId), exact: true,
+  }) > 0
+  return (
+    <Button aria-label={label} disabled={isUpdating} onClick={onClick} size="sm" variant="secondary">
+      Remover
+    </Button>
+  )
+}
+
 export function CartPage() {
   const token = useAuthStore((state) => state.session?.token)
   const cartQuery = useCartQuery()
@@ -149,6 +167,7 @@ export function CartPage() {
   const deleteMutation = useDeleteCartItemMutation({
     customerId: cartQuery.data?.customerId ?? 0,
     cartId: cartQuery.data?.id ?? 0,
+    itemId: selectedItem?.id ?? 0,
     token: token ?? '',
   })
 
@@ -195,8 +214,11 @@ export function CartPage() {
               <li key={item.id}>
                 <CartItem
                   actions={token ? (
-                    <Button
-                      aria-label={`Remover ${productResult.status === 'success' ? productResult.product.title : `Produto ${item.productId}`}`}
+                    <RemoveItemButton
+                      cartId={cartQuery.data!.id}
+                      customerId={cartQuery.data!.customerId}
+                      itemId={item.id}
+                      label={`Remover ${productResult.status === 'success' ? productResult.product.title : `Produto ${item.productId}`}`}
                       onClick={() => {
                         deleteMutation.reset()
                         setRemovalAnnouncement('')
@@ -205,11 +227,7 @@ export function CartPage() {
                           title: productResult.status === 'success' ? productResult.product.title : `Produto ${item.productId}`,
                         })
                       }}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      Remover
-                    </Button>
+                    />
                   ) : null}
                   fallbackAction={(
                     <Button
@@ -270,7 +288,7 @@ export function CartPage() {
               if (!selectedItem || deleteMutation.isPending || submittingRemovalRef.current) return
               submittingRemovalRef.current = true
               const title = selectedItem.title
-              deleteMutation.mutate(selectedItem.id, {
+              deleteMutation.mutate(undefined, {
                 onError: () => {
                   submittingRemovalRef.current = false
                 },
