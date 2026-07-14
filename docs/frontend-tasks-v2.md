@@ -181,13 +181,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `7c6a5b0`; focused 23/23 e ampla 347/347; typecheck/lint/build/diff-check PASS; reviewer SPEC+QUALITY approved.
   - Finding pendente: MINOR — ampliar a cobertura explícita de IDs unsafe e números não finitos para todos os campos numéricos na revisão final.
 
-[ ] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
-  - Status: READY
+[x] TASK-064: Implementar `POST /api/v1/carrinho/criar` sem body e persistir o ID retornado.
+  - Status: DONE
   - Depends on: TASK-062, TASK-063
   - Critérios de aceite:
     - Enviar a requisição autenticada sem body e validar a resposta de criação.
     - Associar o `carrinhoId` retornado ao `clienteId` autenticado somente após resposta bem-sucedida.
     - Não repetir automaticamente a mutação nem persistir vínculo em caso de falha.
+  - Evidência: commit `89d9f84`; focused 6/6 e ampla 353/353; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-065: Implementar `POST /api/v1/carrinho/items` com produto, quantidade e último preço da API.
   - Status: READY
