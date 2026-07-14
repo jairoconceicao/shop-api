@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
+import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
 import { ProductImage } from '../../../shared/ui/media/ProductImage'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
@@ -51,7 +53,29 @@ function ProductDetailSkeleton() {
 }
 
 function ProductContent({ product }: { product: ProductDetail }) {
-  const stockLabel = product.stock === 1 ? '1 unidade em estoque' : `${product.stock} unidades em estoque`
+  const availableStock = Number.isFinite(product.stock)
+    ? Math.max(0, Math.floor(product.stock))
+    : 0
+  const isSoldOut = availableStock < 1
+  const [storedSelection, setStoredSelection] = useState(() => ({
+    availableStock,
+    quantity: 1,
+  }))
+  let selection = storedSelection
+
+  if (selection.availableStock !== availableStock) {
+    selection = {
+      availableStock,
+      quantity: Math.min(selection.quantity, Math.max(1, availableStock)),
+    }
+    setStoredSelection(selection)
+  }
+
+  const stockLabel = isSoldOut
+    ? 'Esgotado'
+    : availableStock === 1
+      ? '1 unidade em estoque'
+      : `${availableStock} unidades em estoque`
 
   return (
     <section className="container-page py-10 sm:py-14">
@@ -67,6 +91,17 @@ function ProductContent({ product }: { product: ProductDetail }) {
             <div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{brlFormatter.format(product.price)}</dd></div>
             <div><dt className="sr-only">Estoque</dt><dd>{stockLabel}</dd></div>
           </dl>
+          <div className="mt-6 flex flex-col items-start gap-4">
+            <QuantityInput
+              label="Quantidade"
+              value={selection.quantity}
+              min={1}
+              max={Math.max(1, availableStock)}
+              disabled={isSoldOut}
+              onChange={(quantity) => setStoredSelection({ availableStock, quantity })}
+            />
+            <Button disabled={isSoldOut}>Adicionar ao carrinho</Button>
+          </div>
         </div>
       </div>
       <div className="mt-10 border-t border-ink-700 pt-8" data-testid="product-description">
@@ -96,5 +131,5 @@ export function ProductDetailPage() {
     )
   }
 
-  return query.data ? <ProductContent product={query.data} /> : null
+  return query.data ? <ProductContent key={query.data.id} product={query.data} /> : null
 }

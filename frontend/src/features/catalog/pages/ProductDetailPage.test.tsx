@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
@@ -32,6 +32,28 @@ function renderPage(route = '/produtos/42') {
   }
 }
 
+function ProductNavigation() {
+  const navigate = useNavigate()
+
+  return <button onClick={() => void navigate('/produtos/43')}>Próximo produto</button>
+}
+
+function renderNavigablePage() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+  return {
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/produtos/42']}>
+          <ProductNavigation />
+          <Routes><Route path="produtos/:produtoId" element={<ProductDetailPage />} /></Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    ),
+    queryClient,
+  }
+}
+
 beforeEach(() => {
   fetchProductDetail.mockReset()
   fetchProductDetail.mockResolvedValue(product)
@@ -50,8 +72,9 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('7 unidades em estoque')).toBeInTheDocument()
     expect(container.querySelector('[data-testid="product-detail-grid"]')).toHaveClass('grid', 'lg:grid-cols-2')
     expect(container.querySelector('[data-testid="product-description"]')).not.toBeNull()
-    expect(document.body).not.toHaveTextContent(/avaliaç|galeria|desconto|pix|parcel|frete|vantagens|especificações|relacionados|comprar|adicionar ao carrinho/i)
-    expect(container.querySelector('input')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent(/avaliaç|galeria|desconto|pix|parcel|frete|vantagens|especificações|relacionados|comprar agora/i)
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade' })).toHaveValue(1)
+    expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeEnabled()
   })
 
   it('renders neutral fallbacks for nullable fields', async () => {
@@ -106,5 +129,77 @@ describe('ProductDetailPage', () => {
     await waitFor(() => expect(fetchProductDetail).toHaveBeenCalledTimes(2))
     expect(screen.getByRole('heading', { name: product.title })).toBeInTheDocument()
     expect(screen.queryByTestId('product-detail-skeleton')).not.toBeInTheDocument()
+  })
+
+  it('limits the quantity to the available whole stock', async () => {
+    fetchProductDetail.mockResolvedValue({ ...product, stock: 3.9 })
+    renderPage()
+
+    const input = await screen.findByRole('spinbutton', { name: 'Quantidade' })
+    expect(input).toHaveAttribute('min', '1')
+    expect(input).toHaveAttribute('max', '3')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar quantidade' }))
+    expect(input).toHaveValue(2)
+    fireEvent.change(input, { target: { value: '9' } })
+    expect(input).toHaveValue(3)
+  })
+
+  it.each([
+    ['zero', 0],
+    ['negative', -2],
+    ['NaN', Number.NaN],
+    ['positive infinity', Number.POSITIVE_INFINITY],
+  ])('renders %s stock as sold out with disabled controls', async (_case, stock) => {
+    fetchProductDetail.mockResolvedValue({ ...product, stock })
+    renderPage()
+
+    expect(await screen.findByText('Esgotado')).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Diminuir quantidade' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Aumentar quantidade' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Adicionar ao carrinho' })).toBeDisabled()
+  })
+
+  it('preserves quantity on refetch and clamps it when stock decreases', async () => {
+    let resolveRefetch!: (value: typeof product) => void
+    const refetchResult = new Promise<typeof product>((resolve) => {
+      resolveRefetch = resolve
+    })
+    fetchProductDetail
+      .mockResolvedValueOnce(product)
+      .mockReturnValueOnce(refetchResult)
+      .mockResolvedValueOnce({ ...product, stock: 0 })
+    const { queryClient } = renderPage()
+    const input = await screen.findByRole('spinbutton', { name: 'Quantidade' })
+
+    fireEvent.change(input, { target: { value: '5' } })
+    expect(input).toHaveValue(5)
+
+    void queryClient.invalidateQueries({ queryKey: ['catalog', 'products', 'detail', 42] })
+    await waitFor(() => expect(fetchProductDetail).toHaveBeenCalledTimes(2))
+    expect(input).toHaveValue(5)
+
+    resolveRefetch({ ...product, stock: 2 })
+    await waitFor(() => expect(input).toHaveValue(2))
+
+    await queryClient.invalidateQueries({ queryKey: ['catalog', 'products', 'detail', 42] })
+    await waitFor(() => expect(screen.getByText('Esgotado')).toBeInTheDocument())
+    expect(input).toHaveValue(1)
+    expect(input).toBeDisabled()
+  })
+
+  it('resets quantity when the product changes', async () => {
+    const nextProduct = { ...product, id: 43, title: 'Mouse Pro', stock: 4 }
+    fetchProductDetail.mockImplementation((id: number) => Promise.resolve(id === 42 ? product : nextProduct))
+    renderNavigablePage()
+
+    const input = await screen.findByRole('spinbutton', { name: 'Quantidade' })
+    fireEvent.change(input, { target: { value: '4' } })
+    expect(input).toHaveValue(4)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo produto' }))
+    expect(await screen.findByRole('heading', { name: nextProduct.title })).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade' })).toHaveValue(1)
   })
 })
