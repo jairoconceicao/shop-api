@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
@@ -52,24 +52,39 @@ function ProductDetailSkeleton() {
   )
 }
 
+function ProductPurchaseControls({ availableStock }: { availableStock: number }) {
+  const isSoldOut = availableStock < 1
+  const maximumQuantity = Math.max(1, availableStock)
+  const [quantity, updateQuantity] = useReducer(
+    (currentQuantity: number, requestedQuantity: number) =>
+      Math.min(requestedQuantity, maximumQuantity),
+    1,
+  )
+
+  useEffect(() => {
+    updateQuantity(quantity)
+  }, [maximumQuantity, quantity])
+
+  return (
+    <div className="mt-6 flex flex-col items-start gap-4">
+      <QuantityInput
+        label="Quantidade"
+        value={quantity}
+        min={1}
+        max={maximumQuantity}
+        disabled={isSoldOut}
+        onChange={updateQuantity}
+      />
+      <Button disabled={isSoldOut}>Adicionar ao carrinho</Button>
+    </div>
+  )
+}
+
 function ProductContent({ product }: { product: ProductDetail }) {
   const availableStock = Number.isFinite(product.stock)
     ? Math.max(0, Math.floor(product.stock))
     : 0
   const isSoldOut = availableStock < 1
-  const [storedSelection, setStoredSelection] = useState(() => ({
-    availableStock,
-    quantity: 1,
-  }))
-  let selection = storedSelection
-
-  if (selection.availableStock !== availableStock) {
-    selection = {
-      availableStock,
-      quantity: Math.min(selection.quantity, Math.max(1, availableStock)),
-    }
-    setStoredSelection(selection)
-  }
 
   const stockLabel = isSoldOut
     ? 'Esgotado'
@@ -91,17 +106,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
             <div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{brlFormatter.format(product.price)}</dd></div>
             <div><dt className="sr-only">Estoque</dt><dd>{stockLabel}</dd></div>
           </dl>
-          <div className="mt-6 flex flex-col items-start gap-4">
-            <QuantityInput
-              label="Quantidade"
-              value={selection.quantity}
-              min={1}
-              max={Math.max(1, availableStock)}
-              disabled={isSoldOut}
-              onChange={(quantity) => setStoredSelection({ availableStock, quantity })}
-            />
-            <Button disabled={isSoldOut}>Adicionar ao carrinho</Button>
-          </div>
+          <ProductPurchaseControls availableStock={availableStock} />
         </div>
       </div>
       <div className="mt-10 border-t border-ink-700 pt-8" data-testid="product-description">
