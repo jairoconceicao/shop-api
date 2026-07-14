@@ -74,7 +74,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [x] TASK-028: Implementar navegação responsiva por categorias no Header.
 
-[ ] TASK-029: Implementar Footer removendo links e alegações fora do MVP.
+[x] TASK-029: Implementar Footer removendo links e alegações fora do MVP.
 
 [ ] TASK-030: Implementar StoreLayout e AccountLayout responsivos.
 
