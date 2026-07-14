@@ -17,6 +17,7 @@ function renderPage(initialState?: unknown) {
     <MemoryRouter initialEntries={[{ pathname: '/entrar', state: initialState }]}>
       <QueryClientProvider client={queryClient}>
         <Routes>
+          <Route path="/" element={<ReturnDestination />} />
           <Route path="entrar" element={children} />
           <Route path="produtos/:produtoId" element={<ReturnDestination />} />
         </Routes>
@@ -98,9 +99,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(useAuthStore.getState().session?.clienteId).toBe(20))
     expect(useAuthStore.getState().persistence).toBe(persistence)
-    expect(screen.getByLabelText('E-mail')).toHaveValue('')
-    expect(screen.getByLabelText('Senha')).toHaveValue('')
-    expect(screen.getByRole('checkbox', { name: 'Manter conectado' })).not.toBeChecked()
+    expect(await screen.findByText('/')).toBeInTheDocument()
   })
 
   it('returns to the origin after login without adding an item automatically', async () => {
