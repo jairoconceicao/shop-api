@@ -1,5 +1,5 @@
-import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import type { ChangeEvent, FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 
 import { DropdownMenu } from '../../shared/ui/overlays/DropdownMenu'
 
@@ -17,6 +17,9 @@ export interface HeaderProps {
   categories?: readonly HeaderCategory[]
   customer?: HeaderCustomer | null
   onSignOut?: () => void
+  searchword: string
+  onSearchwordChange: (value: string) => void
+  onSearchSubmit: () => void
 }
 
 function Icon({ children }: { children: React.ReactNode }) {
@@ -39,13 +42,18 @@ function Icon({ children }: { children: React.ReactNode }) {
 const menuItemClasses =
   'flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-left text-sm text-zinc-200 hover:bg-ink-700 hover:text-zinc-50'
 
-function SearchForm() {
-  const navigate = useNavigate()
-
+function SearchForm({
+  searchword,
+  onSearchwordChange,
+  onSearchSubmit,
+}: Pick<HeaderProps, 'searchword' | 'onSearchwordChange' | 'onSearchSubmit'>) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const query = new FormData(event.currentTarget).get('busca')?.toString().trim()
-    navigate(query ? `/?busca=${encodeURIComponent(query)}` : '/')
+    onSearchSubmit()
+  }
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    onSearchwordChange(event.currentTarget.value)
   }
 
   return (
@@ -61,6 +69,8 @@ function SearchForm() {
         <input
           name="busca"
           type="search"
+          value={searchword}
+          onChange={handleChange}
           placeholder="Buscar produtos, marcas e mais..."
           className="min-h-11 w-full rounded-xl border border-ink-700 bg-ink-800 py-2.5 pl-11 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 hover:border-ink-600 focus:border-brand-500 focus:outline-none"
         />
@@ -69,7 +79,7 @@ function SearchForm() {
   )
 }
 
-function CustomerMenu({ customer, onSignOut }: HeaderProps) {
+function CustomerMenu({ customer, onSignOut }: Pick<HeaderProps, 'customer' | 'onSignOut'>) {
   return (
     <DropdownMenu
       label="Área do cliente"
@@ -145,7 +155,14 @@ function CategoryNavigation({ categories }: Pick<HeaderProps, 'categories'>) {
   )
 }
 
-export function Header({ categories = [], customer = null, onSignOut }: HeaderProps) {
+export function Header({
+  categories = [],
+  customer = null,
+  onSignOut,
+  searchword,
+  onSearchwordChange,
+  onSearchSubmit,
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur-xl">
       <div className="container-page py-2.5">
@@ -160,7 +177,11 @@ export function Header({ categories = [], customer = null, onSignOut }: HeaderPr
           </Link>
 
           <div className="hidden min-w-0 flex-1 md:flex">
-            <SearchForm />
+            <SearchForm
+              searchword={searchword}
+              onSearchwordChange={onSearchwordChange}
+              onSearchSubmit={onSearchSubmit}
+            />
           </div>
 
           <nav className="ml-auto flex items-center gap-1" aria-label="Ações da loja">
@@ -181,7 +202,11 @@ export function Header({ categories = [], customer = null, onSignOut }: HeaderPr
         </div>
 
         <div className="pt-2 md:hidden">
-          <SearchForm />
+          <SearchForm
+            searchword={searchword}
+            onSearchwordChange={onSearchwordChange}
+            onSearchSubmit={onSearchSubmit}
+          />
         </div>
       </div>
       <CategoryNavigation categories={categories} />

@@ -9,10 +9,17 @@ function LocationProbe() {
   return <output aria-label="Localização atual">{`${location.pathname}${location.search}`}</output>
 }
 
-function renderHeader(props: React.ComponentProps<typeof Header> = {}) {
+function renderHeader(props: Partial<React.ComponentProps<typeof Header>> = {}) {
+  const headerProps = {
+    searchword: '',
+    onSearchwordChange: () => undefined,
+    onSearchSubmit: () => undefined,
+    ...props,
+  }
+
   return render(
     <MemoryRouter>
-      <Header {...props} />
+      <Header {...headerProps} />
       <LocationProbe />
     </MemoryRouter>,
   )
@@ -31,16 +38,20 @@ describe('Header', () => {
     expect(screen.queryByRole('menuitem', { name: 'Sair' })).not.toBeInTheDocument()
   })
 
-  it('envia uma busca normalizada para a URL do catálogo', () => {
-    renderHeader()
+  it('envia o valor controlado da busca', () => {
+    const onSearchwordChange = vi.fn()
+    const onSearchSubmit = vi.fn()
+    renderHeader({ searchword: 'teclado gamer', onSearchwordChange, onSearchSubmit })
     const search = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
 
-    fireEvent.change(search, { target: { value: '  teclado gamer  ' } })
+    for (const input of screen.getAllByRole('searchbox', { name: 'Buscar produtos' })) {
+      expect(input).toHaveValue('teclado gamer')
+    }
+    fireEvent.change(search, { target: { value: 'mouse' } })
     fireEvent.submit(search.closest('form')!)
 
-    expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent(
-      '/?busca=teclado%20gamer',
-    )
+    expect(onSearchwordChange).toHaveBeenCalledWith('mouse')
+    expect(onSearchSubmit).toHaveBeenCalledOnce()
   })
 
   it('oferece navegação SPA pelas categorias em uma faixa horizontal', () => {

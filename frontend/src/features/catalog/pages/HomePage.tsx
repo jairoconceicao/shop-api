@@ -1,10 +1,19 @@
+import { useSearchParams } from 'react-router-dom'
+
 import { ProductCard } from '../components/ProductCard'
 import { useCatalogQuery } from '../queries/useCatalogQuery'
 import { useCategoriesQuery } from '../queries/useCategoriesQuery'
+import { parseCatalogUrl } from '../routing/catalogUrl'
 
 export function HomePage() {
+  const [searchParams] = useSearchParams()
+  const catalogUrl = parseCatalogUrl(searchParams)
   useCategoriesQuery()
-  const { data } = useCatalogQuery({ page: 1, size: 20 })
+  const { data } = useCatalogQuery({
+    page: catalogUrl.page,
+    size: 20,
+    ...(catalogUrl.searchword ? { searchword: catalogUrl.searchword } : {}),
+  })
 
   return (
     <>
