@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import { useAuthStore } from './features/auth/store/authStore'
+
+const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
+vi.mock('./features/catalog/services/productDetailService', () => ({ fetchProductDetail }))
 
 describe('App', () => {
   const queryClient = new QueryClient()
@@ -20,6 +23,17 @@ describe('App', () => {
 
   beforeEach(() => {
     queryClient.clear()
+    fetchProductDetail.mockReset()
+    fetchProductDetail.mockResolvedValue({
+      id: 42,
+      title: 'Notebook Pro 14',
+      description: 'Descrição',
+      model: 'NP14',
+      photo: null,
+      price: 5299.9,
+      stock: 7,
+      category: { id: 3, title: 'Informática' },
+    })
     useAuthStore.getState().setSession(
       {
         token: 'header.payload.signature',
@@ -33,9 +47,16 @@ describe('App', () => {
     )
   })
 
+  it('renders the product detail page in the store route', async () => {
+    const { container } = renderApp('/produtos/42')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Notebook Pro 14' })).toBeInTheDocument()
+    expect(fetchProductDetail).toHaveBeenCalledWith(42, expect.any(AbortSignal))
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
-    ['/produtos/42', 'Produto'],
     ['/carrinho', 'Carrinho'],
     ['/checkout', 'Checkout'],
     ['/pedido-confirmado/7', 'Pedido confirmado'],
