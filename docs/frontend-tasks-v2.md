@@ -145,7 +145,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `af04e6c`; RED 6 falhas; Home 19/19 e layouts + catálogo 94/94; typecheck/lint/diff PASS; reviewer SPEC+QUALITY approved sem findings.
   - Build FAIL por baseline preexistente em `main.tsx` (`top-level await` em `enableMocking`), confirmado no BASE e fora do diff; dívida separada.
 
-[ ] TASK-057: Implementar query de detalhe por `produtoId` com tratamento de `404`.
+[x] TASK-057: Implementar query de detalhe por `produtoId` com tratamento de `404`.
+  - Evidência: commits `3afa6f2` e `f0c7b1d`; RED por módulos ausentes e regressão de query inválida; focused 17/17 e catálogo 94/94; typecheck/lint/diff PASS; re-review SPEC+QUALITY approved; finding IMPORTANT do sentinel `/produto/0` corrigido.
 
 [ ] TASK-058: Implementar página de produto com título, categoria, modelo, descrição, foto, preço e estoque.
 
