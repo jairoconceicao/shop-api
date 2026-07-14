@@ -46,7 +46,10 @@ describe('LoginPage', () => {
     expect(requests).toBe(0)
   })
 
-  it('logs in and stores a temporary session', async () => {
+  it.each([
+    { keepConnected: false, persistence: 'session' as const },
+    { keepConnected: true, persistence: 'local' as const },
+  ])('stores the session using $persistence persistence', async ({ keepConnected, persistence }) => {
     server.use(
       http.post('https://api.example.com/api/v1/auth/login', () =>
         HttpResponse.json({
@@ -68,10 +71,16 @@ describe('LoginPage', () => {
       target: { value: 'cliente@exemplo.com' },
     })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'senha-secreta' } })
+    if (keepConnected) {
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Manter conectado' }))
+    }
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
     await waitFor(() => expect(useAuthStore.getState().session?.clienteId).toBe(20))
-    expect(useAuthStore.getState().persistence).toBe('session')
+    expect(useAuthStore.getState().persistence).toBe(persistence)
+    expect(screen.getByLabelText('E-mail')).toHaveValue('')
+    expect(screen.getByLabelText('Senha')).toHaveValue('')
+    expect(screen.getByRole('checkbox', { name: 'Manter conectado' })).not.toBeChecked()
   })
 
   it('shows an authentication error and has no password recovery action', async () => {
@@ -92,6 +101,8 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
     expect(await screen.findByText('E-mail ou senha inválidos.')).toBeInTheDocument()
+    expect(screen.getByLabelText('E-mail')).toHaveValue('cliente@exemplo.com')
+    expect(screen.getByLabelText('Senha')).toHaveValue('')
     expect(screen.queryByText(/esqueci|recuper/i)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Criar agora' })).toHaveAttribute('href', '/cadastro')
   })

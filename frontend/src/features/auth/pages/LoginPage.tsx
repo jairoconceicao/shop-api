@@ -12,14 +12,22 @@ const EMAIL_REQUIRED_MESSAGE = 'Informe seu e-mail.'
 const EMAIL_INVALID_MESSAGE = 'Informe um e-mail válido.'
 const PASSWORD_REQUIRED_MESSAGE = 'Informe sua senha.'
 
+type LoginFormValues = LoginRequest & {
+  manterConectado: boolean
+}
+
 export function LoginPage() {
   const setSession = useAuthStore((state) => state.setSession)
   const loginMutation = useLoginMutation()
   const {
     register,
     handleSubmit,
+    reset,
+    resetField,
     formState: { errors },
-  } = useForm<LoginRequest>()
+  } = useForm<LoginFormValues>({
+    defaultValues: { manterConectado: false },
+  })
 
   const submitLogin = handleSubmit(async (values) => {
     const parsedValues = loginRequestSchema.safeParse(values)
@@ -28,9 +36,12 @@ export function LoginPage() {
 
     try {
       const session = await loginMutation.mutateAsync(parsedValues.data)
-      setSession(session, 'session')
+      setSession(session, values.manterConectado ? 'local' : 'session')
+      reset()
     } catch {
       // The mutation error is rendered in the form summary.
+    } finally {
+      resetField('senha')
     }
   })
 
@@ -80,6 +91,14 @@ export function LoginPage() {
             error={errors.senha?.message}
             {...register('senha', { required: PASSWORD_REQUIRED_MESSAGE })}
           />
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-zinc-300">
+            <input
+              className="size-4 rounded border-ink-600 accent-brand-500"
+              type="checkbox"
+              {...register('manterConectado')}
+            />
+            Manter conectado
+          </label>
           <Button className="w-full" disabled={loginMutation.isPending} type="submit">
             {loginMutation.isPending ? 'Entrando…' : 'Entrar'}
           </Button>
