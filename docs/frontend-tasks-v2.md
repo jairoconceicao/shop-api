@@ -209,13 +209,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `ececf8d`; focused 54/54 e ampla 372/372; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings bloqueantes.
   - Finding pendente: MINOR — ampliar a cobertura explícita para troca de sessão durante o fluxo, retorno pós-login, ciclo de preço alterado e asserts diretos das mutations.
 
-[ ] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
-  - Status: READY
+[x] TASK-067: Implementar `GET /api/v1/carrinho/{carrinhoId}` e tratar ID ausente.
+  - Status: DONE
   - Depends on: TASK-062, TASK-063
   - Critérios de aceite:
     - Consultar o carrinho autenticado pelo ID associado ao cliente e manter a resposta completa no TanStack Query.
     - Com ID ausente, representar carrinho vazio sem emitir requisição com ID sentinela ou inválido.
     - Oferecer retry manual para falhas recuperáveis da consulta.
+  - Evidência: commits `5ed23a0` e `d5dee59`; focused 14/14 e ampla 386/386; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-068: Implementar descarte do vínculo local quando a consulta do carrinho retornar `404`.
   - Status: READY
