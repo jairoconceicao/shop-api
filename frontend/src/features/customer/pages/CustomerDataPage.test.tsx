@@ -177,6 +177,16 @@ describe('CustomerDataForm', () => {
     expect(screen.queryByText('Dados atualizados com sucesso.')).not.toBeInTheDocument()
   })
 
+  it('does not announce success when profile reconciliation rejects', async () => {
+    const onValidRequest = vi.fn().mockRejectedValue(new Error('invalidation failed'))
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    expect(await screen.findByText('A resposta do serviço é inválida. Tente novamente.')).toBeVisible()
+    expect(screen.queryByText('Dados atualizados com sucesso.')).not.toBeInTheDocument()
+  })
+
   it('intercepts a changed CPF and confirms the already validated complete request exactly once', async () => {
     const onValidRequest = vi.fn().mockResolvedValue(undefined)
     render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)

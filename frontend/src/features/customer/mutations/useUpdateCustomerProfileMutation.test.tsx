@@ -59,6 +59,34 @@ it('writes the confirmed profile to the exact canonical key before invalidating 
   expect(setQueryData.mock.invocationCallOrder[0]).toBeLessThan(invalidateQueries.mock.invocationCallOrder[0]!)
 })
 
+it('keeps the mutation pending until exact invalidation finishes', async () => {
+  updateCustomerProfile.mockResolvedValue({ customerId: 7 })
+  const client = new QueryClient()
+  let releaseInvalidation!: () => void
+  vi.spyOn(client, 'invalidateQueries').mockReturnValue(new Promise<void>((resolve) => { releaseInvalidation = resolve }))
+  const { result } = renderHook(() => useUpdateCustomerProfileMutation(), { wrapper: wrapperFor(client) })
+  let settled = false
+
+  const attempt = result.current.mutateAsync({ customerId: 7, token: 'captured', request })
+    .finally(() => { settled = true })
+  await waitFor(() => expect(client.getQueryData(customerProfileQueryKeys.detail(7))).toEqual({ customerId: 7, ...request }))
+  await Promise.resolve()
+  expect(settled).toBe(false)
+
+  releaseInvalidation()
+  await expect(attempt).resolves.toEqual({ customerId: 7, ...request })
+})
+
+it('propagates a rejected invalidation through the mutation promise', async () => {
+  updateCustomerProfile.mockResolvedValue({ customerId: 7 })
+  const client = new QueryClient()
+  vi.spyOn(client, 'invalidateQueries').mockRejectedValue(new Error('invalidation failed'))
+  const { result } = renderHook(() => useUpdateCustomerProfileMutation(), { wrapper: wrapperFor(client) })
+
+  await expect(result.current.mutateAsync({ customerId: 7, token: 'captured', request }))
+    .rejects.toThrow('invalidation failed')
+})
+
 it.each([
   ['logout', null],
   ['customer change', session(8, 'other')],

@@ -19,7 +19,7 @@ export function useUpdateCustomerProfileMutation() {
       const profile: CustomerProfile = { customerId: variables.customerId, ...variables.request }
       const queryKey = customerProfileQueryKeys.detail(variables.customerId)
       queryClient.setQueryData(queryKey, profile)
-      void queryClient.invalidateQueries({ queryKey, exact: true })
+      await queryClient.invalidateQueries({ queryKey, exact: true })
       return profile
     },
     retry: false,
