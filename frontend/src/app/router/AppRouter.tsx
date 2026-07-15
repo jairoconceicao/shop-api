@@ -24,6 +24,9 @@ const OrderConfirmationPage = lazy(() => import(
 const CustomerDataPage = lazy(() => import(
   '../../features/customer/pages/CustomerDataPage'
 ).then(({ CustomerDataPage: Page }) => ({ default: Page })))
+const CustomerPasswordPage = lazy(() => import(
+  '../../features/customer/pages/CustomerPasswordPage'
+).then(({ CustomerPasswordPage: Page }) => ({ default: Page })))
 
 function CheckoutRouteFallback() {
   return (
@@ -48,6 +51,10 @@ function CustomerDataRouteFallback() {
       Carregando página de dados…
     </div>
   )
+}
+
+function CustomerPasswordRouteFallback() {
+  return <div role="status" aria-label="Carregando página de senha" aria-live="polite" className="surface min-h-96 p-6">Carregando página de senha…</div>
 }
 
 export function AppRouter() {
@@ -79,7 +86,7 @@ export function AppRouter() {
               path="dados"
               element={<Suspense fallback={<CustomerDataRouteFallback />}><CustomerDataPage /></Suspense>}
             />
-            <Route path="senha" element={<RoutePlaceholder title="Alterar senha" />} />
+            <Route path="senha" element={<Suspense fallback={<CustomerPasswordRouteFallback />}><CustomerPasswordPage /></Suspense>} />
           </Route>
         </Route>
       </Route>

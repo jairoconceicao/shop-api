@@ -14,6 +14,9 @@ vi.mock('../../features/checkout/pages/CheckoutPage', () => ({
 vi.mock('../../features/customer/pages/CustomerDataPage', () => ({
   CustomerDataPage: () => <h1>Dados do cliente carregados</h1>,
 }))
+vi.mock('../../features/customer/pages/CustomerPasswordPage', () => ({
+  CustomerPasswordPage: () => <h1>Troca de senha carregada</h1>,
+}))
 
 describe('AppRouter lazy checkout routes', () => {
   it('shows an accessible fallback while loading checkout on demand', async () => {
@@ -36,5 +39,11 @@ describe('AppRouter lazy checkout routes', () => {
 
     expect(screen.getByRole('status', { name: 'Carregando página de dados' })).toHaveClass('min-h-96')
     expect(await screen.findByRole('heading', { name: 'Dados do cliente carregados' })).toBeInTheDocument()
+  })
+
+  it('loads password change in its own lazy route with an accessible stable fallback', async () => {
+    render(<MemoryRouter initialEntries={['/minha-conta/senha']}><AppRouter /></MemoryRouter>)
+    expect(screen.getByRole('status', { name: 'Carregando página de senha' })).toHaveClass('min-h-96')
+    expect(await screen.findByRole('heading', { name: 'Troca de senha carregada' })).toBeInTheDocument()
   })
 })

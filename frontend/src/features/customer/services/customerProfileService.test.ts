@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
-import { getCustomerProfile, updateCustomerProfile } from './customerProfileService'
+import { getCustomerProfile, updateCustomerPassword, updateCustomerProfile } from './customerProfileService'
 
 const validResponse = {
   status: true,
@@ -43,6 +43,26 @@ describe('getCustomerProfile', () => {
     const error = new AppError({ kind: 'network', message: 'Sem conexao.' })
     const client = { request: vi.fn().mockRejectedValue(error) }
     await expect(getCustomerProfile(42, 'token', undefined, client)).rejects.toBe(error)
+  })
+})
+
+describe('updateCustomerPassword', () => {
+  it('sends the exact password request by authenticated PUT and adapts a matching ID', async () => {
+    const request = { senhaAtual: 'Atual#123', senhaNova: 'Nova#456A' }
+    const client = { request: vi.fn().mockResolvedValue({ status: true, data: { clienteId: '42' } }) }
+
+    await expect(updateCustomerPassword({ customerId: 42, token: 'secret-token', request }, client))
+      .resolves.toEqual({ customerId: 42 })
+    expect(client.request).toHaveBeenCalledWith('/api/v1/cliente/42/senha', {
+      method: 'PUT', token: 'secret-token', body: request,
+    })
+  })
+
+  it('maps a divergent response ID to a contract error', async () => {
+    const client = { request: vi.fn().mockResolvedValue({ status: true, data: { clienteId: 9 } }) }
+    await expect(updateCustomerPassword({
+      customerId: 42, token: 'token', request: { senhaAtual: 'Atual#123', senhaNova: 'Nova#456A' },
+    }, client)).rejects.toMatchObject({ kind: 'contract' })
   })
 })
 

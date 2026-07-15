@@ -197,7 +197,7 @@ describe('App', () => {
 
   it.each([
     ['/minha-conta/dados', 'Carregando página de dados', 'status'],
-    ['/minha-conta/senha', 'Alterar senha', 'heading'],
+    ['/minha-conta/senha', 'Carregando página de senha', 'status'],
   ])('nests the account route %s inside the store shell', (route, accessibleName, role) => {
     const { container } = renderApp(route)
 
