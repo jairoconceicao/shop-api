@@ -15,6 +15,7 @@ export interface DialogProps {
   description?: string
   children: ReactNode
   initialFocusRef?: RefObject<HTMLElement | null>
+  closeDisabled?: boolean
 }
 
 export function Dialog({
@@ -24,6 +25,7 @@ export function Dialog({
   description,
   children,
   initialFocusRef,
+  closeDisabled = false,
 }: DialogProps) {
   const titleId = useId()
   const descriptionId = useId()
@@ -46,7 +48,7 @@ export function Dialog({
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
       event.preventDefault()
-      onOpenChange(false)
+      if (!closeDisabled) onOpenChange(false)
       return
     }
 
@@ -68,7 +70,7 @@ export function Dialog({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onOpenChange(false)
+        if (!closeDisabled && event.target === event.currentTarget) onOpenChange(false)
       }}
     >
       <div
@@ -94,8 +96,12 @@ export function Dialog({
           <button
             type="button"
             aria-label="Fechar dialogo"
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl text-xl text-zinc-300 hover:bg-ink-700"
-            onClick={() => onOpenChange(false)}
+            aria-disabled={closeDisabled || undefined}
+            disabled={closeDisabled}
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl text-xl text-zinc-300 hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => {
+              if (!closeDisabled) onOpenChange(false)
+            }}
           >
             <span aria-hidden="true">×</span>
           </button>

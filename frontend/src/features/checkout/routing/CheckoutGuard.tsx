@@ -4,7 +4,8 @@ import { Button } from '../../../shared/ui/buttons/Button'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { useCartQuery } from '../../cart/queries/useCartQuery'
-import { useCheckoutProfileQuery } from '../queries/useCheckoutProfileQuery'
+import { toCheckoutProfile } from '../../customer/contracts/customerProfile'
+import { useCustomerProfileQuery } from '../../customer/queries/useCustomerProfileQuery'
 
 function CheckoutGuardSkeleton() {
   return (
@@ -29,7 +30,7 @@ function CheckoutProfileSkeleton() {
 export function CheckoutGuard() {
   const { data, hasCart, isError, isPending } = useCartQuery()
   const hasConfirmedCart = hasCart && !isPending && !isError && Boolean(data?.items.length)
-  const profileQuery = useCheckoutProfileQuery(hasConfirmedCart)
+  const profileQuery = useCustomerProfileQuery(hasConfirmedCart)
 
   if (!hasCart) return <Navigate replace to="/carrinho" />
 
@@ -58,5 +59,5 @@ export function CheckoutGuard() {
     )
   }
 
-  return <Outlet context={{ cart: data, profile: profileQuery.data }} />
+  return <Outlet context={{ cart: data, profile: toCheckoutProfile(profileQuery.data) }} />
 }

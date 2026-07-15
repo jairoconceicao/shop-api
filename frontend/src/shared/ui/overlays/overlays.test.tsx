@@ -9,6 +9,11 @@ function DialogFixture() {
   return <><button onClick={() => setOpen(true)}>Excluir</button><Dialog open={open} onOpenChange={setOpen} title="Confirmar exclusao"><button>Cancelar</button><button>Confirmar</button></Dialog></>
 }
 
+function LockedDialogFixture() {
+  const [open, setOpen] = useState(true)
+  return <Dialog open={open} onOpenChange={setOpen} title="Operação pendente" closeDisabled><button>Voltar</button></Dialog>
+}
+
 describe('Dialog', () => {
   it('manages initial focus, traps Tab, closes with Escape and restores focus', () => {
     render(<DialogFixture />)
@@ -24,6 +29,25 @@ describe('Dialog', () => {
     fireEvent.keyDown(close, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(trigger).toHaveFocus()
+  })
+
+  it('semantically disables the close action when closing is locked', () => {
+    render(<LockedDialogFixture />)
+    const close = screen.getByRole('button', { name: 'Fechar dialogo' })
+    expect(close).toBeDisabled()
+    fireEvent.click(close)
+    expect(screen.getByRole('dialog', { name: 'Operação pendente' })).toBeInTheDocument()
+  })
+
+  it('blocks Escape and backdrop closing internally when closing is locked', () => {
+    const onOpenChange = vi.fn()
+    render(<Dialog open onOpenChange={onOpenChange} title="Operação pendente" closeDisabled><button>Voltar</button></Dialog>)
+    const dialog = screen.getByRole('dialog', { name: 'Operação pendente' })
+
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    fireEvent.mouseDown(dialog.parentElement!)
+
+    expect(onOpenChange).not.toHaveBeenCalled()
   })
 })
 

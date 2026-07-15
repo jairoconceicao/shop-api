@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useOutletContext } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Cart } from '../../cart/contracts/cart'
@@ -16,19 +16,27 @@ const cartQuery: {
   isPending: false,
 }
 
-const { profileQuery, useCheckoutProfileQuery } = vi.hoisted(() => {
+const { profileQuery, useCustomerProfileQuery } = vi.hoisted(() => {
   const profileQuery = {
-    data: undefined as { customerId: number; address: { cep: string } } | undefined,
+    data: undefined as {
+      customerId: number
+      cpf: string
+      nome: string
+      dataNascimento: string
+      email: string
+      endereco: { logradouro: string; numero: string; complemento: null; cep: string; bairro: string; cidade: string; uf: string }
+      celular: { ddd: string; numero: string; whatsApp: boolean }
+    } | undefined,
     isError: false,
     isPending: false,
     refetch: vi.fn(),
   }
 
-  return { profileQuery, useCheckoutProfileQuery: vi.fn(() => profileQuery) }
+  return { profileQuery, useCustomerProfileQuery: vi.fn(() => profileQuery) }
 })
 
 vi.mock('../../cart/queries/useCartQuery', () => ({ useCartQuery: () => cartQuery }))
-vi.mock('../queries/useCheckoutProfileQuery', () => ({ useCheckoutProfileQuery }))
+vi.mock('../../customer/queries/useCustomerProfileQuery', () => ({ useCustomerProfileQuery }))
 
 function renderGuard() {
   return render(
@@ -43,6 +51,11 @@ function renderGuard() {
   )
 }
 
+function CheckoutAddressProbe() {
+  const { profile } = useOutletContext<{ profile: { address: { logradouro: string } } }>()
+  return <p>Endereço canônico: {profile.address.logradouro}</p>
+}
+
 describe('CheckoutGuard', () => {
   beforeEach(() => {
     cartQuery.data = undefined
@@ -53,7 +66,7 @@ describe('CheckoutGuard', () => {
     profileQuery.isError = false
     profileQuery.isPending = false
     profileQuery.refetch.mockReset()
-    useCheckoutProfileQuery.mockClear()
+    useCustomerProfileQuery.mockClear()
   })
 
   it('exibe carregamento sem liberar o checkout enquanto aguarda o carrinho confirmado', () => {
@@ -96,11 +109,37 @@ describe('CheckoutGuard', () => {
       items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }],
     }
 
-    profileQuery.data = { customerId: 1, address: { cep: '12345678' } }
+    profileQuery.data = {
+      customerId: 1,
+      cpf: '12345678901',
+      nome: 'Cliente',
+      dataNascimento: '1990-01-01',
+      email: 'cliente@example.com',
+      endereco: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678', bairro: 'Centro', cidade: 'Sao Paulo', uf: 'SP' },
+      celular: { ddd: '11', numero: '999999999', whatsApp: true },
+    }
     renderGuard()
 
     expect(screen.getByRole('heading', { name: 'Formulário de checkout' })).toBeInTheDocument()
-    expect(useCheckoutProfileQuery).toHaveBeenCalledWith(true)
+    expect(useCustomerProfileQuery).toHaveBeenCalledWith(true)
+  })
+
+  it('projects the updated address from the same canonical profile query', () => {
+    cartQuery.data = { customerId: 1, id: 2, createdAt: '2026-07-14T12:00:00Z', items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }] }
+    profileQuery.data = {
+      customerId: 1, cpf: '12345678901', nome: 'Cliente', dataNascimento: '1990-01-01', email: 'cliente@example.com',
+      endereco: { logradouro: 'Rua atualizada', numero: '20', complemento: null, cep: '87654321', bairro: 'Novo', cidade: 'Campinas', uf: 'SP' },
+      celular: { ddd: '11', numero: '999999999', whatsApp: true },
+    }
+
+    const view = render(
+      <MemoryRouter initialEntries={['/checkout']}><Routes><Route element={<CheckoutGuard />}><Route path="checkout" element={<CheckoutAddressProbe />} /></Route></Routes></MemoryRouter>,
+    )
+    expect(screen.getByText('Endereço canônico: Rua atualizada')).toBeVisible()
+    profileQuery.data = { ...profileQuery.data, endereco: { ...profileQuery.data.endereco, logradouro: 'Rua reconciliada' } }
+    view.rerender(<MemoryRouter initialEntries={['/checkout']}><Routes><Route element={<CheckoutGuard />}><Route path="checkout" element={<CheckoutAddressProbe />} /></Route></Routes></MemoryRouter>)
+    expect(screen.getByText('Endereço canônico: Rua reconciliada')).toBeVisible()
+    expect(useCustomerProfileQuery).toHaveBeenLastCalledWith(true)
   })
 
   it('mantém a pré-carga desabilitada antes de confirmar um carrinho não vazio', () => {
@@ -108,7 +147,7 @@ describe('CheckoutGuard', () => {
 
     renderGuard()
 
-    expect(useCheckoutProfileQuery).toHaveBeenCalledWith(false)
+    expect(useCustomerProfileQuery).toHaveBeenCalledWith(false)
   })
 
   it('exibe carregamento do endereço sem liberar o checkout', () => {
