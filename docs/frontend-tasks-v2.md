@@ -505,16 +505,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Interpretar datas como civis locais inclusivas, enviando o início do primeiro dia e o fim do último dia em ISO 8601; não expor filtro de status nem tamanho de página na URL.
   - Evidência: commit `2d562c2`; RED confirmou ausência dos módulos de URL e filtro; testes focados 12/12 e suíte de pedidos 48/48; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
-  - Status: READY
+[x] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
+  - Status: DONE
   - Depends on: TASK-096, TASK-021
   - Critérios de aceite:
     - Exibir identificador, data, forma de pagamento e rótulo amigável derivado exclusivamente de `Criado`, `EmProcessamento`, `Processado`, `Cancelado` ou `Devolvido`, com navegação SPA para o detalhe.
     - Calcular o total visual por `soma(quantidade × valorUnitario)` dos itens confirmados, sem persistir total derivado nem inventar frete, desconto ou promoção.
     - Fornecer semântica e nome acessíveis e reorganizar conteúdo e ações em uma coluna no mobile, sem overflow horizontal.
+  - Evidência: commit `98831fc`; RED confirmou ausência dos módulos de card e apresentação; testes focados 9/9 e suíte de pedidos 57/57; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-097, TASK-098, TASK-099, TASK-025
   - Critérios de aceite:
     - Substituir o placeholder protegido de `/pedidos` por rota lazy que componha filtros da URL, cards e paginação retornada pela API, mantendo `size=20` fixo.
