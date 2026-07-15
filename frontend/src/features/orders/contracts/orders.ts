@@ -47,7 +47,7 @@ const orderSchema = z.object({
 }).strict()
 
 const ordersPageSchema = z.object({
-  status: z.boolean().optional(),
+  status: z.literal(true),
   message: z.string().optional(),
   pagination: z.object({
     pages: transportIdSchema,
@@ -58,7 +58,7 @@ const ordersPageSchema = z.object({
 }).strict()
 
 const orderResponseSchema = z.object({
-  status: z.boolean().optional(),
+  status: z.literal(true),
   message: z.string().optional(),
   data: orderSchema.nullable(),
 }).strict()
@@ -71,7 +71,7 @@ const cancelledOrderSchema = z.object({
 }).strict()
 
 const cancelledOrderResponseSchema = z.object({
-  status: z.boolean().optional(),
+  status: z.literal(true),
   message: z.string().optional(),
   data: cancelledOrderSchema.nullable(),
 }).strict()
@@ -154,9 +154,6 @@ function adaptOrder(order: z.infer<typeof orderSchema>): Order {
 
 export function adaptOrdersPage(response: unknown): OrdersPage {
   const parsed = ordersPageSchema.parse(response)
-  if (parsed.status === false) {
-    throw new TypeError('Order list response does not contain successful data')
-  }
 
   return {
     pages: nonNegativeSafeInteger(parsed.pagination.pages, 'Page count'),
@@ -168,7 +165,7 @@ export function adaptOrdersPage(response: unknown): OrdersPage {
 
 export function adaptOrderResponse(response: unknown): Order {
   const parsed = orderResponseSchema.parse(response)
-  if (parsed.status === false || !parsed.data) {
+  if (!parsed.data) {
     throw new TypeError('Order response does not contain successful data')
   }
   return adaptOrder(parsed.data)
@@ -176,7 +173,7 @@ export function adaptOrderResponse(response: unknown): Order {
 
 export function adaptCancelledOrderResponse(response: unknown): CancelledOrder {
   const parsed = cancelledOrderResponseSchema.parse(response)
-  if (parsed.status === false || !parsed.data) {
+  if (!parsed.data) {
     throw new TypeError('Order cancellation response does not contain successful data')
   }
 

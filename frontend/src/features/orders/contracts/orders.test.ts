@@ -59,6 +59,7 @@ describe('adaptOrdersPage', () => {
 
   it.each([
     null,
+    { pagination: { pages: 1, size: 20, totalItems: 0, data: [] } },
     { status: false, pagination: { pages: 1, size: 20, totalItems: 0, data: [] } },
     { status: true, pagination: null },
     { status: true, pagination: { pages: -1, size: 20, totalItems: 0, data: [] } },
@@ -97,7 +98,12 @@ describe('adaptOrderResponse', () => {
     expect(() => adaptOrderResponse(responseWith(changes))).toThrow()
   })
 
-  it.each([{}, { status: true, data: null }, { status: false, data: validOrder }])(
+  it.each([
+    {},
+    { data: validOrder },
+    { status: true, data: null },
+    { status: false, data: validOrder },
+  ])(
     'rejects a response without successful non-null data',
     (response) => {
       expect(() => adaptOrderResponse(response)).toThrow()
@@ -129,6 +135,14 @@ describe('order cancellation contracts', () => {
   })
 
   it.each([
+    {
+      data: {
+        pedidoId: 41,
+        clienteId: 7,
+        dataPedido: '2026-07-15T12:00:00Z',
+        status: 'Cancelado',
+      },
+    },
     { status: true, data: null },
     { status: false, data: { pedidoId: 41 } },
     {
