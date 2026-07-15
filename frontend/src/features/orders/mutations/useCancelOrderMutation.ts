@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AppError } from '../../../shared/errors/appError'
 import { privateCacheMeta } from '../../../shared/query/privateCache'
 import { useAuthStore } from '../../auth/store/authStore'
-import type { CancelledOrder } from '../contracts/orders'
+import type { CancelledOrder, Order } from '../contracts/orders'
 import { orderQueryKeys } from '../cache/orderQueryKeys'
 import { cancelOrder } from '../services/cancelOrderService'
 
@@ -56,6 +56,21 @@ export function useCancelOrderMutation() {
         }
         throw error
       }
+    },
+    onSuccess: async (result, attempt) => {
+      if ('kind' in result) return
+      if (!isCurrentAttempt(attempt, result)) throw staleCancellationError()
+
+      queryClient.setQueriesData<Order>(
+        { queryKey: orderQueryKeys.detail(attempt.customerId, attempt.orderId) },
+        (current) => current ? { ...current, status: result.status } : current,
+      )
+      await Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: orderQueryKeys.detail(attempt.customerId, attempt.orderId),
+        }),
+        queryClient.invalidateQueries({ queryKey: orderQueryKeys.lists(attempt.customerId) }),
+      ])
     },
     retry: false,
     meta: privateCacheMeta,

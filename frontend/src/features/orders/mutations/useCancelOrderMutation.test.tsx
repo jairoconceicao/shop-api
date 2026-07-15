@@ -56,6 +56,55 @@ describe('useCancelOrderMutation', () => {
     expect(result.current.error).toMatchObject({ kind: 'contract' })
   })
 
+  it('reconciles every scoped copy of the exact detail and every list for the customer after success', async () => {
+    cancelOrder.mockResolvedValue({ id: 41, customerId: 7, createdAt: '2026-07-15T12:00:00Z', status: 'Cancelado' })
+    const { queryClient, result } = setup()
+    const detailA = [...orderQueryKeys.detail(7, 41), 101] as const
+    const detailB = [...orderQueryKeys.detail(7, 41), 202] as const
+    const otherOrder = [...orderQueryKeys.detail(7, 42), 101] as const
+    const otherCustomer = [...orderQueryKeys.detail(8, 41), 101] as const
+    const listA = [...orderQueryKeys.list(7, undefined, undefined, 1, 20), 101] as const
+    const listB = [...orderQueryKeys.list(7, '2026-07-01', '2026-07-31', 2, 20), 202] as const
+    const otherCustomerList = [...orderQueryKeys.list(8, undefined, undefined, 1, 20), 101] as const
+    const currentOrder = { id: 41, customerId: 7, createdAt: '2026-07-15T12:00:00Z', status: 'Criado' as const }
+    queryClient.setQueryData(detailA, currentOrder)
+    queryClient.setQueryData(detailB, currentOrder)
+    queryClient.setQueryData(otherOrder, { ...currentOrder, id: 42 })
+    queryClient.setQueryData(otherCustomer, { ...currentOrder, customerId: 8 })
+    queryClient.setQueryData(listA, { page: 1 })
+    queryClient.setQueryData(listB, { page: 2 })
+    queryClient.setQueryData(otherCustomerList, { page: 1 })
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+
+    await act(async () => { await result.current.mutateAsync(attempt) })
+
+    expect(queryClient.getQueryData(detailA)).toMatchObject({ status: 'Cancelado' })
+    expect(queryClient.getQueryData(detailB)).toMatchObject({ status: 'Cancelado' })
+    expect(queryClient.getQueryData(otherOrder)).toMatchObject({ status: 'Criado' })
+    expect(queryClient.getQueryData(otherCustomer)).toMatchObject({ status: 'Criado' })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderQueryKeys.detail(7, 41) })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderQueryKeys.lists(7) })
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: orderQueryKeys.lists(8) })
+  })
+
+  it.each([
+    ['mismatched response', () => cancelOrder.mockResolvedValue({ id: 42, customerId: 7, createdAt: '2026-07-15T12:00:00Z', status: 'Cancelado' })],
+    ['late session', () => {
+      cancelOrder.mockImplementation(async () => {
+        useAuthStore.getState().setSession({ ...session, token: 'new-token' }, 'session')
+        return { id: 41, customerId: 7, createdAt: '2026-07-15T12:00:00Z', status: 'Cancelado' }
+      })
+    }],
+  ])('does not run success cache effects for a %s', async (_scenario, arrange) => {
+    arrange()
+    const { queryClient, result } = setup()
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+
+    await expect(result.current.mutateAsync(attempt)).rejects.toMatchObject({ kind: 'contract' })
+
+    expect(invalidate).not.toHaveBeenCalled()
+  })
+
   it('refetches the active session-scoped detail before returning the rejected outcome', async () => {
     cancelOrder.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Transição recusada' }))
     const queryClient = new QueryClient()
