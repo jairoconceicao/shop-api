@@ -2,6 +2,7 @@ import { passwordRuleResults } from '../contracts/customerPassword'
 
 export interface PasswordRulesProps {
   value: string
+  id?: string
 }
 
 const rules = [
@@ -11,11 +12,11 @@ const rules = [
   ['special', 'Um caractere especial entre !@#$%'],
 ] as const
 
-export function PasswordRules({ value }: PasswordRulesProps) {
+export function PasswordRules({ value, id }: PasswordRulesProps) {
   const results = passwordRuleResults(value)
 
   return (
-    <ul aria-label="Regras da nova senha" className="space-y-2 text-sm">
+    <ul id={id} aria-label="Regras da nova senha" className="space-y-2 text-sm">
       {rules.map(([rule, label]) => {
         const satisfied = results[rule]
 

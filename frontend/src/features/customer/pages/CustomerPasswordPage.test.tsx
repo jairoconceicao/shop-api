@@ -24,7 +24,9 @@ describe('CustomerPasswordPage', () => {
     render(<CustomerPasswordPage />)
     expect(screen.getByLabelText('Senha atual')).toHaveAttribute('autocomplete', 'current-password')
     expect(screen.getByLabelText('Nova senha')).toHaveAttribute('autocomplete', 'new-password')
-    expect(screen.getByRole('list', { name: 'Regras da nova senha' })).toBeVisible()
+    const rules = screen.getByRole('list', { name: 'Regras da nova senha' })
+    expect(rules).toBeVisible()
+    expect(screen.getByLabelText('Nova senha')).toHaveAttribute('aria-describedby', expect.stringContaining(rules.id))
     fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus())
     expect(mutateAsync).not.toHaveBeenCalled()
@@ -49,10 +51,13 @@ describe('CustomerPasswordPage', () => {
   it('maps known 422 details to fields, unknown details to summary, preserves current and clears new password', async () => {
     mutateAsync.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Revise', details: [
       { propertyName: 'SenhaAtual', message: 'Senha atual incorreta.' },
+      { propertyName: 'SenhaNova', message: 'A nova senha foi recusada.' },
       { propertyName: 'Outro', message: 'Regra remota desconhecida.' },
     ] }))
     render(<CustomerPasswordPage />); fill(); fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }))
     expect((await screen.findAllByText('Senha atual incorreta.')).length).toBe(2)
+    expect(screen.getAllByText('A nova senha foi recusada.')).toHaveLength(2)
+    expect(screen.getByLabelText('Nova senha')).toHaveAccessibleDescription(expect.stringContaining('A nova senha foi recusada.'))
     expect(screen.getByText('Regra remota desconhecida.')).toBeVisible()
     expect(screen.getByLabelText('Senha atual')).toHaveValue('Atual#123')
     expect(screen.getByLabelText('Nova senha')).toHaveValue('')

@@ -39,7 +39,7 @@ export function CustomerPasswordPage() {
       const mapped = mapCustomerPasswordError(error)
       mapped.fields.forEach(({ field, message }) => setError(field, { message }))
       setSummary(mapped.summary.map((message) => ({ message })))
-      resetField('senhaNova', { defaultValue: '' })
+      resetField('senhaNova', { defaultValue: '', keepError: true })
       if (mapped.summary.length) requestAnimationFrame(() => document.getElementById('customer-password-summary')?.focus())
     }
   }, () => requestAnimationFrame(() => document.getElementById('customer-password-summary')?.focus()))
@@ -55,10 +55,10 @@ export function CustomerPasswordPage() {
       {success ? <p id="customer-password-success" tabIndex={-1} role="status" aria-live="polite" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-200">Senha alterada com sucesso.</p> : null}
       <Input id="customer-password-senhaAtual" label="Senha atual" type="password" autoComplete="current-password" error={errors.senhaAtual?.message} {...register('senhaAtual', { required: 'Informe sua senha atual.' })} />
       <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-        <Input id="customer-password-senhaNova" label="Nova senha" type="password" autoComplete="new-password" error={errors.senhaNova?.message} {...register('senhaNova', {
+        <Input id="customer-password-senhaNova" label="Nova senha" type="password" autoComplete="new-password" aria-describedby="customer-password-rules" error={errors.senhaNova?.message} {...register('senhaNova', {
           validate: () => Object.values(rules).every(Boolean) || 'A nova senha deve atender a todas as regras.',
         })} />
-        <PasswordRules value={newPassword} />
+        <PasswordRules id="customer-password-rules" value={newPassword} />
       </div>
       <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Alterando…' : 'Alterar senha'}</Button>
     </form>
