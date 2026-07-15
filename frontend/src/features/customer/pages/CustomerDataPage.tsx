@@ -50,7 +50,7 @@ function profileToFormValues(profile: CustomerProfile): CustomerProfileFormValue
 
 export interface CustomerDataFormProps {
   profile: CustomerProfile
-  onValidRequest?: (request: UpdateCustomerRequest) => void | Promise<void>
+  onValidRequest?: (request: UpdateCustomerRequest) => CustomerProfile | void | Promise<CustomerProfile | void>
 }
 
 export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormProps) {
@@ -60,21 +60,41 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [pendingRequest, setPendingRequest] = useState<UpdateCustomerRequest | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
+  const [confirmedCpf, setConfirmedCpf] = useState(profile.cpf)
+  const [profileSnapshot, setProfileSnapshot] = useState(profile)
   const [remoteSummaries, setRemoteSummaries] = useState<string[]>([])
   const initialValues = useMemo(() => profileToFormValues(profile), [profile])
   const today = localCivilDate()
   const {
     register,
     reset,
+    getValues,
     setValue,
     handleSubmit,
     setError,
     formState: { errors, submitCount },
   } = useForm<CustomerProfileFormValues>({ defaultValues: initialValues })
 
+  if (profile !== profileSnapshot) {
+    setProfileSnapshot(profile)
+    setConfirmedCpf(profile.cpf)
+  }
+
   useEffect(() => {
     reset(initialValues, { keepDirtyValues: true })
   }, [initialValues, reset])
+
+  const reconcileConfirmedProfile = (confirmed: CustomerProfile, submittedValues: CustomerProfileFormValues) => {
+    const currentValues = getValues()
+    const confirmedValues = profileToFormValues(confirmed)
+    reset(confirmedValues)
+    for (const field of Object.keys(currentValues) as (keyof CustomerProfileFormValues)[]) {
+      if (currentValues[field] !== submittedValues[field]) {
+        setValue(field, currentValues[field], { shouldDirty: true })
+      }
+    }
+    setConfirmedCpf(confirmed.cpf)
+  }
 
   const formErrors: FormError[] = Object.entries(errors).flatMap(([field, error]) => {
     if (!error.message) return []
@@ -99,7 +119,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       return
     }
 
-    if (request.cpf !== normalizeCpf(profile.cpf)) {
+    if (request.cpf !== normalizeCpf(confirmedCpf)) {
       setSuccessMessage('')
       setPendingRequest(request)
       return
@@ -111,7 +131,9 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     setRemoteSummaries([])
     setIsSubmittingRequest(true)
     try {
-      await onValidRequest?.(request)
+      const submittedValues = getValues()
+      const confirmed = await onValidRequest?.(request)
+      if (confirmed) reconcileConfirmedProfile(confirmed, submittedValues)
       setSuccessMessage('Dados atualizados com sucesso.')
     } catch (error) {
       const mapped = mapCustomerProfileError(error instanceof AppError ? error : new AppError({ kind: 'contract', message: 'Resposta inválida.', cause: error }))
@@ -131,7 +153,9 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     setIsSubmittingRequest(true)
     setRemoteSummaries([])
     try {
-      await onValidRequest?.(pendingRequest)
+      const submittedValues = getValues()
+      const confirmed = await onValidRequest?.(pendingRequest)
+      if (confirmed) reconcileConfirmedProfile(confirmed, submittedValues)
       setSuccessMessage('Dados atualizados com sucesso.')
       setPendingRequest(null)
     } catch (error) {
@@ -198,8 +222,8 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       </form>
       <CpfChangeDialog
         open={pendingRequest !== null}
-        previousCpf={profile.cpf}
-        nextCpf={pendingRequest?.cpf ?? profile.cpf}
+        previousCpf={confirmedCpf}
+        nextCpf={pendingRequest?.cpf ?? confirmedCpf}
         pending={isSubmittingRequest}
         onCancel={() => setPendingRequest(null)}
         onConfirm={() => { void confirmCpfChange() }}
@@ -246,6 +270,10 @@ export function CustomerDataPage() {
       throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
     }
     const result = await updateMutation.mutateAsync({ customerId: session.clienteId, token: session.token, request })
-    if (result.customerId !== session.clienteId) throw new AppError({ kind: 'contract', message: 'Resposta inválida.' })
+    const currentSession = useAuthStore.getState().session
+    if (currentSession?.clienteId !== session.clienteId || currentSession.token !== session.token) {
+      throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
+    }
+    return result
   }} />
 }

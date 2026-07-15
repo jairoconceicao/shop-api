@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useOutletContext } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Cart } from '../../cart/contracts/cart'
@@ -49,6 +49,11 @@ function renderGuard() {
       </Routes>
     </MemoryRouter>,
   )
+}
+
+function CheckoutAddressProbe() {
+  const { profile } = useOutletContext<{ profile: { address: { logradouro: string } } }>()
+  return <p>Endereço canônico: {profile.address.logradouro}</p>
 }
 
 describe('CheckoutGuard', () => {
@@ -117,6 +122,24 @@ describe('CheckoutGuard', () => {
 
     expect(screen.getByRole('heading', { name: 'Formulário de checkout' })).toBeInTheDocument()
     expect(useCustomerProfileQuery).toHaveBeenCalledWith(true)
+  })
+
+  it('projects the updated address from the same canonical profile query', () => {
+    cartQuery.data = { customerId: 1, id: 2, createdAt: '2026-07-14T12:00:00Z', items: [{ id: 3, productId: 4, quantity: 1, unitPrice: 99.9 }] }
+    profileQuery.data = {
+      customerId: 1, cpf: '12345678901', nome: 'Cliente', dataNascimento: '1990-01-01', email: 'cliente@example.com',
+      endereco: { logradouro: 'Rua atualizada', numero: '20', complemento: null, cep: '87654321', bairro: 'Novo', cidade: 'Campinas', uf: 'SP' },
+      celular: { ddd: '11', numero: '999999999', whatsApp: true },
+    }
+
+    const view = render(
+      <MemoryRouter initialEntries={['/checkout']}><Routes><Route element={<CheckoutGuard />}><Route path="checkout" element={<CheckoutAddressProbe />} /></Route></Routes></MemoryRouter>,
+    )
+    expect(screen.getByText('Endereço canônico: Rua atualizada')).toBeVisible()
+    profileQuery.data = { ...profileQuery.data, endereco: { ...profileQuery.data.endereco, logradouro: 'Rua reconciliada' } }
+    view.rerender(<MemoryRouter initialEntries={['/checkout']}><Routes><Route element={<CheckoutGuard />}><Route path="checkout" element={<CheckoutAddressProbe />} /></Route></Routes></MemoryRouter>)
+    expect(screen.getByText('Endereço canônico: Rua reconciliada')).toBeVisible()
+    expect(useCustomerProfileQuery).toHaveBeenLastCalledWith(true)
   })
 
   it('mantém a pré-carga desabilitada antes de confirmar um carrinho não vazio', () => {

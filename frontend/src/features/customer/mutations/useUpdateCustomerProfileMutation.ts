@@ -1,10 +1,27 @@
-import { useMutation } from '@tanstack/react-query'
-import type { AppError } from '../../../shared/errors/appError'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { AppError } from '../../../shared/errors/appError'
+import { useAuthStore } from '../../auth/store/authStore'
+import type { CustomerProfile } from '../contracts/customerProfile'
+import { customerProfileQueryKeys } from '../queries/useCustomerProfileQuery'
 import { updateCustomerProfile, type UpdateCustomerProfileVariables } from '../services/customerProfileService'
 
 export function useUpdateCustomerProfileMutation() {
-  return useMutation<{ customerId: number }, AppError, UpdateCustomerProfileVariables>({
-    mutationFn: (variables) => updateCustomerProfile(variables),
+  const queryClient = useQueryClient()
+
+  return useMutation<CustomerProfile, AppError, UpdateCustomerProfileVariables>({
+    mutationFn: async (variables) => {
+      await updateCustomerProfile(variables)
+      const currentSession = useAuthStore.getState().session
+      if (currentSession?.clienteId !== variables.customerId || currentSession.token !== variables.token) {
+        throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
+      }
+
+      const profile: CustomerProfile = { customerId: variables.customerId, ...variables.request }
+      const queryKey = customerProfileQueryKeys.detail(variables.customerId)
+      queryClient.setQueryData(queryKey, profile)
+      void queryClient.invalidateQueries({ queryKey, exact: true })
+      return profile
+    },
     retry: false,
     meta: { private: true },
   })

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { CustomerProfile } from '../contracts/customerProfile'
+import type { CustomerProfile, UpdateCustomerRequest } from '../contracts/customerProfile'
 import { AppError } from '../../../shared/errors/appError'
 import { CustomerDataForm, CustomerDataPage } from './CustomerDataPage'
 
@@ -82,6 +82,29 @@ describe('CustomerDataForm', () => {
 
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Nome em edição')
     expect(screen.getByLabelText('E-mail')).toHaveValue('novo@example.com')
+  })
+
+  it('makes submitted fields the new clean snapshot while preserving edits made during save', async () => {
+    let release!: (profile: CustomerProfile) => void
+    const onValidRequest = vi.fn((request: UpdateCustomerRequest) => {
+      void request
+      return new Promise<CustomerProfile>((resolve) => { release = resolve })
+    })
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+    fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Nome enviado' } })
+    fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '98765432100' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirmar alteração' }))
+    await waitFor(() => expect(onValidRequest).toHaveBeenCalledOnce())
+
+    fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Edição durante request' } })
+    release({ ...profile, ...onValidRequest.mock.calls[0]![0], customerId: 7 })
+
+    expect(await screen.findByText('Dados atualizados com sucesso.')).toBeVisible()
+    expect(screen.getByLabelText('Nome completo')).toHaveValue('Edição durante request')
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(onValidRequest).toHaveBeenCalledTimes(2))
+    expect(screen.queryByRole('dialog', { name: 'Confirmar alteração do CPF' })).not.toBeInTheDocument()
   })
 
   it('validates locally, associates errors and focuses the summary', async () => {
