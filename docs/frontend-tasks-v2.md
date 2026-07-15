@@ -559,13 +559,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Reabilitar a interface após a tentativa e não repetir automaticamente o PATCH; erros diferentes de `422` mantêm o tratamento geral e os dados confirmados.
   - Evidência: commits `881ab30` e `66058a4`; TDD RED confirmou que a recusa seguia o caminho genérico e, no review, que a chave exata não alcançava o detalhe ativo com `sessionScope`; GREEN focado 14/14, suíte de pedidos 99/99 e typecheck/lint/build/diff-check PASS; reviewer aprovado após correção, sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
-  - Status: READY
+[x] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
+  - Status: DONE
   - Depends on: TASK-103, TASK-104
   - Critérios de aceite:
     - Após resposta aceita, validada e ainda pertencente à sessão atual, atualizar ou invalidar o detalhe exato e invalidar todas as listas privadas de pedidos do cliente, independentemente de página ou período.
     - Aguardar a reconciliação em best-effort sem emitir um segundo PATCH e manter lista e detalhe convergentes com o servidor.
     - Não executar efeitos de sucesso em `422`, falha, envelope divergente ou resposta tardia, cobrindo detalhe e lista em teste de integração.
+  - Evidência: commit `1728ec4`; TDD RED confirmou que cópias scoped do detalhe permaneciam com status anterior; GREEN focado 23/23, suíte de pedidos/checkout 186/186 e suíte global 746/746 em 115 arquivos; typecheck/lint/build/diff-check PASS e E2E listou o smoke test existente. Reviewer aprovado sem findings CRITICAL ou IMPORTANT; detalhe exato e todas as listas do cliente convergem por prefixos canônicos sem expor CPF ou token.
 
 ### Fase 8 — Testes e hardening
 
