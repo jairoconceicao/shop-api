@@ -403,13 +403,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commit `658d296`; RED confirmou os módulos canônicos ausentes e o `CheckoutGuard` ainda dependente do hook antigo; testes focados 32/32, regressão de troca de sessão 7/7 e suíte ampla 558/558; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
   - Finding pendente (MINOR): o teste parametrizado de `refetch` usa uma sessão válida e cobre `enabled=false`, mas não exercita o `refetch` para cada combinação inválida de ID/token.
 
-[ ] TASK-088: Implementar formulário “Meus Dados” com endereço e celular aderentes ao contrato.
-  - Status: READY
+[x] TASK-088: Implementar formulário “Meus Dados” com endereço e celular aderentes ao contrato.
+  - Status: DONE
   - Depends on: TASK-087
   - Critérios de aceite:
     - Carregar `/minha-conta/dados` em chunk lazy e exibir skeleton sem salto, erro com retry manual e formulário somente após um perfil válido.
     - Expor CPF, nome, nascimento, e-mail, endereço com logradouro/número/complemento separados, CEP, bairro, cidade, UF, DDD, celular e WhatsApp, com labels visíveis e validação local antes da rede.
     - Manter edição no React Hook Form, sem sobrescrever campos sujos em refetch, funcionando entre 320 px e 1920 px sem rolagem horizontal e com erros associados por `aria-describedby`.
+  - Evidência: commits `c2bea3e` e `53c7886`; RED inicial confirmou a ausência da página e a rota ainda ligada ao placeholder, e a regressão UTC confirmou o limite de nascimento incorreto na virada da data civil local; testes focados 9/9 e suíte ampla 566/566; typecheck/lint/build/diff-check PASS; build confirmou `CustomerDataPage` em chunk separado; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Uma execução ampla observou flake preexistente no teste de logout, que passou isolado 2/2 e no rerun amplo 566/566.
 
 [ ] TASK-089: Implementar confirmação específica quando o CPF for alterado.
   - Status: READY
