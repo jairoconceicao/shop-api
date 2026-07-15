@@ -21,6 +21,9 @@ const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPa
 const OrderConfirmationPage = lazy(() => import(
   '../../features/checkout/pages/OrderConfirmationPage'
 ).then(({ OrderConfirmationPage: Page }) => ({ default: Page })))
+const CustomerDataPage = lazy(() => import(
+  '../../features/customer/pages/CustomerDataPage'
+).then(({ CustomerDataPage: Page }) => ({ default: Page })))
 
 function CheckoutRouteFallback() {
   return (
@@ -32,6 +35,19 @@ function CheckoutRouteFallback() {
 
 function LazyCheckoutRoute({ children }: { children: ReactNode }) {
   return <Suspense fallback={<CheckoutRouteFallback />}>{children}</Suspense>
+}
+
+function CustomerDataRouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-label="Carregando página de dados"
+      aria-live="polite"
+      className="surface min-h-96 p-6"
+    >
+      Carregando página de dados…
+    </div>
+  )
 }
 
 export function AppRouter() {
@@ -59,7 +75,10 @@ export function AppRouter() {
           <Route path="pedidos" element={<RoutePlaceholder title="Pedidos" />} />
           <Route path="pedidos/:pedidoId" element={<RoutePlaceholder title="Detalhes do pedido" />} />
           <Route path="minha-conta" element={<AccountLayout />}>
-            <Route path="dados" element={<RoutePlaceholder title="Dados pessoais" />} />
+            <Route
+              path="dados"
+              element={<Suspense fallback={<CustomerDataRouteFallback />}><CustomerDataPage /></Suspense>}
+            />
             <Route path="senha" element={<RoutePlaceholder title="Alterar senha" />} />
           </Route>
         </Route>

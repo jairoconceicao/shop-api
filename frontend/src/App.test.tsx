@@ -196,12 +196,12 @@ describe('App', () => {
   })
 
   it.each([
-    ['/minha-conta/dados', 'Dados pessoais'],
-    ['/minha-conta/senha', 'Alterar senha'],
-  ])('nests the account route %s inside the store shell', (route, heading) => {
+    ['/minha-conta/dados', 'Carregando página de dados', 'status'],
+    ['/minha-conta/senha', 'Alterar senha', 'heading'],
+  ])('nests the account route %s inside the store shell', (route, accessibleName, role) => {
     const { container } = renderApp(route)
 
-    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(screen.getByRole(role, { name: accessibleName })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Minha conta' })).toBeInTheDocument()
   })
