@@ -523,16 +523,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Tratar `404` da lista como erro de recurso, sem convertê-lo silenciosamente em vazio, e manter teclado, foco, região viva e responsividade entre 320 px e 1920 px.
   - Evidência: commits `b4ebe67` e `bebda5a`; RED confirmou ausência da página/rota real e reproduziu período invertido e página fora do total; testes focados 23/23 e suíte de pedidos/roteador/App 80/80; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-101: Implementar query e página de detalhe do pedido.
-  - Status: READY
+[x] TASK-101: Implementar query e página de detalhe do pedido.
+  - Status: DONE
   - Depends on: TASK-096, TASK-100
   - Critérios de aceite:
     - Aceitar somente `pedidoId` canônico inteiro positivo e chamar `GET /api/v1/pedido/{pedidoId}` com Bearer e `AbortSignal`, sem emitir requisição com ID sentinela ou inválido.
     - Carregar `/pedidos/:pedidoId` em chunk lazy e exibir endereço, data, pagamento, status, itens e total derivado, além de loading, `404` e erro recuperável com retry.
     - Manter chave privada por cliente e pedido, ignorar respostas tardias de outra sessão e preservar semântica e layout acessíveis entre mobile e desktop.
+  - Evidência: commits `1519551` e `0e20917`; RED confirmou ausência dos módulos e headings principais ausentes nos estados de falha; teste focado da página 3/3 e suíte de pedidos/roteador/App 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-101, TASK-057
   - Critérios de aceite:
     - Deduplicar os `produtoId` dos itens e resolver os produtos únicos em paralelo com `Promise.all`, reutilizando a query e o cache canônicos de detalhe por produto.
