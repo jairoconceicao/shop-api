@@ -371,7 +371,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Remover o `carrinhoId` somente do cliente autenticado após resposta `201` adaptada com sucesso.
     - Invalidar os caches de pedidos e remover os caches do carrinho concluído antes de navegar.
     - Não limpar vínculo nem caches de sucesso quando a criação falhar.
-  - Evidência: commits `27e8557`, `20b9864` e `0cdae32`; RED confirmado por namespace de pedidos ausente e vínculo concorrente removido pelo sucesso tardio; testes focados 6/6 e suíte ampla 532/532; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `27e8557`, `20b9864`, `0cdae32`, `3f2fdc4` e `c649c8a`; RED confirmado por namespace de pedidos ausente, vínculo concorrente removido pelo sucesso tardio e respostas obsoletas ainda alcançando callbacks locais; testes focados originais 6/6 e correção final 22/22; suíte ampla original 532/532 e final 549/549 (uma execução expôs o flake preexistente em `useLogoutMutation.test.tsx` com 548/549, o teste isolado passou 2/2 e o rerun completo passou 549/549); typecheck/lint/build/e2e-list/diff-check PASS; revisão ampla final aprovada sem findings CRITICAL ou IMPORTANT.
 
 [x] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
   - Status: DONE
@@ -380,7 +380,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Abrir `/pedido-confirmado/{pedidoId}` após `201` e exibir identificador, data, forma de pagamento, status e valor total retornados.
     - Exibir os dados somente a partir do state/cache privado em memória e, após refresh, mostrar estado de confirmação indisponível com ação para voltar à loja.
     - Usar texto neutro de pedido criado, sem alegar autorização do pagamento, entrega ou emissão de nota fiscal.
-  - Evidência: commits `5344ea1`, `ad4fe90` e `a7dd868`; RED confirmou módulos e rota ausentes, exposição via navigation state e reutilização cross-session; testes focados 30/30 na revisão final (28/28 na suíte do implementador antes da re-review) e suíte ampla 543/543; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `5344ea1`, `ad4fe90`, `a7dd868`, `5dd1ee0` e `7e3ff1a`; RED confirmou módulos e rota ausentes, exposição via navigation state, reutilização cross-session e carregamento estático do checkout; testes focados 30/30 na revisão funcional (28/28 na suíte do implementador antes da re-review), lazy routing integrado 32/32 e suíte ampla final 549/549; typecheck/lint/build/e2e-list/diff-check PASS; build confirmou chunks lazy separados `CheckoutPage-*.js` e `OrderConfirmationPage-*.js` fora do entry; revisão ampla final aprovada sem findings CRITICAL ou IMPORTANT.
 
 ### Fase 6 — Conta do cliente
 
