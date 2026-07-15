@@ -410,7 +410,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Carregar `/minha-conta/dados` em chunk lazy e exibir skeleton sem salto, erro com retry manual e formulário somente após um perfil válido.
     - Expor CPF, nome, nascimento, e-mail, endereço com logradouro/número/complemento separados, CEP, bairro, cidade, UF, DDD, celular e WhatsApp, com labels visíveis e validação local antes da rede.
     - Manter edição no React Hook Form, sem sobrescrever campos sujos em refetch, funcionando entre 320 px e 1920 px sem rolagem horizontal e com erros associados por `aria-describedby`.
-  - Evidência: commits `c2bea3e` e `53c7886`; RED inicial confirmou a ausência da página e a rota ainda ligada ao placeholder, e a regressão UTC confirmou o limite de nascimento incorreto na virada da data civil local; testes focados 9/9 e suíte ampla 566/566; typecheck/lint/build/diff-check PASS; build confirmou `CustomerDataPage` em chunk separado; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Uma execução ampla observou flake preexistente no teste de logout, que passou isolado 2/2 e no rerun amplo 566/566.
+  - Evidência: commits `c2bea3e`, `53c7886` e `3678b92`; RED inicial confirmou a ausência da página e a rota ainda ligada ao placeholder, e as regressões UTC confirmaram o limite de nascimento incorreto na virada da data civil local; o helper de data civil local foi compartilhado entre formulário e schemas; testes focados 9/9 e suíte ampla 566/566; typecheck/lint/build/diff-check PASS; build confirmou `CustomerDataPage` em chunk separado; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Uma execução ampla observou flake preexistente no teste de logout, que passou isolado 2/2 e no rerun amplo 566/566.
 
 [x] TASK-089: Implementar confirmação específica quando o CPF for alterado.
   - Status: DONE
@@ -437,7 +437,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Após resposta válida da mesma sessão, gravar na chave exata o perfil completo enviado com `customerId` preservado e invalidar essa chave para reconciliação.
     - Atualizar o snapshot do formulário após salvar, inclusive o CPF de referência, sem atualização otimista e sem sobrescrever edições sujas por refetch.
     - Ignorar callbacks tardios quando a sessão já representar outro cliente e manter checkout e tela de dados observando o mesmo cache canônico.
-  - Evidência: commits `2ca697c` e `2f0cb34`; RED inicial confirmou retorno incompleto, ausência de atualização/invalidação canônica, aceitação de respostas tardias e CPF salvo fora do novo snapshot; RED de revisão confirmou resolução precoce durante invalidação pendente e rejeição de invalidação ignorada; testes focados 31/31 e suíte completa 590/590; typecheck/lint/build/diff-check PASS; reviewer aprovado após correção sem findings CRITICAL ou IMPORTANT.
+  - Evidência: commits `2ca697c`, `2f0cb34` e `3678b92`; RED inicial confirmou retorno incompleto, ausência de atualização/invalidação canônica, aceitação de respostas tardias e CPF salvo fora do novo snapshot; RED de revisão confirmou resolução precoce durante invalidação pendente e, na revisão ampla, que a rejeição da reconciliação convertia o ACK do PUT em falha; a chave canônica permanece confirmada e `invalidateQueries` continua aguardado em best-effort, sem retry ou segundo PUT; testes focados 31/31 e suíte completa 590/590; typecheck/lint/build/diff-check PASS; reviewer aprovado após correção sem findings CRITICAL ou IMPORTANT.
 
 [x] TASK-092: Implementar schema e indicador visual das regras de nova senha.
   - Status: DONE
@@ -455,7 +455,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Carregar `/minha-conta/senha` em chunk lazy e enviar `senhaAtual` e `senhaNova` por `PUT /api/v1/cliente/{clienteId}/senha` com Bearer token, `retry: false` e proteção contra duplicidade.
     - Mapear `422` conhecido para os campos e demais falhas para o resumo; após sucesso com ID correspondente, limpar ambas as senhas, focar a confirmação e anunciá-la em região viva.
     - Capturar cliente e token por tentativa, ignorar sucesso tardio de outra sessão e manter senhas exclusivamente no formulário durante sucesso ou falha.
-  - Evidência: commits `9e622bb` e `507a222`; RED inicial confirmou ausência de service, mutation, página e rota lazy; RED da revisão confirmou perda do erro remoto de `SenhaNova` após limpeza e ausência de associação acessível com a lista de regras; testes focados 7/7 e suíte completa 618/618; typecheck/lint/build/diff-check PASS; chunk lazy separado validado; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
+  - Evidência: commits `9e622bb`, `507a222` e `56575a7`; RED inicial confirmou ausência de service, mutation, página e rota lazy; RED da revisão confirmou perda do erro remoto de `SenhaNova` após limpeza e ausência de associação acessível com a lista de regras; a revisão ampla confirmou retenção das senhas nas variables do MutationCache, corrigida com identificador opaco e armazenamento efêmero limpo em `finally` após sucesso ou falha; testes focados 7/7 e suíte completa 618/618; typecheck/lint/build/diff-check PASS; chunk lazy separado validado; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [x] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
   - Status: DONE
@@ -464,7 +464,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir em “Meus Dados” uma área de perigo visualmente distinta com consequências explícitas, sem executar cancelamento por clique único.
     - Exigir checkbox de confirmação antes de habilitar a ação destrutiva; “Voltar” e Escape fecham sem efeito e a ação segura recebe o foco inicial.
     - Fornecer dialog acessível por teclado, com nome, descrição, foco preso/restaurado e estado pendente que impeça fechamento destrutivo ou segundo envio.
-  - Evidência: commits `b1cd820` e `ee0c418`; RED inicial confirmou ausência do componente e da área como irmã do formulário; RED da revisão reproduziu liberação precoce do latch após callback síncrono, rejeição não tratada e botão de fechar semanticamente ativo durante estado pendente; testes focados 21/21 e suíte completa 624/624; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
+  - Evidência: commits `b1cd820`, `ee0c418` e `1c26508`; RED inicial confirmou ausência do componente e da área como irmã do formulário; RED da revisão reproduziu liberação precoce do latch após callback síncrono, rejeição não tratada e botão de fechar semanticamente ativo durante estado pendente; a revisão ampla confirmou que `Dialog.closeDisabled` não bloqueava Escape/backdrop internamente e que o dialog de CPF não propagava `pending`, ambos corrigidos com cobertura semântica; testes focados 21/21 e suíte completa 624/624; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [x] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
   - Status: DONE
@@ -474,6 +474,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Remover, na ordem definida, apenas o vínculo de carrinho do cliente cancelado, a sessão persistida, queries e mutations `meta.private: true` e snapshots privados transitórios; vínculos de outros clientes permanecem.
     - Redirecionar com `replace` para rota pública e confirmação neutra sem dados pessoais; qualquer falha mantém sessão, vínculo, formulário e dialog utilizáveis sem limpeza parcial.
   - Evidência: commits `88fdc7f` e `cb32828`; RED inicial confirmou ausência do service DELETE, registro de snapshots transitórios e mutation, e RED da revisão reproduziu o segundo ciclo de mutation que desbloqueava a UI durante o DELETE original e a ausência do rótulo exato “Tentar novamente”; testes focados 23/23 e suíte completa 634/634; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Decisão registrada: respostas `401` mantêm o logout global conforme o design aprovado; falhas de rede, contrato, `403`, `404`, `422` e `5xx` não executam limpeza parcial.
+  - Validação final da Fase 6 no HEAD `1c26508`: revisão ampla aprovada sem findings CRITICAL, IMPORTANT ou MINOR; typecheck/lint/build/diff-check PASS; suíte 637/637; E2E listou 1 teste; chunks lazy `CustomerDataPage`, `CustomerPasswordPage`, `CheckoutPage` e `OrderConfirmationPage` confirmados fora do entry. O build manteve aviso não bloqueante para o chunk principal de 720,40 kB.
 
 ### Fase 7 — Pedidos
 
