@@ -5,8 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppError } from '../../../shared/errors/appError'
 import { OrderDetailPage } from './OrderDetailPage'
 
-const { useOrderDetailQuery } = vi.hoisted(() => ({ useOrderDetailQuery: vi.fn() }))
+const { useOrderDetailQuery, useOrderProductsQuery } = vi.hoisted(() => ({
+  useOrderDetailQuery: vi.fn(),
+  useOrderProductsQuery: vi.fn(),
+}))
 vi.mock('../queries/useOrderDetailQuery', () => ({ useOrderDetailQuery }))
+vi.mock('../queries/useOrderProductsQuery', () => ({ useOrderProductsQuery }))
 
 const order = {
   id: 41, cartId: 9, customerId: 7, createdAt: '2026-07-15T12:00:00Z', paymentMethod: 'Pix', status: 'Criado',
@@ -19,7 +23,16 @@ function renderDetail(route = '/pedidos/41') {
 }
 
 describe('OrderDetailPage', () => {
-  beforeEach(() => useOrderDetailQuery.mockReset())
+  beforeEach(() => {
+    useOrderDetailQuery.mockReset()
+    useOrderProductsQuery.mockReturnValue({
+      data: [{
+        status: 'success',
+        productId: 5,
+        product: { id: 5, title: 'Mouse sem fio', photo: null },
+      }],
+    })
+  })
 
   it('renders confirmed address, payment, status, items and derived total', () => {
     useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: order })
@@ -28,8 +41,8 @@ describe('OrderDetailPage', () => {
     expect(screen.getByText('Pix')).toBeInTheDocument()
     expect(screen.getByText('Criado')).toBeInTheDocument()
     expect(screen.getByText('Rua A, 10')).toBeInTheDocument()
-    expect(screen.getByText('Produto 5')).toBeInTheDocument()
-    expect(screen.getByText('R$ 25,00')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Mouse sem fio' })).toBeInTheDocument()
+    expect(screen.getAllByText('R$ 25,00')).toHaveLength(2)
   })
 
   it('renders loading, invalid route and explicit API 404 states', () => {

@@ -4,8 +4,10 @@ import { useParams } from 'react-router-dom'
 import { AppError } from '../../../shared/errors/appError'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
+import { OrderItem } from '../components/OrderItem'
 import { calculateOrderTotal, getOrderStatusLabel } from '../formatting/orderPresentation'
 import { useOrderDetailQuery } from '../queries/useOrderDetailQuery'
+import { useOrderProductsQuery } from '../queries/useOrderProductsQuery'
 import { parseOrderId } from '../routing/orderId'
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -37,6 +39,7 @@ export function OrderDetailPage() {
   const { pedidoId } = useParams()
   const orderId = parseOrderId(pedidoId)
   const query = useOrderDetailQuery(orderId)
+  const productsQuery = useOrderProductsQuery(query.data?.items ?? [])
 
   if (orderId === undefined) {
     return <section className="container-page py-8 sm:py-10"><NotFoundState /></section>
@@ -71,6 +74,7 @@ export function OrderDetailPage() {
   }
 
   const order = query.data
+  const productsById = new Map(productsQuery.data?.map((result) => [result.productId, result]))
   return (
     <section className="container-page py-8 sm:py-10" aria-labelledby="order-title">
       <header className="mb-6">
@@ -104,7 +108,17 @@ export function OrderDetailPage() {
         <ul className="mt-4 divide-y divide-zinc-800">
           {order.items.map((item) => (
             <li key={item.itemId} className="py-4">
-              <div><p className="font-medium text-zinc-100">Produto {item.productId}</p><p className="text-sm text-zinc-400">Quantidade: {item.quantity} · {currency.format(item.unitPrice)} cada</p></div>
+              <OrderItem
+                item={item}
+                productResult={productsById.get(item.productId) ?? (productsQuery.isPending ? {
+                  status: 'pending',
+                  productId: item.productId,
+                } : {
+                  status: 'error',
+                  productId: item.productId,
+                  error: productsQuery.error,
+                })}
+              />
             </li>
           ))}
         </ul>
