@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   adaptCustomerIdResponse,
@@ -48,6 +48,17 @@ function okEnvelope(data: unknown) {
 }
 
 describe('customer profile contract', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('rejects tomorrow in local civil time across the UTC date rollover', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15, 23, 30))
+    const tomorrow = { ...profileData, dataNascimento: '2026-07-16' }
+
+    expect(() => adaptCustomerProfileResponse(okEnvelope(tomorrow))).toThrow()
+    expect(() => adaptUpdateCustomerRequest({ ...formValues, dataNascimento: '2026-07-16' })).toThrow()
+  })
+
   it('adapts a strict complete profile and normalizes its positive ID', () => {
     expect(adaptCustomerProfileResponse(okEnvelope(profileData))).toEqual({
       customerId: 7,

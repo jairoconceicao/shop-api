@@ -28,7 +28,7 @@ import { mapCustomerProfileError } from '../errors/customerProfileErrors'
 import { useUpdateCustomerProfileMutation } from '../mutations/useUpdateCustomerProfileMutation'
 import { useDeleteCustomerMutation } from '../mutations/useDeleteCustomerMutation'
 import { registerCustomerPrivateSnapshot } from '../cache/customerPrivateSnapshots'
-import { localCivilDate } from './localCivilDate'
+import { localCivilDate } from '../../../shared/dates/localCivilDate'
 
 const required = (message: string) => ({ required: message })
 

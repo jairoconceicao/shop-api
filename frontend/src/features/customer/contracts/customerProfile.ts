@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { normalizeId } from '../../../shared/adapters/numbers'
 import { createApiResponseSchema } from '../../../shared/contracts/apiEnvelopes'
+import { localCivilDate } from '../../../shared/dates/localCivilDate'
 import {
   normalizeCpf,
   normalizePostalCode,
@@ -13,7 +14,7 @@ const transportIdSchema = z.union([
 ])
 
 const notFutureDateSchema = z.iso.date().refine(
-  (value) => value <= new Date().toISOString().slice(0, 10),
+  (value) => value <= localCivilDate(),
   { message: 'Date cannot be in the future' },
 )
 

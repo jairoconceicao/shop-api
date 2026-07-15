@@ -77,14 +77,16 @@ it('keeps the mutation pending until exact invalidation finishes', async () => {
   await expect(attempt).resolves.toEqual({ customerId: 7, ...request })
 })
 
-it('propagates a rejected invalidation through the mutation promise', async () => {
+it('keeps the confirmed PUT successful when reconciliation invalidation rejects', async () => {
   updateCustomerProfile.mockResolvedValue({ customerId: 7 })
   const client = new QueryClient()
   vi.spyOn(client, 'invalidateQueries').mockRejectedValue(new Error('invalidation failed'))
   const { result } = renderHook(() => useUpdateCustomerProfileMutation(), { wrapper: wrapperFor(client) })
 
   await expect(result.current.mutateAsync({ customerId: 7, token: 'captured', request }))
-    .rejects.toThrow('invalidation failed')
+    .resolves.toEqual({ customerId: 7, ...request })
+  expect(client.getQueryData(customerProfileQueryKeys.detail(7))).toEqual({ customerId: 7, ...request })
+  expect(updateCustomerProfile).toHaveBeenCalledOnce()
 })
 
 it.each([
