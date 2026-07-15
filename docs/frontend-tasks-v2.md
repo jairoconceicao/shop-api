@@ -364,16 +364,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Reabilitar a confirmação após falha sem disparar mais de uma requisição por tentativa.
   - Evidência: commits `2aa3c1d` e `b4b3052`; RED confirmado por módulo ausente, CTA ainda habilitado, ausência de alertas acionáveis, segunda requisição após `201` e mutation privada retida no logout; testes focados 12/12; suíte ampla 528/528; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
-  - Status: READY
+[x] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
+  - Status: DONE
   - Depends on: TASK-083
   - Critérios de aceite:
     - Remover o `carrinhoId` somente do cliente autenticado após resposta `201` adaptada com sucesso.
     - Invalidar os caches de pedidos e remover os caches do carrinho concluído antes de navegar.
     - Não limpar vínculo nem caches de sucesso quando a criação falhar.
+  - Evidência: commits `27e8557` e `20b9864`; RED confirmado por namespace de pedidos ausente e vínculo concorrente removido pelo sucesso tardio; testes focados 6/6 e suíte ampla 532/532; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-084
   - Critérios de aceite:
     - Abrir `/pedido-confirmado/{pedidoId}` após `201` e exibir identificador, data, forma de pagamento, status e valor total retornados.
