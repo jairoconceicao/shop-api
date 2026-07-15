@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
-import { getCheckoutProfile } from './getCheckoutProfileService'
+import { getCustomerProfile } from './customerProfileService'
 
 const validResponse = {
   status: true,
@@ -19,33 +19,29 @@ const validResponse = {
   },
 }
 
-describe('getCheckoutProfile', () => {
+describe('getCustomerProfile', () => {
   it('gets the authenticated customer detail and forwards cancellation', async () => {
     const signal = new AbortController().signal
     const client = { request: vi.fn().mockResolvedValue(validResponse) }
 
-    await expect(getCheckoutProfile(42, 'access-token', signal, client)).resolves.toEqual({
+    await expect(getCustomerProfile(42, 'access-token', signal, client)).resolves.toMatchObject({
       customerId: 42,
-      address: validResponse.data.endereco,
+      nome: 'Maria',
+      endereco: validResponse.data.endereco,
     })
     expect(client.request).toHaveBeenCalledWith('/api/v1/cliente/42', {
-      token: 'access-token',
-      signal,
+      token: 'access-token', signal,
     })
   })
 
   it('maps an invalid successful response to a contract error', async () => {
     const client = { request: vi.fn().mockResolvedValue({ status: true, data: {} }) }
-
-    await expect(getCheckoutProfile(42, 'token', undefined, client)).rejects.toMatchObject({
-      kind: 'contract',
-    })
+    await expect(getCustomerProfile(42, 'token', undefined, client)).rejects.toMatchObject({ kind: 'contract' })
   })
 
   it('preserves normalized transport errors', async () => {
     const error = new AppError({ kind: 'network', message: 'Sem conexao.' })
     const client = { request: vi.fn().mockRejectedValue(error) }
-
-    await expect(getCheckoutProfile(42, 'token', undefined, client)).rejects.toBe(error)
+    await expect(getCustomerProfile(42, 'token', undefined, client)).rejects.toBe(error)
   })
 })

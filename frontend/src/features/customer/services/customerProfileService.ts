@@ -2,25 +2,24 @@ import { apiClient } from '../../../shared/api/apiClient'
 import { mapContractError } from '../../../shared/errors/appError'
 import {
   adaptCustomerProfileResponse,
-  toCheckoutProfile,
-  type CheckoutProfile,
-} from '../../customer/contracts/customerProfile'
+  type CustomerProfile,
+} from '../contracts/customerProfile'
 
-type CheckoutProfileApiClient = Pick<typeof apiClient, 'request'>
+type CustomerProfileApiClient = Pick<typeof apiClient, 'request'>
 
-export async function getCheckoutProfile(
+export async function getCustomerProfile(
   customerId: number,
   token: string,
   signal?: AbortSignal,
-  client: CheckoutProfileApiClient = apiClient,
-): Promise<CheckoutProfile> {
+  client: CustomerProfileApiClient = apiClient,
+): Promise<CustomerProfile> {
   const response = await client.request<unknown>(`/api/v1/cliente/${customerId}`, {
     token,
     signal,
   })
 
   try {
-    return toCheckoutProfile(adaptCustomerProfileResponse(response))
+    return adaptCustomerProfileResponse(response)
   } catch (error) {
     throw mapContractError(error)
   }
