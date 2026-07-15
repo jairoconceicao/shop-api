@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
+import { useAuthStore } from '../../auth/store/authStore'
 import type { CreatedOrder } from '../contracts/order'
 import { setOrderConfirmation } from '../cache/orderConfirmationCache'
 import { OrderConfirmationPage } from './OrderConfirmationPage'
@@ -16,9 +17,20 @@ const createdOrder: CreatedOrder = {
   total: 100,
 }
 
-function renderPage(path: string, state?: { createdOrder: CreatedOrder }, cache = false) {
+function renderPage(
+  path: string,
+  { state, cache = false, customerId = 7 }: {
+    state?: { createdOrder: CreatedOrder }
+    cache?: boolean
+    customerId?: number
+  } = {},
+) {
   const client = new QueryClient()
   if (cache) setOrderConfirmation(client, createdOrder)
+  useAuthStore.setState({ session: {
+    token: 'access-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z',
+    usuarioId: 4, clienteId: customerId, email: 'cliente@exemplo.com',
+  } })
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[{ pathname: path, state }]}>
@@ -31,8 +43,8 @@ function renderPage(path: string, state?: { createdOrder: CreatedOrder }, cache 
 }
 
 describe('OrderConfirmationPage', () => {
-  it('shows only the confirmed response fields when navigation state matches the route', () => {
-    renderPage('/pedido-confirmado/99', { createdOrder })
+  it('shows only the confirmed response fields from the matching private cache', () => {
+    renderPage('/pedido-confirmado/99', { cache: true })
 
     expect(screen.getByRole('heading', { name: 'Pedido criado' })).toBeInTheDocument()
     expect(screen.getByText('99')).toBeInTheDocument()
@@ -43,17 +55,30 @@ describe('OrderConfirmationPage', () => {
     expect(screen.queryByText(/autorizad|entrega|nota fiscal/i)).not.toBeInTheDocument()
   })
 
-  it('reads the matching private memory snapshot when navigation state is absent', () => {
-    renderPage('/pedido-confirmado/99', undefined, true)
+  it('supports the normal success path without navigation state', () => {
+    renderPage('/pedido-confirmado/99', { cache: true })
     expect(screen.getByRole('heading', { name: 'Pedido criado' })).toBeInTheDocument()
   })
 
+  it('ignores a created order injected into navigation history state', () => {
+    renderPage('/pedido-confirmado/99', { state: { createdOrder } })
+
+    expect(screen.getByRole('heading', { name: 'Confirmação indisponível' })).toBeInTheDocument()
+    expect(screen.queryByText('R$ 100,00')).not.toBeInTheDocument()
+  })
+
+  it('does not show another customer snapshot', () => {
+    renderPage('/pedido-confirmado/99', { cache: true, customerId: 8 })
+
+    expect(screen.getByRole('heading', { name: 'Confirmação indisponível' })).toBeInTheDocument()
+  })
+
   it.each([
-    ['/pedido-confirmado/99', undefined],
-    ['/pedido-confirmado/100', { createdOrder }],
-    ['/pedido-confirmado/invalido', { createdOrder }],
-  ])('shows a safe unavailable state for absent or mismatched snapshot: %s', (path, state) => {
-    renderPage(path, state)
+    '/pedido-confirmado/99',
+    '/pedido-confirmado/100',
+    '/pedido-confirmado/invalido',
+  ])('shows a safe unavailable state after refresh or mismatch: %s', (path) => {
+    renderPage(path)
 
     expect(screen.getByRole('heading', { name: 'Confirmação indisponível' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voltar à loja' })).toHaveAttribute('href', '/')

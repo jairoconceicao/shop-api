@@ -23,17 +23,24 @@ describe('orderConfirmationCache', () => {
 
     setOrderConfirmation(client, createdOrder)
 
-    expect(getOrderConfirmation(client, 99)).toEqual(createdOrder)
-    expect(client.getQueryCache().find({ queryKey: orderConfirmationKey(99), exact: true })?.meta)
+    expect(getOrderConfirmation(client, 7, 99)).toEqual(createdOrder)
+    expect(client.getQueryCache().find({ queryKey: orderConfirmationKey(7, 99), exact: true })?.meta)
       .toMatchObject({ private: true })
     clearPrivateCache(client)
-    expect(getOrderConfirmation(client, 99)).toBeUndefined()
+    expect(getOrderConfirmation(client, 7, 99)).toBeUndefined()
   })
 
   it('does not return a snapshot for a different route id', () => {
     const client = new QueryClient()
     setOrderConfirmation(client, createdOrder)
 
-    expect(getOrderConfirmation(client, 100)).toBeUndefined()
+    expect(getOrderConfirmation(client, 7, 100)).toBeUndefined()
+  })
+
+  it('does not return a snapshot for a different authenticated customer', () => {
+    const client = new QueryClient()
+    setOrderConfirmation(client, createdOrder)
+
+    expect(getOrderConfirmation(client, 8, 99)).toBeUndefined()
   })
 })

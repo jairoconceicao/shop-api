@@ -98,9 +98,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
         {
           onError: () => { submissionInFlightRef.current = false },
           onSuccess: (createdOrder) => {
-            navigate(`/pedido-confirmado/${createdOrder.id}`, {
-              state: { createdOrder },
-            })
+            navigate(`/pedido-confirmado/${createdOrder.id}`)
           },
         },
       )

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { HttpResponse, http } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -34,13 +34,18 @@ describe('CheckoutPage', () => {
   })
 
   function renderPage(initialPath = '/checkout') {
+    function ConfirmationDestination() {
+      const location = useLocation()
+      return <p>Destino da confirmação: {JSON.stringify(location.state)}</p>
+    }
+
     const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
     return render(
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[initialPath]}>
           <Routes>
             <Route path="checkout" element={<CheckoutPage cart={cart} profile={profile} />} />
-            <Route path="pedido-confirmado/:pedidoId" element={<p>Destino da confirmação</p>} />
+            <Route path="pedido-confirmado/:pedidoId" element={<ConfirmationDestination />} />
           </Routes>
         </MemoryRouter>
       </QueryClientProvider>,
@@ -136,7 +141,7 @@ describe('CheckoutPage', () => {
     await waitFor(() => expect(button).toBeDisabled())
     expect(requests).toBe(1)
     release()
-    expect(await screen.findByText('Destino da confirmação')).toBeInTheDocument()
+    expect(await screen.findByText('Destino da confirmação: null')).toBeInTheDocument()
     fireEvent.click(button)
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(requests).toBe(1)
@@ -151,7 +156,7 @@ describe('CheckoutPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
 
-    expect(await screen.findByText('Destino da confirmação')).toBeInTheDocument()
+    expect(await screen.findByText('Destino da confirmação: null')).toBeInTheDocument()
   })
 
   it('releases the synchronous lock after failure and allows one retry', async () => {

@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { EmptyState } from '../../../shared/ui/states/EmptyState'
 import { Card } from '../../../shared/ui/surfaces/Card'
+import { useAuthStore } from '../../auth/store/authStore'
 import { getOrderConfirmation } from '../cache/orderConfirmationCache'
-import type { CreatedOrder } from '../contracts/order'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -18,8 +18,6 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
 })
 
-type ConfirmationLocationState = { createdOrder?: CreatedOrder }
-
 function parseOrderId(value: string | undefined) {
   if (!value || !/^\d+$/.test(value)) return undefined
   const id = Number(value)
@@ -28,12 +26,11 @@ function parseOrderId(value: string | undefined) {
 
 export function OrderConfirmationPage() {
   const { pedidoId } = useParams()
-  const location = useLocation()
   const queryClient = useQueryClient()
+  const customerId = useAuthStore((state) => state.session?.clienteId)
   const orderId = parseOrderId(pedidoId)
-  const stateOrder = (location.state as ConfirmationLocationState | null)?.createdOrder
-  const order = orderId
-    ? (stateOrder?.id === orderId ? stateOrder : getOrderConfirmation(queryClient, orderId))
+  const order = orderId && Number.isSafeInteger(customerId) && customerId && customerId > 0
+    ? getOrderConfirmation(queryClient, customerId, orderId)
     : undefined
 
   if (!order) {
