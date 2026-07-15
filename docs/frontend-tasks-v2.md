@@ -430,13 +430,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Mapear notificações `422` conhecidas, inclusive caminhos de `Endereco` e `Celular`, aos campos; propriedades desconhecidas vão ao resumo geral, e `401`/`403` seguem os comportamentos globais definidos.
   - Evidência: commits `9c555ae`, `3c2b05c` e `29d18b6`; RED inicial confirmou ausência do PUT/mutation/mapper, RED de revisão confirmou perda de múltiplos erros gerais e RED final reproduziu feedback de sucesso obsoleto após falha na confirmação de CPF; focused 11/11, feature customer 72/72 e suíte completa 581/581; typecheck/lint/build/diff-check PASS; reviewer aprovado após correções sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-091: Implementar invalidação e atualização do cache do perfil após salvar.
-  - Status: READY
+[x] TASK-091: Implementar invalidação e atualização do cache do perfil após salvar.
+  - Status: DONE
   - Depends on: TASK-090
   - Critérios de aceite:
     - Após resposta válida da mesma sessão, gravar na chave exata o perfil completo enviado com `customerId` preservado e invalidar essa chave para reconciliação.
     - Atualizar o snapshot do formulário após salvar, inclusive o CPF de referência, sem atualização otimista e sem sobrescrever edições sujas por refetch.
     - Ignorar callbacks tardios quando a sessão já representar outro cliente e manter checkout e tela de dados observando o mesmo cache canônico.
+  - Evidência: commits `2ca697c` e `2f0cb34`; RED inicial confirmou retorno incompleto, ausência de atualização/invalidação canônica, aceitação de respostas tardias e CPF salvo fora do novo snapshot; RED de revisão confirmou resolução precoce durante invalidação pendente e rejeição de invalidação ignorada; testes focados 31/31 e suíte completa 590/590; typecheck/lint/build/diff-check PASS; reviewer aprovado após correção sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-092: Implementar schema e indicador visual das regras de nova senha.
   - Status: READY
