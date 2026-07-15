@@ -1,18 +1,10 @@
 import { z } from 'zod'
 
-import { addressRequestSchema } from '../../customer/contracts/registration'
+import { deliveryAddressSchema } from '../../customer/contracts/customerProfile'
+
+export { deliveryAddressSchema } from '../../customer/contracts/customerProfile'
 
 export const paymentMethodSchema = z.enum(['Pix', 'Cartao', 'Boleto'])
-
-export const deliveryAddressSchema = addressRequestSchema.extend({
-  complemento: addressRequestSchema.shape.complemento
-    .unwrap()
-    .min(1)
-    .nullable()
-    .optional(),
-  cep: addressRequestSchema.shape.cep.regex(/^\d{8}$/),
-  uf: addressRequestSchema.shape.uf.regex(/^[A-Za-z]{2}$/),
-}).strict()
 
 export const checkoutFormSchema = z.object({
   enderecoEntrega: deliveryAddressSchema,

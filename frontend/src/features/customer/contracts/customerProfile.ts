@@ -27,6 +27,12 @@ const customerAddressSchema = z.object({
   uf: z.string().trim().length(2).transform((value) => value.toUpperCase()),
 }).strict()
 
+export const deliveryAddressSchema = customerAddressSchema.extend({
+  complemento: z.string().trim().min(1).max(200).nullable().optional(),
+  cep: z.string().trim().regex(/^\d{8}$/),
+  uf: z.string().trim().length(2).regex(/^[A-Za-z]{2}$/),
+}).strict()
+
 const customerPhoneSchema = z.object({
   ddd: z.string().regex(/^\d{2}$/),
   numero: z.string().trim().min(1).max(30),
@@ -112,7 +118,7 @@ export type UpdateCustomerRequest = Omit<CustomerProfile, 'customerId'>
 
 export type CheckoutProfile = {
   customerId: number
-  address: CustomerProfile['endereco']
+  address: z.infer<typeof deliveryAddressSchema>
 }
 
 function positiveCustomerId(value: number | string): number {
@@ -193,11 +199,13 @@ export function toCheckoutProfile(profile: CustomerProfile): CheckoutProfile {
     celular: profile.celular,
   })
 
+  const address = deliveryAddressSchema.parse({
+    ...parsed.endereco,
+    cep: normalizePostalCode(parsed.endereco.cep),
+  })
+
   return {
     customerId: positiveCustomerId(parsed.clienteId),
-    address: {
-      ...parsed.endereco,
-      cep: normalizePostalCode(parsed.endereco.cep),
-    },
+    address,
   }
 }

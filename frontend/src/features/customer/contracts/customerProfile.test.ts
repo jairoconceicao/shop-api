@@ -128,4 +128,13 @@ describe('customer profile contract', () => {
       },
     })
   })
+
+  it('rejects a checkout projection when the normalized CEP has fewer than eight digits', () => {
+    const profile = adaptCustomerProfileResponse(okEnvelope({
+      ...profileData,
+      endereco: { ...profileData.endereco, cep: '123' },
+    }))
+
+    expect(() => toCheckoutProfile(profile)).toThrow()
+  })
 })
