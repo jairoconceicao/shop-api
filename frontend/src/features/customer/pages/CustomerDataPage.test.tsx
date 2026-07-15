@@ -110,4 +110,46 @@ describe('CustomerDataForm', () => {
     release?.()
     await waitFor(() => expect(screen.getByRole('button', { name: 'Salvar alterações' })).toBeEnabled())
   })
+
+  it('intercepts a changed CPF and confirms the already validated complete request exactly once', async () => {
+    const onValidRequest = vi.fn().mockResolvedValue(undefined)
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+    fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '98765432100' } })
+    fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Ana Atualizada' } })
+    const submit = screen.getByRole('button', { name: 'Salvar alterações' })
+    submit.focus()
+    fireEvent.click(submit)
+
+    const dialog = await screen.findByRole('dialog', { name: 'Confirmar alteração do CPF' })
+    expect(dialog).toHaveTextContent('123.456.789-01')
+    expect(dialog).toHaveTextContent('987.654.321-00')
+    expect(onValidRequest).not.toHaveBeenCalled()
+
+    const confirm = screen.getByRole('button', { name: 'Confirmar alteração' })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+    await waitFor(() => expect(onValidRequest).toHaveBeenCalledOnce())
+    expect(onValidRequest).toHaveBeenCalledWith(expect.objectContaining({
+      cpf: '98765432100',
+      nome: 'Ana Atualizada',
+      endereco: expect.objectContaining({ logradouro: 'Rua A' }),
+      celular: { ddd: '11', numero: '999999999', whatsApp: true },
+    }))
+  })
+
+  it('cancels a CPF change without submitting and restores focus to submit', async () => {
+    const onValidRequest = vi.fn()
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+    fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '98765432100' } })
+    const submit = screen.getByRole('button', { name: 'Salvar alterações' })
+    submit.focus()
+    fireEvent.click(submit)
+    const dialog = await screen.findByRole('dialog', { name: 'Confirmar alteração do CPF' })
+
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(onValidRequest).not.toHaveBeenCalled()
+    expect(submit).toHaveFocus()
+  })
 })

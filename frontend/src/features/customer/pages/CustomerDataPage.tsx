@@ -13,6 +13,7 @@ import { FormErrorSummary, type FormError } from '../../../shared/ui/forms/FormE
 import { Input } from '../../../shared/ui/forms/Input'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
+import { CpfChangeDialog } from '../components/CpfChangeDialog'
 import {
   adaptUpdateCustomerRequest,
   type CustomerProfile,
@@ -50,7 +51,9 @@ export interface CustomerDataFormProps {
 
 export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormProps) {
   const summaryRef = useRef<HTMLDivElement>(null)
+  const confirmationInFlightRef = useRef(false)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
+  const [pendingRequest, setPendingRequest] = useState<UpdateCustomerRequest | null>(null)
   const initialValues = useMemo(() => profileToFormValues(profile), [profile])
   const today = localCivilDate()
   const {
@@ -87,6 +90,11 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       return
     }
 
+    if (request.cpf !== normalizeCpf(profile.cpf)) {
+      setPendingRequest(request)
+      return
+    }
+
     setIsSubmittingRequest(true)
     try {
       await onValidRequest?.(request)
@@ -94,6 +102,20 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       setIsSubmittingRequest(false)
     }
   })
+
+  const confirmCpfChange = async () => {
+    if (!pendingRequest || confirmationInFlightRef.current) return
+
+    confirmationInFlightRef.current = true
+    setIsSubmittingRequest(true)
+    try {
+      await onValidRequest?.(pendingRequest)
+      setPendingRequest(null)
+    } finally {
+      confirmationInFlightRef.current = false
+      setIsSubmittingRequest(false)
+    }
+  }
 
   const cpfField = register('cpf', {
     validate: (value) => normalizeCpf(value).length === 11 || 'Informe um CPF com 11 dígitos.',
@@ -103,7 +125,8 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
   })
 
   return (
-    <form aria-label="Meus dados" className="surface-raised min-w-0 space-y-8 p-4 sm:p-8" noValidate onSubmit={submit}>
+    <>
+      <form aria-label="Meus dados" className="surface-raised min-w-0 space-y-8 p-4 sm:p-8" noValidate onSubmit={submit}>
       <header>
         <p className="text-sm font-semibold text-brand-400">Minha conta</p>
         <h1 className="mt-2 text-2xl font-bold text-zinc-50 sm:text-3xl">Meus dados</h1>
@@ -143,7 +166,16 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       <Button className="w-full sm:w-auto" disabled={isSubmittingRequest} type="submit">
         {isSubmittingRequest ? 'Salvando…' : 'Salvar alterações'}
       </Button>
-    </form>
+      </form>
+      <CpfChangeDialog
+        open={pendingRequest !== null}
+        previousCpf={profile.cpf}
+        nextCpf={pendingRequest?.cpf ?? profile.cpf}
+        pending={isSubmittingRequest}
+        onCancel={() => setPendingRequest(null)}
+        onConfirm={() => { void confirmCpfChange() }}
+      />
+    </>
   )
 }
 
