@@ -100,6 +100,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     }
 
     if (request.cpf !== normalizeCpf(profile.cpf)) {
+      setSuccessMessage('')
       setPendingRequest(request)
       return
     }
@@ -126,6 +127,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     if (!pendingRequest || confirmationInFlightRef.current) return
 
     confirmationInFlightRef.current = true
+    setSuccessMessage('')
     setIsSubmittingRequest(true)
     setRemoteSummaries([])
     try {

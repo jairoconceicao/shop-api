@@ -137,6 +137,23 @@ describe('CustomerDataForm', () => {
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Valor preservado')
   })
 
+  it('does not keep an old success message when a later CPF confirmation fails', async () => {
+    const onValidRequest = vi.fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new AppError({ kind: 'http', status: 409, message: 'Conflito' }))
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(await screen.findByText('Dados atualizados com sucesso.')).toBeVisible()
+
+    fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '98765432100' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirmar alteração' }))
+
+    expect(await screen.findByText('Já existe outro cliente com estes dados.')).toBeVisible()
+    expect(screen.queryByText('Dados atualizados com sucesso.')).not.toBeInTheDocument()
+  })
+
   it('intercepts a changed CPF and confirms the already validated complete request exactly once', async () => {
     const onValidRequest = vi.fn().mockResolvedValue(undefined)
     render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
