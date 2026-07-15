@@ -421,13 +421,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não abrir o dialog para alterações de outros campos nem permitir confirmação duplicada enquanto o envio estiver pendente.
   - Evidência: commit `2caf699`; RED confirmou a ausência do gate e do dialog de confirmação de CPF; testes focados 11/11 e suíte ampla 570/570; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Finding MINOR pendente: o teste integrado valida o shape do request, mas não sua identidade por referência estrita, e cobre cancelamento integrado por Escape, mas não por botão ou backdrop.
 
-[ ] TASK-090: Implementar PUT do perfil completo e mapear erros de validação para os campos.
-  - Status: READY
+[x] TASK-090: Implementar PUT do perfil completo e mapear erros de validação para os campos.
+  - Status: DONE
   - Depends on: TASK-089
   - Critérios de aceite:
     - Enviar o request completo por `PUT /api/v1/cliente/{clienteId}` com o token e cliente capturados na tentativa, `retry: false` e bloqueio de submissão duplicada.
     - Aceitar sucesso somente quando o envelope retornar o mesmo `clienteId`; falhas de contrato, rede, `404`, `409` ou `5xx` preservam os valores do formulário e oferecem retorno acionável.
     - Mapear notificações `422` conhecidas, inclusive caminhos de `Endereco` e `Celular`, aos campos; propriedades desconhecidas vão ao resumo geral, e `401`/`403` seguem os comportamentos globais definidos.
+  - Evidência: commits `9c555ae`, `3c2b05c` e `29d18b6`; RED inicial confirmou ausência do PUT/mutation/mapper, RED de revisão confirmou perda de múltiplos erros gerais e RED final reproduziu feedback de sucesso obsoleto após falha na confirmação de CPF; focused 11/11, feature customer 72/72 e suíte completa 581/581; typecheck/lint/build/diff-check PASS; reviewer aprovado após correções sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-091: Implementar invalidação e atualização do cache do perfil após salvar.
   - Status: READY
