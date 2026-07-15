@@ -412,13 +412,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter edição no React Hook Form, sem sobrescrever campos sujos em refetch, funcionando entre 320 px e 1920 px sem rolagem horizontal e com erros associados por `aria-describedby`.
   - Evidência: commits `c2bea3e` e `53c7886`; RED inicial confirmou a ausência da página e a rota ainda ligada ao placeholder, e a regressão UTC confirmou o limite de nascimento incorreto na virada da data civil local; testes focados 9/9 e suíte ampla 566/566; typecheck/lint/build/diff-check PASS; build confirmou `CustomerDataPage` em chunk separado; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Uma execução ampla observou flake preexistente no teste de logout, que passou isolado 2/2 e no rerun amplo 566/566.
 
-[ ] TASK-089: Implementar confirmação específica quando o CPF for alterado.
-  - Status: READY
+[x] TASK-089: Implementar confirmação específica quando o CPF for alterado.
+  - Status: DONE
   - Depends on: TASK-088
   - Critérios de aceite:
     - Interromper o submit somente quando o CPF normalizado diferir do snapshot confirmado e mostrar CPF anterior e novo mascarados em dialog nomeado e descrito.
     - Confirmar exatamente o request completo já validado; cancelar ou pressionar Escape não envia nada e restaura o foco ao acionador.
     - Não abrir o dialog para alterações de outros campos nem permitir confirmação duplicada enquanto o envio estiver pendente.
+  - Evidência: commit `2caf699`; RED confirmou a ausência do gate e do dialog de confirmação de CPF; testes focados 11/11 e suíte ampla 570/570; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Finding MINOR pendente: o teste integrado valida o shape do request, mas não sua identidade por referência estrita, e cobre cancelamento integrado por Escape, mas não por botão ou backdrop.
 
 [ ] TASK-090: Implementar PUT do perfil completo e mapear erros de validação para os campos.
   - Status: READY
