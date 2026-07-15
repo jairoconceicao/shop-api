@@ -1,14 +1,18 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
+import { useAuthStore } from '../../auth/store/authStore'
 import { OrderDetailPage } from './OrderDetailPage'
 
-const { useOrderDetailQuery, useOrderProductsQuery } = vi.hoisted(() => ({
+const { mutateAsync, useCancelOrderMutation, useOrderDetailQuery, useOrderProductsQuery } = vi.hoisted(() => ({
+  mutateAsync: vi.fn(),
+  useCancelOrderMutation: vi.fn(),
   useOrderDetailQuery: vi.fn(),
   useOrderProductsQuery: vi.fn(),
 }))
+vi.mock('../mutations/useCancelOrderMutation', () => ({ useCancelOrderMutation }))
 vi.mock('../queries/useOrderDetailQuery', () => ({ useOrderDetailQuery }))
 vi.mock('../queries/useOrderProductsQuery', () => ({ useOrderProductsQuery }))
 
@@ -24,6 +28,10 @@ function renderDetail(route = '/pedidos/41') {
 
 describe('OrderDetailPage', () => {
   beforeEach(() => {
+    mutateAsync.mockReset()
+    useAuthStore.getState().clearSession()
+    useAuthStore.getState().setSession({ token: 'token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 3, clienteId: 7, email: 'a@b.com' }, 'session')
+    useCancelOrderMutation.mockReturnValue({ mutateAsync, isPending: false, error: null, reset: vi.fn() })
     useOrderDetailQuery.mockReset()
     useOrderProductsQuery.mockReturnValue({
       data: [{
@@ -70,5 +78,40 @@ describe('OrderDetailPage', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(refetch).toHaveBeenCalledOnce()
+  })
+
+  it('confirms cancellation with the captured order and session and closes on success', async () => {
+    mutateAsync.mockResolvedValue({ id: 41, customerId: 7, createdAt: order.createdAt, status: 'Cancelado' })
+    useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: order })
+    renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar pedido' }))
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ orderId: 41, customerId: 7, userId: 3, token: 'token' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('blocks duplicate confirmation before the pending state renders', () => {
+    mutateAsync.mockReturnValue(new Promise(() => undefined))
+    useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: order })
+    renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    const confirm = within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar pedido' })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+    expect(mutateAsync).toHaveBeenCalledOnce()
+  })
+
+  it.each(['Cancelado', 'Devolvido'] as const)('hides cancellation for %s orders', (status) => {
+    useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: { ...order, status } })
+    renderDetail()
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
+  })
+
+  it('keeps cancellation available for statuses decided by the API', () => {
+    useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: { ...order, status: 'Processado' } })
+    renderDetail()
+    expect(screen.getByRole('button', { name: 'Cancelar pedido' })).toBeInTheDocument()
   })
 })

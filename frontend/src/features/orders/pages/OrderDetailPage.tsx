@@ -1,11 +1,14 @@
-import type { ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { AppError } from '../../../shared/errors/appError'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
+import { useAuthStore } from '../../auth/store/authStore'
+import { CancelOrderDialog } from '../components/CancelOrderDialog'
 import { OrderItem } from '../components/OrderItem'
 import { calculateOrderTotal, getOrderStatusLabel } from '../formatting/orderPresentation'
+import { useCancelOrderMutation, type CancelOrderAttempt } from '../mutations/useCancelOrderMutation'
 import { useOrderDetailQuery } from '../queries/useOrderDetailQuery'
 import { useOrderProductsQuery } from '../queries/useOrderProductsQuery'
 import { parseOrderId } from '../routing/orderId'
@@ -40,6 +43,10 @@ export function OrderDetailPage() {
   const orderId = parseOrderId(pedidoId)
   const query = useOrderDetailQuery(orderId)
   const productsQuery = useOrderProductsQuery(query.data?.items ?? [])
+  const session = useAuthStore((state) => state.session)
+  const cancelMutation = useCancelOrderMutation()
+  const [cancelAttempt, setCancelAttempt] = useState<CancelOrderAttempt | null>(null)
+  const confirmingCancellation = useRef(false)
 
   if (orderId === undefined) {
     return <section className="container-page py-8 sm:py-10"><NotFoundState /></section>
@@ -75,6 +82,32 @@ export function OrderDetailPage() {
 
   const order = query.data
   const productsById = new Map(productsQuery.data?.map((result) => [result.productId, result]))
+  const cancellationAvailable = order.status !== 'Cancelado' && order.status !== 'Devolvido'
+
+  function openCancellation() {
+    if (!session || session.clienteId !== order.customerId) return
+    cancelMutation.reset()
+    setCancelAttempt({
+      orderId: order.id,
+      customerId: session.clienteId,
+      userId: session.usuarioId,
+      token: session.token,
+    })
+  }
+
+  async function confirmCancellation() {
+    if (!cancelAttempt || cancelMutation.isPending || confirmingCancellation.current) return
+    confirmingCancellation.current = true
+    try {
+      await cancelMutation.mutateAsync(cancelAttempt)
+      setCancelAttempt(null)
+    } catch {
+      // The dialog keeps the request error visible for a safe retry.
+    } finally {
+      confirmingCancellation.current = false
+    }
+  }
+
   return (
     <section className="container-page py-8 sm:py-10" aria-labelledby="order-title">
       <header className="mb-6">
@@ -124,6 +157,22 @@ export function OrderDetailPage() {
         </ul>
         <div className="mt-4 flex items-center justify-between border-t border-zinc-700 pt-4 text-lg font-bold text-zinc-50"><span>Total</span><span>{currency.format(calculateOrderTotal(order.items))}</span></div>
       </section>
+
+      {cancellationAvailable ? (
+        <div className="mt-6 flex justify-end">
+          <Button variant="secondary" onClick={openCancellation}>Cancelar pedido</Button>
+        </div>
+      ) : null}
+
+      <CancelOrderDialog
+        open={cancelAttempt !== null}
+        pending={cancelMutation.isPending}
+        error={cancelMutation.error}
+        onCancel={() => {
+          if (!cancelMutation.isPending) setCancelAttempt(null)
+        }}
+        onConfirm={() => void confirmCancellation()}
+      />
     </section>
   )
 }
