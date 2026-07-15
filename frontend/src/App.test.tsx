@@ -120,10 +120,10 @@ describe('App', () => {
     ['/pedido-confirmado/7', 'Confirmação do pedido'],
     ['/pedidos', 'Pedidos'],
     ['/pedidos/7', 'Detalhes do pedido'],
-  ])('renders the store route %s', (route, heading) => {
+  ])('renders the store route %s', async (route, heading) => {
     const { container } = renderApp(route)
 
-    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
