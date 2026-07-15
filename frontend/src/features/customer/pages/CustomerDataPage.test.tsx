@@ -121,7 +121,11 @@ describe('CustomerDataForm', () => {
   it('maps a rejected 422 attempt to exact fields and preserves edited values', async () => {
     const onValidRequest = vi.fn().mockRejectedValue(new AppError({
       kind: 'http', status: 422, message: 'Revise os dados',
-      details: [{ propertyName: 'Endereco.Cep', message: 'CEP inválido.' }, { propertyName: 'Outro', message: 'Outro erro.' }],
+      details: [
+        { propertyName: 'Endereco.Cep', message: 'CEP inválido.' },
+        { propertyName: 'Outro', message: 'Outro erro.' },
+        { propertyName: 'AindaOutro', message: 'Mais um erro geral.' },
+      ],
     }))
     render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
     fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Valor preservado' } })
@@ -129,6 +133,7 @@ describe('CustomerDataForm', () => {
 
     expect((await screen.findAllByText('CEP inválido.')).length).toBeGreaterThan(0)
     expect(screen.getByText('Outro erro.')).toBeVisible()
+    expect(screen.getByText('Mais um erro geral.')).toBeVisible()
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Valor preservado')
   })
 

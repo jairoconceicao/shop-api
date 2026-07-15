@@ -60,6 +60,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [pendingRequest, setPendingRequest] = useState<UpdateCustomerRequest | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
+  const [remoteSummaries, setRemoteSummaries] = useState<string[]>([])
   const initialValues = useMemo(() => profileToFormValues(profile), [profile])
   const today = localCivilDate()
   const {
@@ -81,7 +82,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       fieldId: field === 'root' ? undefined : `customer-data-${field}`,
       message: error.message,
     } satisfies FormError]
-  })
+  }).concat(remoteSummaries.map((message) => ({ fieldId: undefined, message })))
 
   useEffect(() => {
     if (submitCount > 0 && formErrors.length > 0) summaryRef.current?.focus()
@@ -106,6 +107,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     if (submissionInFlightRef.current) return
     submissionInFlightRef.current = true
     setSuccessMessage('')
+    setRemoteSummaries([])
     setIsSubmittingRequest(true)
     try {
       await onValidRequest?.(request)
@@ -113,7 +115,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     } catch (error) {
       const mapped = mapCustomerProfileError(error instanceof AppError ? error : new AppError({ kind: 'contract', message: 'Resposta inválida.', cause: error }))
       mapped.fields.forEach(({ field, message }) => setError(field, { type: 'server', message }))
-      mapped.summary.forEach((message, index) => setError(index === 0 ? 'root' : `root.remote${index}` as 'root', { type: 'server', message }))
+      setRemoteSummaries(mapped.summary)
     } finally {
       submissionInFlightRef.current = false
       setIsSubmittingRequest(false)
@@ -125,6 +127,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
 
     confirmationInFlightRef.current = true
     setIsSubmittingRequest(true)
+    setRemoteSummaries([])
     try {
       await onValidRequest?.(pendingRequest)
       setSuccessMessage('Dados atualizados com sucesso.')
@@ -132,7 +135,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     } catch (error) {
       const mapped = mapCustomerProfileError(error instanceof AppError ? error : new AppError({ kind: 'contract', message: 'Resposta inválida.', cause: error }))
       mapped.fields.forEach(({ field, message }) => setError(field, { type: 'server', message }))
-      mapped.summary.forEach((message, index) => setError(index === 0 ? 'root' : `root.remote${index}` as 'root', { type: 'server', message }))
+      setRemoteSummaries(mapped.summary)
       setPendingRequest(null)
     } finally {
       confirmationInFlightRef.current = false
