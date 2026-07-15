@@ -487,16 +487,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Produzir request estrito de cancelamento contendo exclusivamente `{ "status": "Cancelado" }` e cobrir entradas válidas e inválidas com testes unitários.
   - Evidência: commits `204dee3` e `c53f533`; RED inicial confirmou ausência do módulo de contratos e RED da revisão reproduziu a aceitação de envelopes sem `status: true`; testes do contrato 28/28 e regressão pertinente 43/43; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
-  - Status: READY
+[x] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
+  - Status: DONE
   - Depends on: TASK-096, TASK-087
   - Critérios de aceite:
     - Reutilizar a query canônica do perfil e iniciar `GET /api/v1/pedido` somente quando sessão, token, cliente e CPF confirmado forem válidos, normalizando o CPF apenas no transporte.
     - Enviar CPF, período opcional, `page` e `size=20`, com Bearer e `AbortSignal`, e validar a resposta antes de colocá-la no cache.
     - Usar query key privada por `clienteId`, período, página e tamanho, sem token ou CPF na chave, isolar respostas tardias de outra sessão e não repetir automaticamente falhas não recuperáveis.
+  - Evidência: commits `d345ba6`, `74bd100` e `ae3a527`; RED inicial confirmou ausência dos módulos de serviço/query, REDs de revisão reproduziram a deduplicação indevida entre sessões distintas e a fragmentação entre consumidores da mesma sessão; testes focados 15/15 e suíte de pedidos 36/36; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-097
   - Critérios de aceite:
     - Parsear e serializar `dataInicio`, `dataFim` e `page` na URL, ignorando valores inválidos e preservando navegação voltar, avançar e refresh.
