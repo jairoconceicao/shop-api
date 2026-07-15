@@ -2,14 +2,19 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CustomerProfile } from '../contracts/customerProfile'
+import { AppError } from '../../../shared/errors/appError'
 import { CustomerDataForm, CustomerDataPage } from './CustomerDataPage'
 
-const { useCustomerProfileQueryMock } = vi.hoisted(() => ({
+const { useCustomerProfileQueryMock, useUpdateCustomerProfileMutationMock } = vi.hoisted(() => ({
   useCustomerProfileQueryMock: vi.fn(),
+  useUpdateCustomerProfileMutationMock: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }))
 
 vi.mock('../queries/useCustomerProfileQuery', () => ({
   useCustomerProfileQuery: useCustomerProfileQueryMock,
+}))
+vi.mock('../mutations/useUpdateCustomerProfileMutation', () => ({
+  useUpdateCustomerProfileMutation: useUpdateCustomerProfileMutationMock,
 }))
 
 const profile: CustomerProfile = {
@@ -98,7 +103,9 @@ describe('CustomerDataForm', () => {
     const onValidRequest = vi.fn(() => new Promise<void>((resolve) => { release = resolve }))
     render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
     fireEvent.change(screen.getByLabelText('Complemento (opcional)'), { target: { value: '   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const save = screen.getByRole('button', { name: 'Salvar alterações' })
+    fireEvent.click(save)
+    fireEvent.click(save)
 
     await waitFor(() => expect(onValidRequest).toHaveBeenCalledOnce())
     expect(onValidRequest).toHaveBeenCalledWith(expect.objectContaining({
@@ -109,6 +116,20 @@ describe('CustomerDataForm', () => {
     expect(screen.getByRole('button', { name: 'Salvando…' })).toBeDisabled()
     release?.()
     await waitFor(() => expect(screen.getByRole('button', { name: 'Salvar alterações' })).toBeEnabled())
+  })
+
+  it('maps a rejected 422 attempt to exact fields and preserves edited values', async () => {
+    const onValidRequest = vi.fn().mockRejectedValue(new AppError({
+      kind: 'http', status: 422, message: 'Revise os dados',
+      details: [{ propertyName: 'Endereco.Cep', message: 'CEP inválido.' }, { propertyName: 'Outro', message: 'Outro erro.' }],
+    }))
+    render(<CustomerDataForm profile={profile} onValidRequest={onValidRequest} />)
+    fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Valor preservado' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    expect((await screen.findAllByText('CEP inválido.')).length).toBeGreaterThan(0)
+    expect(screen.getByText('Outro erro.')).toBeVisible()
+    expect(screen.getByLabelText('Nome completo')).toHaveValue('Valor preservado')
   })
 
   it('intercepts a changed CPF and confirms the already validated complete request exactly once', async () => {

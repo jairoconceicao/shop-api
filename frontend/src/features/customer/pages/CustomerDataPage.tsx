@@ -8,6 +8,7 @@ import {
   normalizePostalCode,
 } from '../../../shared/formatting/personalData'
 import { Button } from '../../../shared/ui/buttons/Button'
+import { AppError } from '../../../shared/errors/appError'
 import { Checkbox } from '../../../shared/ui/forms/Checkbox'
 import { FormErrorSummary, type FormError } from '../../../shared/ui/forms/FormErrorSummary'
 import { Input } from '../../../shared/ui/forms/Input'
@@ -21,6 +22,9 @@ import {
   type UpdateCustomerRequest,
 } from '../contracts/customerProfile'
 import { useCustomerProfileQuery } from '../queries/useCustomerProfileQuery'
+import { useAuthStore } from '../../auth/store/authStore'
+import { mapCustomerProfileError } from '../errors/customerProfileErrors'
+import { useUpdateCustomerProfileMutation } from '../mutations/useUpdateCustomerProfileMutation'
 import { localCivilDate } from './localCivilDate'
 
 const required = (message: string) => ({ required: message })
@@ -51,9 +55,11 @@ export interface CustomerDataFormProps {
 
 export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormProps) {
   const summaryRef = useRef<HTMLDivElement>(null)
+  const submissionInFlightRef = useRef(false)
   const confirmationInFlightRef = useRef(false)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [pendingRequest, setPendingRequest] = useState<UpdateCustomerRequest | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
   const initialValues = useMemo(() => profileToFormValues(profile), [profile])
   const today = localCivilDate()
   const {
@@ -81,6 +87,8 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     if (submitCount > 0 && formErrors.length > 0) summaryRef.current?.focus()
   }, [formErrors.length, submitCount])
 
+  // React Hook Form invokes this callback only for submit events; the ref is a synchronous duplicate-request gate.
+  // eslint-disable-next-line react-hooks/refs
   const submit = handleSubmit(async (values) => {
     let request: UpdateCustomerRequest
     try {
@@ -95,10 +103,19 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       return
     }
 
+    if (submissionInFlightRef.current) return
+    submissionInFlightRef.current = true
+    setSuccessMessage('')
     setIsSubmittingRequest(true)
     try {
       await onValidRequest?.(request)
+      setSuccessMessage('Dados atualizados com sucesso.')
+    } catch (error) {
+      const mapped = mapCustomerProfileError(error instanceof AppError ? error : new AppError({ kind: 'contract', message: 'Resposta inválida.', cause: error }))
+      mapped.fields.forEach(({ field, message }) => setError(field, { type: 'server', message }))
+      mapped.summary.forEach((message, index) => setError(index === 0 ? 'root' : `root.remote${index}` as 'root', { type: 'server', message }))
     } finally {
+      submissionInFlightRef.current = false
       setIsSubmittingRequest(false)
     }
   })
@@ -110,6 +127,12 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
     setIsSubmittingRequest(true)
     try {
       await onValidRequest?.(pendingRequest)
+      setSuccessMessage('Dados atualizados com sucesso.')
+      setPendingRequest(null)
+    } catch (error) {
+      const mapped = mapCustomerProfileError(error instanceof AppError ? error : new AppError({ kind: 'contract', message: 'Resposta inválida.', cause: error }))
+      mapped.fields.forEach(({ field, message }) => setError(field, { type: 'server', message }))
+      mapped.summary.forEach((message, index) => setError(index === 0 ? 'root' : `root.remote${index}` as 'root', { type: 'server', message }))
       setPendingRequest(null)
     } finally {
       confirmationInFlightRef.current = false
@@ -134,6 +157,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
       </header>
 
       <FormErrorSummary ref={summaryRef} errors={formErrors} />
+      {successMessage ? <p role="status" tabIndex={-1} className="text-sm text-emerald-300">{successMessage}</p> : null}
 
       <fieldset className="grid min-w-0 gap-5 sm:grid-cols-2">
         <legend className="col-span-full mb-1 text-lg font-semibold text-zinc-100">Dados pessoais</legend>
@@ -194,6 +218,7 @@ function CustomerDataLoading() {
 
 export function CustomerDataPage() {
   const profileQuery = useCustomerProfileQuery()
+  const updateMutation = useUpdateCustomerProfileMutation()
 
   if (profileQuery.isPending) return <CustomerDataLoading />
 
@@ -210,5 +235,12 @@ export function CustomerDataPage() {
 
   if (!profileQuery.data) return <CustomerDataLoading />
 
-  return <CustomerDataForm profile={profileQuery.data} />
+  return <CustomerDataForm profile={profileQuery.data} onValidRequest={async (request) => {
+    const session = useAuthStore.getState().session
+    if (!session || session.clienteId !== profileQuery.data.customerId) {
+      throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
+    }
+    const result = await updateMutation.mutateAsync({ customerId: session.clienteId, token: session.token, request })
+    if (result.customerId !== session.clienteId) throw new AppError({ kind: 'contract', message: 'Resposta inválida.' })
+  }} />
 }

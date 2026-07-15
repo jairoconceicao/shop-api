@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
-import { getCustomerProfile } from './customerProfileService'
+import { getCustomerProfile, updateCustomerProfile } from './customerProfileService'
 
 const validResponse = {
   status: true,
@@ -43,5 +43,26 @@ describe('getCustomerProfile', () => {
     const error = new AppError({ kind: 'network', message: 'Sem conexao.' })
     const client = { request: vi.fn().mockRejectedValue(error) }
     await expect(getCustomerProfile(42, 'token', undefined, client)).rejects.toBe(error)
+  })
+})
+
+describe('updateCustomerProfile', () => {
+  const request = {
+    cpf: '12345678901', nome: 'Ana', dataNascimento: '1990-01-02', email: 'ana@example.com',
+    endereco: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' },
+    celular: { ddd: '11', numero: '999999999', whatsApp: true },
+  }
+
+  it('sends the complete request by PUT and accepts only the matching customer ID', async () => {
+    const client = { request: vi.fn().mockResolvedValue({ status: true, data: { clienteId: '42' } }) }
+    await expect(updateCustomerProfile({ customerId: 42, token: 'token', request }, client)).resolves.toEqual({ customerId: 42 })
+    expect(client.request).toHaveBeenCalledWith('/api/v1/cliente/42', { method: 'PUT', token: 'token', body: request })
+  })
+
+  it('maps malformed and divergent successful responses to contract errors', async () => {
+    for (const response of [{ status: true, data: { clienteId: 9 } }, { status: true, data: null }]) {
+      const client = { request: vi.fn().mockResolvedValue(response) }
+      await expect(updateCustomerProfile({ customerId: 42, token: 'token', request }, client)).rejects.toMatchObject({ kind: 'contract' })
+    }
   })
 })
