@@ -1,9 +1,10 @@
 import { apiClient } from '../../../shared/api/apiClient'
 import { mapContractError } from '../../../shared/errors/appError'
 import {
-  adaptCheckoutProfileResponse,
+  adaptCustomerProfileResponse,
+  toCheckoutProfile,
   type CheckoutProfile,
-} from '../contracts/customerProfile'
+} from '../../customer/contracts/customerProfile'
 
 type CheckoutProfileApiClient = Pick<typeof apiClient, 'request'>
 
@@ -19,7 +20,7 @@ export async function getCheckoutProfile(
   })
 
   try {
-    return adaptCheckoutProfileResponse(response)
+    return toCheckoutProfile(adaptCustomerProfileResponse(response))
   } catch (error) {
     throw mapContractError(error)
   }

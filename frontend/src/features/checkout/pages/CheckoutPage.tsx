@@ -14,7 +14,7 @@ import {
   type CheckoutFormValues,
   type PaymentMethod,
 } from '../contracts/checkout'
-import type { CheckoutProfile } from '../contracts/customerProfile'
+import type { CheckoutProfile } from '../../customer/contracts/customerProfile'
 import { useCreateOrderMutation } from '../mutations/useCreateOrderMutation'
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
