@@ -393,13 +393,15 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Substituir o contrato parcial do checkout pelo contrato canônico de `features/customer`, preservando apenas a projeção local do endereço e sem criar uma segunda validação de `GET /api/v1/cliente/{clienteId}`.
   - Evidência: commits `091d875` e `32e938d`; RED regressivo confirmou a projeção de CEP curto sem validação; testes focados 39/39 e regressões do checkout 30/30; suíte ampla 559/559; typecheck/lint/build PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-087: Implementar query de perfil pelo `clienteId` da sessão.
-  - Status: READY
+[x] TASK-087: Implementar query de perfil pelo `clienteId` da sessão.
+  - Status: DONE
   - Depends on: TASK-086
   - Critérios de aceite:
     - Chamar `GET /api/v1/cliente/{clienteId}` com Bearer token e `AbortSignal` somente quando a sessão contiver token e `clienteId` válidos.
     - Usar a chave `['private', 'customer', 'detail', customerId]` com `meta.private: true`, sem token ou CPF na chave e sem copiar o perfil para Zustand ou storage.
     - Isolar trocas de cliente por chave e sessão capturadas, impedindo que resposta tardia de outra sessão altere o perfil visível; o checkout reutiliza essas mesmas options.
+  - Evidência: commit `658d296`; RED confirmou os módulos canônicos ausentes e o `CheckoutGuard` ainda dependente do hook antigo; testes focados 32/32, regressão de troca de sessão 7/7 e suíte ampla 558/558; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
+  - Finding pendente (MINOR): o teste parametrizado de `refetch` usa uma sessão válida e cobre `enabled=false`, mas não exercita o `refetch` para cada combinação inválida de ID/token.
 
 [ ] TASK-088: Implementar formulário “Meus Dados” com endereço e celular aderentes ao contrato.
   - Status: READY
