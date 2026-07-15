@@ -20,6 +20,7 @@ import {
   type UpdateCustomerRequest,
 } from '../contracts/customerProfile'
 import { useCustomerProfileQuery } from '../queries/useCustomerProfileQuery'
+import { localCivilDate } from './localCivilDate'
 
 const required = (message: string) => ({ required: message })
 
@@ -51,6 +52,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
   const summaryRef = useRef<HTMLDivElement>(null)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const initialValues = useMemo(() => profileToFormValues(profile), [profile])
+  const today = localCivilDate()
   const {
     register,
     reset,
@@ -114,7 +116,7 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
         <legend className="col-span-full mb-1 text-lg font-semibold text-zinc-100">Dados pessoais</legend>
         <Input id="customer-data-nome" label="Nome completo" autoComplete="name" error={errors.nome?.message} {...register('nome', { ...required('Informe seu nome.'), maxLength: { value: 200, message: 'O nome deve ter até 200 caracteres.' } })} />
         <Input id="customer-data-cpf" label="CPF" inputMode="numeric" placeholder="000.000.000-00" error={errors.cpf?.message} {...cpfField} onChange={(event) => setValue('cpf', formatCpf(event.target.value), { shouldDirty: true, shouldValidate: true })} />
-        <Input id="customer-data-dataNascimento" label="Data de nascimento" type="date" autoComplete="bday" max={new Date().toISOString().slice(0, 10)} error={errors.dataNascimento?.message} {...register('dataNascimento', { ...required('Informe sua data de nascimento.'), validate: (value) => value <= new Date().toISOString().slice(0, 10) || 'A data de nascimento não pode estar no futuro.' })} />
+        <Input id="customer-data-dataNascimento" label="Data de nascimento" type="date" autoComplete="bday" max={today} error={errors.dataNascimento?.message} {...register('dataNascimento', { ...required('Informe sua data de nascimento.'), validate: (value) => value <= today || 'A data de nascimento não pode estar no futuro.' })} />
         <Input id="customer-data-email" label="E-mail" type="email" autoComplete="email" error={errors.email?.message} {...register('email', { ...required('Informe seu e-mail.'), validate: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) || 'Informe um e-mail válido.', maxLength: { value: 200, message: 'O e-mail deve ter até 200 caracteres.' } })} />
       </fieldset>
 

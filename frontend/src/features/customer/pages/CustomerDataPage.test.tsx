@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CustomerProfile } from '../contracts/customerProfile'
 import { CustomerDataForm, CustomerDataPage } from './CustomerDataPage'
@@ -58,6 +58,17 @@ describe('CustomerDataPage', () => {
 })
 
 describe('CustomerDataForm', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('uses the local civil date as the maximum birth date near a UTC rollover', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-16T01:00:00.000Z'))
+
+    render(<CustomerDataForm profile={profile} />)
+
+    expect(screen.getByLabelText('Data de nascimento')).toHaveAttribute('max', '2026-07-15')
+  })
+
   it('preserves dirty fields and refreshes untouched fields when the snapshot changes', () => {
     const { rerender } = render(<CustomerDataForm profile={profile} />)
     fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Nome em edição' } })
