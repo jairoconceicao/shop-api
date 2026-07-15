@@ -532,16 +532,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter chave privada por cliente e pedido, ignorar respostas tardias de outra sessão e preservar semântica e layout acessíveis entre mobile e desktop.
   - Evidência: commits `1519551` e `0e20917`; RED confirmou ausência dos módulos e headings principais ausentes nos estados de falha; teste focado da página 3/3 e suíte de pedidos/roteador/App 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
-  - Status: READY
+[x] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
+  - Status: DONE
   - Depends on: TASK-101, TASK-057
   - Critérios de aceite:
     - Deduplicar os `produtoId` dos itens e resolver os produtos únicos em paralelo com `Promise.all`, reutilizando a query e o cache canônicos de detalhe por produto.
     - Não copiar pedidos ou produtos para Zustand ou storage e isolar a falha de cada produto para que os demais itens continuem visíveis.
     - Exibir nome e imagem hidratados quando disponíveis e fallback acionável quando o produto não puder ser obtido, preservando quantidade e valor confirmados no pedido.
+  - Evidência: commit `5915e5e`; RED confirmou ausência dos módulos de hidratação e corrigiu o estado pendente; testes focados de pedidos/cache do catálogo 89/89; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-101, TASK-096, TASK-022
   - Critérios de aceite:
     - Exigir confirmação em dialog acessível antes de chamar `PATCH /api/v1/pedido/{pedidoId}` e enviar exclusivamente `{ "status": "Cancelado" }` com Bearer e `retry: false`.
