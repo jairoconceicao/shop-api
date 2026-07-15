@@ -196,10 +196,10 @@ describe('useCreateOrderMutation', () => {
     useAuthStore.getState().clearSession()
     expect(createOrder.mock.calls[0]?.[3]).toMatchObject({ aborted: true })
 
-    await act(async () => {
+    await expect(act(async () => {
       resolveCreation(created)
       await creation
-    })
+    })).rejects.toMatchObject({ code: 'STALE_ORDER_ATTEMPT' })
 
     expect(client.getQueryData(orderConfirmationKey(7, 99))).toBeUndefined()
     expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
@@ -228,10 +228,10 @@ describe('useCreateOrderMutation', () => {
     useAuthStore.getState().clearSession()
     clearPrivateCache(client)
 
-    await act(async () => {
+    await expect(act(async () => {
       resolveCreation(created)
       await creation
-    })
+    })).rejects.toMatchObject({ code: 'STALE_ORDER_ATTEMPT' })
 
     expect(client.getMutationCache().find({ mutationKey: ['checkout', 'create-order'] }))
       .toBeUndefined()
@@ -264,13 +264,42 @@ describe('useCreateOrderMutation', () => {
       usuarioId: 5, clienteId: 8, email: 'outro@exemplo.com',
     }, 'session')
 
-    await act(async () => {
+    await expect(act(async () => {
       resolveCreation(created)
       await creation
-    })
+    })).rejects.toMatchObject({ code: 'STALE_ORDER_ATTEMPT' })
 
     expect(client.getQueryData(orderConfirmationKey(7, 99))).toBeUndefined()
     expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
     expect(client.getQueryData(cartKey)).toBe(cart)
+  })
+
+  it('rejects a response for another customer without success callbacks or reconciliation', async () => {
+    const createdForAnotherCustomer = {
+      id: 99, customerId: 8, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    createOrder.mockResolvedValueOnce(createdForAnotherCustomer)
+    const onSuccess = vi.fn()
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const cartKey = cartQueryKeys.detail(7, 30)
+    const orderKey = [...orderQueryKeys.all, 'list'] as const
+    client.setQueryData(cartKey, cart)
+    client.setQueryData(orderKey, ['existing-order'])
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    await expect(act(async () => result.current.mutateAsync(
+      { values, cart },
+      { onSuccess },
+    ))).rejects.toMatchObject({ code: 'STALE_ORDER_ATTEMPT' })
+
+    expect(onSuccess).not.toHaveBeenCalled()
+    expect(client.getQueryData(orderConfirmationKey(8, 99))).toBeUndefined()
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
+    expect(client.getQueryData(cartKey)).toBe(cart)
+    expect(client.getQueryState(orderKey)?.isInvalidated).toBe(false)
   })
 })

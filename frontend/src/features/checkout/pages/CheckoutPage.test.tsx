@@ -159,6 +159,35 @@ describe('CheckoutPage', () => {
     expect(await screen.findByText('Destino da confirmação: null')).toBeInTheDocument()
   })
 
+  it('does not navigate when the authenticated customer changes during creation', async () => {
+    let release!: () => void
+    let requestStarted!: () => void
+    const started = new Promise<void>((resolve) => { requestStarted = resolve })
+    server.use(http.post('*/api/v1/pedido', async () => {
+      requestStarted()
+      await new Promise<void>((resolve) => { release = resolve })
+      return HttpResponse.json({ status: true, data: {
+        pedidoId: 99, clienteId: 7, dataPedido: '2026-07-14T14:00:00Z',
+        formaPagamento: 'Pix', status: 'Criado', valorTotal: 100,
+      } }, { status: 201 })
+    }))
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    await started
+    useAuthStore.getState().setSession({
+      token: 'other-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z',
+      usuarioId: 5, clienteId: 8, email: 'outro@exemplo.com',
+    }, 'session')
+    release()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Tente confirmar novamente. Se o problema continuar, volte ao carrinho.',
+    )
+    expect(screen.getByRole('heading', { name: 'Checkout' })).toBeInTheDocument()
+    expect(screen.queryByText(/Destino da confirmação/)).not.toBeInTheDocument()
+  })
+
   it('releases the synchronous lock after failure and allows one retry', async () => {
     let requests = 0
     server.use(http.post('*/api/v1/pedido', () => {

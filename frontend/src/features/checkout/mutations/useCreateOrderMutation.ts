@@ -36,6 +36,14 @@ function isCurrentAttempt(attempt: CreateOrderAttempt, createdOrder?: CreatedOrd
     && (!createdOrder || createdOrder.customerId === attempt.customerId)
 }
 
+function staleOrderAttemptError() {
+  return new AppError({
+    kind: 'contract',
+    code: 'STALE_ORDER_ATTEMPT',
+    message: 'A tentativa de pedido não pertence mais à sessão atual.',
+  })
+}
+
 export function useCreateOrderMutation() {
   const queryClient = useQueryClient()
   const attempts = useRef(new WeakMap<CreateOrderMutationVariables, CreateOrderAttempt>())
@@ -55,7 +63,7 @@ export function useCreateOrderMutation() {
   >({
     mutationKey: ['checkout', 'create-order'],
     meta: privateCacheMeta,
-    mutationFn: (variables) => {
+    mutationFn: async (variables) => {
       const attempt = attempts.current.get(variables)
       if (!attempt) {
         throw new AppError({
@@ -65,11 +73,15 @@ export function useCreateOrderMutation() {
         })
       }
 
-      return createOrder({
+      const createdOrder = await createOrder({
         enderecoEntrega: variables.values.enderecoEntrega,
         formaPagamento: variables.values.formaPagamento,
         items: buildOrderItems(variables.cart),
       }, attempt.token, undefined, attempt.controller.signal)
+
+      if (!isCurrentAttempt(attempt, createdOrder)) throw staleOrderAttemptError()
+
+      return createdOrder
     },
     onMutate: (variables) => {
       const { cart } = variables
