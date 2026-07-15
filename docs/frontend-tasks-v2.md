@@ -384,13 +384,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 6 — Conta do cliente
 
-[ ] TASK-086: Criar schemas e adapters de detalhe, atualização e ID do cliente.
-  - Status: READY
+[x] TASK-086: Criar schemas e adapters de detalhe, atualização e ID do cliente.
+  - Status: DONE
   - Depends on: TASK-085
   - Critérios de aceite:
     - Validar o perfil completo e respostas por ID com Zod, normalizando `clienteId` recebido como `number | string` para inteiro positivo e rejeitando envelope nulo, status falso e ID divergente.
     - Montar um `UpdateClienteRequest` estrito, sem `clienteId`, senha ou propriedades extras, normalizando CPF, DDD, textos, UF e complemento vazio conforme o contrato.
     - Substituir o contrato parcial do checkout pelo contrato canônico de `features/customer`, preservando apenas a projeção local do endereço e sem criar uma segunda validação de `GET /api/v1/cliente/{clienteId}`.
+  - Evidência: commits `091d875` e `32e938d`; RED regressivo confirmou a projeção de CEP curto sem validação; testes focados 39/39 e regressões do checkout 30/30; suíte ampla 559/559; typecheck/lint/build PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-087: Implementar query de perfil pelo `clienteId` da sessão.
   - Status: READY
