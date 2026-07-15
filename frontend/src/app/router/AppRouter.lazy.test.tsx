@@ -20,6 +20,9 @@ vi.mock('../../features/customer/pages/CustomerPasswordPage', () => ({
 vi.mock('../../features/orders/pages/OrdersPage', () => ({
   OrdersPage: () => <h1>Meus pedidos</h1>,
 }))
+vi.mock('../../features/orders/pages/OrderDetailPage', () => ({
+  OrderDetailPage: () => <h1>Pedido 41</h1>,
+}))
 
 describe('AppRouter lazy checkout routes', () => {
   it('shows an accessible fallback while loading checkout on demand', async () => {
@@ -54,5 +57,11 @@ describe('AppRouter lazy checkout routes', () => {
     render(<MemoryRouter initialEntries={['/pedidos']}><AppRouter /></MemoryRouter>)
     expect(screen.getByRole('status', { name: 'Carregando pedidos' })).toHaveClass('min-h-96')
     expect(await screen.findByRole('heading', { name: 'Meus pedidos' })).toBeInTheDocument()
+  })
+
+  it('loads order detail in its own lazy route with an accessible stable fallback', async () => {
+    render(<MemoryRouter initialEntries={['/pedidos/41']}><AppRouter /></MemoryRouter>)
+    expect(screen.getByRole('status', { name: 'Carregando pedido' })).toHaveClass('min-h-96')
+    expect(await screen.findByRole('heading', { name: 'Pedido 41' })).toBeInTheDocument()
   })
 })
