@@ -83,4 +83,44 @@ describe('adaptCreatedOrderResponse', () => {
   ])('rejects a response without successful order data', (response) => {
     expect(() => adaptCreatedOrderResponse(response)).toThrow()
   })
+
+  it('uses the canonical order statuses', () => {
+    const response = {
+      status: true,
+      data: {
+        pedidoId: 101,
+        clienteId: 11,
+        dataPedido: '2026-07-14T15:30:00Z',
+        formaPagamento: 'Pix',
+        status: 'Devolvido',
+        valorTotal: 39.8,
+      },
+    }
+
+    expect(adaptCreatedOrderResponse(response).status).toBe('Devolvido')
+    expect(() => adaptCreatedOrderResponse({
+      ...response,
+      data: { ...response.data, status: 'Pendente' },
+    })).toThrow()
+  })
+
+  it.each([
+    ['zero order ID', { pedidoId: 0 }],
+    ['unsafe customer ID', { clienteId: Number.MAX_SAFE_INTEGER + 1 }],
+    ['negative total', { valorTotal: -1 }],
+    ['non-finite total', { valorTotal: Infinity }],
+  ])('rejects %s in a created order response', (_case, changes) => {
+    expect(() => adaptCreatedOrderResponse({
+      status: true,
+      data: {
+        pedidoId: 101,
+        clienteId: 11,
+        dataPedido: '2026-07-14T15:30:00Z',
+        formaPagamento: 'Pix',
+        status: 'Criado',
+        valorTotal: 39.8,
+        ...changes,
+      },
+    })).toThrow()
+  })
 })
