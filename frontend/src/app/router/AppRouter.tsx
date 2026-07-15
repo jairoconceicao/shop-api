@@ -1,3 +1,5 @@
+import { lazy, Suspense } from 'react'
+import type { ReactNode } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import { AccountLayout } from '../layouts/AccountLayout'
@@ -7,10 +9,30 @@ import { ProductDetailPage } from '../../features/catalog/pages/ProductDetailPag
 import { CartPage } from '../../features/cart/pages/CartPage'
 import { RegistrationPage } from '../../features/customer/pages/RegistrationPage'
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
+import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
 import { RoutePlaceholder } from './RoutePlaceholder'
+
+const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPage').then(
+  ({ CheckoutPage: Page }) => ({ default: Page }),
+))
+const OrderConfirmationPage = lazy(() => import(
+  '../../features/checkout/pages/OrderConfirmationPage'
+).then(({ OrderConfirmationPage: Page }) => ({ default: Page })))
+
+function CheckoutRouteFallback() {
+  return (
+    <div role="status" aria-label="Carregando checkout" aria-live="polite">
+      Carregando checkout…
+    </div>
+  )
+}
+
+function LazyCheckoutRoute({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<CheckoutRouteFallback />}>{children}</Suspense>
+}
 
 export function AppRouter() {
   return (
@@ -20,10 +42,19 @@ export function AppRouter() {
         <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="carrinho" element={<CartPage />} />
-          <Route path="checkout" element={<RoutePlaceholder title="Checkout" />} />
+          <Route element={<CheckoutGuard />}>
+            <Route
+              path="checkout"
+              element={<LazyCheckoutRoute><CheckoutPage /></LazyCheckoutRoute>}
+            />
+          </Route>
           <Route
             path="pedido-confirmado/:pedidoId"
-            element={<RoutePlaceholder title="Pedido confirmado" />}
+            element={(
+              <LazyCheckoutRoute>
+                <OrderConfirmationPage />
+              </LazyCheckoutRoute>
+            )}
           />
           <Route path="pedidos" element={<RoutePlaceholder title="Pedidos" />} />
           <Route path="pedidos/:pedidoId" element={<RoutePlaceholder title="Detalhes do pedido" />} />

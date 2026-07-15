@@ -6,12 +6,14 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: ReactNode
   error?: ReactNode
   hint?: ReactNode
+  wrapperClassName?: string
 }
 
 export function Input({
   label,
   error,
   hint,
+  wrapperClassName,
   id: providedId,
   className,
   'aria-describedby': ariaDescribedBy,
@@ -26,7 +28,7 @@ export function Input({
     .join(' ') || undefined
 
   return (
-    <div className="w-full">
+    <div className={joinClasses('w-full', wrapperClassName)}>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-200">
         {label}
       </label>

@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react'
+import { forwardRef, type HTMLAttributes } from 'react'
 import { joinClasses } from './fieldStyles'
 
 export interface FormError {
@@ -11,17 +11,18 @@ export interface FormErrorSummaryProps extends HTMLAttributes<HTMLDivElement> {
   title?: string
 }
 
-export function FormErrorSummary({
+export const FormErrorSummary = forwardRef<HTMLDivElement, FormErrorSummaryProps>(function FormErrorSummary({
   errors,
   title = 'Revise os campos destacados',
   className,
   ...props
-}: FormErrorSummaryProps) {
+}: FormErrorSummaryProps, ref) {
   if (errors.length === 0) return null
 
   return (
     <div
       role="alert"
+      ref={ref}
       tabIndex={-1}
       className={joinClasses(
         'rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200',
@@ -43,4 +44,4 @@ export function FormErrorSummary({
       </ul>
     </div>
   )
-}
+})
