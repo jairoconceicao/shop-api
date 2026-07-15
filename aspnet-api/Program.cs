@@ -12,6 +12,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 });
 
 builder.Services.AddApiOpenApi();
+builder.Services.AddApiJson();
 builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiSecurity(builder.Configuration, builder.Environment);
 builder.Services.AddApiPersistence(builder.Configuration);

@@ -10,17 +10,17 @@ const transportIdSchema = z.union([
 ])
 
 export const loginRequestSchema = z.object({
-  email: z.string().trim().email(),
+  email: z.email().trim(),
   senha: z.string().min(1),
 })
 
 export const loginResponseDataSchema = z.object({
   token: z.string().min(1),
   tipo: z.string().min(1),
-  expiraEm: z.string().datetime({ offset: true }),
+  expiraEm: z.iso.datetime({offset: true}),
   usuarioId: transportIdSchema,
   clienteId: transportIdSchema,
-  email: z.string().email(),
+  email: z.email(),
 })
 
 export const loginResponseSchema = createApiResponseSchema(
