@@ -11,7 +11,9 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         builder.ToTable("Pedidos");
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
-        builder.Property(p => p.DataPedido).IsRequired();
+        builder.Property(p => p.DataPedido).IsRequired()
+            .HasColumnType("timestamp without time zone");
+
         builder.Property(p => p.ClienteId).IsRequired();
         builder.Property(p => p.FormaPagamento).HasConversion<string>().IsRequired();
         builder.Property(p => p.Status).HasConversion<string>().IsRequired();

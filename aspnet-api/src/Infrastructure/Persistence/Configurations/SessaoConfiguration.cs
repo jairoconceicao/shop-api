@@ -13,9 +13,12 @@ public class SessaoConfiguration : IEntityTypeConfiguration<Sessao>
         builder.Property(s => s.Id).ValueGeneratedOnAdd();
         builder.Property(s => s.UsuarioId).IsRequired();
         builder.Property(s => s.Jti).IsRequired().HasMaxLength(100);
-        builder.Property(s => s.CriadaEm).IsRequired();
-        builder.Property(s => s.ExpiraEm).IsRequired();
-        builder.Property(s => s.RevogadaEm);
+        builder.Property(s => s.CriadaEm).IsRequired()
+            .HasColumnType("timestamp with time zone");
+        builder.Property(s => s.ExpiraEm).IsRequired()
+            .HasColumnType("timestamp with time zone");
+        builder.Property(s => s.RevogadaEm)
+            .HasColumnType("timestamp with time zone");
 
         builder.HasIndex(s => s.Jti).IsUnique();
         builder.HasIndex(s => s.UsuarioId);

@@ -46,7 +46,7 @@ public sealed class JwtTokenService : IJwtTokenService
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        var agora = _timeProvider.GetLocalNow().DateTime;
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
         var expiraEm = agora.Add(duracao);
         var jti = Guid.NewGuid().ToString("N");
 

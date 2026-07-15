@@ -14,8 +14,11 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.ClienteId).IsRequired();
         builder.Property(u => u.Email).IsRequired().HasMaxLength(200);
         builder.Property(u => u.SenhaHash).IsRequired().HasMaxLength(500);
-        builder.Property(u => u.CriadoEm).IsRequired();
-        builder.Property(u => u.AtualizadoEm);
+        builder.Property(u => u.CriadoEm)
+            .HasColumnType("timestamp with time zone")
+            .IsRequired();
+        builder.Property(u => u.AtualizadoEm)
+            .HasColumnType("timestamp with time zone");
 
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.ClienteId).IsUnique();

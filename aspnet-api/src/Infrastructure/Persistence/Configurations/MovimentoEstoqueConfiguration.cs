@@ -11,7 +11,8 @@ public class MovimentoEstoqueConfiguration : IEntityTypeConfiguration<MovimentoE
         builder.ToTable("MovimentosEstoque");
         builder.HasKey(m => m.Id);
         builder.Property(m => m.Id).ValueGeneratedOnAdd();
-        builder.Property(m => m.DataMovimento).IsRequired();
+        builder.Property(m => m.DataMovimento).IsRequired()
+            .HasColumnType("timestamp with time zone");
         builder.Property(m => m.OperacaoCodigo).IsRequired();
         builder.Property(m => m.OperacaoDescricao).HasMaxLength(500);
         builder.Property(m => m.Quantidade).HasColumnType("decimal(18,2)");

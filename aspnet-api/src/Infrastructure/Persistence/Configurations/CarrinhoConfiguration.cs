@@ -12,7 +12,8 @@ public class CarrinhoConfiguration : IEntityTypeConfiguration<Carrinho>
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Id).ValueGeneratedOnAdd();
         builder.Property(c => c.ClienteId).IsRequired();
-        builder.Property(c => c.DataCarrinho).IsRequired();
+        builder.Property(c => c.DataCarrinho).IsRequired()
+            .HasColumnType("timestamp with time zone");
 
         builder.OwnsOne(c => c.EnderecoEntrega, e =>
         {

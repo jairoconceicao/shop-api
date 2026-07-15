@@ -17,7 +17,7 @@ public class Usuario
 
     public static Usuario Create(long clienteId, string email, string senhaHash)
     {
-        var agora = DateTime.Now;
+        var agora = DateTime.UtcNow;
         return new Usuario
         {
             ClienteId = clienteId,

@@ -28,7 +28,7 @@ public static class ApiJsonServiceCollectionExtensions
             => reader.GetDateTime();
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
-            => writer.WriteStringValue(value.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
+            => writer.WriteStringValue(value.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private sealed class Iso8601DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
@@ -37,7 +37,7 @@ public static class ApiJsonServiceCollectionExtensions
             => reader.GetDateTimeOffset();
 
         public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
-            => writer.WriteStringValue(value.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
+            => writer.WriteStringValue(value.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private sealed class Iso8601DateOnlyConverter : JsonConverter<DateOnly>
