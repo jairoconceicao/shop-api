@@ -466,13 +466,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Fornecer dialog acessível por teclado, com nome, descrição, foco preso/restaurado e estado pendente que impeça fechamento destrutivo ou segundo envio.
   - Evidência: commits `b1cd820` e `ee0c418`; RED inicial confirmou ausência do componente e da área como irmã do formulário; RED da revisão reproduziu liberação precoce do latch após callback síncrono, rejeição não tratada e botão de fechar semanticamente ativo durante estado pendente; testes focados 21/21 e suíte completa 624/624; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
-  - Status: READY
+[x] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
+  - Status: DONE
   - Depends on: TASK-094
   - Critérios de aceite:
     - Chamar `DELETE /api/v1/cliente/{clienteId}` sem body, com Bearer token e `retry: false`, iniciando efeitos somente após resposta válida com o mesmo ID e sessão ainda correspondente.
     - Remover, na ordem definida, apenas o vínculo de carrinho do cliente cancelado, a sessão persistida, queries e mutations `meta.private: true` e snapshots privados transitórios; vínculos de outros clientes permanecem.
     - Redirecionar com `replace` para rota pública e confirmação neutra sem dados pessoais; qualquer falha mantém sessão, vínculo, formulário e dialog utilizáveis sem limpeza parcial.
+  - Evidência: commits `88fdc7f` e `cb32828`; RED inicial confirmou ausência do service DELETE, registro de snapshots transitórios e mutation, e RED da revisão reproduziu o segundo ciclo de mutation que desbloqueava a UI durante o DELETE original e a ausência do rótulo exato “Tentar novamente”; testes focados 23/23 e suíte completa 634/634; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. Decisão registrada: respostas `401` mantêm o logout global conforme o design aprovado; falhas de rede, contrato, `403`, `404`, `422` e `5xx` não executam limpeza parcial.
 
 ### Fase 7 — Pedidos
 
