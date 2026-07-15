@@ -3,8 +3,12 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { AppError } from '../../../shared/errors/appError'
 import { useAuthStore } from '../../auth/store/authStore'
+import { cartQueryKeys } from '../../cart/queries/useCartQuery'
+import { useCartSessionStore } from '../../cart/store/cartSessionStore'
 import { clearPrivateCache } from '../../../shared/query/privateCache'
+import { orderQueryKeys } from '../cache/orderCache'
 import { useCreateOrderMutation } from './useCreateOrderMutation'
 
 const { createOrder } = vi.hoisted(() => ({ createOrder: vi.fn() }))
@@ -32,6 +36,56 @@ describe('useCreateOrderMutation', () => {
         usuarioId: 4, clienteId: 7, email: 'cliente@exemplo.com',
       },
     })
+    useCartSessionStore.setState({ cartIdsByCustomer: { 7: 30, 8: 40 } })
+  })
+
+  it('reconciles only the confirmed customer cart and invalidates future order queries after success', async () => {
+    const created = {
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    createOrder.mockResolvedValueOnce(created)
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const confirmedCartKey = cartQueryKeys.detail(7, 30)
+    const otherCartKey = cartQueryKeys.detail(8, 40)
+    client.setQueryData(confirmedCartKey, cart)
+    client.setQueryData(otherCartKey, { ...cart, customerId: 8, id: 40 })
+    client.setQueryData([...orderQueryKeys.all, 'list'], ['stale-order'])
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    let response: unknown
+    await act(async () => {
+      response = await result.current.mutateAsync({ values, cart })
+    })
+
+    expect(response).toBe(created)
+    expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
+    expect(useCartSessionStore.getState().getCartId(8)).toBe(40)
+    expect(client.getQueryData(confirmedCartKey)).toBeUndefined()
+    expect(client.getQueryData(otherCartKey)).toBeDefined()
+    expect(client.getQueryState([...orderQueryKeys.all, 'list'])?.isInvalidated).toBe(true)
+  })
+
+  it.each([409, 422])('does not reconcile cart or order caches when creation fails with %i', async (status) => {
+    createOrder.mockRejectedValueOnce(new AppError({ kind: 'http', status, message: 'failed' }))
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const confirmedCartKey = cartQueryKeys.detail(7, 30)
+    const orderKey = [...orderQueryKeys.all, 'list'] as const
+    client.setQueryData(confirmedCartKey, cart)
+    client.setQueryData(orderKey, ['existing-order'])
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    await expect(act(async () => result.current.mutateAsync({ values, cart }))).rejects.toThrow('failed')
+
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
+    expect(client.getQueryData(confirmedCartKey)).toBe(cart)
+    expect(client.getQueryState(orderKey)?.isInvalidated).toBe(false)
   })
 
   it('maps form values and confirmed cart items and delegates creation to the service', async () => {
