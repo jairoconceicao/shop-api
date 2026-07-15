@@ -385,24 +385,84 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 ### Fase 6 — Conta do cliente
 
 [ ] TASK-086: Criar schemas e adapters de detalhe, atualização e ID do cliente.
+  - Status: READY
+  - Depends on: TASK-085
+  - Critérios de aceite:
+    - Validar o perfil completo e respostas por ID com Zod, normalizando `clienteId` recebido como `number | string` para inteiro positivo e rejeitando envelope nulo, status falso e ID divergente.
+    - Montar um `UpdateClienteRequest` estrito, sem `clienteId`, senha ou propriedades extras, normalizando CPF, DDD, textos, UF e complemento vazio conforme o contrato.
+    - Substituir o contrato parcial do checkout pelo contrato canônico de `features/customer`, preservando apenas a projeção local do endereço e sem criar uma segunda validação de `GET /api/v1/cliente/{clienteId}`.
 
 [ ] TASK-087: Implementar query de perfil pelo `clienteId` da sessão.
+  - Status: READY
+  - Depends on: TASK-086
+  - Critérios de aceite:
+    - Chamar `GET /api/v1/cliente/{clienteId}` com Bearer token e `AbortSignal` somente quando a sessão contiver token e `clienteId` válidos.
+    - Usar a chave `['private', 'customer', 'detail', customerId]` com `meta.private: true`, sem token ou CPF na chave e sem copiar o perfil para Zustand ou storage.
+    - Isolar trocas de cliente por chave e sessão capturadas, impedindo que resposta tardia de outra sessão altere o perfil visível; o checkout reutiliza essas mesmas options.
 
 [ ] TASK-088: Implementar formulário “Meus Dados” com endereço e celular aderentes ao contrato.
+  - Status: READY
+  - Depends on: TASK-087
+  - Critérios de aceite:
+    - Carregar `/minha-conta/dados` em chunk lazy e exibir skeleton sem salto, erro com retry manual e formulário somente após um perfil válido.
+    - Expor CPF, nome, nascimento, e-mail, endereço com logradouro/número/complemento separados, CEP, bairro, cidade, UF, DDD, celular e WhatsApp, com labels visíveis e validação local antes da rede.
+    - Manter edição no React Hook Form, sem sobrescrever campos sujos em refetch, funcionando entre 320 px e 1920 px sem rolagem horizontal e com erros associados por `aria-describedby`.
 
 [ ] TASK-089: Implementar confirmação específica quando o CPF for alterado.
+  - Status: READY
+  - Depends on: TASK-088
+  - Critérios de aceite:
+    - Interromper o submit somente quando o CPF normalizado diferir do snapshot confirmado e mostrar CPF anterior e novo mascarados em dialog nomeado e descrito.
+    - Confirmar exatamente o request completo já validado; cancelar ou pressionar Escape não envia nada e restaura o foco ao acionador.
+    - Não abrir o dialog para alterações de outros campos nem permitir confirmação duplicada enquanto o envio estiver pendente.
 
 [ ] TASK-090: Implementar PUT do perfil completo e mapear erros de validação para os campos.
+  - Status: READY
+  - Depends on: TASK-089
+  - Critérios de aceite:
+    - Enviar o request completo por `PUT /api/v1/cliente/{clienteId}` com o token e cliente capturados na tentativa, `retry: false` e bloqueio de submissão duplicada.
+    - Aceitar sucesso somente quando o envelope retornar o mesmo `clienteId`; falhas de contrato, rede, `404`, `409` ou `5xx` preservam os valores do formulário e oferecem retorno acionável.
+    - Mapear notificações `422` conhecidas, inclusive caminhos de `Endereco` e `Celular`, aos campos; propriedades desconhecidas vão ao resumo geral, e `401`/`403` seguem os comportamentos globais definidos.
 
 [ ] TASK-091: Implementar invalidação e atualização do cache do perfil após salvar.
+  - Status: READY
+  - Depends on: TASK-090
+  - Critérios de aceite:
+    - Após resposta válida da mesma sessão, gravar na chave exata o perfil completo enviado com `customerId` preservado e invalidar essa chave para reconciliação.
+    - Atualizar o snapshot do formulário após salvar, inclusive o CPF de referência, sem atualização otimista e sem sobrescrever edições sujas por refetch.
+    - Ignorar callbacks tardios quando a sessão já representar outro cliente e manter checkout e tela de dados observando o mesmo cache canônico.
 
 [ ] TASK-092: Implementar schema e indicador visual das regras de nova senha.
+  - Status: READY
+  - Depends on: TASK-091
+  - Critérios de aceite:
+    - Validar request estrito contendo apenas `senhaAtual` obrigatória e `senhaNova` com oito caracteres, uma maiúscula, um número e um caractere de `!@#$%`, sem aparar valores.
+    - Exibir permanentemente as quatro regras ao lado da nova senha e recalcular cada estado durante a digitação com texto/semântica, sem depender somente de cor.
+    - Cobrir por testes todas as regras isoladas e combinadas, propriedades extras e garantir que senhas não sejam persistidas nem registradas.
 
 [ ] TASK-093: Implementar página e mutation de troca de senha.
+  - Status: READY
+  - Depends on: TASK-092
+  - Critérios de aceite:
+    - Carregar `/minha-conta/senha` em chunk lazy e enviar `senhaAtual` e `senhaNova` por `PUT /api/v1/cliente/{clienteId}/senha` com Bearer token, `retry: false` e proteção contra duplicidade.
+    - Mapear `422` conhecido para os campos e demais falhas para o resumo; após sucesso com ID correspondente, limpar ambas as senhas, focar a confirmação e anunciá-la em região viva.
+    - Capturar cliente e token por tentativa, ignorar sucesso tardio de outra sessão e manter senhas exclusivamente no formulário durante sucesso ou falha.
 
 [ ] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
+  - Status: READY
+  - Depends on: TASK-093
+  - Critérios de aceite:
+    - Exibir em “Meus Dados” uma área de perigo visualmente distinta com consequências explícitas, sem executar cancelamento por clique único.
+    - Exigir checkbox de confirmação antes de habilitar a ação destrutiva; “Voltar” e Escape fecham sem efeito e a ação segura recebe o foco inicial.
+    - Fornecer dialog acessível por teclado, com nome, descrição, foco preso/restaurado e estado pendente que impeça fechamento destrutivo ou segundo envio.
 
 [ ] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
+  - Status: READY
+  - Depends on: TASK-094
+  - Critérios de aceite:
+    - Chamar `DELETE /api/v1/cliente/{clienteId}` sem body, com Bearer token e `retry: false`, iniciando efeitos somente após resposta válida com o mesmo ID e sessão ainda correspondente.
+    - Remover, na ordem definida, apenas o vínculo de carrinho do cliente cancelado, a sessão persistida, queries e mutations `meta.private: true` e snapshots privados transitórios; vínculos de outros clientes permanecem.
+    - Redirecionar com `replace` para rota pública e confirmação neutra sem dados pessoais; qualquer falha mantém sessão, vínculo, formulário e dialog utilizáveis sem limpeza parcial.
 
 ### Fase 7 — Pedidos
 
