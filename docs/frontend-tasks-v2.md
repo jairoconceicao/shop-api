@@ -478,16 +478,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 7 — Pedidos
 
-[ ] TASK-096: Criar schemas e adapters de lista, detalhe, status e cancelamento de pedido.
-  - Status: READY
+[x] TASK-096: Criar schemas e adapters de lista, detalhe, status e cancelamento de pedido.
+  - Status: DONE
   - Depends on: TASK-095
   - Critérios de aceite:
     - Validar lista paginada, detalhe, itens, status e resposta de cancelamento conforme o `openapi.yaml`, aceitando `number | string` nos campos numéricos e produzindo IDs inteiros positivos e números finitos no modelo interno.
     - Rejeitar enums desconhecidos, envelopes nulos ou com `status: false`, paginação inválida e recursos incompletos como erro de contrato, sem duplicar contratos canônicos já existentes.
     - Produzir request estrito de cancelamento contendo exclusivamente `{ "status": "Cancelado" }` e cobrir entradas válidas e inválidas com testes unitários.
+  - Evidência: commits `204dee3` e `c53f533`; RED inicial confirmou ausência do módulo de contratos e RED da revisão reproduziu a aceitação de envelopes sem `status: true`; testes do contrato 28/28 e regressão pertinente 43/43; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-096, TASK-087
   - Critérios de aceite:
     - Reutilizar a query canônica do perfil e iniciar `GET /api/v1/pedido` somente quando sessão, token, cliente e CPF confirmado forem válidos, normalizando o CPF apenas no transporte.
