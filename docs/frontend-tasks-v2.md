@@ -541,16 +541,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Exibir nome e imagem hidratados quando disponíveis e fallback acionável quando o produto não puder ser obtido, preservando quantidade e valor confirmados no pedido.
   - Evidência: commit `5915e5e`; RED confirmou ausência dos módulos de hidratação e corrigiu o estado pendente; testes focados de pedidos/cache do catálogo 89/89; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
-  - Status: READY
+[x] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
+  - Status: DONE
   - Depends on: TASK-101, TASK-096, TASK-022
   - Critérios de aceite:
     - Exigir confirmação em dialog acessível antes de chamar `PATCH /api/v1/pedido/{pedidoId}` e enviar exclusivamente `{ "status": "Cancelado" }` com Bearer e `retry: false`.
     - Capturar pedido e sessão por tentativa, bloquear fechamento e submissões duplicadas enquanto pendente e ignorar sucesso tardio de outra sessão.
     - Ocultar a ação apenas para `Cancelado` e `Devolvido`; para os demais status, deixar a API decidir a transição e aceitar sucesso somente para envelope correspondente ao mesmo pedido e cliente.
+  - Evidência: commit `19c9003`; TDD RED/GREEN incluindo bloqueio síncrono de confirmação duplicada; testes focados de pedidos 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. A suíte global apresentou flakes não relacionados em `useLogoutMutation` e `CustomerPasswordPage` (739/740 em execuções distintas), sem falhas na feature de pedidos; o primeiro passou isoladamente.
 
 [ ] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-103
   - Critérios de aceite:
     - Em `422`, não alterar o status otimisticamente nem assumir cancelamento e reconciliar o detalhe com uma nova leitura do servidor.
