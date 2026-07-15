@@ -514,16 +514,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Fornecer semântica e nome acessíveis e reorganizar conteúdo e ações em uma coluna no mobile, sem overflow horizontal.
   - Evidência: commit `98831fc`; RED confirmou ausência dos módulos de card e apresentação; testes focados 9/9 e suíte de pedidos 57/57; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
-  - Status: READY
+[x] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
+  - Status: DONE
   - Depends on: TASK-097, TASK-098, TASK-099, TASK-025
   - Critérios de aceite:
     - Substituir o placeholder protegido de `/pedidos` por rota lazy que componha filtros da URL, cards e paginação retornada pela API, mantendo `size=20` fixo.
     - Exibir skeleton com dimensões estáveis, vazio com ação para limpar o período quando aplicável, erro recuperável com retry manual e lista sem funcionalidades fora do MVP.
     - Tratar `404` da lista como erro de recurso, sem convertê-lo silenciosamente em vazio, e manter teclado, foco, região viva e responsividade entre 320 px e 1920 px.
+  - Evidência: commits `b4ebe67` e `bebda5a`; RED confirmou ausência da página/rota real e reproduziu período invertido e página fora do total; testes focados 23/23 e suíte de pedidos/roteador/App 80/80; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-101: Implementar query e página de detalhe do pedido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-096, TASK-100
   - Critérios de aceite:
     - Aceitar somente `pedidoId` canônico inteiro positivo e chamar `GET /api/v1/pedido/{pedidoId}` com Bearer e `AbortSignal`, sem emitir requisição com ID sentinela ou inválido.
