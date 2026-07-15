@@ -478,25 +478,95 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 7 — Pedidos
 
-[ ] TASK-096: Criar schemas e adapters de lista, detalhe, status e cancelamento de pedido.
+[x] TASK-096: Criar schemas e adapters de lista, detalhe, status e cancelamento de pedido.
+  - Status: DONE
+  - Depends on: TASK-095
+  - Critérios de aceite:
+    - Validar lista paginada, detalhe, itens, status e resposta de cancelamento conforme o `openapi.yaml`, aceitando `number | string` nos campos numéricos e produzindo IDs inteiros positivos e números finitos no modelo interno.
+    - Rejeitar enums desconhecidos, envelopes nulos ou com `status: false`, paginação inválida e recursos incompletos como erro de contrato, sem duplicar contratos canônicos já existentes.
+    - Produzir request estrito de cancelamento contendo exclusivamente `{ "status": "Cancelado" }` e cobrir entradas válidas e inválidas com testes unitários.
+  - Evidência: commits `204dee3` e `c53f533`; RED inicial confirmou ausência do módulo de contratos e RED da revisão reproduziu a aceitação de envelopes sem `status: true`; testes do contrato 28/28 e regressão pertinente 43/43; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
+[x] TASK-097: Implementar query paginada de pedidos dependente do CPF do perfil.
+  - Status: DONE
+  - Depends on: TASK-096, TASK-087
+  - Critérios de aceite:
+    - Reutilizar a query canônica do perfil e iniciar `GET /api/v1/pedido` somente quando sessão, token, cliente e CPF confirmado forem válidos, normalizando o CPF apenas no transporte.
+    - Enviar CPF, período opcional, `page` e `size=20`, com Bearer e `AbortSignal`, e validar a resposta antes de colocá-la no cache.
+    - Usar query key privada por `clienteId`, período, página e tamanho, sem token ou CPF na chave, isolar respostas tardias de outra sessão e não repetir automaticamente falhas não recuperáveis.
+  - Evidência: commits `d345ba6`, `74bd100` e `ae3a527`; RED inicial confirmou ausência dos módulos de serviço/query, REDs de revisão reproduziram a deduplicação indevida entre sessões distintas e a fragmentação entre consumidores da mesma sessão; testes focados 15/15 e suíte de pedidos 36/36; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
+[x] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
+  - Status: DONE
+  - Depends on: TASK-097
+  - Critérios de aceite:
+    - Parsear e serializar `dataInicio`, `dataFim` e `page` na URL, ignorando valores inválidos e preservando navegação voltar, avançar e refresh.
+    - Aplicar e limpar filtros por campos de data com labels visíveis, validar `dataInicio <= dataFim` e voltar para a página 1 quando o período mudar.
+    - Interpretar datas como civis locais inclusivas, enviando o início do primeiro dia e o fim do último dia em ISO 8601; não expor filtro de status nem tamanho de página na URL.
+  - Evidência: commit `2d562c2`; RED confirmou ausência dos módulos de URL e filtro; testes focados 12/12 e suíte de pedidos 48/48; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
+[x] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
+  - Status: DONE
+  - Depends on: TASK-096, TASK-021
+  - Critérios de aceite:
+    - Exibir identificador, data, forma de pagamento e rótulo amigável derivado exclusivamente de `Criado`, `EmProcessamento`, `Processado`, `Cancelado` ou `Devolvido`, com navegação SPA para o detalhe.
+    - Calcular o total visual por `soma(quantidade × valorUnitario)` dos itens confirmados, sem persistir total derivado nem inventar frete, desconto ou promoção.
+    - Fornecer semântica e nome acessíveis e reorganizar conteúdo e ações em uma coluna no mobile, sem overflow horizontal.
+  - Evidência: commit `98831fc`; RED confirmou ausência dos módulos de card e apresentação; testes focados 9/9 e suíte de pedidos 57/57; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
+[x] TASK-100: Implementar página “Meus Pedidos” com paginação, vazio, erro e retry.
+  - Status: DONE
+  - Depends on: TASK-097, TASK-098, TASK-099, TASK-025
+  - Critérios de aceite:
+    - Substituir o placeholder protegido de `/pedidos` por rota lazy que componha filtros da URL, cards e paginação retornada pela API, mantendo `size=20` fixo.
+    - Exibir skeleton com dimensões estáveis, vazio com ação para limpar o período quando aplicável, erro recuperável com retry manual e lista sem funcionalidades fora do MVP.
+    - Tratar `404` da lista como erro de recurso, sem convertê-lo silenciosamente em vazio, e manter teclado, foco, região viva e responsividade entre 320 px e 1920 px.
+  - Evidência: commits `b4ebe67` e `bebda5a`; RED confirmou ausência da página/rota real e reproduziu período invertido e página fora do total; testes focados 23/23 e suíte de pedidos/roteador/App 80/80; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-101: Implementar query e página de detalhe do pedido.
+[x] TASK-101: Implementar query e página de detalhe do pedido.
+  - Status: DONE
+  - Depends on: TASK-096, TASK-100
+  - Critérios de aceite:
+    - Aceitar somente `pedidoId` canônico inteiro positivo e chamar `GET /api/v1/pedido/{pedidoId}` com Bearer e `AbortSignal`, sem emitir requisição com ID sentinela ou inválido.
+    - Carregar `/pedidos/:pedidoId` em chunk lazy e exibir endereço, data, pagamento, status, itens e total derivado, além de loading, `404` e erro recuperável com retry.
+    - Manter chave privada por cliente e pedido, ignorar respostas tardias de outra sessão e preservar semântica e layout acessíveis entre mobile e desktop.
+  - Evidência: commits `1519551` e `0e20917`; RED confirmou ausência dos módulos e headings principais ausentes nos estados de falha; teste focado da página 3/3 e suíte de pedidos/roteador/App 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
+[x] TASK-102: Hidratar em paralelo os produtos únicos exibidos no detalhe do pedido.
+  - Status: DONE
+  - Depends on: TASK-101, TASK-057
+  - Critérios de aceite:
+    - Deduplicar os `produtoId` dos itens e resolver os produtos únicos em paralelo com `Promise.all`, reutilizando a query e o cache canônicos de detalhe por produto.
+    - Não copiar pedidos ou produtos para Zustand ou storage e isolar a falha de cada produto para que os demais itens continuem visíveis.
+    - Exibir nome e imagem hidratados quando disponíveis e fallback acionável quando o produto não puder ser obtido, preservando quantidade e valor confirmados no pedido.
+  - Evidência: commit `5915e5e`; RED confirmou ausência dos módulos de hidratação e corrigiu o estado pendente; testes focados de pedidos/cache do catálogo 89/89; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
+[x] TASK-103: Implementar ação de cancelamento enviando somente o status `Cancelado`.
+  - Status: DONE
+  - Depends on: TASK-101, TASK-096, TASK-022
+  - Critérios de aceite:
+    - Exigir confirmação em dialog acessível antes de chamar `PATCH /api/v1/pedido/{pedidoId}` e enviar exclusivamente `{ "status": "Cancelado" }` com Bearer e `retry: false`.
+    - Capturar pedido e sessão por tentativa, bloquear fechamento e submissões duplicadas enquanto pendente e ignorar sucesso tardio de outra sessão.
+    - Ocultar a ação apenas para `Cancelado` e `Devolvido`; para os demais status, deixar a API decidir a transição e aceitar sucesso somente para envelope correspondente ao mesmo pedido e cliente.
+  - Evidência: commit `19c9003`; TDD RED/GREEN incluindo bloqueio síncrono de confirmação duplicada; testes focados de pedidos 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. A suíte global apresentou flakes não relacionados em `useLogoutMutation` e `CustomerPasswordPage` (739/740 em execuções distintas), sem falhas na feature de pedidos; o primeiro passou isoladamente.
 
-[ ] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
+[x] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
+  - Status: DONE
+  - Depends on: TASK-103
+  - Critérios de aceite:
+    - Em `422`, não alterar o status otimisticamente nem assumir cancelamento e reconciliar o detalhe com uma nova leitura do servidor.
+    - Informar em alerta e região viva que o cancelamento não foi aceito e que o estado exibido foi atualizado, mantendo a recusa original mesmo se o refetch falhar.
+    - Reabilitar a interface após a tentativa e não repetir automaticamente o PATCH; erros diferentes de `422` mantêm o tratamento geral e os dados confirmados.
+  - Evidência: commits `881ab30` e `66058a4`; TDD RED confirmou que a recusa seguia o caminho genérico e, no review, que a chave exata não alcançava o detalhe ativo com `sessionScope`; GREEN focado 14/14, suíte de pedidos 99/99 e typecheck/lint/build/diff-check PASS; reviewer aprovado após correção, sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
+[x] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
+  - Status: DONE
+  - Depends on: TASK-103, TASK-104
+  - Critérios de aceite:
+    - Após resposta aceita, validada e ainda pertencente à sessão atual, atualizar ou invalidar o detalhe exato e invalidar todas as listas privadas de pedidos do cliente, independentemente de página ou período.
+    - Aguardar a reconciliação em best-effort sem emitir um segundo PATCH e manter lista e detalhe convergentes com o servidor.
+    - Não executar efeitos de sucesso em `422`, falha, envelope divergente ou resposta tardia, cobrindo detalhe e lista em teste de integração.
+  - Evidência: commit `1728ec4`; TDD RED confirmou que cópias scoped do detalhe permaneciam com status anterior; GREEN focado 23/23, suíte de pedidos/checkout 186/186 e suíte global 746/746 em 115 arquivos; typecheck/lint/build/diff-check PASS e E2E listou o smoke test existente. Reviewer aprovado sem findings CRITICAL ou IMPORTANT; detalhe exato e todas as listas do cliente convergem por prefixos canônicos sem expor CPF ou token.
 
 ### Fase 8 — Testes e hardening
 

@@ -118,12 +118,29 @@ describe('App', () => {
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
     ['/pedido-confirmado/7', 'Confirmação do pedido'],
-    ['/pedidos', 'Pedidos'],
-    ['/pedidos/7', 'Detalhes do pedido'],
+    ['/pedidos', 'Meus pedidos'],
   ])('renders the store route %s', async (route, heading) => {
     const { container } = renderApp(route)
 
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  it('renders the order detail store route with confirmed API data', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(http.get('https://api.example.com/api/v1/pedido/7', () => HttpResponse.json({
+      status: true,
+      data: {
+        pedidoId: 7, carrinhoId: 9, clienteId: 20, dataPedido: '2026-07-15T12:00:00Z',
+        formaPagamento: 'Pix', status: 'Criado',
+        enderecoEntrega: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' },
+        items: [{ itemId: 3, produtoId: 5, quantidade: 2, valorUnitario: 12.5 }],
+      },
+    })))
+
+    const { container } = renderApp('/pedidos/7')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Pedido 7' })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 

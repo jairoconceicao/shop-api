@@ -1,3 +1,1 @@
-export const orderQueryKeys = {
-  all: ['orders'] as const,
-}
+export { orderQueryKeys } from '../../orders/cache/orderQueryKeys'

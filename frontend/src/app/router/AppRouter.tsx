@@ -13,7 +13,6 @@ import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
-import { RoutePlaceholder } from './RoutePlaceholder'
 
 const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPage').then(
   ({ CheckoutPage: Page }) => ({ default: Page }),
@@ -27,6 +26,12 @@ const CustomerDataPage = lazy(() => import(
 const CustomerPasswordPage = lazy(() => import(
   '../../features/customer/pages/CustomerPasswordPage'
 ).then(({ CustomerPasswordPage: Page }) => ({ default: Page })))
+const OrdersPage = lazy(() => import('../../features/orders/pages/OrdersPage').then(
+  ({ OrdersPage: Page }) => ({ default: Page }),
+))
+const OrderDetailPage = lazy(() => import('../../features/orders/pages/OrderDetailPage').then(
+  ({ OrderDetailPage: Page }) => ({ default: Page }),
+))
 
 function CheckoutRouteFallback() {
   return (
@@ -57,6 +62,14 @@ function CustomerPasswordRouteFallback() {
   return <div role="status" aria-label="Carregando página de senha" aria-live="polite" className="surface min-h-96 p-6">Carregando página de senha…</div>
 }
 
+function OrdersRouteFallback() {
+  return <div role="status" aria-label="Carregando pedidos" aria-live="polite" className="surface min-h-96 p-6">Carregando pedidos…</div>
+}
+
+function OrderDetailRouteFallback() {
+  return <div role="status" aria-label="Carregando pedido" aria-live="polite" className="surface min-h-96 p-6">Carregando pedido…</div>
+}
+
 export function AppRouter() {
   return (
     <Routes>
@@ -79,8 +92,8 @@ export function AppRouter() {
               </LazyCheckoutRoute>
             )}
           />
-          <Route path="pedidos" element={<RoutePlaceholder title="Pedidos" />} />
-          <Route path="pedidos/:pedidoId" element={<RoutePlaceholder title="Detalhes do pedido" />} />
+          <Route path="pedidos" element={<Suspense fallback={<OrdersRouteFallback />}><OrdersPage /></Suspense>} />
+          <Route path="pedidos/:pedidoId" element={<Suspense fallback={<OrderDetailRouteFallback />}><OrderDetailPage /></Suspense>} />
           <Route path="minha-conta" element={<AccountLayout />}>
             <Route
               path="dados"

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { normalizeId, normalizeNumber } from '../../../shared/adapters/numbers'
 import { deliveryAddressSchema, paymentMethodSchema } from './checkout'
+import { orderStatusSchema } from '../../orders/contracts/orders'
 
 const transportIdSchema = z.union([
   z.number().int(),
@@ -26,14 +27,6 @@ export const createOrderRequestSchema = z.object({
   dataPedido: z.iso.datetime({ offset: true }),
   items: z.array(orderItemRequestSchema),
 }).strict()
-
-const orderStatusSchema = z.enum([
-  'Criado',
-  'EmProcessamento',
-  'Processado',
-  'Cancelado',
-  'Devolvido',
-])
 
 const createdOrderDataSchema = z.object({
   pedidoId: transportIdSchema,
@@ -73,6 +66,18 @@ export type CreatedOrder = {
   total: number
 }
 
+function positiveId(value: number | string, name: string): number {
+  const id = normalizeId(value)
+  if (id <= 0) throw new TypeError(`${name} must be positive`)
+  return id
+}
+
+function nonNegativeNumber(value: number | string, name: string): number {
+  const result = normalizeNumber(value)
+  if (result < 0) throw new TypeError(`${name} must be non-negative`)
+  return result
+}
+
 export function adaptCreateOrderRequest(input: unknown): CreateOrderRequest {
   const parsed = createOrderRequestSchema.parse(input)
 
@@ -97,11 +102,11 @@ export function adaptCreatedOrderResponse(response: unknown): CreatedOrder {
   }
 
   return {
-    id: normalizeId(parsed.data.pedidoId),
-    customerId: normalizeId(parsed.data.clienteId),
+    id: positiveId(parsed.data.pedidoId, 'Order ID'),
+    customerId: positiveId(parsed.data.clienteId, 'Customer ID'),
     createdAt: parsed.data.dataPedido,
     paymentMethod: parsed.data.formaPagamento,
     status: parsed.data.status,
-    total: normalizeNumber(parsed.data.valorTotal),
+    total: nonNegativeNumber(parsed.data.valorTotal, 'Order total'),
   }
 }
