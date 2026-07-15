@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { getButtonClasses } from '../../../shared/ui/buttons/buttonStyles'
@@ -19,20 +19,32 @@ export function DeleteAccountDangerZone({
   const [open, setOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const confirmInFlightRef = useRef(false)
+  const pendingObservedRef = useRef(false)
   const backButtonRef = useRef<HTMLButtonElement>(null)
 
   const closeWhenAllowed = () => {
     if (pending) return
+    confirmInFlightRef.current = false
+    pendingObservedRef.current = false
     setOpen(false)
     setConfirmed(false)
   }
+
+  useEffect(() => {
+    if (pending) {
+      pendingObservedRef.current = true
+    } else if (pendingObservedRef.current || error) {
+      confirmInFlightRef.current = false
+      pendingObservedRef.current = false
+    }
+  }, [error, pending])
 
   const confirmOnce = async () => {
     if (!confirmed || pending || confirmInFlightRef.current) return
     confirmInFlightRef.current = true
     try {
       await onConfirm()
-    } finally {
+    } catch {
       confirmInFlightRef.current = false
     }
   }
@@ -59,6 +71,7 @@ export function DeleteAccountDangerZone({
         title="Confirmar cancelamento da conta"
         description="Esta ação é permanente e não pode ser desfeita. Seus dados de acesso e o vínculo com o carrinho serão removidos."
         initialFocusRef={backButtonRef}
+        closeDisabled={pending}
       >
         <div className="space-y-5">
           <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-4 text-sm text-zinc-200">
