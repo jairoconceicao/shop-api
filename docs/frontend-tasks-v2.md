@@ -439,13 +439,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Ignorar callbacks tardios quando a sessão já representar outro cliente e manter checkout e tela de dados observando o mesmo cache canônico.
   - Evidência: commits `2ca697c` e `2f0cb34`; RED inicial confirmou retorno incompleto, ausência de atualização/invalidação canônica, aceitação de respostas tardias e CPF salvo fora do novo snapshot; RED de revisão confirmou resolução precoce durante invalidação pendente e rejeição de invalidação ignorada; testes focados 31/31 e suíte completa 590/590; typecheck/lint/build/diff-check PASS; reviewer aprovado após correção sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-092: Implementar schema e indicador visual das regras de nova senha.
-  - Status: READY
+[x] TASK-092: Implementar schema e indicador visual das regras de nova senha.
+  - Status: DONE
   - Depends on: TASK-091
   - Critérios de aceite:
     - Validar request estrito contendo apenas `senhaAtual` obrigatória e `senhaNova` com oito caracteres, uma maiúscula, um número e um caractere de `!@#$%`, sem aparar valores.
     - Exibir permanentemente as quatro regras ao lado da nova senha e recalcular cada estado durante a digitação com texto/semântica, sem depender somente de cor.
     - Cobrir por testes todas as regras isoladas e combinadas, propriedades extras e garantir que senhas não sejam persistidas nem registradas.
+  - Evidência: commit `a0b69dc`; RED confirmou falha dos dois testes focados pela ausência dos módulos; testes focados 17/17 e suíte completa 607/607; typecheck/lint/build/diff-check PASS; auditoria explícita não encontrou uso de storage ou logging; reviewer aprovado sem findings CRITICAL ou IMPORTANT, com nota MINOR para ampliar o caso negativo de caractere especial fora de `!@#$%`.
 
 [ ] TASK-093: Implementar página e mutation de troca de senha.
   - Status: READY
