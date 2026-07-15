@@ -1,9 +1,8 @@
+import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { AppError } from '../../../shared/errors/appError'
 import { Button } from '../../../shared/ui/buttons/Button'
-import { EmptyState } from '../../../shared/ui/states/EmptyState'
-import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { calculateOrderTotal, getOrderStatusLabel } from '../formatting/orderPresentation'
 import { useOrderDetailQuery } from '../queries/useOrderDetailQuery'
@@ -12,8 +11,26 @@ import { parseOrderId } from '../routing/orderId'
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short' })
 
+function PageState({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  action?: ReactNode
+}) {
+  return (
+    <div className="surface flex flex-col items-center px-6 py-10 text-center">
+      <h1 className="text-xl font-semibold text-zinc-100 sm:text-2xl">{title}</h1>
+      <p className="mt-2 max-w-md text-sm text-zinc-400">{description}</p>
+      {action ? <div className="mt-6">{action}</div> : null}
+    </div>
+  )
+}
+
 function NotFoundState() {
-  return <EmptyState title="Pedido não encontrado" description="Verifique o endereço ou consulte seus pedidos." />
+  return <PageState title="Pedido não encontrado" description="Verifique o endereço ou consulte seus pedidos." />
 }
 
 export function OrderDetailPage() {
@@ -44,7 +61,11 @@ export function OrderDetailPage() {
     }
     return (
       <section className="container-page py-8 sm:py-10">
-        <ErrorState title="Não foi possível carregar o pedido" action={<Button onClick={() => void query.refetch()}>Tentar novamente</Button>} />
+        <PageState
+          title="Não foi possível carregar o pedido"
+          description="Ocorreu um erro ao consultar os dados confirmados deste pedido."
+          action={<Button onClick={() => void query.refetch()}>Tentar novamente</Button>}
+        />
       </section>
     )
   }
