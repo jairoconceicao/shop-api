@@ -1,9 +1,10 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { AppError } from '../../../shared/errors/appError'
 import { privateCacheMeta } from '../../../shared/query/privateCache'
 import { useAuthStore } from '../../auth/store/authStore'
 import type { CancelledOrder } from '../contracts/orders'
+import { orderQueryKeys } from '../cache/orderQueryKeys'
 import { cancelOrder } from '../services/cancelOrderService'
 
 export type CancelOrderAttempt = {
@@ -12,6 +13,8 @@ export type CancelOrderAttempt = {
   userId: number
   token: string
 }
+
+export type CancelOrderResult = CancelledOrder | { kind: 'cancel-rejected' }
 
 function isCurrentAttempt(attempt: CancelOrderAttempt, result?: CancelledOrder) {
   const session = useAuthStore.getState().session
@@ -30,13 +33,30 @@ function staleCancellationError() {
 }
 
 export function useCancelOrderMutation() {
-  return useMutation<CancelledOrder, AppError, CancelOrderAttempt>({
+  const queryClient = useQueryClient()
+
+  return useMutation<CancelOrderResult, AppError, CancelOrderAttempt>({
     mutationKey: ['orders', 'cancel'],
     mutationFn: async (attempt) => {
       if (!isCurrentAttempt(attempt)) throw staleCancellationError()
-      const result = await cancelOrder({ orderId: attempt.orderId, token: attempt.token })
-      if (!isCurrentAttempt(attempt, result)) throw staleCancellationError()
-      return result
+      try {
+        const result = await cancelOrder({ orderId: attempt.orderId, token: attempt.token })
+        if (!isCurrentAttempt(attempt, result)) throw staleCancellationError()
+        return result
+      } catch (error) {
+        if (error instanceof AppError && error.status === 422) {
+          try {
+            await queryClient.invalidateQueries({
+              queryKey: orderQueryKeys.detail(attempt.customerId, attempt.orderId),
+              exact: true,
+            })
+          } catch {
+            // The original server refusal remains the user-facing outcome.
+          }
+          return { kind: 'cancel-rejected' }
+        }
+        throw error
+      }
     },
     retry: false,
     meta: privateCacheMeta,

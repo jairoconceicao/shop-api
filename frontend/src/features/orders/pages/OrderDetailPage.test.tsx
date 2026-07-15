@@ -103,6 +103,20 @@ describe('OrderDetailPage', () => {
     expect(mutateAsync).toHaveBeenCalledOnce()
   })
 
+  it('announces a rejected cancellation without changing the confirmed order', async () => {
+    mutateAsync.mockResolvedValue({ kind: 'cancel-rejected' })
+    useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: { ...order, status: 'Processado' } })
+    renderDetail()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar pedido' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('cancelamento não foi aceito')
+    expect(screen.getByText('Processado')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mutateAsync).toHaveBeenCalledOnce()
+  })
+
   it.each(['Cancelado', 'Devolvido'] as const)('hides cancellation for %s orders', (status) => {
     useOrderDetailQuery.mockReturnValue({ isPending: false, isError: false, data: { ...order, status } })
     renderDetail()

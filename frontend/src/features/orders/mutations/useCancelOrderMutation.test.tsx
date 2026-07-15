@@ -4,7 +4,9 @@ import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { privateCacheMeta } from '../../../shared/query/privateCache'
+import { AppError } from '../../../shared/errors/appError'
 import { useAuthStore } from '../../auth/store/authStore'
+import { orderQueryKeys } from '../cache/orderQueryKeys'
 import { useCancelOrderMutation } from './useCancelOrderMutation'
 
 const { cancelOrder } = vi.hoisted(() => ({ cancelOrder: vi.fn() }))
@@ -52,5 +54,30 @@ describe('useCancelOrderMutation', () => {
     resolve({ id: 41, customerId: 7, createdAt: '2026-07-15T12:00:00Z', status: 'Cancelado' })
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(result.current.error).toMatchObject({ kind: 'contract' })
+  })
+
+  it('reconciles the order detail and returns a rejected outcome for 422', async () => {
+    cancelOrder.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Transição recusada' }))
+    const { queryClient, result } = setup()
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue()
+
+    let outcome: unknown
+    await act(async () => { outcome = await result.current.mutateAsync(attempt) })
+
+    expect(outcome).toEqual({ kind: 'cancel-rejected' })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderQueryKeys.detail(7, 41), exact: true })
+    expect(cancelOrder).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the rejected outcome when reconciliation fails', async () => {
+    cancelOrder.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Transição recusada' }))
+    const { queryClient, result } = setup()
+    vi.spyOn(queryClient, 'invalidateQueries').mockRejectedValue(new Error('refetch failed'))
+
+    let outcome: unknown
+    await act(async () => { outcome = await result.current.mutateAsync(attempt) })
+
+    expect(outcome).toEqual({ kind: 'cancel-rejected' })
+    expect(result.current.isError).toBe(false)
   })
 })

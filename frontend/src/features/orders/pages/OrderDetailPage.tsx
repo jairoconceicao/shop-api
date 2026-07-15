@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 
 import { AppError } from '../../../shared/errors/appError'
 import { Button } from '../../../shared/ui/buttons/Button'
+import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { useAuthStore } from '../../auth/store/authStore'
 import { CancelOrderDialog } from '../components/CancelOrderDialog'
@@ -46,6 +47,7 @@ export function OrderDetailPage() {
   const session = useAuthStore((state) => state.session)
   const cancelMutation = useCancelOrderMutation()
   const [cancelAttempt, setCancelAttempt] = useState<CancelOrderAttempt | null>(null)
+  const [cancellationRejected, setCancellationRejected] = useState(false)
   const confirmingCancellation = useRef(false)
 
   if (orderId === undefined) {
@@ -87,6 +89,7 @@ export function OrderDetailPage() {
   function openCancellation() {
     if (!session || session.clienteId !== order.customerId) return
     cancelMutation.reset()
+    setCancellationRejected(false)
     setCancelAttempt({
       orderId: order.id,
       customerId: session.clienteId,
@@ -99,7 +102,8 @@ export function OrderDetailPage() {
     if (!cancelAttempt || cancelMutation.isPending || confirmingCancellation.current) return
     confirmingCancellation.current = true
     try {
-      await cancelMutation.mutateAsync(cancelAttempt)
+      const result = await cancelMutation.mutateAsync(cancelAttempt)
+      setCancellationRejected('kind' in result && result.kind === 'cancel-rejected')
       setCancelAttempt(null)
     } catch {
       // The dialog keeps the request error visible for a safe retry.
@@ -114,6 +118,12 @@ export function OrderDetailPage() {
         <h1 id="order-title" className="text-2xl font-bold text-zinc-50 sm:text-3xl">Pedido {order.id}</h1>
         <p className="mt-2 text-sm text-zinc-400">Realizado em {dateTime.format(new Date(order.createdAt))}</p>
       </header>
+
+      {cancellationRejected ? (
+        <InlineAlert className="mb-6" title="O cancelamento não foi aceito" variant="error" aria-live="assertive">
+          A API recusou a alteração. O estado mais recente disponível do pedido está sendo exibido.
+        </InlineAlert>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="surface p-4 sm:p-6" aria-labelledby="order-summary-title">
