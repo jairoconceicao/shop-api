@@ -496,16 +496,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Usar query key privada por `clienteId`, período, página e tamanho, sem token ou CPF na chave, isolar respostas tardias de outra sessão e não repetir automaticamente falhas não recuperáveis.
   - Evidência: commits `d345ba6`, `74bd100` e `ae3a527`; RED inicial confirmou ausência dos módulos de serviço/query, REDs de revisão reproduziram a deduplicação indevida entre sessões distintas e a fragmentação entre consumidores da mesma sessão; testes focados 15/15 e suíte de pedidos 36/36; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
-  - Status: READY
+[x] TASK-098: Implementar filtros de data inicial e final sincronizados com a URL.
+  - Status: DONE
   - Depends on: TASK-097
   - Critérios de aceite:
     - Parsear e serializar `dataInicio`, `dataFim` e `page` na URL, ignorando valores inválidos e preservando navegação voltar, avançar e refresh.
     - Aplicar e limpar filtros por campos de data com labels visíveis, validar `dataInicio <= dataFim` e voltar para a página 1 quando o período mudar.
     - Interpretar datas como civis locais inclusivas, enviando o início do primeiro dia e o fim do último dia em ISO 8601; não expor filtro de status nem tamanho de página na URL.
+  - Evidência: commit `2d562c2`; RED confirmou ausência dos módulos de URL e filtro; testes focados 12/12 e suíte de pedidos 48/48; typecheck/lint/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-099: Implementar OrderCard com status do OpenAPI e total derivado dos itens.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-096, TASK-021
   - Critérios de aceite:
     - Exibir identificador, data, forma de pagamento e rótulo amigável derivado exclusivamente de `Criado`, `EmProcessamento`, `Processado`, `Cancelado` ou `Devolvido`, com navegação SPA para o detalhe.
