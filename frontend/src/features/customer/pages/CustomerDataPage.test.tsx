@@ -59,6 +59,10 @@ describe('CustomerDataPage', () => {
     expect(screen.getByLabelText('DDD')).toHaveValue('11')
     expect(screen.getByLabelText('Celular')).toHaveValue('999999999')
     expect(screen.getByRole('checkbox', { name: 'Este celular também é WhatsApp' })).toBeChecked()
+    const form = screen.getByRole('form', { name: 'Meus dados' })
+    const dangerZone = screen.getByRole('region', { name: 'Cancelar conta' })
+    expect(form).not.toContainElement(dangerZone)
+    expect(form.compareDocumentPosition(dangerZone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })
 

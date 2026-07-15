@@ -15,6 +15,7 @@ import { Input } from '../../../shared/ui/forms/Input'
 import { ErrorState } from '../../../shared/ui/states/ErrorState'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
 import { CpfChangeDialog } from '../components/CpfChangeDialog'
+import { DeleteAccountDangerZone } from '../components/DeleteAccountDangerZone'
 import {
   adaptUpdateCustomerRequest,
   type CustomerProfile,
@@ -264,7 +265,7 @@ export function CustomerDataPage() {
 
   if (!profileQuery.data) return <CustomerDataLoading />
 
-  return <CustomerDataForm profile={profileQuery.data} onValidRequest={async (request) => {
+  return <div className="space-y-6"><CustomerDataForm profile={profileQuery.data} onValidRequest={async (request) => {
     const session = useAuthStore.getState().session
     if (!session || session.clienteId !== profileQuery.data.customerId) {
       throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
@@ -276,4 +277,6 @@ export function CustomerDataPage() {
     }
     return result
   }} />
+    <DeleteAccountDangerZone pending={false} error={null} onConfirm={() => undefined} />
+  </div>
 }
