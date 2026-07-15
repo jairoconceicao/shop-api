@@ -550,16 +550,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Ocultar a ação apenas para `Cancelado` e `Devolvido`; para os demais status, deixar a API decidir a transição e aceitar sucesso somente para envelope correspondente ao mesmo pedido e cliente.
   - Evidência: commit `19c9003`; TDD RED/GREEN incluindo bloqueio síncrono de confirmação duplicada; testes focados de pedidos 96/96; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT. A suíte global apresentou flakes não relacionados em `useLogoutMutation` e `CustomerPasswordPage` (739/740 em execuções distintas), sem falhas na feature de pedidos; o primeiro passou isoladamente.
 
-[ ] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
-  - Status: READY
+[x] TASK-104: Tratar recusa `422` recarregando o pedido e informando o usuário.
+  - Status: DONE
   - Depends on: TASK-103
   - Critérios de aceite:
     - Em `422`, não alterar o status otimisticamente nem assumir cancelamento e reconciliar o detalhe com uma nova leitura do servidor.
     - Informar em alerta e região viva que o cancelamento não foi aceito e que o estado exibido foi atualizado, mantendo a recusa original mesmo se o refetch falhar.
     - Reabilitar a interface após a tentativa e não repetir automaticamente o PATCH; erros diferentes de `422` mantêm o tratamento geral e os dados confirmados.
+  - Evidência: commits `881ab30` e `66058a4`; TDD RED confirmou que a recusa seguia o caminho genérico e, no review, que a chave exata não alcançava o detalhe ativo com `sessionScope`; GREEN focado 14/14, suíte de pedidos 99/99 e typecheck/lint/build/diff-check PASS; reviewer aprovado após correção, sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-105: Invalidar lista e detalhe após cancelamento aceito.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-103, TASK-104
   - Critérios de aceite:
     - Após resposta aceita, validada e ainda pertencente à sessão atual, atualizar ou invalidar o detalhe exato e invalidar todas as listas privadas de pedidos do cliente, independentemente de página ou período.
