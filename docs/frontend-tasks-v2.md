@@ -299,7 +299,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Validar os sete campos do endereço de entrega (`logradouro`, `numero`, `complemento`, `cep`, `bairro`, `cidade` e `uf`) antes da confirmação.
     - Aceitar exatamente `Pix`, `Cartao` e `Boleto` como formas de pagamento.
     - Rejeitar valores ou propriedades fora do contrato com testes unitários do schema.
-  - Evidência: commits `8ab6a88` e `53ca4f7`; RED confirmado pelo comportamento anterior e GREEN focado 18/18; suíte 469/469; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `8ab6a88`, `53ca4f7` e `bb071ac`; RED confirmado pelo comportamento anterior e GREEN focado 18/18; suíte 469/469; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-077: Impedir acesso ao checkout sem sessão válida ou com carrinho vazio.
   - Status: DONE
@@ -308,7 +308,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter `/checkout` sob a proteção de sessão existente e preservar o retorno seguro ao login.
     - Redirecionar carrinho inexistente ou confirmado sem itens para `/carrinho` sem renderizar o formulário.
     - Exibir estado de carregamento ou erro enquanto o último carrinho confirmado ainda não permite decidir o acesso.
-  - Evidência: commit `ddf45bb`; RED confirmado pela ausência inicial do `CheckoutGuard`; testes focados e de integração 19/19; suíte 475/475; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `ddf45bb` e `05d883c`; RED confirmado pela ausência inicial do `CheckoutGuard`; testes focados e de integração 19/19; suíte 475/475; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-078: Pré-carregar o endereço do checkout pelo perfil do cliente.
   - Status: DONE
@@ -317,7 +317,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Consultar `GET /api/v1/cliente/{clienteId}` com o token e o `clienteId` da sessão válida.
     - Adaptar o endereço retornado para os valores iniciais do formulário sem alterar o perfil persistido.
     - Apresentar carregamento e erro acionável quando a pré-carga não puder ser concluída.
-  - Evidência: commits `3687a67` e `e841dc4`; RED confirmado por módulos ausentes e 6 falhas comportamentais de integração; testes focados e de integração 42/42; suíte 498/498; typecheck/lint/build/diff-check PASS; reviewer aprovado nos dois gates sem findings.
+  - Evidência: commits `3687a67`, `e841dc4` e `91c11c2`; RED confirmado por módulos ausentes e 6 falhas comportamentais de integração; testes focados e de integração 42/42; suíte 498/498; typecheck/lint/build/diff-check PASS; reviewer aprovado nos dois gates sem findings.
 
 [x] TASK-079: Implementar a página de checkout com endereço editável apenas para o pedido atual.
   - Status: DONE
@@ -326,7 +326,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Renderizar resumo do carrinho, endereço editável e seleção acessível de `Pix`, `Cartao` ou `Boleto` em desktop e mobile.
     - Manter edições do endereço somente no estado do formulário de checkout, sem chamar endpoint de atualização do cliente.
     - Exibir validações por campo e resumo de erros antes de permitir a confirmação.
-  - Evidência: commits `0d29796` e `e82753d`; RED confirmado por módulo ausente e por 2 falhas esperadas de acessibilidade/composição; testes focados 12/12 e de integração 16/16; suíte 503/503 (uma execução anterior expôs flake preexistente com 500/501, seguido pelo teste isolado 2/2 e rerun completo 501/501); typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `0d29796`, `e82753d` e `89cf1f9`; RED confirmado por módulo ausente e por 2 falhas esperadas de acessibilidade/composição; testes focados 12/12 e de integração 16/16; suíte 503/503 (uma execução anterior expôs flake preexistente com 500/501, seguido pelo teste isolado 2/2 e rerun completo 501/501); typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-080: Criar adapter de `CreatePedidoRequest` sem `clienteId` e sem `carrinhoId`.
   - Status: DONE
@@ -335,7 +335,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Produzir somente `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items` no nível raiz.
     - Rejeitar `clienteId`, `carrinhoId` e demais propriedades raiz desconhecidas.
     - Preservar em cada item `itemId`, `produtoId`, `quantidade` e `valorUnitario` conforme o contrato da API.
-  - Evidência: commit `c80418f`; RED confirmado por módulo ausente; teste focado 10/10; suíte ampla 513/513; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `c80418f` e `9c1545d`; RED confirmado por módulo ausente; teste focado 10/10; suíte ampla 513/513; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-081: Montar os itens do pedido a partir do último estado confirmado do carrinho.
   - Status: DONE
@@ -344,7 +344,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Mapear os itens exclusivamente do dado confirmado da query do carrinho, sem usar valores otimistas ou dados visuais hidratados.
     - Preservar `itemId`, `produtoId`, `quantidade` e `valorUnitario` de cada item confirmado.
     - Impedir a montagem quando o carrinho confirmado estiver ausente ou vazio.
-  - Evidência: commit `c42cb6f`; RED confirmado por módulo ausente; teste focado 4/4; suíte ampla 517/517; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `c42cb6f` e `4c2f462`; RED confirmado por módulo ausente; teste focado 4/4; suíte ampla 517/517; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-082: Implementar `POST /api/v1/pedido` com data ISO gerada no envio.
   - Status: DONE
@@ -353,7 +353,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Enviar `POST /api/v1/pedido` autenticado com o request produzido pelo adapter estrito.
     - Gerar `dataPedido` por `new Date().toISOString()` no instante de cada confirmação, e não na abertura da página.
     - Adaptar a resposta `201` para `PedidoCriadoResponse` e cobrir request e response em testes de serviço.
-  - Evidência: commit `d1d102c`; RED confirmado por módulo ausente; teste focado do serviço 4/4 e revisão agregada 18/18; suíte ampla 521/521; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `d1d102c` e `90ce4a9`; RED confirmado por módulo ausente; teste focado do serviço 4/4 e revisão agregada 18/18; suíte ampla 521/521; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-083: Bloquear submissões duplicadas e tratar `409` e `422` no checkout.
   - Status: DONE
@@ -362,7 +362,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Desabilitar o CTA e ignorar nova confirmação enquanto a mutação estiver pendente.
     - Apresentar mensagens acionáveis para conflitos `409` e validações `422`, preservando os dados editados.
     - Reabilitar a confirmação após falha sem disparar mais de uma requisição por tentativa.
-  - Evidência: commits `2aa3c1d` e `b4b3052`; RED confirmado por módulo ausente, CTA ainda habilitado, ausência de alertas acionáveis, segunda requisição após `201` e mutation privada retida no logout; testes focados 12/12; suíte ampla 528/528; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `2aa3c1d`, `b4b3052` e `596e00f`; RED confirmado por módulo ausente, CTA ainda habilitado, ausência de alertas acionáveis, segunda requisição após `201` e mutation privada retida no logout; testes focados 12/12; suíte ampla 528/528; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-084: Limpar o vínculo local do carrinho e invalidar pedidos após criação bem-sucedida.
   - Status: DONE
@@ -371,7 +371,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Remover o `carrinhoId` somente do cliente autenticado após resposta `201` adaptada com sucesso.
     - Invalidar os caches de pedidos e remover os caches do carrinho concluído antes de navegar.
     - Não limpar vínculo nem caches de sucesso quando a criação falhar.
-  - Evidência: commits `27e8557` e `20b9864`; RED confirmado por namespace de pedidos ausente e vínculo concorrente removido pelo sucesso tardio; testes focados 6/6 e suíte ampla 532/532; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `27e8557`, `20b9864` e `0cdae32`; RED confirmado por namespace de pedidos ausente e vínculo concorrente removido pelo sucesso tardio; testes focados 6/6 e suíte ampla 532/532; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
 [x] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
   - Status: DONE
@@ -380,7 +380,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Abrir `/pedido-confirmado/{pedidoId}` após `201` e exibir identificador, data, forma de pagamento, status e valor total retornados.
     - Exibir os dados somente a partir do state/cache privado em memória e, após refresh, mostrar estado de confirmação indisponível com ação para voltar à loja.
     - Usar texto neutro de pedido criado, sem alegar autorização do pagamento, entrega ou emissão de nota fiscal.
-  - Evidência: commits `5344ea1` e `ad4fe90`; RED confirmou módulos e rota ausentes, exposição via navigation state e reutilização cross-session; testes focados 30/30 na revisão final (28/28 na suíte do implementador antes da re-review) e suíte ampla 543/543; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings.
+  - Evidência: commits `5344ea1`, `ad4fe90` e `a7dd868`; RED confirmou módulos e rota ausentes, exposição via navigation state e reutilização cross-session; testes focados 30/30 na revisão final (28/28 na suíte do implementador antes da re-review) e suíte ampla 543/543; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings.
 
 ### Fase 6 — Conta do cliente
 
