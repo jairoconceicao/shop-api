@@ -117,7 +117,7 @@ describe('App', () => {
 
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
-    ['/pedido-confirmado/7', 'Pedido confirmado'],
+    ['/pedido-confirmado/7', 'Confirmação do pedido'],
     ['/pedidos', 'Pedidos'],
     ['/pedidos/7', 'Detalhes do pedido'],
   ])('renders the store route %s', (route, heading) => {

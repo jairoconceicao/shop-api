@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { AppError } from '../../../shared/errors/appError'
@@ -66,6 +66,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   const submissionInFlightRef = useRef(false)
   const [invalidSubmissions, setInvalidSubmissions] = useState(0)
   const createOrderMutation = useCreateOrderMutation()
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -94,7 +95,14 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
       createOrderMutation.reset()
       createOrderMutation.mutate(
         { values: parsed.data, cart },
-        { onError: () => { submissionInFlightRef.current = false } },
+        {
+          onError: () => { submissionInFlightRef.current = false },
+          onSuccess: (createdOrder) => {
+            navigate(`/pedido-confirmado/${createdOrder.id}`, {
+              state: { createdOrder },
+            })
+          },
+        },
       )
       return
     }

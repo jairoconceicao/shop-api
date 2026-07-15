@@ -33,11 +33,16 @@ describe('CheckoutPage', () => {
     } })
   })
 
-  function renderPage() {
+  function renderPage(initialPath = '/checkout') {
     const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
     return render(
       <QueryClientProvider client={client}>
-        <CheckoutPage cart={cart} profile={profile} />
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route path="checkout" element={<CheckoutPage cart={cart} profile={profile} />} />
+            <Route path="pedido-confirmado/:pedidoId" element={<p>Destino da confirmação</p>} />
+          </Routes>
+        </MemoryRouter>
       </QueryClientProvider>,
     )
   }
@@ -131,10 +136,22 @@ describe('CheckoutPage', () => {
     await waitFor(() => expect(button).toBeDisabled())
     expect(requests).toBe(1)
     release()
-    await waitFor(() => expect(button).not.toBeDisabled())
+    expect(await screen.findByText('Destino da confirmação')).toBeInTheDocument()
     fireEvent.click(button)
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(requests).toBe(1)
+  })
+
+  it('navigates to the created order route with the private snapshot after success', async () => {
+    server.use(http.post('*/api/v1/pedido', () => HttpResponse.json({ status: true, data: {
+      pedidoId: 99, clienteId: 7, dataPedido: '2026-07-14T14:00:00Z',
+      formaPagamento: 'Pix', status: 'Criado', valorTotal: 100,
+    } }, { status: 201 })))
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+
+    expect(await screen.findByText('Destino da confirmação')).toBeInTheDocument()
   })
 
   it('releases the synchronous lock after failure and allows one retry', async () => {

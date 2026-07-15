@@ -11,6 +11,7 @@ import type { CheckoutFormValues } from '../contracts/checkout'
 import type { CreatedOrder } from '../contracts/order'
 import { createOrder } from '../services/createOrderService'
 import { orderQueryKeys } from '../cache/orderCache'
+import { setOrderConfirmation } from '../cache/orderConfirmationCache'
 
 export type CreateOrderMutationVariables = {
   values: CheckoutFormValues
@@ -50,7 +51,8 @@ export function useCreateOrderMutation() {
 
       return { customerId, cartId: cart.id }
     },
-    onSuccess: async (_createdOrder, _variables, attempt) => {
+    onSuccess: async (createdOrder, _variables, attempt) => {
+      setOrderConfirmation(queryClient, createdOrder)
       if (!attempt) return
 
       const cartSession = useCartSessionStore.getState()

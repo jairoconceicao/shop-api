@@ -9,6 +9,7 @@ import { RegistrationPage } from '../../features/customer/pages/RegistrationPage
 import { ProtectedRoute } from '../../features/auth/routing/ProtectedRoute'
 import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { CheckoutPage } from '../../features/checkout/pages/CheckoutPage'
+import { OrderConfirmationPage } from '../../features/checkout/pages/OrderConfirmationPage'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
@@ -27,7 +28,7 @@ export function AppRouter() {
           </Route>
           <Route
             path="pedido-confirmado/:pedidoId"
-            element={<RoutePlaceholder title="Pedido confirmado" />}
+            element={<OrderConfirmationPage />}
           />
           <Route path="pedidos" element={<RoutePlaceholder title="Pedidos" />} />
           <Route path="pedidos/:pedidoId" element={<RoutePlaceholder title="Detalhes do pedido" />} />
