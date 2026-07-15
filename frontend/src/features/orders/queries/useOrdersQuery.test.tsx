@@ -20,6 +20,12 @@ function wrapper({ children }: PropsWithChildren) {
   return <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{children}</QueryClientProvider>
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((accept) => { resolve = accept })
+  return { promise, resolve }
+}
+
 describe('ordersQueryOptions', () => {
   beforeEach(() => { listOrders.mockReset(); useCustomerProfileQuery.mockReset(); useAuthStore.getState().clearSession() })
 
@@ -53,5 +59,30 @@ describe('ordersQueryOptions', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(useCustomerProfileQuery).toHaveBeenCalledWith()
     expect(listOrders).toHaveBeenCalledWith({ cpf: '12345678901', start: undefined, end: undefined, page: 1, size: 20 }, 'token', expect.any(AbortSignal))
+  })
+
+  it('isolates a late response when token and confirmed cpf change for the same customer', async () => {
+    const oldResponse = deferred<{ orders: string[] }>()
+    const newResponse = deferred<{ orders: string[] }>()
+    listOrders.mockImplementationOnce(() => oldResponse.promise).mockImplementationOnce(() => newResponse.promise)
+    useCustomerProfileQuery.mockImplementation(() => ({
+      data: { cpf: useAuthStore.getState().session?.token === 'old-token' ? '12345678901' : '98765432100' },
+    }))
+    useAuthStore.getState().setSession({ token: 'old-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 1, clienteId: 7, email: 'old@shop.test' }, 'session')
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const stableWrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    const { result } = renderHook(() => useOrdersQuery({ page: 1 }), { wrapper: stableWrapper })
+    await waitFor(() => expect(listOrders).toHaveBeenCalledTimes(1))
+
+    useAuthStore.getState().setSession({ token: 'new-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 2, clienteId: 7, email: 'new@shop.test' }, 'session')
+    await waitFor(() => expect(listOrders).toHaveBeenCalledTimes(2))
+    newResponse.resolve({ orders: ['new'] })
+    await waitFor(() => expect(result.current.data).toEqual({ orders: ['new'] }))
+    oldResponse.resolve({ orders: ['old'] })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(result.current.data).toEqual({ orders: ['new'] })
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(2)
+    expect(JSON.stringify(queryClient.getQueryCache().getAll().map((query) => query.queryKey))).not.toMatch(/old-token|new-token|12345678901|98765432100/)
   })
 })

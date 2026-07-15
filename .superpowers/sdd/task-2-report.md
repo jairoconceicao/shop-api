@@ -50,3 +50,37 @@ Resultado final: exit 0; 3 arquivos e 13 testes passaram. Durante o ciclo, uma e
 ## Concerns
 
 - Nenhum.
+
+## Correção após revisão — isolamento de sessão
+
+### Finding tratado
+
+- Uma requisição pendente podia ser deduplicada pela sessão seguinte quando `clienteId` e filtros permaneciam iguais, pois token e CPF não participavam da identidade da query.
+- O backlog não foi alterado: conforme orientação do orquestrador, a transição para `DONE` ocorre somente após as duas aprovações.
+
+### RED
+
+Comando: `npm run test -- src/features/orders/queries/useOrdersQuery.test.tsx`
+
+Resultado: exit 1; o teste de troca de token e CPF para o mesmo cliente esperava uma segunda chamada, mas recebeu apenas uma, reproduzindo a deduplicação da resposta pendente.
+
+### GREEN e decisão
+
+- O hook passou a acrescentar à chave um escopo numérico opaco renovado quando a identidade completa (`clienteId`, token e CPF confirmado) muda.
+- A identidade sensível só é usada transitoriamente em memória para detectar a mudança; token e CPF não aparecem na chave, cache persistido ou logs.
+- O teste mantém duas promises controladas, resolve a nova primeiro e a antiga depois, e comprova que a resposta antiga não substitui os dados observados pela nova sessão.
+
+### Verificação da correção
+
+- Focados (`listOrdersService`, `useOrdersQuery`, `useCustomerProfileQuery`): exit 0; 3 arquivos e 14 testes.
+- `npm run typecheck`: exit 0.
+- `npm run lint`: exit 0, sem warnings.
+- `npm run test -- src/features/orders`: exit 0; 3 arquivos e 35 testes.
+
+### Commit
+
+- `fix(TASK-097): Isolar consultas entre sessões`
+
+### Concerns
+
+- Nenhum concern técnico pendente; a atualização do backlog aguarda aprovação conforme workflow.

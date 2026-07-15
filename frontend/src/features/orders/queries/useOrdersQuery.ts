@@ -1,4 +1,5 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 
 import { normalizeCpf } from '../../../shared/formatting/personalData'
 import { privateCacheMeta } from '../../../shared/query/privateCache'
@@ -9,6 +10,8 @@ import { listOrders } from '../services/listOrdersService'
 
 export type OrdersFilters = { start?: string; end?: string; page: number }
 
+let nextSessionScope = 1
+
 function isPositiveId(value: number | undefined): value is number {
   return value !== undefined && Number.isSafeInteger(value) && value > 0
 }
@@ -18,6 +21,7 @@ export function ordersQueryOptions(input: {
   cpf?: string
   token?: string
   filters: OrdersFilters
+  sessionScope?: number
 }) {
   const cpf = normalizeCpf(input.cpf ?? '')
   const enabled = isPositiveId(input.customerId)
@@ -26,7 +30,9 @@ export function ordersQueryOptions(input: {
 
   return queryOptions({
     queryKey: enabled
-      ? orderQueryKeys.list(input.customerId!, input.filters.start, input.filters.end, input.filters.page, 20)
+      ? input.sessionScope === undefined
+        ? orderQueryKeys.list(input.customerId!, input.filters.start, input.filters.end, input.filters.page, 20)
+        : [...orderQueryKeys.list(input.customerId!, input.filters.start, input.filters.end, input.filters.page, 20), input.sessionScope] as const
       : orderQueryKeys.list(0, undefined, undefined, 1, 20),
     enabled,
     queryFn: ({ signal }) => listOrders({
@@ -43,10 +49,17 @@ export function ordersQueryOptions(input: {
 export function useOrdersQuery(filters: OrdersFilters) {
   const session = useAuthStore((state) => state.session)
   const profileQuery = useCustomerProfileQuery()
+  const cpf = normalizeCpf(profileQuery.data?.cpf ?? '')
+  const identity = `${session?.clienteId ?? ''}\u0000${session?.token ?? ''}\u0000${cpf}`
+  const sessionScope = useMemo(() => {
+    void identity
+    return nextSessionScope++
+  }, [identity])
   return useQuery(ordersQueryOptions({
     customerId: session?.clienteId,
-    cpf: profileQuery.data?.cpf,
+    cpf,
     token: session?.token,
     filters,
+    sessionScope,
   }))
 }
