@@ -53,7 +53,10 @@ export function useCreateOrderMutation() {
     onSuccess: async (_createdOrder, _variables, attempt) => {
       if (!attempt) return
 
-      useCartSessionStore.getState().removeCartId(attempt.customerId)
+      const cartSession = useCartSessionStore.getState()
+      if (cartSession.getCartId(attempt.customerId) === attempt.cartId) {
+        cartSession.removeCartId(attempt.customerId)
+      }
       queryClient.removeQueries({
         queryKey: cartQueryKeys.detail(attempt.customerId, attempt.cartId),
         exact: true,

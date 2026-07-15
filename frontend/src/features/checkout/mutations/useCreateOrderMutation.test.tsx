@@ -69,6 +69,40 @@ describe('useCreateOrderMutation', () => {
     expect(client.getQueryState([...orderQueryKeys.all, 'list'])?.isInvalidated).toBe(true)
   })
 
+  it('preserves a newer cart link while reconciling the completed cart attempt', async () => {
+    const created = {
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    let resolveCreation!: (order: typeof created) => void
+    createOrder.mockReturnValueOnce(new Promise((resolve) => { resolveCreation = resolve }))
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const completedCartKey = cartQueryKeys.detail(7, 30)
+    const orderKey = [...orderQueryKeys.all, 'list'] as const
+    client.setQueryData(completedCartKey, cart)
+    client.setQueryData(orderKey, ['stale-order'])
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    let creation: Promise<unknown>
+    await act(async () => {
+      creation = result.current.mutateAsync({ values, cart })
+      await waitFor(() => expect(createOrder).toHaveBeenCalledOnce())
+    })
+    useCartSessionStore.getState().setCartId(7, 31)
+
+    await act(async () => {
+      resolveCreation(created)
+      await creation
+    })
+
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(31)
+    expect(client.getQueryData(completedCartKey)).toBeUndefined()
+    expect(client.getQueryState(orderKey)?.isInvalidated).toBe(true)
+  })
+
   it.each([409, 422])('does not reconcile cart or order caches when creation fails with %i', async (status) => {
     createOrder.mockRejectedValueOnce(new AppError({ kind: 'http', status, message: 'failed' }))
     const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
