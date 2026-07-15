@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
@@ -13,9 +14,39 @@ import { parseOrdersUrl, serializeOrdersUrl, toOrdersApiPeriod } from '../routin
 export function OrdersPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const urlState = parseOrdersUrl(searchParams)
-  const period = toOrdersApiPeriod(urlState)
+  const hasInvalidPeriod = Boolean(
+    urlState.startDate && urlState.endDate && urlState.startDate > urlState.endDate,
+  )
+  const canonicalUrlState = hasInvalidPeriod
+    ? { page: urlState.page }
+    : urlState
+  const period = toOrdersApiPeriod(canonicalUrlState)
   const query = useOrdersQuery({ ...period, page: urlState.page })
-  const hasPeriod = Boolean(urlState.startDate || urlState.endDate)
+  const lastPage = query.data ? Math.max(1, query.data.pages) : undefined
+  const hasInvalidPage = lastPage !== undefined && urlState.page > lastPage
+  const hasPeriod = Boolean(canonicalUrlState.startDate || canonicalUrlState.endDate)
+
+  useEffect(() => {
+    if (hasInvalidPeriod) {
+      setSearchParams(serializeOrdersUrl({ page: urlState.page }), { replace: true })
+      return
+    }
+    if (hasInvalidPage) {
+      setSearchParams(serializeOrdersUrl({
+        startDate: urlState.startDate,
+        endDate: urlState.endDate,
+        page: lastPage!,
+      }), { replace: true })
+    }
+  }, [
+    hasInvalidPage,
+    hasInvalidPeriod,
+    lastPage,
+    setSearchParams,
+    urlState.endDate,
+    urlState.page,
+    urlState.startDate,
+  ])
 
   function clearPeriod() {
     setSearchParams(serializeOrdersUrl({ page: 1 }))
@@ -26,7 +57,7 @@ export function OrdersPage() {
   }
 
   let content
-  if (query.isPending) {
+  if (query.isPending || hasInvalidPeriod || hasInvalidPage) {
     content = (
       <div role="status" aria-label="Carregando pedidos" aria-live="polite" className="min-h-96 space-y-4">
         <span className="sr-only">Carregando pedidos…</span>

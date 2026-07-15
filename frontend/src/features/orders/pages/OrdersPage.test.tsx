@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -60,5 +60,26 @@ describe('OrdersPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(refetch).toHaveBeenCalledOnce()
+  })
+
+  it('canonicalizes a reversed period without throwing or querying invalid bounds', async () => {
+    useOrdersQuery.mockReturnValue({ isPending: true, isError: false })
+
+    expect(() => renderOrders('/pedidos?dataInicio=2026-07-15&dataFim=2026-07-01&page=2')).not.toThrow()
+    expect(useOrdersQuery).toHaveBeenCalledWith({ start: undefined, end: undefined, page: 2 })
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('?page=2'))
+  })
+
+  it('reconciles an out-of-range page before rendering the valid API page', async () => {
+    useOrdersQuery.mockImplementation((filters?: { page: number }) => filters?.page === 3
+      ? { isPending: false, isError: false, data: { pages: 3, size: 20, totalItems: 41, orders: [order] } }
+      : { isPending: false, isError: false, data: { pages: 3, size: 20, totalItems: 41, orders: [] } })
+
+    renderOrders('/pedidos?dataInicio=2026-07-01&page=9')
+
+    expect(screen.queryByRole('heading', { name: 'Nenhum pedido encontrado' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('?dataInicio=2026-07-01&page=3'))
+    expect(useOrdersQuery).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 }))
+    expect(screen.getByRole('navigation', { name: 'Paginação de pedidos' })).toBeInTheDocument()
   })
 })
