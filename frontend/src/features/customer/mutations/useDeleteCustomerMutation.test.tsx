@@ -81,10 +81,15 @@ describe('useDeleteCustomerMutation', () => {
   })
 
   it('does not duplicate a pending attempt', async () => {
-    deleteCustomerMock.mockReturnValue(new Promise(() => undefined))
+    let release!: (value: { customerId: number }) => void
+    deleteCustomerMock.mockReturnValue(new Promise((resolve) => { release = resolve }))
     useAuthStore.getState().setSession(session(7), 'session')
     const { hook } = setup()
     act(() => { hook.result.current.mutation.mutate({ customerId: 7, token: 'token-7' }); hook.result.current.mutation.mutate({ customerId: 7, token: 'token-7' }) })
     await waitFor(() => expect(deleteCustomerMock).toHaveBeenCalledTimes(1))
+    expect(hook.result.current.mutation.isPending).toBe(true)
+    expect(hook.result.current.mutation.error).toBeNull()
+    release({ customerId: 7 })
+    await waitFor(() => expect(hook.result.current.mutation.isSuccess).toBe(true))
   })
 })

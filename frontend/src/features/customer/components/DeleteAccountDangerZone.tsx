@@ -98,7 +98,7 @@ export function DeleteAccountDangerZone({
               Voltar
             </button>
             <Button variant="danger" disabled={!confirmed || pending} onClick={() => { void confirmOnce() }}>
-              {pending ? 'Cancelando conta…' : 'Cancelar conta permanentemente'}
+              {pending ? 'Cancelando conta…' : error ? 'Tentar novamente' : 'Cancelar conta permanentemente'}
             </Button>
           </div>
         </div>

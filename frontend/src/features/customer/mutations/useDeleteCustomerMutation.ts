@@ -12,20 +12,10 @@ import { deleteCustomer, type DeleteCustomerVariables } from '../services/delete
 export function useDeleteCustomerMutation() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const pendingRef = useRef(false)
+  const pendingRef = useRef<Promise<{ customerId: number }> | null>(null)
 
-  return useMutation<{ customerId: number }, AppError, DeleteCustomerVariables>({
-    mutationFn: async (attempt) => {
-      if (pendingRef.current) {
-        throw new AppError({ kind: 'http', status: 409, message: 'O cancelamento já está em andamento.' })
-      }
-      pendingRef.current = true
-      try {
-        return await deleteCustomer(attempt)
-      } finally {
-        pendingRef.current = false
-      }
-    },
+  const mutation = useMutation<{ customerId: number }, AppError, DeleteCustomerVariables>({
+    mutationFn: (attempt) => deleteCustomer(attempt),
     onSuccess: (result, attempt) => {
       const current = useAuthStore.getState().session
       if (result.customerId !== attempt.customerId
@@ -38,7 +28,24 @@ export function useDeleteCustomerMutation() {
       clearCustomerPrivateSnapshots(attempt.customerId)
       navigate('/', { replace: true, state: { accountCancelled: true } })
     },
+    onSettled: () => { pendingRef.current = null },
     retry: false,
     meta: privateCacheMeta,
   })
+
+  const mutate: typeof mutation.mutate = (attempt, options) => {
+    if (pendingRef.current) return
+    const request = mutation.mutateAsync(attempt, options)
+    pendingRef.current = request
+    void request.catch(() => undefined)
+  }
+
+  const mutateAsync: typeof mutation.mutateAsync = (attempt, options) => {
+    if (pendingRef.current) return pendingRef.current
+    const request = mutation.mutateAsync(attempt, options)
+    pendingRef.current = request
+    return request
+  }
+
+  return { ...mutation, mutate, mutateAsync }
 }

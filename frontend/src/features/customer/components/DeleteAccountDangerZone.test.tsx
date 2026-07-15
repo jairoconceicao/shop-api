@@ -79,7 +79,7 @@ describe('DeleteAccountDangerZone', () => {
     render(<DeleteAccountDangerZone pending={false} error="Não foi possível cancelar a conta." onConfirm={onConfirm} />)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar minha conta' }))
     fireEvent.click(screen.getByRole('checkbox', { name: /entendo que o cancelamento é permanente/i }))
-    const confirm = screen.getByRole('button', { name: 'Cancelar conta permanentemente' })
+    const confirm = screen.getByRole('button', { name: 'Tentar novamente' })
 
     fireEvent.click(confirm)
     await waitFor(() => expect(onConfirm).toHaveBeenCalledOnce())
@@ -97,7 +97,7 @@ describe('DeleteAccountDangerZone', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível cancelar a conta.')
     fireEvent.click(screen.getByRole('checkbox', { name: /entendo que o cancelamento é permanente/i }))
-    fireEvent.click(screen.getByRole('button', { name: 'Cancelar conta permanentemente' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(onConfirm).toHaveBeenCalledOnce()
   })
 })
