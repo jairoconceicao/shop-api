@@ -27,6 +27,9 @@ const CustomerDataPage = lazy(() => import(
 const CustomerPasswordPage = lazy(() => import(
   '../../features/customer/pages/CustomerPasswordPage'
 ).then(({ CustomerPasswordPage: Page }) => ({ default: Page })))
+const OrdersPage = lazy(() => import('../../features/orders/pages/OrdersPage').then(
+  ({ OrdersPage: Page }) => ({ default: Page }),
+))
 
 function CheckoutRouteFallback() {
   return (
@@ -57,6 +60,10 @@ function CustomerPasswordRouteFallback() {
   return <div role="status" aria-label="Carregando página de senha" aria-live="polite" className="surface min-h-96 p-6">Carregando página de senha…</div>
 }
 
+function OrdersRouteFallback() {
+  return <div role="status" aria-label="Carregando pedidos" aria-live="polite" className="surface min-h-96 p-6">Carregando pedidos…</div>
+}
+
 export function AppRouter() {
   return (
     <Routes>
@@ -79,7 +86,7 @@ export function AppRouter() {
               </LazyCheckoutRoute>
             )}
           />
-          <Route path="pedidos" element={<RoutePlaceholder title="Pedidos" />} />
+          <Route path="pedidos" element={<Suspense fallback={<OrdersRouteFallback />}><OrdersPage /></Suspense>} />
           <Route path="pedidos/:pedidoId" element={<RoutePlaceholder title="Detalhes do pedido" />} />
           <Route path="minha-conta" element={<AccountLayout />}>
             <Route

@@ -118,7 +118,7 @@ describe('App', () => {
   it.each([
     ['/', 'Encontre produtos para o seu dia a dia'],
     ['/pedido-confirmado/7', 'Confirmação do pedido'],
-    ['/pedidos', 'Pedidos'],
+    ['/pedidos', 'Meus pedidos'],
     ['/pedidos/7', 'Detalhes do pedido'],
   ])('renders the store route %s', async (route, heading) => {
     const { container } = renderApp(route)
