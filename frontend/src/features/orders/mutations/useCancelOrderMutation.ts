@@ -48,7 +48,6 @@ export function useCancelOrderMutation() {
           try {
             await queryClient.invalidateQueries({
               queryKey: orderQueryKeys.detail(attempt.customerId, attempt.orderId),
-              exact: true,
             })
           } catch {
             // The original server refusal remains the user-facing outcome.

@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -56,16 +56,29 @@ describe('useCancelOrderMutation', () => {
     expect(result.current.error).toMatchObject({ kind: 'contract' })
   })
 
-  it('reconciles the order detail and returns a rejected outcome for 422', async () => {
+  it('refetches the active session-scoped detail before returning the rejected outcome', async () => {
     cancelOrder.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Transição recusada' }))
-    const { queryClient, result } = setup()
-    const invalidate = vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue()
+    const queryClient = new QueryClient()
+    const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    const getOrder = vi.fn()
+      .mockResolvedValueOnce({ status: 'Criado' })
+      .mockResolvedValueOnce({ status: 'Processado' })
+    const detailKey = [...orderQueryKeys.detail(7, 41), 99] as const
+    const { result } = renderHook(() => ({
+      detail: useQuery({
+        queryKey: detailKey,
+        queryFn: getOrder,
+      }),
+      cancellation: useCancelOrderMutation(),
+    }), { wrapper })
+    await waitFor(() => expect(result.current.detail.data).toEqual({ status: 'Criado' }))
 
     let outcome: unknown
-    await act(async () => { outcome = await result.current.mutateAsync(attempt) })
+    await act(async () => { outcome = await result.current.cancellation.mutateAsync(attempt) })
 
     expect(outcome).toEqual({ kind: 'cancel-rejected' })
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderQueryKeys.detail(7, 41), exact: true })
+    expect(getOrder).toHaveBeenCalledTimes(2)
+    expect(queryClient.getQueryData(detailKey)).toEqual({ status: 'Processado' })
     expect(cancelOrder).toHaveBeenCalledOnce()
   })
 
