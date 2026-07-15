@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
@@ -125,12 +125,18 @@ function CatalogSkeletonGrid() {
 
 export function HomePage() {
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const catalogUrl = parseCatalogUrl(searchParams)
   const categoryId = parseCategoryId(catalogUrl.categoriaId)
   useCategoriesQuery()
 
   return (
     <>
+      {location.state?.accountCancelled === true ? (
+        <p role="status" aria-live="polite" className="container-page py-3 text-sm text-emerald-300">
+          Conta cancelada com sucesso.
+        </p>
+      ) : null}
       <section className="border-b border-ink-700/70 bg-ink-900">
         <div className="container-page py-14 sm:py-20 lg:py-24">
           <div className="max-w-3xl">

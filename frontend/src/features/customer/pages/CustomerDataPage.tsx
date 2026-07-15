@@ -26,6 +26,8 @@ import { useCustomerProfileQuery } from '../queries/useCustomerProfileQuery'
 import { useAuthStore } from '../../auth/store/authStore'
 import { mapCustomerProfileError } from '../errors/customerProfileErrors'
 import { useUpdateCustomerProfileMutation } from '../mutations/useUpdateCustomerProfileMutation'
+import { useDeleteCustomerMutation } from '../mutations/useDeleteCustomerMutation'
+import { registerCustomerPrivateSnapshot } from '../cache/customerPrivateSnapshots'
 import { localCivilDate } from './localCivilDate'
 
 const required = (message: string) => ({ required: message })
@@ -84,6 +86,13 @@ export function CustomerDataForm({ profile, onValidRequest }: CustomerDataFormPr
   useEffect(() => {
     reset(initialValues, { keepDirtyValues: true })
   }, [initialValues, reset])
+
+  useEffect(() => registerCustomerPrivateSnapshot(profile.customerId, () => {
+    setPendingRequest(null)
+    setSuccessMessage('')
+    setRemoteSummaries([])
+    reset(initialValues)
+  }), [initialValues, profile.customerId, reset])
 
   const reconcileConfirmedProfile = (confirmed: CustomerProfile, submittedValues: CustomerProfileFormValues) => {
     const currentValues = getValues()
@@ -249,6 +258,7 @@ function CustomerDataLoading() {
 export function CustomerDataPage() {
   const profileQuery = useCustomerProfileQuery()
   const updateMutation = useUpdateCustomerProfileMutation()
+  const deleteMutation = useDeleteCustomerMutation()
 
   if (profileQuery.isPending) return <CustomerDataLoading />
 
@@ -277,6 +287,16 @@ export function CustomerDataPage() {
     }
     return result
   }} />
-    <DeleteAccountDangerZone pending={false} error={null} onConfirm={() => undefined} />
+    <DeleteAccountDangerZone
+      pending={deleteMutation.isPending}
+      error={deleteMutation.error?.message ?? null}
+      onConfirm={async () => {
+        const session = useAuthStore.getState().session
+        if (!session || session.clienteId !== profileQuery.data.customerId) {
+          throw new AppError({ kind: 'http', status: 403, message: 'Sessão inválida.' })
+        }
+        await deleteMutation.mutateAsync({ customerId: session.clienteId, token: session.token })
+      }}
+    />
   </div>
 }

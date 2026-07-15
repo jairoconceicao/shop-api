@@ -3,11 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CustomerProfile, UpdateCustomerRequest } from '../contracts/customerProfile'
 import { AppError } from '../../../shared/errors/appError'
+import { useAuthStore } from '../../auth/store/authStore'
 import { CustomerDataForm, CustomerDataPage } from './CustomerDataPage'
 
-const { useCustomerProfileQueryMock, useUpdateCustomerProfileMutationMock } = vi.hoisted(() => ({
+const { useCustomerProfileQueryMock, useUpdateCustomerProfileMutationMock, useDeleteCustomerMutationMock, deleteMutateAsyncMock } = vi.hoisted(() => ({
   useCustomerProfileQueryMock: vi.fn(),
   useUpdateCustomerProfileMutationMock: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  deleteMutateAsyncMock: vi.fn(),
+  useDeleteCustomerMutationMock: vi.fn(),
 }))
 
 vi.mock('../queries/useCustomerProfileQuery', () => ({
@@ -15,6 +18,9 @@ vi.mock('../queries/useCustomerProfileQuery', () => ({
 }))
 vi.mock('../mutations/useUpdateCustomerProfileMutation', () => ({
   useUpdateCustomerProfileMutation: useUpdateCustomerProfileMutationMock,
+}))
+vi.mock('../mutations/useDeleteCustomerMutation', () => ({
+  useDeleteCustomerMutation: useDeleteCustomerMutationMock,
 }))
 
 const profile: CustomerProfile = {
@@ -31,7 +37,11 @@ const profile: CustomerProfile = {
 }
 
 describe('CustomerDataPage', () => {
-  beforeEach(() => useCustomerProfileQueryMock.mockReset())
+  beforeEach(() => {
+    useCustomerProfileQueryMock.mockReset()
+    deleteMutateAsyncMock.mockReset()
+    useDeleteCustomerMutationMock.mockReturnValue({ mutateAsync: deleteMutateAsyncMock, isPending: false, error: null })
+  })
 
   it('shows a stable accessible loading state before rendering the form', () => {
     useCustomerProfileQueryMock.mockReturnValue({ isPending: true })
@@ -63,6 +73,22 @@ describe('CustomerDataPage', () => {
     const dangerZone = screen.getByRole('region', { name: 'Cancelar conta' })
     expect(form).not.toContainElement(dangerZone)
     expect(form.compareDocumentPosition(dangerZone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('confirms cancellation with the captured session and exposes pending or retryable error state', async () => {
+    useAuthStore.getState().setSession({ token: 'token-7', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 7, clienteId: 7, email: 'ana@example.com' }, 'session')
+    useCustomerProfileQueryMock.mockReturnValue({ isPending: false, isError: false, data: profile })
+    deleteMutateAsyncMock.mockRejectedValue(new AppError({ kind: 'http', status: 422, message: 'Cancelamento não permitido.' }))
+    const { rerender } = render(<CustomerDataPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar minha conta' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /cancelamento é permanente/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar conta permanentemente' }))
+    await waitFor(() => expect(deleteMutateAsyncMock).toHaveBeenCalledWith({ customerId: 7, token: 'token-7' }))
+
+    useDeleteCustomerMutationMock.mockReturnValue({ mutateAsync: deleteMutateAsyncMock, isPending: false, error: new AppError({ kind: 'http', status: 422, message: 'Cancelamento não permitido.' }) })
+    rerender(<CustomerDataPage />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Cancelamento não permitido.')
+    expect(screen.getByRole('dialog')).toBeVisible()
   })
 })
 
