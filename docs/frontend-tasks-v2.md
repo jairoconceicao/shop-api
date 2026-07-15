@@ -373,13 +373,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Não limpar vínculo nem caches de sucesso quando a criação falhar.
   - Evidência: commits `27e8557` e `20b9864`; RED confirmado por namespace de pedidos ausente e vínculo concorrente removido pelo sucesso tardio; testes focados 6/6 e suíte ampla 532/532; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
-  - Status: READY
+[x] TASK-085: Implementar página de confirmação com dados retornados em `PedidoCriadoResponse`.
+  - Status: DONE
   - Depends on: TASK-084
   - Critérios de aceite:
     - Abrir `/pedido-confirmado/{pedidoId}` após `201` e exibir identificador, data, forma de pagamento, status e valor total retornados.
     - Exibir os dados somente a partir do state/cache privado em memória e, após refresh, mostrar estado de confirmação indisponível com ação para voltar à loja.
     - Usar texto neutro de pedido criado, sem alegar autorização do pagamento, entrega ou emissão de nota fiscal.
+  - Evidência: commits `5344ea1` e `ad4fe90`; RED confirmou módulos e rota ausentes, exposição via navigation state e reutilização cross-session; testes focados 30/30 na revisão final (28/28 na suíte do implementador antes da re-review) e suíte ampla 543/543; typecheck/lint/build/e2e-list/diff-check PASS; reviewer aprovado sem findings.
 
 ### Fase 6 — Conta do cliente
 
