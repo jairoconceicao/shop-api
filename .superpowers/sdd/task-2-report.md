@@ -84,3 +84,39 @@ Resultado: exit 1; o teste de troca de token e CPF para o mesmo cliente esperava
 ### Concerns
 
 - Nenhum concern técnico pendente; a atualização do backlog aguarda aprovação conforme workflow.
+
+## Segunda correção após revisão — escopo compartilhado
+
+### RED
+
+Comando: `npm run test -- src/features/orders/queries/useOrdersQuery.test.tsx`
+
+Resultado: exit 1; dois hooks simultâneos da mesma sessão fizeram duas chamadas em vez de uma, comprovando que o escopo anterior era por instância.
+
+### GREEN e decisão
+
+- O escopo opaco agora é associado por `WeakMap` às referências compartilhadas da sessão Zustand e do perfil React Query.
+- Consumidores simultâneos e remontagens da mesma geração produzem a mesma chave, deduplicam a chamada pendente e reutilizam dados dentro de `staleTime`.
+- Uma nova referência de sessão ou perfil cria outro escopo, mantendo o isolamento da resposta tardia já coberto.
+- Os mapas usam somente referências fracas; CPF e token não são copiados para chaves, logs ou storage.
+
+### Regressão adicionada
+
+- Dois consumidores simultâneos observam uma única requisição e uma única entrada no cache.
+- Após desmontar ambos, uma remontagem com `staleTime: Infinity` reutiliza a mesma resposta sem novo GET.
+- O teste anterior de troca de token/CPF com o mesmo `clienteId` continua passando.
+
+### Verificação
+
+- Focados (`listOrdersService`, `useOrdersQuery`, `useCustomerProfileQuery`): exit 0; 3 arquivos e 15 testes.
+- `npm run typecheck`: exit 0.
+- `npm run lint`: exit 0, sem warnings.
+- `npm run test -- src/features/orders`: exit 0; 3 arquivos e 36 testes.
+
+### Commit
+
+- `fix(TASK-097): Compartilhar escopo da sessão`
+
+### Concerns
+
+- Nenhum.

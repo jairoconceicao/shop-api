@@ -64,9 +64,11 @@ describe('ordersQueryOptions', () => {
   it('isolates a late response when token and confirmed cpf change for the same customer', async () => {
     const oldResponse = deferred<{ orders: string[] }>()
     const newResponse = deferred<{ orders: string[] }>()
+    const oldProfile = { cpf: '12345678901' }
+    const newProfile = { cpf: '98765432100' }
     listOrders.mockImplementationOnce(() => oldResponse.promise).mockImplementationOnce(() => newResponse.promise)
     useCustomerProfileQuery.mockImplementation(() => ({
-      data: { cpf: useAuthStore.getState().session?.token === 'old-token' ? '12345678901' : '98765432100' },
+      data: useAuthStore.getState().session?.token === 'old-token' ? oldProfile : newProfile,
     }))
     useAuthStore.getState().setSession({ token: 'old-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 1, clienteId: 7, email: 'old@shop.test' }, 'session')
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -84,5 +86,29 @@ describe('ordersQueryOptions', () => {
     expect(result.current.data).toEqual({ orders: ['new'] })
     expect(queryClient.getQueryCache().getAll()).toHaveLength(2)
     expect(JSON.stringify(queryClient.getQueryCache().getAll().map((query) => query.queryKey))).not.toMatch(/old-token|new-token|12345678901|98765432100/)
+  })
+
+  it('shares the query key and pending request between consumers of the same session', async () => {
+    const response = deferred<{ orders: string[] }>()
+    const profile = { cpf: '12345678901' }
+    listOrders.mockReturnValue(response.promise)
+    useCustomerProfileQuery.mockReturnValue({ data: profile })
+    useAuthStore.getState().setSession({ token: 'shared-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z', usuarioId: 1, clienteId: 7, email: 'same@shop.test' }, 'session')
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+    const stableWrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+
+    const first = renderHook(() => useOrdersQuery({ page: 1 }), { wrapper: stableWrapper })
+    const second = renderHook(() => useOrdersQuery({ page: 1 }), { wrapper: stableWrapper })
+    await waitFor(() => expect(listOrders).toHaveBeenCalledTimes(1))
+    response.resolve({ orders: ['shared'] })
+    await waitFor(() => expect(first.result.current.data).toEqual({ orders: ['shared'] }))
+    await waitFor(() => expect(second.result.current.data).toEqual({ orders: ['shared'] }))
+
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(1)
+    first.unmount()
+    second.unmount()
+    const remounted = renderHook(() => useOrdersQuery({ page: 1 }), { wrapper: stableWrapper })
+    await waitFor(() => expect(remounted.result.current.data).toEqual({ orders: ['shared'] }))
+    expect(listOrders).toHaveBeenCalledTimes(1)
   })
 })
