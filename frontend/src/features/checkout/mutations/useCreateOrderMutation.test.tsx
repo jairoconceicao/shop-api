@@ -9,6 +9,7 @@ import { cartQueryKeys } from '../../cart/queries/useCartQuery'
 import { useCartSessionStore } from '../../cart/store/cartSessionStore'
 import { clearPrivateCache } from '../../../shared/query/privateCache'
 import { orderQueryKeys } from '../cache/orderCache'
+import { orderConfirmationKey } from '../cache/orderConfirmationCache'
 import { useCreateOrderMutation } from './useCreateOrderMutation'
 
 const { createOrder } = vi.hoisted(() => ({ createOrder: vi.fn() }))
@@ -143,7 +144,7 @@ describe('useCreateOrderMutation', () => {
       enderecoEntrega: values.enderecoEntrega,
       formaPagamento: 'Pix',
       items: [{ itemId: 1, produtoId: 10, quantidade: 2, valorUnitario: 25.5 }],
-    }, 'access-token')
+    }, 'access-token', undefined, expect.any(AbortSignal))
     expect(response).toBe(created)
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
   })
@@ -168,5 +169,108 @@ describe('useCreateOrderMutation', () => {
 
     expect(client.getMutationCache().find({ mutationKey: ['checkout', 'create-order'] }))
       .toBeUndefined()
+  })
+
+  it('ignores a successful response that arrives after logout', async () => {
+    const created = {
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    let resolveCreation!: (order: typeof created) => void
+    createOrder.mockReturnValueOnce(new Promise((resolve) => { resolveCreation = resolve }))
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const cartKey = cartQueryKeys.detail(7, 30)
+    const orderKey = [...orderQueryKeys.all, 'list'] as const
+    client.setQueryData(cartKey, cart)
+    client.setQueryData(orderKey, ['existing-order'])
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    let creation!: Promise<unknown>
+    await act(async () => {
+      creation = result.current.mutateAsync({ values, cart })
+      await waitFor(() => expect(createOrder).toHaveBeenCalledOnce())
+    })
+    useAuthStore.getState().clearSession()
+    expect(createOrder.mock.calls[0]?.[3]).toMatchObject({ aborted: true })
+
+    await act(async () => {
+      resolveCreation(created)
+      await creation
+    })
+
+    expect(client.getQueryData(orderConfirmationKey(7, 99))).toBeUndefined()
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
+    expect(client.getQueryData(cartKey)).toBe(cart)
+    expect(client.getQueryState(orderKey)?.isInvalidated).toBe(false)
+  })
+
+  it('does not recreate private cache after a 401 cleanup while creation is pending', async () => {
+    const created = {
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    let resolveCreation!: (order: typeof created) => void
+    createOrder.mockReturnValueOnce(new Promise((resolve) => { resolveCreation = resolve }))
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    let creation!: Promise<unknown>
+    await act(async () => {
+      creation = result.current.mutateAsync({ values, cart })
+      await waitFor(() => expect(createOrder).toHaveBeenCalledOnce())
+    })
+    useAuthStore.getState().clearSession()
+    clearPrivateCache(client)
+
+    await act(async () => {
+      resolveCreation(created)
+      await creation
+    })
+
+    expect(client.getMutationCache().find({ mutationKey: ['checkout', 'create-order'] }))
+      .toBeUndefined()
+    expect(client.getQueryData(orderConfirmationKey(7, 99))).toBeUndefined()
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
+  })
+
+  it('ignores a response from the previous customer after the session changes', async () => {
+    const created = {
+      id: 99, customerId: 7, createdAt: '2026-07-14T14:00:00Z',
+      paymentMethod: 'Pix', status: 'Criado', total: 51,
+    }
+    let resolveCreation!: (order: typeof created) => void
+    createOrder.mockReturnValueOnce(new Promise((resolve) => { resolveCreation = resolve }))
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    const cartKey = cartQueryKeys.detail(7, 30)
+    client.setQueryData(cartKey, cart)
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateOrderMutation(), { wrapper })
+
+    let creation!: Promise<unknown>
+    await act(async () => {
+      creation = result.current.mutateAsync({ values, cart })
+      await waitFor(() => expect(createOrder).toHaveBeenCalledOnce())
+    })
+    useAuthStore.getState().setSession({
+      token: 'other-token', tipo: 'Cliente', expiraEm: '2099-01-01T00:00:00Z',
+      usuarioId: 5, clienteId: 8, email: 'outro@exemplo.com',
+    }, 'session')
+
+    await act(async () => {
+      resolveCreation(created)
+      await creation
+    })
+
+    expect(client.getQueryData(orderConfirmationKey(7, 99))).toBeUndefined()
+    expect(useCartSessionStore.getState().getCartId(7)).toBe(30)
+    expect(client.getQueryData(cartKey)).toBe(cart)
   })
 })
