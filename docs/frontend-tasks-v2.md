@@ -457,13 +457,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Capturar cliente e token por tentativa, ignorar sucesso tardio de outra sessão e manter senhas exclusivamente no formulário durante sucesso ou falha.
   - Evidência: commits `9e622bb` e `507a222`; RED inicial confirmou ausência de service, mutation, página e rota lazy; RED da revisão confirmou perda do erro remoto de `SenhaNova` após limpeza e ausência de associação acessível com a lista de regras; testes focados 7/7 e suíte completa 618/618; typecheck/lint/build/diff-check PASS; chunk lazy separado validado; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
-[ ] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
-  - Status: READY
+[x] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
+  - Status: DONE
   - Depends on: TASK-093
   - Critérios de aceite:
     - Exibir em “Meus Dados” uma área de perigo visualmente distinta com consequências explícitas, sem executar cancelamento por clique único.
     - Exigir checkbox de confirmação antes de habilitar a ação destrutiva; “Voltar” e Escape fecham sem efeito e a ação segura recebe o foco inicial.
     - Fornecer dialog acessível por teclado, com nome, descrição, foco preso/restaurado e estado pendente que impeça fechamento destrutivo ou segundo envio.
+  - Evidência: commits `b1cd820` e `ee0c418`; RED inicial confirmou ausência do componente e da área como irmã do formulário; RED da revisão reproduziu liberação precoce do latch após callback síncrono, rejeição não tratada e botão de fechar semanticamente ativo durante estado pendente; testes focados 21/21 e suíte completa 624/624; typecheck/lint/build/diff-check PASS; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-095: Implementar DELETE da conta e limpeza integral dos dados privados locais.
   - Status: READY
