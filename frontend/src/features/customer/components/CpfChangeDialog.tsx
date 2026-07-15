@@ -37,6 +37,7 @@ export function CpfChangeDialog({
       title="Confirmar alteração do CPF"
       description="Confira os dados antes de continuar. A alteração do CPF exige confirmação específica."
       initialFocusRef={cancelButtonRef}
+      closeDisabled={pending}
     >
       <dl className="grid gap-4 sm:grid-cols-2">
         <div>

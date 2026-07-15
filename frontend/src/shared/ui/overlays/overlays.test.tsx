@@ -38,6 +38,17 @@ describe('Dialog', () => {
     fireEvent.click(close)
     expect(screen.getByRole('dialog', { name: 'Operação pendente' })).toBeInTheDocument()
   })
+
+  it('blocks Escape and backdrop closing internally when closing is locked', () => {
+    const onOpenChange = vi.fn()
+    render(<Dialog open onOpenChange={onOpenChange} title="Operação pendente" closeDisabled><button>Voltar</button></Dialog>)
+    const dialog = screen.getByRole('dialog', { name: 'Operação pendente' })
+
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    fireEvent.mouseDown(dialog.parentElement!)
+
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
 })
 
 describe('DropdownMenu', () => {

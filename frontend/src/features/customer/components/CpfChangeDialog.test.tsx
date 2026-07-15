@@ -21,6 +21,7 @@ describe('CpfChangeDialog', () => {
 
     expect(screen.getByRole('button', { name: 'Voltar' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Confirmando…' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Fechar dialogo' })).toBeDisabled()
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     fireEvent.click(screen.getByRole('button', { name: 'Fechar dialogo' }))
     fireEvent.mouseDown(screen.getByRole('dialog').parentElement!)
