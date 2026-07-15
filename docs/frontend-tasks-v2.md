@@ -448,13 +448,14 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Cobrir por testes todas as regras isoladas e combinadas, propriedades extras e garantir que senhas não sejam persistidas nem registradas.
   - Evidência: commit `a0b69dc`; RED confirmou falha dos dois testes focados pela ausência dos módulos; testes focados 17/17 e suíte completa 607/607; typecheck/lint/build/diff-check PASS; auditoria explícita não encontrou uso de storage ou logging; reviewer aprovado sem findings CRITICAL ou IMPORTANT, com nota MINOR para ampliar o caso negativo de caractere especial fora de `!@#$%`.
 
-[ ] TASK-093: Implementar página e mutation de troca de senha.
-  - Status: READY
+[x] TASK-093: Implementar página e mutation de troca de senha.
+  - Status: DONE
   - Depends on: TASK-092
   - Critérios de aceite:
     - Carregar `/minha-conta/senha` em chunk lazy e enviar `senhaAtual` e `senhaNova` por `PUT /api/v1/cliente/{clienteId}/senha` com Bearer token, `retry: false` e proteção contra duplicidade.
     - Mapear `422` conhecido para os campos e demais falhas para o resumo; após sucesso com ID correspondente, limpar ambas as senhas, focar a confirmação e anunciá-la em região viva.
     - Capturar cliente e token por tentativa, ignorar sucesso tardio de outra sessão e manter senhas exclusivamente no formulário durante sucesso ou falha.
+  - Evidência: commits `9e622bb` e `507a222`; RED inicial confirmou ausência de service, mutation, página e rota lazy; RED da revisão confirmou perda do erro remoto de `SenhaNova` após limpeza e ausência de associação acessível com a lista de regras; testes focados 7/7 e suíte completa 618/618; typecheck/lint/build/diff-check PASS; chunk lazy separado validado; reviewer aprovado sem findings CRITICAL ou IMPORTANT.
 
 [ ] TASK-094: Implementar área de perigo e dialog de confirmação para cancelar a conta.
   - Status: READY
