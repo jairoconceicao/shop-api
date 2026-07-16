@@ -98,7 +98,8 @@ $repo = (Get-Location).Path
 $frontendInstructions = @'
 Em outro terminal PowerShell, execute:
 
-Set-Location "<REPO>/frontend"
+Set-Location "<REPO>"
+Set-Location frontend
 $env:VITE_API_BASE_URL='http://localhost:5228'
 $env:VITE_ENABLE_MSW='false'
 npm run dev -- --host 127.0.0.1
@@ -189,10 +190,12 @@ try {
 }
 ```
 
-No segundo terminal, o Vite permanece sob controle do usuário:
+No segundo terminal, abra a raiz do mesmo repositório e execute o bloco
+autocontido abaixo. O Vite permanece sob controle desse terminal:
 
 ```powershell
-Set-Location "$repo/frontend"
+$repo = (Get-Location).Path
+Set-Location (Join-Path $repo 'frontend')
 $env:VITE_API_BASE_URL='http://localhost:5228'
 $env:VITE_ENABLE_MSW='false'
 npm run dev -- --host 127.0.0.1
@@ -234,7 +237,8 @@ privado; respostas tardias não restauram dados. Execute
 | Porta ocupada | Identifique e libere 5173, 5228 ou 5432. Não troque a porta da API sem ajustar também o ambiente e o CORS. |
 | Docker daemon parado | Inicie o Docker Desktop ou Engine e aguarde `docker info` encerrar com sucesso. |
 | Banco não fica saudável | Inspecione `docker logs shop-api-db`. |
-| Migration ou API falha | Inspecione `docker logs shop-api-app`, confira o override `shopapi/shopapi` e repita o container one-shot de migration. |
+| Migration falha | Leia a saída e o exit code do próprio `docker run --rm` one-shot, confira o override `shopapi/shopapi` e repita o comando de migration. |
+| API falha após iniciar | Inspecione `docker logs shop-api-app` e confira o override `shopapi/shopapi`. |
 | Erro CORS | Use exatamente `http://localhost:5173` ou `http://127.0.0.1:5173`, que são as origens permitidas. |
 | Chromium ausente | Execute `npx playwright install chromium`. |
 | Dependências inconsistentes | Execute novamente `npm ci`. |

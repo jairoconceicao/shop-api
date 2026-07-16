@@ -89,3 +89,12 @@ diretório `.task-129-smoke`. As inspeções posteriores confirmaram:
 
 O checkout da feature não recebeu artefatos da validação. O backlog não foi
 alterado; a TASK-129 aguarda revisão independente antes de receber `DONE`.
+
+## Ajustes após revisão
+
+O bloco do segundo terminal passou a declarar `$repo` a partir da raiz aberta
+nesse próprio terminal, sem depender da variável criada no primeiro. O
+troubleshooting também separa os estágios: falhas da migration são
+diagnosticadas pela saída e pelo exit code do `docker run --rm` one-shot;
+`docker logs shop-api-app` é indicado somente depois que o container da API
+existe.
