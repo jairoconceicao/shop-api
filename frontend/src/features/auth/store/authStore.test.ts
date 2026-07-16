@@ -133,6 +133,30 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState()).toMatchObject({ session, persistence: 'local' })
   })
 
+  it('restores a current-version session whose future expiration has an offset', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-14T11:59:59.000Z'))
+    const sessionWithOffset = {
+      ...session,
+      expiraEm: '2026-07-14T09:00:00-03:00',
+    }
+    window.localStorage.setItem(
+      AUTH_STORE_KEY,
+      JSON.stringify({
+        state: { session: sessionWithOffset, persistence: 'local' },
+        version: AUTH_STORE_VERSION,
+      }),
+    )
+
+    await useAuthStore.persist.rehydrate()
+
+    expect(useAuthStore.getState()).toMatchObject({
+      session: sessionWithOffset,
+      persistence: 'local',
+    })
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).not.toBeNull()
+  })
+
   it.each([
     ['a session property', { session: { ...session, extra: 'remote' }, persistence: 'local' }],
     ['a state property', { session, persistence: 'local', extra: 'remote' }],

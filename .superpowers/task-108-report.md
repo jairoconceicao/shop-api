@@ -36,6 +36,7 @@
 ## Comportamentos comprovados
 
 - sessão válida reidrata com Zustand persist real;
+- wrapper v1 com expiração futura em offset literal `-03:00` atravessa o schema Zod e reidrata pelo Zustand persist real;
 - storage alvo segue `persistence` e o storage stale é limpo independentemente;
 - expiração ausente, inválida ou atingida descarta memória e ambos os wrappers;
 - timer existente continua limpando no vencimento;
@@ -46,8 +47,8 @@
 
 ## Verificações
 
-- Focado final: 1 arquivo, 20/20 testes, exit 0.
-- Auth consumers/unauthorized/logout/initializer: 5 arquivos, 31/31 testes, exit 0.
+- Focado final após revisão: 1 arquivo, 21/21 testes, exit 0.
+- Auth consumers/unauthorized/logout/initializer após revisão: 5 arquivos, 32/32 testes, exit 0.
 - `npm --prefix frontend run typecheck`: exit 0.
 - `npm --prefix frontend run lint`: exit 0.
 - `git diff --check`: exit 0 (somente avisos informativos de conversão LF/CRLF no diff exibido).
