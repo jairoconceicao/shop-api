@@ -572,6 +572,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
 
+Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
+
 [x] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
   - Status: DONE
   - Depends on: TASK-012, TASK-013, TASK-034, TASK-041, TASK-046, TASK-063, TASK-076, TASK-080, TASK-086, TASK-092, TASK-096
@@ -694,7 +696,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
   - Evidência: commits `361d5e9`, `0019dc4` e `0b9f9fb`; integração de pedidos 4/4 PASS, pedidos 111/111 PASS e consumidores 18/18 PASS; typecheck/lint/diff-check PASS; review do range `26bb032..0b9f9fb` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
 [ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116
   - Escopo: Frontend
   - Critérios de aceite:
