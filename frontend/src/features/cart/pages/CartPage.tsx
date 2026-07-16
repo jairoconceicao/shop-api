@@ -78,7 +78,7 @@ function CartSummary({ items }: { items: readonly CartItemContract[] }) {
             <dd>{formatCurrency(subtotal)}</dd>
           </div>
         </dl>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3">
           <LinkButton className="w-full" to="/" variant="secondary">
             Continuar comprando
           </LinkButton>
