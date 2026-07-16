@@ -137,6 +137,10 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
     orderProduct: 1,
   })
 
+  await page.evaluate(() => {
+    localStorage.removeItem('shop-api:auth')
+    sessionStorage.removeItem('shop-api:auth')
+  })
   await page.goto(`/pedidos/${data.orderId}`)
   await expect(page).toHaveURL('/entrar')
   await page.getByLabel('E-mail').fill(data.email)
