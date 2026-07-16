@@ -119,6 +119,12 @@ Não exige todos os elementos simultaneamente dentro da altura; rolagem vertical
 - Cada viewport usa a fixture `authApi`, `seedCustomer()` e storages limpos.
 - A navegação acontece somente pela UI ou por `page.goto` para rotas públicas;
   estado privado não é escrito diretamente.
+- No detalhe do produto, a jornada define quantidade `3`, clica “Adicionar ao
+  carrinho” ainda como visitante e comprova o redirecionamento para login. Após
+  autenticar pela UI, comprova o retorno ao mesmo detalhe com quantidade `3`,
+  clica “Adicionar ao carrinho” novamente e aguarda as contagens
+  `cartCreate === 1` e `cartAdd === 1` antes de abrir o carrinho. O primeiro
+  clique não pode emitir mutation.
 - A primeira execução RED registra o ledger real da jornada. Antes do GREEN,
   `expectRequestCounts` deve conter todas as 19 chaves, inclusive zeros, e o
   relatório deve registrar o objeto exato.

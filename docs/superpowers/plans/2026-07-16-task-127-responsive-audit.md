@@ -366,10 +366,34 @@ Em cada estado, controles nomeados devem receber `toBeVisible()` e
 
 - [ ] **Step 4: Autenticar e preparar carrinho somente pela UI**
 
-Voltar ao detalhe, clicar no controle visível de adicionar, aceitar o retorno a
-login quando necessário, autenticar pela UI com `authApi.data.email/password`
-e confirmar retorno seguro. Ajustar quantidade pela UI até o body aceito pelo
-fixture e abrir `/carrinho`.
+Permanecer/voltar ao detalhe e ajustar o controle “Quantidade” exatamente para
+`3`. Com a sessão visitante, clicar “Adicionar ao carrinho” e comprovar:
+
+```ts
+await expect(page).toHaveURL(`/entrar`)
+expect(authApi.requestCounts().cartCreate).toBe(0)
+expect(authApi.requestCounts().cartAdd).toBe(0)
+```
+
+Autenticar pela UI com `authApi.data.email/password`. Confirmar que o retorno é
+exatamente `/produtos/${authApi.data.product.id}` e que o controle “Quantidade”
+continua com valor `3`; se o componente restaurar o default por contrato,
+ajustá-lo novamente para `3` antes da próxima ação.
+
+Clicar “Adicionar ao carrinho” uma segunda vez, agora autenticado, e aguardar
+as duas mutations antes de qualquer navegação:
+
+```ts
+await expect.poll(() => authApi.requestCounts()).toMatchObject({
+  cartCreate: 1,
+  cartAdd: 1,
+})
+```
+
+Somente depois abrir `/carrinho` pelo controle visível do header e aguardar o
+item com quantidade `3`. O ledger final deve manter `login: 1`,
+`cartCreate: 1` e `cartAdd: 1`; o primeiro clique visitante não adiciona uma
+segunda mutation.
 
 Auditar `cart`, abrir o dialog “Remover item”, auditar somente o `dialog` como
 escopo em `cart-remove-dialog` e fechá-lo pelo botão “Manter item”/“Cancelar”
@@ -423,6 +447,19 @@ deliberadamente não envia (`register`, `profileUpdate`, `passwordUpdate`,
 RED demonstrar outra necessidade no fixture, ela deve validar o mesmo contrato
 existente, ser isolada por opt-in e limpa em `reset()`; não criar endpoint
 permissivo.
+
+Antes de aceitar o ledger observado, validar obrigatoriamente:
+
+```ts
+expect(authApi.requestCounts()).toMatchObject({
+  login: 1,
+  cartCreate: 1,
+  cartAdd: 1,
+})
+```
+
+Qualquer valor diferente indica clique duplicado, mutation visitante ou
+navegação anterior à conclusão das requests e deve permanecer RED.
 
 - [ ] **Step 9: Executar os 65 checkpoints**
 
