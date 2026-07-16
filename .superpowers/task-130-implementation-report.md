@@ -2,33 +2,34 @@
 
 ## Escopo executado
 
-O gate foi executado em checkout detached no commit
-`9b68b5daac01ef445a7c7d8cbb45dbe6e7b30157`, sem alteração de produto,
-configuração, testes ou backlog.
+O gate foi repetido integralmente em checkout detached no commit
+`8ffad7dec1d25787a9549861c67f2ca3f69ab779`, sem reutilizar resultados da
+tentativa anterior.
 
-Os seis comandos obrigatórios e todas as auditorias adicionais passaram. A
-execução foi interrompida no cleanup por falha classificada como `executor`,
-antes de remover o worktree.
+Antes do rerun, o checkout preservado da primeira tentativa teve HEAD, status
+e patch capturados externamente. Após confirmar caminho exato, registro Git e
+status limpo, ele foi removido sem `--force`.
 
-## Política aplicada
+## Resultado
 
-```text
-targetCommit=9b68b5daac01ef445a7c7d8cbb45dbe6e7b30157
-failedStep=Task 4 Step 2 — cleanup seguro
-exitCode=1
-classification=executor
-ownerTask=none
-log=C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-9b68b5daac01ef445a7c7d8cbb45dbe6e7b30157
-decision=preservar evidência e worktree; corrigir o executor; repetir o gate completo desde npm ci
-```
+Os seis comandos obrigatórios, as duas auditorias versionadas e as verificações
+de integridade passaram. O checkout final permaneceu limpo e o cleanup
+corrigido removeu o worktree sem `--force`.
 
-Não foi feita tentativa de corrigir produto nem de reabrir task funcional. O
-backlog permanece com a TASK-130 em `READY`.
+Evidência resumida:
+
+- Vitest: 130 arquivos e 863 testes aprovados.
+- Playwright: 20 testes aprovados com `CI=true` e um worker.
+- Build: 390 módulos; entry de 465.833 bytes.
+- Grafo: seis rotas lazy.
+- Auditoria privada: 153 arquivos e 19 testes negativos.
+- Nenhum `.only`, `.skip` ou sinal de erro de runner.
+- Diff e status finais limpos.
 
 ## Estado para revisão
 
-- Checkout da feature: contém somente estes relatórios antes do commit.
-- Checkout do gate: preservado, detached e limpo.
-- Logs: preservados externamente.
-- Resultado: bloqueado por procedimento de cleanup, apesar dos gates de
-  produto aprovados.
+- Logs: preservados externamente em
+  `C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-8ffad7dec1d25787a9549861c67f2ca3f69ab779`.
+- Worktree temporário: removido seguramente.
+- Backlog: não alterado; aguarda revisão independente.
+- Mudanças desta implementação: somente os dois relatórios da TASK-130.
