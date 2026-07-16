@@ -603,8 +603,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter o aplicativo utilizável quando a leitura ou escrita no storage falhar e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `f5c2de4` e `f736141`; REDs de 5 falhas/14 testes para payload atual inválido, 3 falhas/17 para v0 e JSON corrompido e 1 falha/20 para cleanup stale sob escrita parcial; GREEN final de autenticação 32/32; typecheck/lint/diff-check PASS; reviewer aprovado com 0 findings.
 
-[ ] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
-  - Status: READY
+[x] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
+  - Status: DONE
   - Depends on: TASK-062, TASK-068, TASK-075, TASK-095
   - Escopo: Frontend
   - Critérios de aceite:
@@ -612,6 +612,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Descartar chaves, IDs e campos remotos inválidos, migrar a versão zero e sanitizar dados corrompidos na versão atual.
     - Preservar o uso em memória quando o `localStorage` falhar.
     - Mapear cada critério para teste existente ou adicionar somente a evidência ausente, executar testes focados, typecheck e lint e registrar a prova sem alterar o produto se a cobertura já for integral.
+  - Evidência: commits `731b1bd` e `d240368`; baseline de 10/10 PASS em duas execuções; cobertura ampliada para 12/12 PASS em duas execuções para provar falhas de `getItem` e `removeItem`; consumers relevantes 52/52 PASS; typecheck/lint/diff-check PASS; produto e actions públicas inalterados; reviewer aprovado com 0 findings.
 
 [ ] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
   - Status: READY
