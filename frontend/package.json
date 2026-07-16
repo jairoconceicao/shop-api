@@ -8,6 +8,7 @@
     "build": "vite build",
     "verify:production-graph": "node scripts/verify-production-graph.mjs",
     "audit:performance": "npm run build && npm run verify:production-graph",
+    "audit:private-data": "node scripts/audit-private-data.mjs && node scripts/audit-private-data.mjs --self-test",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
