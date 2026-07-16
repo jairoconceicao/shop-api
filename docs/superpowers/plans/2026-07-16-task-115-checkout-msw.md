@@ -8,7 +8,7 @@
 
 **Tech Stack:** Vitest, Testing Library, MSW, TanStack Query, React Router, Zustand.
 
-**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-115 para `BLOCKED` e retorna ao explorador.
+Este plano inclui o patch literal de navegação após `201`. Outros REDs mudam TASK-115 para `BLOCKED` e retornam ao explorador.
 
 ## Global Constraints
 
@@ -19,6 +19,8 @@
 
 **Files:**
 - Create: `frontend/src/features/checkout/checkout.integration.test.tsx`
+- Modify: `frontend/src/features/checkout/pages/CheckoutPage.tsx`
+- Modify test: `frontend/src/features/checkout/pages/CheckoutPage.test.tsx`
 
 **Interfaces:** exact keys `cartQueryKeys.detail(7,70)`, `orderQueryKeys.all`, `orderConfirmationKey(7,900)`; POST `/api/v1/pedido`.
 
@@ -90,17 +92,70 @@ Copie `beforeEach` e `afterEach`; execute `npm --prefix frontend run typecheck`.
 
 Copie o primeiro teste.
 
-Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "posts strict confirmed contract once"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "posts strict confirmed contract once"`. Expected RED reproduzido: `Unable to find role="heading" and name "Pedido criado"`; a árvore termina em `/carrinho`, embora o POST `201`, body, snapshot, remoção do vínculo/cache e invalidação tenham ocorrido.
 
-- [ ] **Step 5: adicionar branches 409/422**
+Diagnóstico: o callback global de `useCreateOrderMutation` remove o vínculo do carrinho antes do callback local `onSuccess` passado a `mutate`. O `CheckoutGuard` observa `hasCart=false`, redireciona para `/carrinho` e desmonta o `MutationObserver`. O TanStack Query só dispara callbacks locais de `mutate` enquanto o observer tem listeners; após a desmontagem, a navegação local é suprimida.
+
+- [ ] **Step 5: escrever regressão isolada de Promise**
+
+Em `CheckoutPage.test.tsx`, substitua o mock da mutation para expor `mutateAsync` e adicione:
+
+```tsx
+it('navigates from the mutateAsync result after the checkout observer unmounts', async () => {
+  let resolveOrder!: (order: CreatedOrder) => void
+  const promise = new Promise<CreatedOrder>((resolve) => { resolveOrder = resolve })
+  mutateAsync.mockReturnValueOnce(promise)
+  const view = renderPage()
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+  view.unmount()
+  resolveOrder({ id: 900, customerId: 7, createdAt: '2026-07-16T12:00:00.000Z', paymentMethod: 'Pix', status: 'Criado', total: 399.8 })
+  await waitFor(() => expect(navigate).toHaveBeenCalledWith('/pedido-confirmado/900'))
+})
+```
+
+Run: `npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx -t "navigates from the mutateAsync result"`. Expected RED: `mutateAsync` não foi chamado ou `navigate` não recebeu `/pedido-confirmado/900`.
+
+- [ ] **Step 6: aplicar patch literal em CheckoutPage**
+
+Substitua o bloco `createOrderMutation.mutate(..., { onError, onSuccess })` por:
+
+```tsx
+submissionInFlightRef.current = true
+createOrderMutation.reset()
+void createOrderMutation
+  .mutateAsync({ values: parsed.data, cart })
+  .then((createdOrder) => {
+    navigate(`/pedido-confirmado/${createdOrder.id}`)
+  })
+  .catch(() => {
+    submissionInFlightRef.current = false
+  })
+```
+
+Esse patch preserva o guard de single-submit (`submissionInFlightRef` + `isPending`), o erro já exposto por `createOrderMutation.error` e o unlock somente em rejeição. A Promise de `mutateAsync` resolve mesmo após a desmontagem do observer local.
+
+Run regressão isolada do Step 5. Expected GREEN: `1 passed`.
+
+Run integração `201` do Step 4. Expected GREEN: heading `Pedido criado`, rota `/pedido-confirmado/900`, snapshot presente, vínculo/cache removidos e pedidos invalidados.
+
+- [ ] **Step 7: adicionar branches 409/422**
 
 Copie o teste parametrizado e feche `describe`.
 
 Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "preserves checkout"`. Expected GREEN: `2 passed`; RED inesperado → `BLOCKED`.
 
-- [ ] **Step 6: gate final e review**
+- [ ] **Step 8: gate final e review**
 
-Teste focado completo + typecheck + lint devem sair `0`. Commit `test(TASK-115): integrar criação de pedido com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
+Execute:
+
+```powershell
+npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx --reporter=verbose
+npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx src/features/checkout/mutations/useCreateOrderMutation.test.tsx --reporter=verbose
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+```
+
+Expected: quatro exit codes `0`. Commits: `test(TASK-115): integrar criação de pedido com MSW`; `fix(TASK-115): navegar após reconciliação do pedido`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 
@@ -109,3 +164,4 @@ Teste focado completo + typecheck + lint devem sair `0`. Commit `test(TASK-115):
 - Keys e operações pós-201 são literais.
 - Fake timers falsificam somente `Date`; timers usados por `userEvent`, React e Testing Library permanecem reais.
 - Cada branch exige exatamente um GET do carrinho e um GET do perfil antes do primeiro POST.
+- O RED `201` reproduzido não é falha de contrato: o observer desmontado suprime o callback local de `mutate`; `mutateAsync` remove essa dependência.
