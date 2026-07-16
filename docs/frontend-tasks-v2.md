@@ -623,7 +623,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar foco inicial, trap, Escape e retorno de foco onde aplicável.
     - Cobrir estados disabled, loading, error, empty e skeleton e consultar nomes, descrições, roles, `aria-current` e regiões vivas por semântica.
     - Registrar a matriz componente por critério e executar com sucesso somente os testes necessários para células descobertas, além de typecheck e lint.
-  - Evidência: commit `a1c2665`; shared UI 43/43 e consumers relevantes 136/136; revisão independente 41/41; typecheck/lint/diff-check PASS; produto inalterado e reviewer aprovado com 0 findings. Desvio justificado: o teste monolítico não foi criado por duplicar as provas proprietárias e por não representar com fidelidade a ativação nativa por teclado no jsdom; somente as células GAP foram adicionadas aos testes donos dos componentes.
+  - Evidência: commits `a1c2665`, `cbaecf8` e `62d92b8`; `user-event` focado 17/17, shared UI 43/43 e consumers relevantes 136/136; typecheck/lint/diff-check PASS; produto inalterado. Button ativa por Enter/Space, LinkButton navega por Enter e Checkbox alterna por Space; o Select usa foco por Tab e `user.selectOptions`, fluxo aceito porque `user-event` 14.6.1 não implementa mudança por `ArrowDown` no jsdom. A re-review aprovou teclado e rastreabilidade e solicitou somente o ajuste documental final incorporado. Desvio justificado: o teste monolítico não foi criado por duplicar provas proprietárias; somente células GAP foram adicionadas. O commit `59acae2` é administrativo do lote e está fora do range funcional da task.
 
 [ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
   - Status: BLOCKED

@@ -5,7 +5,9 @@
 - Worktree: `E:\CodeRepo\shop-api\.worktrees\phase-8-hardening`
 - BASE_COMMIT: `e9d7306`
 - Escopo: testes proprietários dos componentes base e matriz de rastreabilidade.
-- Backlog: não alterado; a task permanece aguardando revisão.
+- Commits funcionais e de rastreabilidade: `a1c2665`, `cbaecf8` e `62d92b8`.
+- Commit administrativo do lote: `59acae2`, fora do range funcional da TASK-110.
+- Backlog: `DONE`, com evidências pós-review.
 
 ## Decisão e desvio do plano
 
@@ -36,13 +38,14 @@ Na correção do finding, o RED focado falhou em 2/2 suites porque `@testing-lib
 
 ## Verificações
 
-1. Baseline ampliada `shared/ui`: 9 arquivos, 43/43 testes, exit 0.
-2. Layouts e consumers relevantes: 13 arquivos, 136/136 testes, exit 0.
-3. `npm --prefix frontend run typecheck`: exit 0.
-4. `npm --prefix frontend run lint`: exit 0.
-5. `git diff --check e9d7306 --`: exit 0; somente avisos informativos LF/CRLF.
+1. `user-event` focado: 17/17 testes, exit 0.
+2. Baseline ampliada `shared/ui`: 9 arquivos, 43/43 testes, exit 0.
+3. Layouts e consumers relevantes: 13 arquivos, 136/136 testes, exit 0.
+4. `npm --prefix frontend run typecheck`: exit 0.
+5. `npm --prefix frontend run lint`: exit 0.
+6. Diff-check: exit 0; somente avisos informativos LF/CRLF.
 
-Após a correção do finding IMPORTANT, a verificação foi repetida: RED de 2 suites por dependência ausente; GREEN focado 17/17; shared UI 43/43; consumers 136/136; typecheck, lint e diff-check com exit 0.
+O Select foi aceito com foco por Tab e alteração por `user.selectOptions`: `user-event` 14.6.1 não implementa mudança de `<select>` por `ArrowDown` no jsdom. O revisor final aprovou as provas de teclado e a rastreabilidade, deixando pendente somente a atualização documental incorporada após a re-review.
 
 ## Arquivos da task
 
@@ -55,8 +58,8 @@ Após a correção do finding IMPORTANT, a verificação foi repetida: RED de 2 
 - `docs/frontend-quality/task-110-base-components-matrix.md`
 - `.superpowers/task-110-report.md`
 
-## Estado para revisão
+## Estado pós-review
 
 - Produto inalterado.
-- Backlog não marcado como DONE.
-- Findings conhecidos: nenhum; revisão independente ainda necessária.
+- Backlog marcado como `DONE`, sem mudança de status nesta atualização.
+- Revisor final aprovou teclado e rastreabilidade; o único ajuste documental solicitado foi incorporado.
