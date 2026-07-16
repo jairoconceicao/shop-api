@@ -772,8 +772,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar requests e estados de limpeza e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits `ca333a1`, `b02e2d9`, `0e48f78`, `ee735e6`, `e3b2080`, `a7be7f1`, `449bcbb` e `714f50e`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. Os REDs reproduziram módulo de limpeza ausente, identidade expirada descartada, caches privados preservados, agendamento inválido para `expiraEm` malformado/token vazio e ausência de prova pré-login. O GREEN captura e consome atomicamente a identidade transitória não persistida, nega a rota sincronamente, limpa ambos auth storages, associação do carrinho, queries/mutations privadas e snapshots, preserva retorno interno e mantém back/reload bloqueados. Antes do primeiro login, requests privados permanecem explicitamente em zero; contagens finais: cenário restaurado `login=1`, `categories=2`, `profile=1`, `ordersList=1`, demais `0`; cenário com duas expirações `login=2`, `categories=2`, `profile=2`, `ordersList=2`, demais `0`. Testes focados 29/29, spec 2/2, repetição 40/40, Chromium 9/9 e repetido 18/18, suíte unitária 839/839, typecheck, lint, build e diff-check PASS.
 
-[ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
-  - Status: READY
+[x] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
+  - Status: DONE
   - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
@@ -781,9 +781,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Manter fallback com `role="status"`, nome acessível e geometria estável e testar o carregamento sob demanda.
     - Executar o build e comprovar chunks separados para as rotas lazy, sem vazamento para o chunk inicial.
     - Mapear cada critério para a evidência existente e alterar o produto somente se a verificação falhar; executar testes focados, typecheck, lint e build.
+  - Evidência: commits `0320b1e`, `97b0b15` e `dcb911b`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT e com o MINOR de unidade corrigido no relatório. O RED focado reproduziu 2 falhas/6 testes: checkout sem `min-h-96` e confirmação reutilizando o status `Carregando checkout`; o GREEN passou 6/6. A suíte completa passou 126 arquivos/842 testes, além de typecheck, lint, build e diff-check. O build preservou seis chunks separados (`CheckoutPage` 15,02 KiB, `OrderConfirmationPage` 4,64 KiB, `CustomerDataPage` 26,58 KiB, `CustomerPasswordPage` 9,10 KiB, `OrdersPage` 11,33 KiB e `OrderDetailPage` 17,34 KiB), com marcadores exclusivos presentes nos chunks corretos e ausentes do entry inicial. O entry `index-BZwkBxYl.js` mediu 711,10 KiB por `Length / 1KB` (728,17 kB decimais no Vite) e manteve o warning acima de 500 kB explicitamente delegado à TASK-125.
 
 [ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-053, TASK-069, TASK-102, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124
   - Escopo: Frontend
   - Critérios de aceite:

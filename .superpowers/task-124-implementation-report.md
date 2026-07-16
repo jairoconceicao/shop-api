@@ -50,18 +50,19 @@ Observed result after the minimal router change:
 
 The final build produced exactly one file for every lazy page:
 
-| Route page | Chunk | Raw size |
+| Route page | Chunk | Raw size (KiB, `Length / 1KB`) |
 | --- | --- | ---: |
-| Checkout | `CheckoutPage-DRYBN1WT.js` | 15.02 kB |
-| Order confirmation | `OrderConfirmationPage-DcMtXsGg.js` | 4.64 kB |
-| Customer data | `CustomerDataPage-OLy6koeG.js` | 26.58 kB |
-| Customer password | `CustomerPasswordPage-DmBxquFR.js` | 9.10 kB |
-| Orders | `OrdersPage-B4Ml7bLV.js` | 11.33 kB |
-| Order detail | `OrderDetailPage-DdFi9T71.js` | 17.34 kB |
+| Checkout | `CheckoutPage-DRYBN1WT.js` | 15.02 KiB |
+| Order confirmation | `OrderConfirmationPage-DcMtXsGg.js` | 4.64 KiB |
+| Customer data | `CustomerDataPage-OLy6koeG.js` | 26.58 KiB |
+| Customer password | `CustomerPasswordPage-DmBxquFR.js` | 9.10 KiB |
+| Orders | `OrdersPage-B4Ml7bLV.js` | 11.33 KiB |
+| Order detail | `OrderDetailPage-DdFi9T71.js` | 17.34 KiB |
 
 Entry:
 
-- `index-BZwkBxYl.js`: 711.10 kB raw (Vite display: 728.17 kB, gzip 166.67 kB).
+- `index-BZwkBxYl.js`: 711.10 KiB raw (`Length / 1KB`; Vite display:
+  728.17 kB decimal, gzip 166.67 kB).
 - Build warning: chunks larger than 500 kB after minification.
 - The warning is intentionally left for TASK-125; this task did not change the
   chunk strategy or warning limit.
@@ -80,7 +81,8 @@ from `index-BZwkBxYl.js`:
 | Orders | `Nenhum pedido encontrado` |
 | Order detail | `cancelamento n\xE3o foi aceito` |
 
-Audit result: `initial-entry=index-BZwkBxYl.js;size=711.1 kB;clean`.
+Audit result:
+`initial-entry=index-BZwkBxYl.js;size=711.1 KiB (Length / 1KB);clean`.
 
 The plan's literal accented markers cannot all be searched directly because
 Vite/esbuild emits some non-ASCII characters as `\xNN` escapes. The original
