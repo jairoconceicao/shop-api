@@ -39,7 +39,8 @@ Ela também confirmou duas tentativas síncronas de submit, mas exatamente um
 ```text
 register=0
 login=1
-categories=3
+categories=2
+catalog=1
 profile=1
 logout=0
 product=2
@@ -51,15 +52,28 @@ cartDelete=0
 orderCreate=1
 ```
 
-As três leituras de categorias correspondem à montagem inicial do layout
-protegido do carrinho, à remontagem do carrinho autenticado e à carga completa
-iniciada por `page.goto` no produto. As duas leituras do carrinho correspondem
-à ativação após criar o vínculo e à reconciliação do item adicionado; o checkout
-reutiliza o cache confirmado.
+As duas leituras de categorias correspondem à home pós-login e à carga completa
+iniciada por `page.goto` no produto. A única leitura de catálogo corresponde à
+home e usa a query exata `?page=1&size=20`. As duas leituras do carrinho
+correspondem à ativação após criar o vínculo e à reconciliação do item
+adicionado; o checkout reutiliza o cache confirmado.
 
 Ao final, `emptyCartLink` executa uma navegação SPA para `/carrinho` e reutiliza
-layout e cache. Por isso não ocorre uma quarta leitura de categorias nem um
-quarto GET do carrinho.
+layout e cache. Por isso não ocorre uma terceira leitura de categorias nem um
+novo GET do carrinho.
+
+## Reabertura e estabilização
+
+Após a conclusão inicial, `--repeat-each=20` reabriu a task ao produzir 5
+falhas com `categories: expected 3, received 2`. A causa raiz era a entrada por
+`/carrinho`: `StoreLayout` iniciava categorias, enquanto `ProtectedRoute`
+redirecionava para `/entrar`, tornando a contabilização dependente do
+cancelamento da requisição.
+
+A jornada agora inicia diretamente em `/entrar`, espera categorias e catálogo
+da home no ledger estrito, confirma `/` após autenticar pela UI e segue por
+carga completa ao produto. Isso remove a requisição cancelável sem relaxar o
+ledger exato; as contagens estáveis passam a `categories=2` e `catalog=1`.
 
 ## Gates GREEN
 
@@ -70,21 +84,22 @@ quarto GET do carrinho.
 | Spec isolada `--repeat-each=2` | 2/2 PASS |
 | Suíte Chromium | 5/5 PASS |
 | Suíte Chromium `--repeat-each=2` | 10/10 PASS |
+| Estabilização `checkout.spec.ts --repeat-each=20` | 20/20 PASS |
+| Suíte Chromium atual `--repeat-each=2` | 12/12 PASS |
 | `npm --prefix frontend run typecheck` | PASS |
 | `npm --prefix frontend run lint` | PASS |
 | `npm --prefix frontend run build` | PASS |
-| `git diff --check 746925c..HEAD` | PASS |
+| `git diff --check` da estabilização | PASS |
 
 Lint e Playwright foram mantidos sequenciais devido à corrida conhecida sobre
 `frontend/test-results`.
 
 ## Divergência do plano
 
-A previsão inicial superestimava em uma leitura e tratava a ida final ao
-carrinho como nova carga completa. A implementação usa o `emptyCartLink`
-visível na confirmação; esse link navega pela SPA, preserva o layout e reutiliza
-o cache. A contagem observada e correta é `categories=3`, sem leitura adicional
-do carrinho. O plano foi corrigido para registrar essa topologia real.
+A previsão inicial dependia de uma consulta iniciada durante o redirect
+protegido e, portanto, não era determinística. A jornada corrigida usa
+`/entrar` como entrada pública, mantém o `emptyCartLink` final pela SPA e
+registra a topologia estável `categories=2`, sem leitura adicional do carrinho.
 
 ## Escopo e advertências
 

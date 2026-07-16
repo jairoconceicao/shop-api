@@ -8,6 +8,7 @@ export type RequestName =
   | 'register'
   | 'login'
   | 'categories'
+  | 'catalog'
   | 'profile'
   | 'profileUpdate'
   | 'passwordUpdate'
@@ -225,6 +226,7 @@ export async function installAuthApi(
     register: 0,
     login: 0,
     categories: 0,
+    catalog: 0,
     profile: 0,
     profileUpdate: 0,
     passwordUpdate: 0,
@@ -520,6 +522,19 @@ export async function installAuthApi(
                   },
                 ],
         },
+      })
+      return
+    }
+
+    if (url.pathname === '/api/v1/produto') {
+      requireMethod(route, 'GET')
+      if (url.search !== '?page=1&size=20') {
+        throw new Error(`Unexpected catalog query: ${url.search}`)
+      }
+      increment('catalog')
+      await json(route, {
+        status: true,
+        pagination: { pages: 0, size: 20, totalItems: 0, data: [] },
       })
       return
     }

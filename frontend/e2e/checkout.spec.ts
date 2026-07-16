@@ -12,7 +12,8 @@ test('cria e confirma um pedido consumindo o carrinho', async ({
   expect(profileBeforeCheckout?.endereco.logradouro).toBe(data.street)
   authApi.expectRequestCounts({
     login: 1,
-    categories: 3,
+    categories: 2,
+    catalog: 1,
     product: 2,
     cartCreate: 1,
     cartAdd: 1,
@@ -21,12 +22,14 @@ test('cria e confirma um pedido consumindo o carrinho', async ({
     orderCreate: 1,
   })
 
-  await page.goto('/carrinho')
-  await expect(page).toHaveURL('/entrar')
+  await page.goto('/entrar')
   await page.getByLabel('E-mail').fill(data.email)
   await page.getByLabel('Senha').fill(data.password)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await expect(page).toHaveURL('/carrinho')
+  await expect
+    .poll(() => authApi.requestCounts())
+    .toMatchObject({ categories: 1, catalog: 1 })
+  await expect(page).toHaveURL('/')
 
   await page.goto(`/produtos/${data.product.id}`)
   await page.getByRole('button', { name: 'Aumentar quantidade' }).click()

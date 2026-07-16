@@ -65,7 +65,8 @@ carrinho; o total esperado é `3 × 3499.9 = 10499.7`.
 ```text
 register=0
 login=1
-categories=3
+categories=2
+catalog=1
 profile=1
 logout=0
 product=2
@@ -77,15 +78,30 @@ cartDelete=0
 orderCreate=1
 ```
 
-As três leituras de categorias correspondem à montagem inicial do layout
-protegido do carrinho, à remontagem do carrinho autenticado e à carga completa
-iniciada por `page.goto` no produto. As duas leituras do carrinho correspondem à
-ativação após criar o vínculo e à reconciliação do item adicionado. O checkout
-reutiliza o cache confirmado.
+As duas leituras de categorias correspondem à home exibida depois do login e à
+carga completa iniciada por `page.goto` no produto. A única leitura de catálogo
+corresponde à home e é validada pelo backend E2E com query exata
+`?page=1&size=20`. As duas leituras do carrinho correspondem à ativação após
+criar o vínculo e à reconciliação do item adicionado. O checkout reutiliza o
+cache confirmado.
 
 Ao final, o link sem badge armazenado em `emptyCartLink` faz navegação SPA para
 `/carrinho` e reutiliza layout e cache. Portanto essa ação não causa nova
-leitura de categorias nem um quarto GET do carrinho.
+leitura de categorias nem um novo GET do carrinho.
+
+## Reabertura por flake
+
+Uma verificação posterior com `--repeat-each=20` reproduziu 5 falhas em 20
+execuções: o ledger recebeu `categories=2` quando esperava `3`. A entrada por
+`/carrinho` montava `StoreLayout` e iniciava a consulta de categorias antes de
+`ProtectedRoute` redirecionar o visitante para `/entrar`; a navegação podia
+cancelar a consulta antes ou depois de o interceptador contabilizá-la.
+
+A correção determinística inicia diretamente em `/entrar`, autentica pela UI,
+espera as consultas paralelas e estritamente declaradas de categorias e
+catálogo da home, confirma a navegação padrão para `/` e só então faz carga
+completa do produto. Assim, nenhuma contagem depende de uma requisição
+cancelada ou ignorada.
 
 ## Evidência RED prevista
 
