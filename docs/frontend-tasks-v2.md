@@ -728,8 +728,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar que cada request ocorre uma vez e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits funcionais `292557b` e `0b38d98`, ajuste documental `314124e` e relatório `652839c`; range revisado `c461201..652839c` aprovado sem findings CRITICAL ou IMPORTANT. Contagens brutas `login=1`, `categories=3`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=4`, `cartUpdate=1` e `cartDelete=1`, com os demais ledgers iguais a zero; as três leituras de categorias correspondem às montagens do shell antes do redirect, após o login e na carga direta do produto. RED comportamental confirmado no PATCH inesperado; spec isolada 1/1, compatibilidade com visitante 2/2, repetição isolada 2/2, suíte Chromium 4/4 e repetição completa 8/8 PASS; typecheck/lint/build/diff-check PASS. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
-[ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
-  - Status: READY
+[x] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
+  - Status: DONE
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-119
   - Escopo: Frontend
   - Critérios de aceite:
@@ -737,6 +737,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Abrir o checkout, usar ou editar o endereço somente para o pedido e selecionar a forma de pagamento.
     - Enviar o pedido uma única vez, exibir a confirmação com dados da resposta do servidor e consumir o carrinho.
     - Afirmar requests e estados finais e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `8826f4c` e `2f33090`, documentação `634fa8a` e correção `b72e9ee`; contagens brutas `register=0`, `login=1`, `categories=3`, `profile=1`, `logout=0`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `cartUpdate=0`, `cartDelete=0` e `orderCreate=1`. RED comportamental confirmado no POST inesperado de `/api/v1/pedido`; spec isolada 1/1, jornadas relacionadas 3/3, repetição isolada 2/2, suíte Chromium 5/5 e repetição completa 10/10 PASS; typecheck/lint/build/diff-check PASS. Review do range `746925c..b72e9ee` aprovada sem findings CRITICAL ou IMPORTANT. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
 [ ] TASK-121: Criar E2E de edição de dados e troca de senha.
   - Status: READY

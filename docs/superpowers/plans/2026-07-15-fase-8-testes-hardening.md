@@ -14,7 +14,7 @@
 | --- | --- | --- | --- |
 | 1 | `TASK-106`–`TASK-110` | `READY` | `docs/superpowers/plans/2026-07-15-fase-8-lote-1-cobertura-deterministica.md` |
 | 2 | `TASK-111`–`TASK-116` | `DONE` | [plano detalhado de integrações MSW](./2026-07-16-fase-8-lote-2-integracoes-msw.md) |
-| 3 | `TASK-117`–`TASK-123` | `TASK-117`–`TASK-119` `DONE`; `TASK-120` `READY`; demais bloqueadas por dependências | `TASK-117`: [autenticação E2E](./2026-07-16-task-117-auth-e2e.md); `TASK-118`: [visitante e carrinho E2E](./2026-07-16-task-118-guest-cart-e2e.md); `TASK-119`: [ciclo completo do carrinho E2E](./2026-07-16-task-119-cart-lifecycle-e2e.md); `TASK-120`: [checkout e confirmação E2E](./2026-07-16-task-120-checkout-e2e.md); criar planos de `TASK-121`–`TASK-123` após desbloqueio |
+| 3 | `TASK-117`–`TASK-123` | `TASK-117`–`TASK-120` `DONE`; `TASK-121`–`TASK-123` `READY` | `TASK-117`: [autenticação E2E](./2026-07-16-task-117-auth-e2e.md); `TASK-118`: [visitante e carrinho E2E](./2026-07-16-task-118-guest-cart-e2e.md); `TASK-119`: [ciclo completo do carrinho E2E](./2026-07-16-task-119-cart-lifecycle-e2e.md); `TASK-120`: [checkout e confirmação E2E](./2026-07-16-task-120-checkout-e2e.md); criar planos de `TASK-121`–`TASK-123` antes da implementação |
 | 4 | `TASK-124`–`TASK-129` | `BLOCKED` até lote 3 `DONE` | criar após desbloqueio |
 | 5 | `TASK-130` | `BLOCKED` até `TASK-106`–`TASK-129` `DONE` | criar após desbloqueio |
 
