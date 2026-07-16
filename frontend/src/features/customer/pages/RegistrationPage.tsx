@@ -112,7 +112,10 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
     setValue,
     setError,
     formState: { errors },
-  } = useForm<RegistrationFormValues>({ defaultValues: { whatsApp: false } })
+  } = useForm<RegistrationFormValues>({
+    defaultValues: { whatsApp: false },
+    shouldFocusError: false,
+  })
 
   const focusSummary = () => requestAnimationFrame(() => requestAnimationFrame(
     () => document.getElementById('registration-error-summary')?.focus(),

@@ -31,6 +31,7 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     defaultValues: { manterConectado: false },
+    shouldFocusError: false,
   })
 
   const focusSummary = () => requestAnimationFrame(() => requestAnimationFrame(
