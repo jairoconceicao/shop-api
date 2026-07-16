@@ -99,6 +99,22 @@ function isRedundant(previous: CommitSample | undefined, current: CommitSample) 
 
 Normalizar o DOM removendo atributos voláteis e espaços irrelevantes, preservando textos, roles, disabled/checked e ordem/quantidade de itens. Ordenar query keys e objetos. Somente commits consecutivos idênticos são redundantes.
 
+Centralizar no próprio arquivo de auditoria os IDs usados pelos fixtures:
+
+```tsx
+const PERFORMANCE_FIXTURES = {
+  home: { customerIds: [] },
+  cart: { customerIds: [20], cartId: 900, productIds: [5, 5, 9] },
+  order: { customerIds: [7], orderId: 41, productIds: [5, 5, 9] },
+} as const
+
+const measuredCustomerIds = [
+  ...new Set(Object.values(PERFORMANCE_FIXTURES).flatMap(({ customerIds }) => customerIds)),
+]
+```
+
+Os mesmos IDs devem alimentar sessão, respostas MSW e limpeza. Não criar helper global: a lista pertence exclusivamente ao harness. Se um cenário ganhar outro `customerId`, atualizar este fixture central.
+
 Cada amostra deve criar novo router/history e `QueryClient`, e executar o reset completo:
 
 ```tsx
@@ -106,7 +122,9 @@ await queryClient.cancelQueries()
 queryClient.clear()
 useAuthStore.getState().clearSession()
 useCartSessionStore.setState({ cartIdsByCustomer: {} })
-clearCustomerPrivateSnapshots()
+for (const customerId of measuredCustomerIds) {
+  clearCustomerPrivateSnapshots(customerId)
+}
 server.resetHandlers()
 requestLedger.length = 0
 vi.clearAllTimers()
