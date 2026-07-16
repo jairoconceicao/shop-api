@@ -4,7 +4,9 @@ import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
+import { clearPrivateSession } from '../../auth/session/clearPrivateSession'
 import { useAuthStore } from '../../auth/store/authStore'
+import { cartCache } from '../cache/cartCache'
 import { useCartSessionStore } from '../store/cartSessionStore'
 import { useCreateCartMutation } from './useCreateCartMutation'
 
@@ -94,5 +96,24 @@ describe('useCreateCartMutation', () => {
     await act(() => pending)
 
     expect(useCartSessionStore.getState().getCartId(10)).toBe(100)
+  })
+
+  it('does not restore storage or cache after the real private-session boundary', async () => {
+    let resolve!: (value: { id: number; createdAt: string }) => void
+    createCart.mockReturnValue(new Promise((done) => { resolve = done }))
+    const queryClient = new QueryClient()
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateCartMutation(), { wrapper })
+
+    const pending = result.current.mutateAsync({ token: 'access-token', customerId: 10 })
+    clearPrivateSession(queryClient, 10)
+    resolve({ id: 101, createdAt: '2026-07-14T12:00:00Z' })
+    await act(() => pending)
+
+    expect(useCartSessionStore.getState().getCartId(10)).toBeUndefined()
+    expect(localStorage.getItem('shop-api:cart-session')).not.toContain('101')
+    expect(queryClient.getQueryData(cartCache.detail(10, 101))).toBeUndefined()
   })
 })
