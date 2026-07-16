@@ -570,6 +570,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 8 — Testes e hardening
 
+Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
+
 [x] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
   - Status: DONE
   - Depends on: TASK-012, TASK-013, TASK-034, TASK-041, TASK-046, TASK-063, TASK-076, TASK-080, TASK-086, TASK-092, TASK-096
@@ -626,7 +628,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
   - Evidência: commits `a1c2665`, `cbaecf8` e `62d92b8`; `user-event` focado 17/17, shared UI 43/43 e consumers relevantes 136/136; typecheck/lint/diff-check PASS; produto inalterado. Button ativa por Enter/Space, LinkButton navega por Enter e Checkbox alterna por Space; o Select usa foco por Tab e `user.selectOptions`, fluxo aceito porque `user-event` 14.6.1 não implementa mudança por `ArrowDown` no jsdom. A re-review aprovou teclado e rastreabilidade e solicitou somente o ajuste documental final incorporado. Desvio justificado: o teste monolítico não foi criado por duplicar provas proprietárias; somente células GAP foram adicionadas. O commit `59acae2` é administrativo do lote e está fora do range funcional da task.
 
 [ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -636,7 +638,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar request, efeito visível, cache e rota, executar testes focados, typecheck e lint e falhar diante de endpoint, método ou reconciliação incorretos.
 
 [ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -646,7 +648,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar requests e efeitos visíveis e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -656,7 +658,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar request, efeito visível, cache e rota e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -676,7 +678,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar request, cache e rota e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
