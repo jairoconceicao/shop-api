@@ -620,4 +620,17 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
 
+### Fase 9 — Ajustes de experiência
+
+[ ] TASK-131: Adicionar ações de checkout e continuidade de compra ao resumo do carrinho.
+  - Status: READY
+  - Depends on: TASK-071, TASK-077
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Quando o carrinho tiver itens, exibir no `CartSummary` um `LinkButton` secundário com o texto “Continuar comprando” e destino `/`, seguido de um `LinkButton` primário com o texto “Ir para checkout” e destino `/checkout`.
+    - Quando o carrinho não tiver itens, não renderizar nenhuma das duas ações no `CartSummary`.
+    - Manter nomes acessíveis, navegação e ativação por teclado, foco visível e layout responsivo sem overflow horizontal entre 320 px e desktop amplo.
+    - Cobrir por testes a renderização das ações com itens, seus textos e destinos exatos, e a ausência das ações sem itens.
+    - Não alterar regras de negócio do carrinho, caches, mutations ou o guard de checkout.
+
 
