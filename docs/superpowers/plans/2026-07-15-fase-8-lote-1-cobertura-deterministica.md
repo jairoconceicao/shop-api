@@ -4,7 +4,7 @@
 
 **Goal:** fechar, com cobertura determinística e evidência rastreável, as lacunas de contratos, formatação, stores e componentes base das `TASK-106` a `TASK-110`.
 
-**Architecture:** cada task preserva sua fronteira: contratos/adapters, funções puras, store de autenticação, store de carrinho e primitives de UI. O ciclo é TDD quando há lacuna; `TASK-109` conclui por verificação somente se todos os comandos e a revisão confirmarem a cobertura existente.
+**Architecture:** as tasks preservam cinco fronteiras: contratos/adapters, funções puras, autenticação, sessão do carrinho e primitives de UI. `TASK-106`, `107`, `108` e `110` usam TDD; `TASK-109` encerra por verificação dos dez testes já inspecionados.
 
 **Tech Stack:** React 19, TypeScript 5.7, Zod 4, Zustand 5, Vitest 4, Testing Library 16, jsdom, ESLint 10.
 
@@ -23,21 +23,21 @@
 - `frontend/src/shared/contracts/apiEnvelopes.test.ts`: envelopes estritos e nulabilidade.
 - `frontend/src/features/auth/contracts/login.test.ts`, `frontend/src/features/catalog/contracts/catalog.test.ts`, `frontend/src/features/cart/contracts/cart.test.ts`, `frontend/src/features/checkout/contracts/checkout.test.ts`, `frontend/src/features/checkout/contracts/order.test.ts`, `frontend/src/features/customer/contracts/registration.test.ts`, `frontend/src/features/customer/contracts/customerProfile.test.ts` e `frontend/src/features/orders/contracts/orders.test.ts`: schemas/adapters verticais e enums canônicos.
 - `frontend/src/shared/formatting/personalData.test.ts` e novo `frontend/src/shared/dates/localCivilDate.test.ts`: dados pessoais e data civil.
-- Novo `frontend/src/shared/formatting/currency.ts` e teste: única função de moeda, caso a exploração confirme ausência.
+- Novo `frontend/src/shared/formatting/currency.ts` e teste: função única de moeda consumida pelos nove arquivos listados na Task 107.
 - `frontend/src/features/auth/store/authStore.test.ts`: storage, reidratação, expiração, corrupção e versão.
-- `frontend/src/features/cart/store/cartSessionStore.test.ts`: prova integral existente da sessão do carrinho.
+- `frontend/src/features/cart/store/cartSessionStore.test.ts`: prova integral da sessão do carrinho.
 - Testes em `frontend/src/shared/ui/**`: semântica, teclado, foco e estados.
 - Evidências em `docs/frontend-quality/task-106-contract-matrix.md`, `task-107-formatting-matrix.md`, `task-109-cart-session-evidence.md` e `task-110-component-matrix.md`.
 
-## Workflow obrigatório, repetido para cada task
+## Workflow obrigatório por task
 
 - [ ] Confirmar no `docs/frontend-tasks-v2.md` que a task está `READY`, todas as dependências listadas estão `DONE`, critérios existem e não há writer concorrente.
 - [ ] Registrar `BASE_COMMIT=$(git rev-parse HEAD)` no relatório do orquestrador e mover a task para execução sem editar backlog.
 - [ ] Delegar a um explorador read-only a comparação critério↔teste↔produto; aguardar relatório antes de delegar escrita.
 - [ ] Delegar a um único implementador a task e os passos abaixo; aguardar RED, implementação mínima, GREEN e commits.
 - [ ] Gerar `git diff --check $BASE_COMMIT..HEAD` e `git diff --stat $BASE_COMMIT..HEAD`, depois entregar `git diff $BASE_COMMIT..HEAD` a um revisor.
-- [ ] Se houver finding `CRITICAL` ou `IMPORTANT`, devolver ao mesmo implementador, repetir testes/gates e reenviar o novo diff ao revisor.
-- [ ] Somente após testes e revisão aprovados, atualizar a task para `DONE`, registrar comandos/contagens/commits no backlog e criar commit final se houver mudança pendente.
+- [ ] Finding `CRITICAL` ou `IMPORTANT` volta ao mesmo implementador; testes/gates e revisão são repetidos.
+- [ ] Após testes e revisão aprovados, atualizar a task para `DONE`, registrar comandos/contagens/commits no backlog e criar o commit final pendente.
 
 ---
 
@@ -55,7 +55,7 @@
 - Modify: `frontend/src/features/customer/contracts/customerProfile.test.ts`
 - Modify: `frontend/src/features/orders/contracts/orders.test.ts`
 - Create: `docs/frontend-quality/task-106-contract-matrix.md`
-- Modify only after RED: the matching `.ts` beside the failing test above.
+- Modify after RED: `frontend/src/shared/contracts/apiEnvelopes.ts`, `frontend/src/features/auth/contracts/login.ts`, `frontend/src/features/catalog/contracts/catalog.ts`, `frontend/src/features/cart/contracts/cart.ts`, `frontend/src/features/checkout/contracts/checkout.ts`, `frontend/src/features/checkout/contracts/order.ts`, `frontend/src/features/customer/contracts/registration.ts`, `frontend/src/features/customer/contracts/customerProfile.ts`, `frontend/src/features/orders/contracts/orders.ts`.
 
 **Interfaces:**
 - Consumes: `normalizeNumber(value: number | string): number`, `normalizeId(value: number | string): number`, `createApiResponseSchema<T extends z.ZodType>(dataSchema: T)`, `createPagedResponseSchema<T extends z.ZodType>(itemSchema: T)`, `adaptLoginResponse(response: unknown): AuthSession`, `paymentMethodSchema`, `adaptCreateOrderRequest(input: unknown): CreateOrderRequest`, `adaptCreatedOrderResponse(response: unknown): CreatedOrder`, `adaptOrdersPage(response: unknown): OrdersPage`, `adaptOrderResponse(response: unknown): Order`, `adaptCancelledOrderResponse(response: unknown): CancelledOrder`.
@@ -102,23 +102,37 @@ it.each(['Unknown', 'cancelado', '', null])('rejects unknown order status %s', (
 })
 ```
 
-Para cada envelope já presente no arquivo proprietário, derive do fixture válido existente e aplique exatamente estas assertions:
+Use fixtures literais nos testes de login, catálogo, carrinho e pedidos:
 
 ```ts
-expect(() => adapter({ ...validResponse, extra: true })).toThrow()
-expect(() => adapter({ sucesso: true, dados: null })).toThrow()
-expect(() => adapter({ sucesso: false, dados: validResponse.dados })).toThrow()
+const loginEnvelope = { status: true, data: { token: 'token', tipo: 'Bearer', expiraEm: '2026-07-16T12:00:00Z', usuarioId: '10', clienteId: 20, email: 'a@b.com' } }
+expect(adaptLoginResponse(loginEnvelope)).toMatchObject({ usuarioId: 10, clienteId: 20 })
+expect(() => adaptLoginResponse({ ...loginEnvelope, extra: true })).toThrow()
+expect(() => adaptLoginResponse({ status: true, data: null })).toThrow()
+
+const productEnvelope = { status: true, data: { produtoId: '1', titulo: 'Mouse', descricao: null, modelo: null, foto: null, preco: '19.90', estoque: 2, categoria: { categoriaId: '3', titulo: 'Periféricos' } } }
+expect(adaptProductDetailResponse(productEnvelope)).toMatchObject({ id: 1, price: 19.9, stock: 2, description: null })
+expect(() => adaptProductDetailResponse({ ...productEnvelope, data: { ...productEnvelope.data, extra: true } })).toThrow()
+
+const cartEnvelope = { status: true, data: { clienteId: '10', carrinhoId: 100, dataCarrinho: '2026-07-16T12:00:00Z', items: [{ itemId: '1', produtoId: 2, quantidade: '3', valorUnitario: '19.90' }] } }
+expect(adaptCartResponse(cartEnvelope)).toMatchObject({ customerId: 10, id: 100, items: [{ id: 1, productId: 2, quantity: 3, unitPrice: 19.9 }] })
+expect(() => adaptCartResponse({ ...cartEnvelope, data: { ...cartEnvelope.data, items: [{ ...cartEnvelope.data.items[0], valorUnitario: 'Infinity' }] } })).toThrow()
+
+const address = { logradouro: 'Rua A', numero: '10', complemento: null, bairro: 'Centro', cidade: 'São Paulo', estado: 'SP', cep: '01001000' }
+const orderEnvelope = { status: true, data: { pedidoId: '1', carrinhoId: 2, clienteId: '3', enderecoEntrega: address, dataPedido: '2026-07-16T12:00:00Z', formaPagamento: 'Pix', status: 'Criado', items: [{ itemId: '4', produtoId: 5, quantidade: '2', valorUnitario: '9.50' }] } }
+expect(adaptOrderResponse(orderEnvelope)).toMatchObject({ id: 1, cartId: 2, customerId: 3, paymentMethod: 'Pix', status: 'Criado' })
+expect(() => adaptOrderResponse({ ...orderEnvelope, data: { ...orderEnvelope.data, status: 'Unknown' } })).toThrow()
 ```
 
 - [ ] **Step 3: confirmar RED focado**
 
 Run: `npm --prefix frontend test -- src/shared/adapters/numbers.test.ts src/shared/contracts/apiEnvelopes.test.ts src/features/auth/contracts/login.test.ts src/features/catalog/contracts/catalog.test.ts src/features/cart/contracts/cart.test.ts src/features/checkout/contracts/checkout.test.ts src/features/checkout/contracts/order.test.ts src/features/customer/contracts/registration.test.ts src/features/customer/contracts/customerProfile.test.ts src/features/orders/contracts/orders.test.ts`
 
-Expected: FAIL somente nas células marcadas ausentes na matriz; se tudo passar, não alterar produto e registrar `PASS preexistente` por célula.
+Expected: FAIL em strictness de `createApiResponseSchema`, login, catálogo e carrinho; enums e adapters estritos de pedidos permanecem PASS.
 
 - [ ] **Step 4: implementar o mínimo após RED**
 
-No schema proprietário que aceitou propriedade extra, acrescente `.strict()` ao `z.object({...})`. Para número/ID, reutilize transformação já existente; não crie coerção paralela. Para envelope divergente, componha `createApiResponseSchema(...)`/`createPagedResponseSchema(...)` e valide o discriminante existente. Não altere campos cuja OpenAPI permite `null`; faça o teste esperar `null` somente nesses campos.
+Altere `createApiResponseSchema` e `createPagedResponseSchema`: aplique `.strict()` no envelope, pagination e schemas de dados exportados. Troque `z.number()` transportado por `z.number().finite()`; troque IDs por união `z.number().int().safe()` e string inteira, mantendo `normalizeNumber`/`normalizeId`. Login exige `status !== false` e `data` não nulo. Catálogo permite `null` somente em `descricao`, `modelo`, `foto`, `thumb`; pedido permite `data: null` no envelope, mas o adapter rejeita esse resultado. Carrinho não permite `null` em IDs, quantidade ou valor.
 
 - [ ] **Step 5: GREEN, gates e commits**
 
@@ -129,7 +143,7 @@ git add frontend/src/shared/adapters/numbers.test.ts frontend/src/shared/contrac
 git commit -m "test(TASK-106): ampliar matriz de contratos"
 ```
 
-Se produto mudou, faça commit separado com os arquivos `.ts` exatos do RED: `git commit -m "fix(TASK-106): rejeitar contratos de transporte inválidos"`.
+Commit de produto: `git add frontend/src/shared/contracts/apiEnvelopes.ts frontend/src/features/auth/contracts/login.ts frontend/src/features/catalog/contracts/catalog.ts frontend/src/features/cart/contracts/cart.ts frontend/src/features/checkout/contracts/checkout.ts frontend/src/features/checkout/contracts/order.ts frontend/src/features/customer/contracts/registration.ts frontend/src/features/customer/contracts/customerProfile.ts frontend/src/features/orders/contracts/orders.ts && git commit -m "fix(TASK-106): rejeitar contratos de transporte inválidos"`.
 
 ---
 
@@ -146,6 +160,7 @@ Se produto mudou, faça commit separado com os arquivos `.ts` exatos do RED: `gi
 **Interfaces:**
 - Consumes: `normalizeCpf(string): string`, `formatCpf(string): string`, `normalizePostalCode(string): string`, `formatPostalCode(string): string`, `normalizeCellPhone(string): string`, `formatCellPhone(string): string`, `splitCellPhone(string): { ddd: string; numero: string }`, `localCivilDate(date?: Date): string`.
 - Produces: `formatCurrency(value: number): string`, formatado por `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })`.
+- Consumers modified: `frontend/src/features/catalog/components/ProductCard.tsx`, `frontend/src/features/catalog/pages/ProductDetailPage.tsx`, `frontend/src/features/cart/components/CartItem.tsx`, `frontend/src/features/cart/pages/CartPage.tsx`, `frontend/src/features/checkout/pages/CheckoutPage.tsx`, `frontend/src/features/checkout/pages/OrderConfirmationPage.tsx`, `frontend/src/features/orders/components/OrderCard.tsx`, `frontend/src/features/orders/components/OrderItem.tsx`, `frontend/src/features/orders/pages/OrderDetailPage.tsx`.
 
 - [ ] **Step 1: escrever moeda e seu RED**
 
@@ -208,6 +223,10 @@ it.each([
   expect(normalizeCellPhone(input)).toBe(expected)
   expect(normalizeCellPhone(formatCellPhone(input))).toBe(expected)
 })
+
+expect(['', '1', '1234', '1234567', '12345678901'].map(formatCpf)).toEqual(['', '1', '123.4', '123.456.7', '123.456.789-01'])
+expect(['', '12345', '123456', '12345-678'].map(formatPostalCode)).toEqual(['', '12345', '12345-6', '12345-678'])
+expect(['', '1', '11', '119', '1131234567', '11912345678'].map(formatCellPhone)).toEqual(['', '(1', '(11', '(11) 9', '(11) 3123-4567', '(11) 91234-5678'])
 ```
 
 Crie `localCivilDate.test.ts`:
@@ -228,16 +247,22 @@ describe('localCivilDate', () => {
     const local = new Date(2026, 6, 15, 23, 30)
     expect(localCivilDate(local)).toBe('2026-07-15')
   })
+
+  it('rejects an invalid date', () => {
+    expect(() => localCivilDate(new Date(Number.NaN))).toThrow(RangeError)
+  })
 })
 ```
 
+Implemente no início de `localCivilDate`: `if (Number.isNaN(date.getTime())) throw new RangeError('Invalid local civil date')`. Execute também `$env:TZ='America/Sao_Paulo'; npm --prefix frontend test -- src/shared/dates/localCivilDate.test.ts` e `$env:TZ='UTC'; npm --prefix frontend test -- src/shared/dates/localCivilDate.test.ts`; ambos retornam PASS.
+
 - [ ] **Step 4: RED/GREEN, matriz e gates**
 
-Run: `npm --prefix frontend test -- src/shared/formatting/personalData.test.ts src/shared/formatting/currency.test.ts src/shared/dates/localCivilDate.test.ts src/features/orders/routing/ordersUrl.test.ts src/features/customer/contracts/customerProfile.test.ts`. Expected: RED somente se uma assertion nova expuser lacuna; após correção mínima, PASS.
+Run: `npm --prefix frontend test -- src/shared/formatting/personalData.test.ts src/shared/formatting/currency.test.ts src/shared/dates/localCivilDate.test.ts src/features/orders/routing/ordersUrl.test.ts src/features/customer/contracts/customerProfile.test.ts`. Expected: RED por módulo de moeda ausente e data inválida; após as duas implementações, PASS.
 
 Registre em `docs/frontend-quality/task-107-formatting-matrix.md` as entradas e saídas literais acima, o round-trip e os cinco arquivos executados. Depois rode `npm --prefix frontend run typecheck` e `npm --prefix frontend run lint`; expected exit `0`.
 
-Commit testes/implementação pura: `git add frontend/src/shared/formatting frontend/src/shared/dates docs/frontend-quality/task-107-formatting-matrix.md && git commit -m "test(TASK-107): cobrir formatadores e datas civis"`. Se corrigir comportamento existente, isole em `fix(TASK-107): corrigir normalização de dados locais`.
+Substitua os nove `new Intl.NumberFormat(...).format(...)` pelos imports de `formatCurrency`. Commit: `git add frontend/src/shared/formatting frontend/src/shared/dates frontend/src/features/catalog frontend/src/features/cart frontend/src/features/checkout frontend/src/features/orders docs/frontend-quality/task-107-formatting-matrix.md && git commit -m "feat(TASK-107): centralizar formatação monetária"`.
 
 ---
 
@@ -250,7 +275,7 @@ Commit testes/implementação pura: `git add frontend/src/shared/formatting fron
 
 **Interfaces:** consumes `AUTH_STORE_KEY`, `AUTH_STORE_VERSION`, `AuthSession`, `isAuthSessionExpired(session: AuthSession, now?: number): boolean`, `useAuthStore`; persistence aceita `'session'|'local'`.
 
-- [ ] **Step 1: adicionar casos de corrupção, versão e falha de storage**
+- [ ] **Step 1: adicionar corrupção, versão e falhas de leitura/escrita**
 
 ```ts
 it.each([
@@ -270,15 +295,31 @@ it('keeps the in-memory session usable when browser storage throws', () => {
   expect(() => useAuthStore.getState().setSession(session, 'local')).not.toThrow()
   expect(useAuthStore.getState().session).toEqual(session)
 })
+
+it('survives storage read failure and starts signed out', async () => {
+  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+  await expect(useAuthStore.persist.rehydrate()).resolves.toBeUndefined()
+  expect(useAuthStore.getState().session).toBeNull()
+})
+
+it('removes both wrappers when expiration is reached', () => {
+  window.localStorage.setItem(AUTH_STORE_KEY, JSON.stringify({ state: { session, persistence: 'local' }, version: AUTH_STORE_VERSION }))
+  window.sessionStorage.setItem(AUTH_STORE_KEY, JSON.stringify({ state: { session, persistence: 'session' }, version: AUTH_STORE_VERSION }))
+  useAuthStore.setState({ session, persistence: 'local' })
+  useAuthStore.getState().invalidateExpiredSession(Date.parse(session.expiraEm))
+  expect(useAuthStore.getState().session).toBeNull()
+  expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+  expect(window.sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+})
 ```
 
 - [ ] **Step 2: confirmar RED**
 
-Run: `npm --prefix frontend test -- src/features/auth/store/authStore.test.ts`. Expected: FAIL no payload versão `0`/campo extra, demonstrando ausência de migração/sanitização; testes de storage/timer existentes continuam PASS.
+Run: `npm --prefix frontend test -- src/features/auth/store/authStore.test.ts`. Expected: FAIL no payload versão `0`/campo extra; escolha de storage, timer e clear retornam PASS.
 
 - [ ] **Step 3: implementação mínima**
 
-Adicione um schema estrito de sessão e `migrate` à configuração `persist`; o retorno completo é:
+Adicione o schema e use esta configuração completa:
 
 ```ts
 const persistedAuthSchema = z.object({
@@ -295,15 +336,48 @@ function migrateAuthState(value: unknown) {
     ? parsed.data
     : { session: null, persistence: 'session' as const }
 }
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      session: null,
+      persistence: 'session',
+      setSession: (session, persistence) => {
+        authStateStorage.removeItem?.(AUTH_STORE_KEY)
+        set({ session, persistence })
+      },
+      clearSession: () => {
+        set({ session: null, persistence: 'session' })
+        authStateStorage.removeItem?.(AUTH_STORE_KEY)
+      },
+      invalidateExpiredSession: (now = Date.now()) => {
+        const current = useAuthStore.getState().session
+        if (current && isAuthSessionExpired(current, now)) useAuthStore.getState().clearSession()
+      },
+    }),
+    {
+      name: AUTH_STORE_KEY,
+      version: AUTH_STORE_VERSION,
+      storage: createJSONStorage(() => authStateStorage),
+      partialize: ({ session, persistence }) => ({ session, persistence }),
+      migrate: (persistedState: unknown) => migrateAuthState(persistedState),
+      merge: (persistedState, currentState) => ({ ...currentState, ...migrateAuthState(persistedState) }),
+      onRehydrateStorage: () => (state) => {
+        state?.invalidateExpiredSession()
+        if (!state?.session) authStateStorage.removeItem?.(AUTH_STORE_KEY)
+      },
+    },
+  ),
+)
 ```
 
-Importe `z` de `zod`, configure `migrate: migrateAuthState` e `merge` usando o mesmo resultado sanitizado. Em descarte, `onRehydrateStorage` chama `clearSession()` para remover ambos os storages. Não altere a escolha já implementada por `authStateStorage`.
+Importe `z` de `zod`. `migrate` recebe diretamente o estado persistido desembrulhado pelo middleware. `merge` sanitiza também a versão atual. `onRehydrateStorage` remove os dois wrappers após descarte. `authStateStorage.getItem`, `.setItem` e `.removeItem` mantêm seus blocos `try/catch`.
 
 - [ ] **Step 4: GREEN e gates**
 
 Run: teste focado; `npm --prefix frontend run typecheck`; `npm --prefix frontend run lint`. Expected: todos exit `0`, incluindo timer no instante exato e escolha/limpeza dos dois storages.
 
-Commit: `git add frontend/src/features/auth/store/authStore.test.ts && git commit -m "test(TASK-108): cobrir persistência e corrupção da autenticação"`; se produto mudou: `git add frontend/src/features/auth/store/authStore.ts frontend/src/features/auth/store/AuthSessionInitializer.tsx && git commit -m "fix(TASK-108): sanitizar sessão persistida"`.
+Commits: `git add frontend/src/features/auth/store/authStore.test.ts && git commit -m "test(TASK-108): cobrir persistência e corrupção da autenticação"`; depois `git add frontend/src/features/auth/store/authStore.ts frontend/src/features/auth/store/AuthSessionInitializer.tsx && git commit -m "fix(TASK-108): sanitizar sessão persistida"`.
 
 ---
 
@@ -318,7 +392,7 @@ Commit: `git add frontend/src/features/auth/store/authStore.test.ts && git commi
 
 - [ ] **Step 1: prova exata, sem alterar produto**
 
-Mapeie no relatório os dez testes existentes: persistência mínima/versionada; isolamento; atualização alvo; remoção alvo; reidratação; migração v0; shape inválido; versão atual corrompida/remote field; chave canônica; falha de `localStorage`. Inclua o nome literal de cada `it(...)` e o critério correspondente.
+Copie no relatório os dez nomes literais de `it(...)`: `persists only the customer-to-cart map with a version`, `keeps cart ids independent for each customer`, `updates only the selected customer cart id`, `removes only the selected customer cart id`, `restores persisted cart ids on rehydration`, `migrates version zero while keeping only valid customer-to-cart entries`, `discards an invalid persisted shape during migration`, `sanitizes a corrupted current-version payload without restoring remote fields`, `canonicalizes numeric customer keys restored from legacy storage`, `keeps the in-memory map usable when localStorage is unavailable`.
 
 - [ ] **Step 2: executar evidência focada e repetida**
 
@@ -328,9 +402,9 @@ Run: `npm --prefix frontend test -- src/features/cart/store/cartSessionStore.tes
 
 Run: `npm --prefix frontend run typecheck`; `npm --prefix frontend run lint`. Expected: exit `0` em ambos.
 
-- [ ] **Step 3: decisão fechada e commit**
+- [ ] **Step 3: encerramento e commit**
 
-Se qualquer um dos dez testes não existir ou falhar, a task deixa de ser verificação: escreva primeiro o teste literal do critério ausente, confirme RED, corrija somente `cartSessionStore.ts`, repita todos os comandos e use `test(TASK-109)`/`fix(TASK-109)`. Se os resultados forem os esperados, não modifique `frontend/src`; registre commit SHA, comandos, contagens e exit codes.
+Resultado obrigatório: duas execuções com `10/10 PASS`, typecheck e lint exit `0`, diff de `frontend/src/features/cart/store` vazio. Não modifique `frontend/src`. Registre commit SHA, quatro comandos, contagens e exit codes.
 
 `git add docs/frontend-quality/task-109-cart-session-evidence.md && git commit -m "test(TASK-109): registrar robustez da sessão do carrinho"`.
 
@@ -348,13 +422,35 @@ Se qualquer um dos dez testes não existir ou falhar, a task deixa de ser verifi
 - Modify: `frontend/src/shared/ui/states/states.test.tsx`
 - Modify: `frontend/src/shared/ui/indicators/indicators.test.tsx`
 - Create: `docs/frontend-quality/task-110-component-matrix.md`
-- Modify only after RED: component `.tsx` beside the failing test.
+- Modify after RED: `frontend/src/shared/ui/buttons/Button.tsx`, `frontend/src/shared/ui/buttons/IconButton.tsx`, `frontend/src/shared/ui/buttons/LinkButton.tsx`, `frontend/src/shared/ui/forms/Input.tsx`, `frontend/src/shared/ui/forms/Select.tsx`, `frontend/src/shared/ui/forms/Checkbox.tsx`, `frontend/src/shared/ui/forms/FormErrorSummary.tsx`, `frontend/src/shared/ui/forms/QuantityInput.tsx`, `frontend/src/shared/ui/navigation/Pagination.tsx`, `frontend/src/shared/ui/overlays/Dialog.tsx`, `frontend/src/shared/ui/overlays/DropdownMenu.tsx`, `frontend/src/shared/ui/feedback/InlineAlert.tsx`, `frontend/src/shared/ui/feedback/Toast.tsx`, `frontend/src/shared/ui/states/EmptyState.tsx`, `frontend/src/shared/ui/states/ErrorState.tsx`, `frontend/src/shared/ui/states/Skeleton.tsx`, `frontend/src/shared/ui/indicators/Badge.tsx`, `frontend/src/shared/ui/indicators/Chip.tsx`.
 
 **Interfaces:** consumes `Button`, `IconButton`, `LinkButton`, `Input`, `Select`, `Checkbox`, `FormErrorSummary`, `QuantityInput`, `Pagination`, `Dialog`, `DropdownMenu`, `DropdownMenuItem`, `InlineAlert`, `Toast`, `EmptyState`, `ErrorState`, `Skeleton`, `Badge`, `Chip`.
 
 - [ ] **Step 1: criar matriz literal**
 
-No relatório, uma linha por export acima e colunas `nome/role`, `teclado`, `disabled/loading`, `foco`, `aria-current`, `live region`, `empty/error/skeleton`, `teste`. Marque `N/A` somente quando a semântica nativa não oferece o estado (por exemplo, foco em `Badge`).
+Copie esta matriz para o relatório:
+
+| Export | Source | Test | Prova |
+| --- | --- | --- | --- |
+| Button | `buttons/Button.tsx` | `buttons/buttons.test.tsx` | role/name, Enter/Space, disabled |
+| IconButton | `buttons/IconButton.tsx` | `buttons/buttons.test.tsx` | label obrigatório, ícone oculto |
+| LinkButton | `buttons/LinkButton.tsx` | `buttons/buttons.test.tsx` | role link, href, foco |
+| Input | `forms/Input.tsx` | `forms/forms.test.tsx` | label, description, invalid, disabled |
+| Select | `forms/Select.tsx` | `forms/forms.test.tsx` | label, opções, keyboard, disabled |
+| Checkbox | `forms/Checkbox.tsx` | `forms/forms.test.tsx` | checked, Space, disabled |
+| FormErrorSummary | `forms/FormErrorSummary.tsx` | `forms/forms.test.tsx` | alert, `fieldId`, foco |
+| QuantityInput | `forms/QuantityInput.tsx` | `forms/QuantityInput.test.tsx` | nomes, setas, Home/End, limites |
+| Pagination | `navigation/Pagination.tsx` | `navigation/Pagination.test.tsx` | navigation, `aria-current`, setas, limites |
+| Dialog | `overlays/Dialog.tsx` | `overlays/overlays.test.tsx` | role/name, foco, trap, Escape, retorno |
+| DropdownMenu | `overlays/DropdownMenu.tsx` | `overlays/overlays.test.tsx` | trigger, menu, setas, Escape |
+| DropdownMenuItem | `overlays/DropdownMenu.tsx` | `overlays/overlays.test.tsx` | menuitem, Enter, disabled |
+| InlineAlert | `feedback/InlineAlert.tsx` | `feedback/feedback.test.tsx` | alert, título, ação |
+| Toast | `feedback/Toast.tsx` | `feedback/feedback.test.tsx` | status, dismiss, nome |
+| EmptyState | `states/EmptyState.tsx` | `states/states.test.tsx` | heading, descrição, ação |
+| ErrorState | `states/ErrorState.tsx` | `states/states.test.tsx` | alert, retry |
+| Skeleton | `states/Skeleton.tsx` | `states/states.test.tsx` | `aria-hidden=true` |
+| Badge | `indicators/Badge.tsx` | `indicators/indicators.test.tsx` | texto e token de status |
+| Chip | `indicators/Chip.tsx` | `indicators/indicators.test.tsx` | button, pressed, disabled |
 
 - [ ] **Step 2: preencher somente células descobertas**
 
@@ -385,13 +481,14 @@ it('keeps pagination at its limits for keyboard input', () => {
 
 ```tsx
 it('announces an error summary and links to the invalid field', () => {
-  render(<><Input id="email" label="E-mail" error="E-mail inválido" /><FormErrorSummary errors={[{ field: 'email', message: 'E-mail inválido' }]} /></>)
+  render(<><Input id="email" label="E-mail" error="E-mail inválido" /><FormErrorSummary errors={[{ fieldId: 'email', message: 'E-mail inválido' }]} /></>)
   expect(screen.getByRole('alert')).toHaveTextContent('E-mail inválido')
   expect(screen.getByLabelText('E-mail')).toHaveAccessibleDescription('E-mail inválido')
+  expect(screen.getByRole('link', { name: 'E-mail inválido' })).toHaveAttribute('href', '#email')
 })
 ```
 
-Os testes existentes já cobrem `QuantityInput` (setas/Home/End/limites), `Pagination` (setas/Home/End/`aria-current`) e `Dialog` (foco inicial/trap/Escape/retorno). Não os duplique; cite seus nomes na matriz. Para feedback/states, afirme `getByRole('alert'|'status')` e nome visível; para skeleton, `aria-hidden` ou nome de carregamento conforme a interface real encontrada.
+Acrescente ainda: em `forms.test.tsx`, `fireEvent.keyDown(checkbox,{key:' '})`, mudança de `Select` por `fireEvent.change`, disabled sem callback e `summary.focus(); expect(summary).toHaveFocus()`; em `overlays.test.tsx`, Enter no primeiro `menuitem`, item disabled sem callback e Escape retornando foco; em `feedback.test.tsx`, `getByRole('alert')`, `getByRole('status')` e botão `Fechar notificação`; em `states.test.tsx`, heading `Carrinho vazio`, alert de erro, retry e `aria-hidden=true`; em `indicators.test.tsx`, `pressed:true`, disabled e callback zero. Os testes nomeados de `QuantityInput`, `Pagination` e `Dialog` permanecem sem duplicação.
 
 - [ ] **Step 3: RED, correção mínima e GREEN**
 
@@ -401,13 +498,13 @@ Run: `npm --prefix frontend run typecheck`; `npm --prefix frontend run lint`; `n
 
 - [ ] **Step 4: commits e gate do lote**
 
-`git add frontend/src/shared/ui docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`. Se produto mudou, separe `git commit -m "fix(TASK-110): corrigir semântica dos componentes base"`.
+`git add frontend/src/shared/ui/buttons/buttons.test.tsx frontend/src/shared/ui/forms/forms.test.tsx frontend/src/shared/ui/forms/QuantityInput.test.tsx frontend/src/shared/ui/navigation/Pagination.test.tsx frontend/src/shared/ui/overlays/overlays.test.tsx frontend/src/shared/ui/feedback/feedback.test.tsx frontend/src/shared/ui/states/states.test.tsx frontend/src/shared/ui/indicators/indicators.test.tsx docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`. Depois adicione somente os componentes listados no RED e use `git commit -m "fix(TASK-110): corrigir semântica dos componentes base"`.
 
 Após revisão aprovada e backlog atualizado, confirme `TASK-106`–`TASK-110` `DONE`, `git status --short` sem mudanças pendentes e só então altere `TASK-111`–`TASK-116` para `READY` em uma operação de backlog própria.
 
 ## Self-review
 
-- Spec coverage: `TASK-106` cobre transportes/envelopes/enums; `107` moeda/dados pessoais/data; `108` storage/expiração/versão/falha; `109` todos os dez critérios existentes; `110` teclado/foco/estado/semântica.
+- Spec coverage: `TASK-106` cobre transportes/envelopes/enums; `107` moeda/dados pessoais/data; `108` storage/expiração/versão/falha; `109` cobre dez critérios; `110` cobre teclado/foco/estado/semântica.
 - Placeholder scan: nenhuma ocorrência de `TBD`, `TODO`, “similar”, glob em paths de edição ou decisão de implementação aberta; produto só muda sob RED indicado.
 - Type consistency: todas as assinaturas foram conferidas nos fontes; `postalCode` corresponde às funções reais `normalizePostalCode`/`formatPostalCode`; stores usam as chaves e versões exportadas.
 - Gates: cada task contém elegibilidade, BASE, explorer, implementer, diff-check, reviewer, fix loop, DONE/evidência, RED/GREEN e commits rastreáveis.
