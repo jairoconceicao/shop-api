@@ -61,7 +61,7 @@ public sealed class CarrinhoCriarCommand : IActionCommand<CreateCarrinhoRequest,
                 [new Notification("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado.", nameof(CreateCarrinhoRequest))]);
         }
 
-        var carrinho = DomainCarrinho.Create(clienteId, null, DateTime.Now, null);
+        var carrinho = DomainCarrinho.Create(clienteId, null, DateTime.UtcNow, null);
         await _carrinhoRepository.AddAsync(carrinho);
         await _unitOfWork.SaveChangesAsync();
 

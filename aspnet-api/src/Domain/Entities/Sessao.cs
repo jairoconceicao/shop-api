@@ -24,7 +24,7 @@ public class Sessao
             return Result<Sessao>.Failure("Sessao invalida.", notifications);
         }
 
-        var agora = DateTime.Now;
+        var agora = DateTime.UtcNow;
         return Result<Sessao>.Success(new Sessao
         {
             Id = 0,
@@ -59,7 +59,7 @@ public class Sessao
             });
         }
 
-        RevogadaEm = DateTime.Now;
+        RevogadaEm = DateTime.UtcNow;
         return Result.Success("Sessao revogada com sucesso.");
     }
 

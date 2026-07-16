@@ -8,10 +8,6 @@ using aspnet_api.Domain.ValueObjects;
 using aspnet_api.src.Application.Abstractions.Commands;
 using aspnet_api.src.Application.Common;
 using FluentValidation;
-// using DomainUsuario = aspnet_api.Domain.Entities.Usuario;
-// using DomainCliente = aspnet_api.Domain.Entities.Cliente;
-// using DomainCelular = aspnet_api.Domain.ValueObjects.Celular;
-// using DomainEndereco = aspnet_api.Domain.ValueObjects.Endereco;
 
 namespace aspnet_api.src.Application.Cliente.Registrar;
 
