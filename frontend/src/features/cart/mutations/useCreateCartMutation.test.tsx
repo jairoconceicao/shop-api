@@ -114,6 +114,6 @@ describe('useCreateCartMutation', () => {
 
     expect(useCartSessionStore.getState().getCartId(10)).toBeUndefined()
     expect(localStorage.getItem('shop-api:cart-session')).not.toContain('101')
-    expect(queryClient.getQueryData(cartCache.detail(10, 101))).toBeUndefined()
+    expect(queryClient.getQueryData(cartCache.query.detail(10, 101))).toBeUndefined()
   })
 })
