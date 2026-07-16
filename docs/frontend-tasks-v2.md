@@ -706,8 +706,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem exata de cada request e executar a spec isolada, a suíte Chromium e `playwright test --repeat-each=2` sem dependência de ordem, worker ou dados anteriores.
   - Evidência: commits `1df7671`, `5dcaf30`, `56c0c5c`, `b7ab442` e `17b3656`; contagens brutas `register=1`, `login=1`, `categories=4`, `profile=2` e `logout=1`; suíte Chromium 2/2 PASS e `--repeat-each=2` 4/4 PASS; typecheck/lint/build/diff-check PASS; review do range `be8ef3e..17b3656` aprovada sem findings CRITICAL ou IMPORTANT. `npm audit` reportou duas vulnerabilidades moderadas e o build manteve o warning de chunk acima de 500 kB, ambos não bloqueantes.
 
-[ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
-  - Status: READY
+[x] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
+  - Status: DONE
   - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -715,6 +715,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Como visitante, selecionar quantidade e tentar adicionar, sendo redirecionado para `/entrar` com retorno interno exato.
     - Após login, retornar ao produto sem POST automático de carrinho; exigir novo clique para adicionar.
     - Afirmar a contagem exata dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `d78bc3a`, `fe7ac0e`, `87e5aa2` e `56ce200`; contagens exatas `login=1`, `categories=1`, `product=2`, `cartCreate=1`, `cartAdd=1` e `cartGet=2`, com `register`, `profile` e `logout` iguais a zero; spec isolada com repetição 2/2 PASS e suíte Chromium com repetição 6/6 PASS; typecheck/lint/build/diff-check PASS; review do range `2745a4c..56ce200` aprovada sem findings CRITICAL ou IMPORTANT. Os dois GETs do carrinho correspondem à ativação do badge após `setCartId` e à reconciliação após adicionar o item, sem espera temporal.
 
 [ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
   - Status: READY
