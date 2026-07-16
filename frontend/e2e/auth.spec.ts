@@ -8,7 +8,7 @@ test('cadastra, autentica, preserva a sessão local e encerra o acesso protegido
   authApi.expectRequestCounts({
     register: 1,
     login: 1,
-    categories: 3,
+    categories: 4,
     profile: 2,
     logout: 1,
   })
