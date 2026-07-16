@@ -614,8 +614,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Mapear cada critério para teste existente ou adicionar somente a evidência ausente, executar testes focados, typecheck e lint e registrar a prova sem alterar o produto se a cobertura já for integral.
   - Evidência: commits `731b1bd` e `d240368`; baseline de 10/10 PASS em duas execuções; cobertura ampliada para 12/12 PASS em duas execuções para provar falhas de `getItem` e `removeItem`; consumers relevantes 52/52 PASS; typecheck/lint/diff-check PASS; produto e actions públicas inalterados; reviewer aprovado com 0 findings.
 
-[ ] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
-  - Status: READY
+[x] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
+  - Status: DONE
   - Depends on: TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026
   - Escopo: Frontend
   - Critérios de aceite:
@@ -623,6 +623,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Verificar foco inicial, trap, Escape e retorno de foco onde aplicável.
     - Cobrir estados disabled, loading, error, empty e skeleton e consultar nomes, descrições, roles, `aria-current` e regiões vivas por semântica.
     - Registrar a matriz componente por critério e executar com sucesso somente os testes necessários para células descobertas, além de typecheck e lint.
+  - Evidência: commit `a1c2665`; shared UI 43/43 e consumers relevantes 136/136; revisão independente 41/41; typecheck/lint/diff-check PASS; produto inalterado e reviewer aprovado com 0 findings. Desvio justificado: o teste monolítico não foi criado por duplicar as provas proprietárias e por não representar com fidelidade a ativação nativa por teclado no jsdom; somente as células GAP foram adicionadas aos testes donos dos componentes.
 
 [ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
   - Status: BLOCKED
