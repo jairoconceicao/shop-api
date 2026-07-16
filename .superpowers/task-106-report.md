@@ -2,7 +2,7 @@
 
 ## Resultado
 
-**DONE_WITH_CONCERNS** — os critérios próprios da TASK-106 estão GREEN. A suíte ampliada de consumidores expôs quatro falhas preexistentes/date-sensitive em `LoginPage.test.tsx`, reproduzidas isoladamente e não corrigidas por estarem fora do escopo.
+**DONE** — critérios próprios e suíte ampliada de consumidores estão GREEN após o loop de correção do review.
 
 ## BASE e mudanças
 
@@ -13,6 +13,8 @@
 - Documentação: `docs/frontend-quality/task-106-contract-matrix.md` registra campos, nullability, enums e cobertura reutilizada.
 - Incidental removido: `frontend/public/mockServiceWorker.js` tinha somente alteração de line ending e foi restaurado.
 - `CategoriaResponse.descricao` continua nullable conforme decisão explícita de compatibilidade; a divergência do OpenAPI permanece separada.
+- Loop de review: a matriz foi alinhada ao enum canônico `EmProcessamento`; as fixtures de login passaram a usar expiração determinística futura.
+- Decisão de escopo: o RED persistiu após estabilizar as datas e revelou regressão direta da strictness. `LoginPage` foi corrigida para validar/enviar somente `{ email, senha }`; `manterConectado` permanece exclusivamente como estado visual usado para escolher o storage. Nenhuma outra mudança de produto foi feita.
 
 ## TDD — RED e GREEN
 
@@ -25,6 +27,8 @@ O implementador anterior foi interrompido com testes e produto no mesmo working 
 - portanto esses casos falham contra o BASE por aceitarem/removerem extras e aceitarem números fora das novas barreiras, mas não há alegação de que o RED foi observado ao vivo pelo implementador anterior.
 
 Durante a retomada, o primeiro GREEN focado falhou em **2/178** casos porque a fixture de detalhe carregava o campo de catálogo `thumb`. O schema estrito rejeitou corretamente esse campo. A fixture foi separada por contrato e a execução seguinte ficou GREEN.
+
+No loop de review, `LoginPage.test.tsx` ficou RED em **2/6** mesmo após estabilizar `expiraEm`: o formulário entregava `manterConectado` ao `loginRequestSchema.strict()`, impedindo o request. O teste passou a afirmar o body exato e a correção mínima projetou apenas os dois campos do wire contract antes da validação.
 
 ### GREEN focado
 
@@ -41,12 +45,8 @@ Resultado: **10 arquivos / 183 testes PASS**, exit `0`.
 | `git diff --check` | PASS |
 | `npm --prefix frontend run typecheck` | PASS |
 | `npm --prefix frontend run lint` | PASS |
-| Consumers: `npm --prefix frontend test -- src/features/auth src/features/catalog src/features/cart src/features/checkout src/features/customer src/features/orders` | **88 arquivos; 603 PASS / 4 FAIL** |
-| Reprodução: `npm --prefix frontend test -- src/features/auth/pages/LoginPage.test.tsx` | **2 PASS / 4 FAIL** |
-
-## Concern externo
-
-As quatro falhas de `LoginPage.test.tsx` são reproduzíveis isoladamente. Duas fixtures de login usam `expiraEm: 2026-07-14T18:00:00-03:00`, já expirado na execução de 2026-07-16, impedindo persistência/navegação. Os quatro casos também dependem da integração MSW compartilhada e não exercitam uma regressão específica dos schemas focados. Corrigir relógio/fixtures ou infraestrutura de login pertence à task dona desses testes, não à TASK-106.
+| Consumers: `npm --prefix frontend test -- src/features/auth src/features/catalog src/features/cart src/features/checkout src/features/customer src/features/orders` | **88 arquivos / 607 testes PASS** |
+| Login focado: `npm --prefix frontend test -- src/features/auth/pages/LoginPage.test.tsx` | **1 arquivo / 6 testes PASS** |
 
 ## Self-review
 

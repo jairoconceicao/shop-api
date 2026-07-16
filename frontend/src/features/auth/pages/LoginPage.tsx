@@ -34,7 +34,10 @@ export function LoginPage() {
   })
 
   const submitLogin = handleSubmit(async (values) => {
-    const parsedValues = loginRequestSchema.safeParse(values)
+    const parsedValues = loginRequestSchema.safeParse({
+      email: values.email,
+      senha: values.senha,
+    })
 
     if (!parsedValues.success) return
 

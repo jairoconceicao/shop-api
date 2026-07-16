@@ -8,7 +8,7 @@
 | Valores transportados | `number` finito ou string decimal canônica; `NaN`, `Infinity` e `-Infinity` são rejeitados. |
 | Objetos e envelopes | Propriedades extras são rejeitadas em todos os níveis alterados pela task. |
 | Sucesso | `data: null`, ausência de dados, `status: false` e paginação incompleta são aceitos pelo envelope quando contratualmente opcionais, mas rejeitados pelos adapters que exigem sucesso. |
-| Enums | Pagamento aceita somente `Pix`, `Cartao` e `Boleto`; pedido aceita somente `Criado`, `Processado`, `Enviado`, `Cancelado` e `Devolvido`. |
+| Enums | Pagamento aceita somente `Pix`, `Cartao` e `Boleto`; pedido aceita somente `Criado`, `EmProcessamento`, `Processado`, `Cancelado` e `Devolvido`. |
 
 ## Matriz por fronteira
 
