@@ -34,9 +34,13 @@ describe('clearPrivateSession', () => {
   it('clears only private state owned by the expired customer', () => {
     const queryClient = new QueryClient()
     const clearCustomerSnapshot = vi.fn()
+    const clearOtherSnapshot = vi.fn()
 
     useAuthStore.getState().setSession(session, 'local')
     sessionStorage.setItem(AUTH_STORE_KEY, 'stale-session-copy')
+    sessionStorage.setItem(CART_SESSION_STORE_KEY, 'stale-cart-copy')
+    localStorage.setItem('public-preference', 'dark')
+    sessionStorage.setItem('public-preference', 'compact')
     useCartSessionStore.getState().setCartId(7, 70)
     useCartSessionStore.getState().setCartId(8, 80)
     queryClient.setQueryDefaults(['private', 'profile', 7], {
@@ -58,7 +62,9 @@ describe('clearPrivateSession', () => {
       meta: { private: false },
     })
     registerCustomerPrivateSnapshot(7, clearCustomerSnapshot)
+    registerCustomerPrivateSnapshot(8, clearOtherSnapshot)
 
+    clearPrivateSession(queryClient, 7)
     clearPrivateSession(queryClient, 7)
 
     expect(useAuthStore.getState().session).toBeNull()
@@ -67,6 +73,9 @@ describe('clearPrivateSession', () => {
     expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
     expect(useCartSessionStore.getState().getCartId(8)).toBe(80)
     expect(localStorage.getItem(CART_SESSION_STORE_KEY)).not.toContain('"7":70')
+    expect(sessionStorage.getItem(CART_SESSION_STORE_KEY)).toBeNull()
+    expect(localStorage.getItem('public-preference')).toBe('dark')
+    expect(sessionStorage.getItem('public-preference')).toBe('compact')
     expect(queryClient.getQueryData(['private', 'profile', 7])).toBeUndefined()
     expect(queryClient.getQueryData(['public', 'catalog'])).toEqual(['Public'])
     expect(
@@ -76,5 +85,6 @@ describe('clearPrivateSession', () => {
       queryClient.getMutationCache().find({ mutationKey: ['public', 'newsletter'] }),
     ).toBeDefined()
     expect(clearCustomerSnapshot).toHaveBeenCalledOnce()
+    expect(clearOtherSnapshot).not.toHaveBeenCalled()
   })
 })
