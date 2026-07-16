@@ -60,7 +60,7 @@ Use esta matriz para definir o status inicial e o desbloqueio de cada task:
 | `TASK-129` | `BLOCKED` | `TASK-117` a `TASK-123` e `TASK-126` em `DONE` |
 | `TASK-130` | `BLOCKED` | `TASK-106` a `TASK-129` em `DONE` |
 
-Dentro de um lote, execute em paralelo somente tasks que já estejam `READY` e não compartilhem componentes. O lote seguinte permanece bloqueado até todas as tasks do lote atual chegarem a `DONE`.
+No checkout compartilhado, execute todos os writers de forma sequencial, mesmo quando as tasks estiverem `READY` e alterarem componentes distintos. Execute writers em paralelo somente em worktrees ou checkouts isolados e nunca quando as tasks alterarem os mesmos componentes. O lote seguinte permanece bloqueado até todas as tasks do lote atual chegarem a `DONE`.
 
 ## Regras de status e execução
 
@@ -73,7 +73,7 @@ Cada task usa um destes estados:
 
 Para cada task, registre o `BASE_COMMIT`, delegue exploração, aguarde o relatório, delegue implementação e execute os testes. Gere o diff entre `BASE_COMMIT` e `HEAD` e delegue a revisão. Findings `CRITICAL` ou `IMPORTANT` exigem correção, nova execução dos testes e nova revisão.
 
-Não execute dois writers no mesmo checkout. Não marque uma task como `DONE` com testes falhando. Cada task deve ter um commit próprio ou um conjunto de commits identificado no backlog.
+Não execute dois writers no mesmo checkout. Antes de iniciar escrita paralela em worktrees ou checkouts isolados, confirme que os componentes não se sobrepõem. Não marque uma task como `DONE` com testes falhando. Cada task deve ter um commit próprio ou um conjunto de commits identificado no backlog.
 
 ## Lote 1: cobertura determinística
 
