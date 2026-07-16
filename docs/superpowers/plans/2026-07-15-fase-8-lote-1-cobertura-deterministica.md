@@ -124,6 +124,61 @@ expect(adaptOrderResponse(orderEnvelope)).toMatchObject({ id: 1, cartId: 2, cust
 expect(() => adaptOrderResponse({ ...orderEnvelope, data: { ...orderEnvelope.data, status: 'Unknown' } })).toThrow()
 ```
 
+Adicione estes blocos completos aos demais arquivos nomeados:
+
+```ts
+// registration.test.ts
+const registration = { senha: 'Senha@123', cpf: '12345678901', nome: 'Ana', dataNascimento: '1990-05-20', email: 'ana@example.com', endereco: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '01001000', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' }, celular: { ddd: '11', numero: '912345678', whatsApp: true } }
+expect(adaptCreateCustomerRequest(registration)).toEqual(registration)
+expect(adaptCreateCustomerResponse({ status: true, data: { clienteId: '8' } })).toEqual({ clienteId: 8 })
+expect(() => adaptCreateCustomerRequest({ ...registration, extra: true })).toThrow()
+expect(() => adaptCreateCustomerResponse({ status: true, data: null })).toThrow()
+expect(() => adaptCreateCustomerResponse({ status: false, data: { clienteId: 8 } })).toThrow()
+expect(() => adaptCreateCustomerResponse({ status: true, data: { clienteId: Number.MAX_SAFE_INTEGER + 1 } })).toThrow()
+```
+
+```ts
+// customerProfile.test.ts
+const profileEnvelope = { status: true, data: { clienteId: '8', cpf: '12345678901', nome: 'Ana', dataNascimento: '1990-05-20', email: 'ana@example.com', endereco: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '01001000', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' }, celular: { ddd: '11', numero: '912345678', whatsApp: true } } }
+expect(adaptCustomerProfileResponse(profileEnvelope)).toMatchObject({ customerId: 8, cpf: '12345678901' })
+expect(() => adaptCustomerProfileResponse({ ...profileEnvelope, extra: true })).toThrow()
+expect(() => adaptCustomerProfileResponse({ status: true, data: null })).toThrow()
+expect(() => adaptCustomerProfileResponse({ ...profileEnvelope, data: { ...profileEnvelope.data, clienteId: '9007199254740992' } })).toThrow()
+const profileForm = { cpf: '123.456.789-01', nome: 'Ana', dataNascimento: '1990-05-20', email: 'ana@example.com', logradouro: 'Rua A', numero: '10', complemento: '', cep: '01001000', bairro: 'Centro', cidade: 'São Paulo', uf: 'sp', ddd: '11', celularNumero: '912345678', whatsApp: true }
+expect(adaptUpdateCustomerRequest(profileForm)).toMatchObject({ cpf: '12345678901', endereco: { complemento: null, uf: 'SP' } })
+```
+
+```ts
+// checkout.test.ts
+const delivery = { logradouro: 'Rua A', numero: '10', complemento: null, cep: '01001000', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' }
+expect(checkoutFormSchema.parse({ enderecoEntrega: delivery, formaPagamento: 'Pix' })).toEqual({ enderecoEntrega: delivery, formaPagamento: 'Pix' })
+expect(paymentMethodSchema.options).toEqual(['Pix', 'Cartao', 'Boleto'])
+expect(() => checkoutFormSchema.parse({ enderecoEntrega: delivery, formaPagamento: 'Dinheiro' })).toThrow()
+expect(() => checkoutFormSchema.parse({ enderecoEntrega: delivery, formaPagamento: 'Pix', extra: true })).toThrow()
+expect(() => checkoutFormSchema.parse({ enderecoEntrega: { ...delivery, complemento: 7 }, formaPagamento: 'Pix' })).toThrow()
+```
+
+```ts
+// order.test.ts
+const request = { enderecoEntrega: delivery, formaPagamento: 'Cartao', dataPedido: '2026-07-16T12:00:00-03:00', items: [{ itemId: '7', produtoId: 42, quantidade: '2', valorUnitario: '19.90' }] }
+expect(adaptCreateOrderRequest(request)).toMatchObject({ items: [{ itemId: 7, produtoId: 42, quantidade: 2, valorUnitario: 19.9 }] })
+expect(() => adaptCreateOrderRequest({ ...request, items: [{ ...request.items[0], itemId: '9007199254740992' }] })).toThrow()
+expect(() => adaptCreateOrderRequest({ ...request, items: [{ ...request.items[0], quantidade: 'Infinity' }] })).toThrow()
+const created = { status: true, data: { pedidoId: '101', clienteId: 11, dataPedido: '2026-07-16T12:00:00-03:00', formaPagamento: 'Boleto', status: 'Criado', valorTotal: '39.80' } }
+expect(adaptCreatedOrderResponse(created)).toMatchObject({ id: 101, customerId: 11, total: 39.8 })
+expect(() => adaptCreatedOrderResponse({ ...created, data: null })).toThrow()
+expect(() => adaptCreatedOrderResponse({ ...created, data: { ...created.data, valorTotal: Number.NaN } })).toThrow()
+```
+
+```ts
+// catalog.test.ts — envelope paginado completo
+const page = { status: true, pagination: { pages: '2', size: 10, totalItems: '11', data: [{ produtoId: '1', titulo: 'Mouse', thumb: null, preco: '19.90', estoque: 2, categoria: { categoriaId: 3, titulo: 'Periféricos' } }] } }
+expect(adaptCatalogResponse(page)).toMatchObject({ pagination: { pages: 2, size: 10, totalItems: 11 }, products: [{ id: 1, thumbnail: null, price: 19.9 }] })
+expect(() => adaptCatalogResponse({ ...page, pagination: { ...page.pagination, pages: '9007199254740992' } })).toThrow()
+expect(() => adaptCatalogResponse({ ...page, pagination: { ...page.pagination, data: null } })).toThrow()
+expect(() => adaptCatalogResponse({ ...page, extra: true })).toThrow()
+```
+
 - [ ] **Step 3: confirmar RED focado**
 
 Run: `npm --prefix frontend test -- src/shared/adapters/numbers.test.ts src/shared/contracts/apiEnvelopes.test.ts src/features/auth/contracts/login.test.ts src/features/catalog/contracts/catalog.test.ts src/features/cart/contracts/cart.test.ts src/features/checkout/contracts/checkout.test.ts src/features/checkout/contracts/order.test.ts src/features/customer/contracts/registration.test.ts src/features/customer/contracts/customerProfile.test.ts src/features/orders/contracts/orders.test.ts`
@@ -264,6 +319,37 @@ Registre em `docs/frontend-quality/task-107-formatting-matrix.md` as entradas e 
 
 Substitua os nove `new Intl.NumberFormat(...).format(...)` pelos imports de `formatCurrency`. Commit: `git add frontend/src/shared/formatting frontend/src/shared/dates frontend/src/features/catalog frontend/src/features/cart frontend/src/features/checkout frontend/src/features/orders docs/frontend-quality/task-107-formatting-matrix.md && git commit -m "feat(TASK-107): centralizar formatação monetária"`.
 
+As nove edições literais são:
+
+```ts
+// catalog/components/ProductCard.tsx e catalog/pages/ProductDetailPage.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar brlFormatter.format(product.price) por formatCurrency(product.price)
+
+// cart/components/CartItem.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar brlFormatter.format(item.unitPrice) por formatCurrency(item.unitPrice)
+// trocar brlFormatter.format(item.unitPrice * item.quantity) por formatCurrency(item.unitPrice * item.quantity)
+
+// cart/pages/CartPage.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar brlFormatter.format(cartTotal) por formatCurrency(cartTotal)
+
+// checkout/pages/CheckoutPage.tsx e checkout/pages/OrderConfirmationPage.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar brlFormatter.format(total) por formatCurrency(total)
+
+// orders/components/OrderCard.tsx e orders/components/OrderItem.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar brlFormatter.format(total) e currency.format(value) por formatCurrency(value)
+
+// orders/pages/OrderDetailPage.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+// trocar currency.format(calculateOrderTotal(order.items)) por formatCurrency(calculateOrderTotal(order.items))
+```
+
+Remova as nove constantes locais `brlFormatter`/`currency`. `rg -n "Intl.NumberFormat" frontend/src/features` retorna zero após a edição.
+
 ---
 
 ### Task 108: TASK-108 — authStore
@@ -274,6 +360,18 @@ Substitua os nove `new Intl.NumberFormat(...).format(...)` pelos imports de `for
 - Modify only after RED de timer: `frontend/src/features/auth/store/AuthSessionInitializer.tsx`
 
 **Interfaces:** consumes `AUTH_STORE_KEY`, `AUTH_STORE_VERSION`, `AuthSession`, `isAuthSessionExpired(session: AuthSession, now?: number): boolean`, `useAuthStore`; persistence aceita `'session'|'local'`.
+
+O arquivo de teste usa este cleanup:
+
+```ts
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+  window.localStorage.clear()
+  window.sessionStorage.clear()
+  useAuthStore.setState({ session: null, persistence: 'session' })
+})
+```
 
 - [ ] **Step 1: adicionar corrupção, versão e falhas de leitura/escrita**
 
@@ -311,6 +409,12 @@ it('removes both wrappers when expiration is reached', () => {
   expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
   expect(window.sessionStorage.getItem(AUTH_STORE_KEY)).toBeNull()
 })
+
+it('accepts an expiration with a negative three-hour offset', () => {
+  const offsetSession = { ...session, expiraEm: '2026-07-16T09:00:00-03:00' }
+  expect(isAuthSessionExpired(offsetSession, Date.parse('2026-07-16T11:59:59Z'))).toBe(false)
+  expect(isAuthSessionExpired(offsetSession, Date.parse('2026-07-16T12:00:00Z'))).toBe(true)
+})
 ```
 
 - [ ] **Step 2: confirmar RED**
@@ -324,7 +428,7 @@ Adicione o schema e use esta configuração completa:
 ```ts
 const persistedAuthSchema = z.object({
   session: z.object({
-    token: z.string().min(1), tipo: z.string().min(1), expiraEm: z.iso.datetime(),
+    token: z.string().min(1), tipo: z.string().min(1), expiraEm: z.iso.datetime({ offset: true }),
     usuarioId: z.number().int().safe(), clienteId: z.number().int().safe(), email: z.email(),
   }).strict(),
   persistence: z.enum(['session', 'local']),
@@ -421,6 +525,7 @@ Resultado obrigatório: duas execuções com `10/10 PASS`, typecheck e lint exit
 - Modify: `frontend/src/shared/ui/feedback/feedback.test.tsx`
 - Modify: `frontend/src/shared/ui/states/states.test.tsx`
 - Modify: `frontend/src/shared/ui/indicators/indicators.test.tsx`
+- Create: `frontend/src/shared/ui/baseComponents.hardening.test.tsx`
 - Create: `docs/frontend-quality/task-110-component-matrix.md`
 - Modify after RED: `frontend/src/shared/ui/buttons/Button.tsx`, `frontend/src/shared/ui/buttons/IconButton.tsx`, `frontend/src/shared/ui/buttons/LinkButton.tsx`, `frontend/src/shared/ui/forms/Input.tsx`, `frontend/src/shared/ui/forms/Select.tsx`, `frontend/src/shared/ui/forms/Checkbox.tsx`, `frontend/src/shared/ui/forms/FormErrorSummary.tsx`, `frontend/src/shared/ui/forms/QuantityInput.tsx`, `frontend/src/shared/ui/navigation/Pagination.tsx`, `frontend/src/shared/ui/overlays/Dialog.tsx`, `frontend/src/shared/ui/overlays/DropdownMenu.tsx`, `frontend/src/shared/ui/feedback/InlineAlert.tsx`, `frontend/src/shared/ui/feedback/Toast.tsx`, `frontend/src/shared/ui/states/EmptyState.tsx`, `frontend/src/shared/ui/states/ErrorState.tsx`, `frontend/src/shared/ui/states/Skeleton.tsx`, `frontend/src/shared/ui/indicators/Badge.tsx`, `frontend/src/shared/ui/indicators/Chip.tsx`.
 
@@ -451,6 +556,104 @@ Copie esta matriz para o relatório:
 | Skeleton | `states/Skeleton.tsx` | `states/states.test.tsx` | `aria-hidden=true` |
 | Badge | `indicators/Badge.tsx` | `indicators/indicators.test.tsx` | texto e token de status |
 | Chip | `indicators/Chip.tsx` | `indicators/indicators.test.tsx` | button, pressed, disabled |
+
+Crie este arquivo completo; ele importa e exercita os 19 exports:
+
+```tsx
+import { fireEvent, render, screen } from '@testing-library/react'
+import { useState } from 'react'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
+import { Button } from './buttons/Button'
+import { IconButton } from './buttons/IconButton'
+import { LinkButton } from './buttons/LinkButton'
+import { InlineAlert } from './feedback/InlineAlert'
+import { Toast } from './feedback/Toast'
+import { Checkbox } from './forms/Checkbox'
+import { FormErrorSummary } from './forms/FormErrorSummary'
+import { Input } from './forms/Input'
+import { QuantityInput } from './forms/QuantityInput'
+import { Select } from './forms/Select'
+import { Badge } from './indicators/Badge'
+import { Chip } from './indicators/Chip'
+import { Pagination } from './navigation/Pagination'
+import { Dialog } from './overlays/Dialog'
+import { DropdownMenu, DropdownMenuItem } from './overlays/DropdownMenu'
+import { EmptyState } from './states/EmptyState'
+import { ErrorState } from './states/ErrorState'
+import { Skeleton } from './states/Skeleton'
+
+describe('base component hardening', () => {
+  it('covers buttons and links by native semantics', () => {
+    const action = vi.fn()
+    render(<MemoryRouter><Button disabled onClick={action}>Salvar</Button><IconButton aria-label="Carrinho">ícone</IconButton><LinkButton to="/products">Produtos</LinkButton></MemoryRouter>)
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Salvar' }), { key: 'Enter' })
+    expect(action).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Carrinho' }).firstElementChild).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByRole('link', { name: 'Produtos' })).toHaveAttribute('href', '/products')
+  })
+
+  it('covers Input, Checkbox, Select and FormErrorSummary', () => {
+    const change = vi.fn()
+    render(<><Input id="email" label="E-mail" error="Inválido" disabled /><Checkbox label="Aceito" onChange={change} /><Select label="Pagamento" onChange={change}><option>Pix</option><option>Boleto</option></Select><FormErrorSummary data-testid="summary" errors={[{ fieldId: 'email', message: 'Inválido' }]} /></>)
+    expect(screen.getByRole('textbox', { name: 'E-mail' })).toBeDisabled()
+    const checkbox = screen.getByRole('checkbox', { name: 'Aceito' })
+    checkbox.focus(); fireEvent.keyDown(checkbox, { key: ' ' }); fireEvent.click(checkbox)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Pagamento' }), { target: { value: 'Boleto' } })
+    expect(change).toHaveBeenCalledTimes(2)
+    const summary = screen.getByTestId('summary'); summary.focus()
+    expect(summary).toHaveFocus()
+    expect(screen.getByRole('link', { name: 'Inválido' })).toHaveAttribute('href', '#email')
+  })
+
+  it('covers QuantityInput and Pagination keyboard limits', () => {
+    const quantity = vi.fn(); const page = vi.fn()
+    render(<><QuantityInput label="Quantidade" value={1} min={1} max={2} onChange={quantity} /><Pagination page={1} totalPages={2} onPageChange={page} /></>)
+    const input = screen.getByRole('spinbutton', { name: 'Quantidade' })
+    fireEvent.keyDown(input, { key: 'End' }); expect(quantity).toHaveBeenLastCalledWith(2)
+    const navigation = screen.getByRole('navigation', { name: 'Paginação' })
+    fireEvent.keyDown(navigation, { key: 'ArrowLeft' }); expect(page).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Página 1', current: 'page' })).toBeInTheDocument()
+  })
+
+  it('covers Dialog focus, Escape and focus return', () => {
+    function Fixture() { const [open, setOpen] = useState(false); return <><button onClick={() => setOpen(true)}>Abrir</button><Dialog open={open} onOpenChange={setOpen} title="Confirmação"><button>Confirmar</button></Dialog></> }
+    render(<Fixture />); const trigger = screen.getByRole('button', { name: 'Abrir' }); trigger.focus(); fireEvent.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Confirmação' }); expect(screen.getByRole('button', { name: 'Fechar dialogo' })).toHaveFocus()
+    fireEvent.keyDown(dialog, { key: 'Escape' }); expect(trigger).toHaveFocus()
+  })
+
+  it('covers DropdownMenu and a disabled DropdownMenuItem', async () => {
+    const blocked = vi.fn()
+    render(<DropdownMenu label="Conta" trigger="Conta"><DropdownMenuItem disabled onClick={blocked}>Bloqueado</DropdownMenuItem><DropdownMenuItem>Perfil</DropdownMenuItem></DropdownMenu>)
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Conta' }), { key: 'ArrowDown' })
+    await new Promise(requestAnimationFrame)
+    const disabled = screen.getByRole('menuitem', { name: 'Bloqueado' }); expect(disabled).toBeDisabled(); fireEvent.click(disabled); expect(blocked).not.toHaveBeenCalled()
+    const profile = screen.getByRole('menuitem', { name: 'Perfil' }); fireEvent.keyDown(profile, { key: 'Escape' }); expect(screen.getByRole('button', { name: 'Conta' })).toHaveFocus()
+  })
+
+  it('covers feedback live regions', () => {
+    const dismiss = vi.fn(); render(<><InlineAlert title="Falha" variant="error">Revise</InlineAlert><Toast message="Salvo" variant="success" onDismiss={dismiss} /></>)
+    expect(screen.getByRole('alert')).toHaveTextContent('Falha')
+    expect(screen.getByRole('status')).toHaveTextContent('Salvo')
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar notificação' })); expect(dismiss).toHaveBeenCalledOnce()
+  })
+
+  it('covers empty, error and skeleton states', () => {
+    render(<><EmptyState title="Vazio" description="Sem itens" action={<button>Voltar</button>} /><ErrorState action={<button>Tentar novamente</button>} /><Skeleton data-testid="skeleton" /></>)
+    expect(screen.getByRole('heading', { name: 'Vazio' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível carregar')
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
+    expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('covers Badge and Chip states', () => {
+    const action = vi.fn(); render(<><Badge status="success">Disponível</Badge><Chip selected disabled onClick={action}>Todos</Chip></>)
+    expect(screen.getByText('Disponível')).toHaveClass('text-emerald-300')
+    const chip = screen.getByRole('button', { name: 'Todos', pressed: true }); expect(chip).toBeDisabled(); fireEvent.click(chip); expect(action).not.toHaveBeenCalled()
+  })
+})
+```
 
 - [ ] **Step 2: preencher somente células descobertas**
 
@@ -492,20 +695,20 @@ Acrescente ainda: em `forms.test.tsx`, `fireEvent.keyDown(checkbox,{key:' '})`, 
 
 - [ ] **Step 3: RED, correção mínima e GREEN**
 
-Run: `npm --prefix frontend test -- src/shared/ui/buttons/buttons.test.tsx src/shared/ui/forms/forms.test.tsx src/shared/ui/forms/QuantityInput.test.tsx src/shared/ui/navigation/Pagination.test.tsx src/shared/ui/overlays/overlays.test.tsx src/shared/ui/feedback/feedback.test.tsx src/shared/ui/states/states.test.tsx src/shared/ui/indicators/indicators.test.tsx`. Expected: FAIL apenas nas células novas descobertas; após corrigir semântica no componente proprietário, PASS.
+Run: `npm --prefix frontend test -- src/shared/ui/baseComponents.hardening.test.tsx src/shared/ui/buttons/buttons.test.tsx src/shared/ui/forms/forms.test.tsx src/shared/ui/forms/QuantityInput.test.tsx src/shared/ui/navigation/Pagination.test.tsx src/shared/ui/overlays/overlays.test.tsx src/shared/ui/feedback/feedback.test.tsx src/shared/ui/states/states.test.tsx src/shared/ui/indicators/indicators.test.tsx`. Expected: FAIL nas assertions novas; após corrigir semântica no componente proprietário, PASS.
 
 Run: `npm --prefix frontend run typecheck`; `npm --prefix frontend run lint`; `npm --prefix frontend test`. Expected: todos exit `0`; a suíte global encerra o gate do lote.
 
 - [ ] **Step 4: commits e gate do lote**
 
-`git add frontend/src/shared/ui/buttons/buttons.test.tsx frontend/src/shared/ui/forms/forms.test.tsx frontend/src/shared/ui/forms/QuantityInput.test.tsx frontend/src/shared/ui/navigation/Pagination.test.tsx frontend/src/shared/ui/overlays/overlays.test.tsx frontend/src/shared/ui/feedback/feedback.test.tsx frontend/src/shared/ui/states/states.test.tsx frontend/src/shared/ui/indicators/indicators.test.tsx docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`. Depois adicione somente os componentes listados no RED e use `git commit -m "fix(TASK-110): corrigir semântica dos componentes base"`.
+`git add frontend/src/shared/ui/baseComponents.hardening.test.tsx frontend/src/shared/ui/buttons/buttons.test.tsx frontend/src/shared/ui/forms/forms.test.tsx frontend/src/shared/ui/forms/QuantityInput.test.tsx frontend/src/shared/ui/navigation/Pagination.test.tsx frontend/src/shared/ui/overlays/overlays.test.tsx frontend/src/shared/ui/feedback/feedback.test.tsx frontend/src/shared/ui/states/states.test.tsx frontend/src/shared/ui/indicators/indicators.test.tsx docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`. Depois adicione somente os componentes listados no RED e use `git commit -m "fix(TASK-110): corrigir semântica dos componentes base"`.
 
 Após revisão aprovada e backlog atualizado, confirme `TASK-106`–`TASK-110` `DONE`, `git status --short` sem mudanças pendentes e só então altere `TASK-111`–`TASK-116` para `READY` em uma operação de backlog própria.
 
 ## Self-review
 
 - Spec coverage: `TASK-106` cobre transportes/envelopes/enums; `107` moeda/dados pessoais/data; `108` storage/expiração/versão/falha; `109` cobre dez critérios; `110` cobre teclado/foco/estado/semântica.
-- Placeholder scan: nenhuma ocorrência de `TBD`, `TODO`, “similar”, glob em paths de edição ou decisão de implementação aberta; produto só muda sob RED indicado.
+- Placeholder scan: zero marcadores pendentes, zero glob em paths de edição e zero decisão de implementação aberta; produto só muda sob RED indicado.
 - Type consistency: todas as assinaturas foram conferidas nos fontes; `postalCode` corresponde às funções reais `normalizePostalCode`/`formatPostalCode`; stores usam as chaves e versões exportadas.
 - Gates: cada task contém elegibilidade, BASE, explorer, implementer, diff-check, reviewer, fix loop, DONE/evidência, RED/GREEN e commits rastreáveis.
 
