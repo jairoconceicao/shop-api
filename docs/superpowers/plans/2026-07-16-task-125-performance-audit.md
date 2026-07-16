@@ -20,6 +20,9 @@
 - Não elevar `chunkSizeWarningLimit`, não mascarar o resultado e não adicionar `manualChunks` sem evidência.
 - Preservar `Promise.all`, `Set`/IDs únicos, query keys estáveis e `ensureQueryData`.
 - Toda mudança de comportamento segue RED, confirmação da falha, GREEN mínimo e refactor somente após verde.
+- Medir commits lógicos de produção sem `StrictMode`, usando configuração idêntica antes/depois.
+- Descartar um warmup por cenário, medir cinco amostras e rotacionar deterministicamente a ordem dos cenários.
+- Somente commits consecutivos com fingerprint semântico idêntico contam como redundantes.
 
 ---
 
@@ -57,6 +60,7 @@ type CommitSample = {
   phase: 'mount' | 'update' | 'nested-update'
   actualDuration: number
   baseDuration: number
+  fingerprint: string
 }
 
 type ProfileSample = {
@@ -66,6 +70,7 @@ type ProfileSample = {
 }
 
 const SAMPLE_COUNT = 5
+const WARMUP_COUNT = 1
 
 function median(values: readonly number[]) {
   const sorted = [...values].sort((a, b) => a - b)
@@ -73,7 +78,42 @@ function median(values: readonly number[]) {
 }
 ```
 
-O callback do `<Profiler id={scenario} onRender={...}>` deve guardar todos os commits. Cada iteração deve criar novo `QueryClient`, limpar DOM/cache e usar os mesmos fixtures e ambiente.
+Renderizar sem `StrictMode`. O callback do `<Profiler id={scenario} onRender={...}>` deve guardar durações e correlacionar cada commit a uma serialização estável de:
+
+```tsx
+type SemanticSnapshot = {
+  phase: CommitSample['phase']
+  visibleDom: string
+  queryState: Array<{ key: string; status: string; fetchStatus: string; data: unknown }>
+  relevantProps: Record<string, unknown>
+}
+
+function semanticFingerprint(snapshot: SemanticSnapshot) {
+  return JSON.stringify(snapshot)
+}
+
+function isRedundant(previous: CommitSample | undefined, current: CommitSample) {
+  return previous?.fingerprint === current.fingerprint
+}
+```
+
+Normalizar o DOM removendo atributos voláteis e espaços irrelevantes, preservando textos, roles, disabled/checked e ordem/quantidade de itens. Ordenar query keys e objetos. Somente commits consecutivos idênticos são redundantes.
+
+Cada amostra deve criar novo router/history e `QueryClient`, e executar o reset completo:
+
+```tsx
+await queryClient.cancelQueries()
+queryClient.clear()
+useAuthStore.getState().clearSession()
+useCartSessionStore.setState({ cartIdsByCustomer: {} })
+clearCustomerPrivateSnapshots()
+server.resetHandlers()
+requestLedger.length = 0
+vi.clearAllTimers()
+vi.useRealTimers()
+vi.clearAllMocks()
+cleanup()
+```
 
 - [ ] **Step 2: Implementar o cenário Home sem waterfall**
 
@@ -116,31 +156,41 @@ Confirmar itens, status e total visíveis antes de concluir cada amostra.
 
 - [ ] **Step 5: Executar e registrar o baseline antes de qualquer otimização**
 
+Executar um warmup descartado por cenário. Nas cinco rodadas medidas, rotacionar:
+
+```text
+1: Home → Carrinho → Pedido
+2: Carrinho → Pedido → Home
+3: Pedido → Home → Carrinho
+4: Home → Carrinho → Pedido
+5: Carrinho → Pedido → Home
+```
+
 Run:
 
 ```powershell
 npm --prefix frontend test -- src/performance/renderPerformance.audit.test.tsx --reporter=verbose
 ```
 
-Expected: PASS para os contratos de requests; saída contendo cinco amostras de cada cenário. Copiar para o relatório, por cenário:
+Expected: PASS; saída contendo warmup descartado e cinco amostras medidas por cenário:
 
 ```text
-amostra | commits | actualDuration total | baseDuration total | requests
-mediana de commits | mediana de actualDuration
+amostra | commits | fingerprints | redundantes consecutivos | actualDuration total | baseDuration total | requests
+mediana de commits | mediana de actualDuration | mínimo/máximo e dispersão
 ```
 
 Registrar Node `v26.3.1`, npm `11.16.0`, Vite `6.4.3` e Vitest `4.1.10`.
 
 - [ ] **Step 6: Classificar commits semanticamente repetidos**
 
-Comparar em cada update o `visibleState`, dados resolvidos e props do cenário. Registrar uma destas decisões:
+Comparar os fingerprints consecutivos correlacionados ao Profiler:
 
 ```text
-CONFIRMADO: commit repetido sem alteração de props, query data ou estado visível.
-NÃO CONFIRMADO: todo commit corresponde a mount, transição pending→success ou mudança visível.
+CONFIRMADO: commits consecutivos têm phase, DOM/estado visível, query status/data e props relevantes idênticos.
+NÃO CONFIRMADO: não existem fingerprints consecutivos idênticos.
 ```
 
-Não modificar produto nesta task do plano.
+`actualDuration` não decide essa classificação. Não modificar produto nesta task do plano.
 
 - [ ] **Step 7: Commitar o baseline**
 
@@ -164,10 +214,10 @@ git commit -m "test(TASK-125): Medir baseline de renderizações"
 
 - [ ] **Step 1: Criar um RED para o observer da Home somente se confirmado**
 
-Se o relatório marcou o observer da Home como `CONFIRMADO`, adicionar uma asserção de que a URL canônica não provoca commit adicional após os dados estabilizarem:
+Se o relatório marcou a Home como `CONFIRMADO`, adicionar uma asserção semântica:
 
 ```tsx
-expect(stableVisibleStateCommits).toBe(1)
+expect(consecutiveDuplicateFingerprints).toHaveLength(0)
 ```
 
 Run:
@@ -199,10 +249,10 @@ Executar o teste focado. Expected: PASS, mesmas duas requests paralelas e mesmo 
 
 - [ ] **Step 4: Criar RED/GREEN para carrinho somente se confirmado**
 
-Se `CartPage` tiver commit estável repetido, escrever primeiro:
+Se `CartPage` tiver fingerprint consecutivo repetido, escrever primeiro:
 
 ```tsx
-expect(stableVisibleStateCommits).toBe(1)
+expect(consecutiveDuplicateFingerprints).toHaveLength(0)
 ```
 
 Run esperado: FAIL. Aplicar somente memoização derivada comprovadamente necessária, por exemplo:
@@ -228,7 +278,9 @@ Executar os três cenários novamente no mesmo ambiente. Para cada cenário:
 expect(finalMedianActualDuration).toBeLessThanOrEqual(baselineMedianActualDuration)
 ```
 
-Registrar valores brutos, mediana antes/depois, commits removidos ou “nenhuma mudança necessária”, e confirmar requests idênticas ao baseline.
+Registrar valores brutos, mediana antes/depois, fingerprints eliminados ou “nenhuma mudança necessária”, e confirmar requests idênticas. Duração é evidência e requisito do backlog, não o único RED/gate.
+
+Registrar ruído/dispersão. Se ocorrer inversão pequena sem regressão semântica, repetir uma única vez o protocolo completo com mesma rotação e ambiente, registrando ambas as execuções. A aprovação ainda exige mediana final `<=` baseline; não relaxar tolerância nem selecionar amostras.
 
 - [ ] **Step 7: Commitar apenas otimizações comprovadas**
 
@@ -259,7 +311,7 @@ type BootstrapOptions = {
   enableMocking?: () => Promise<void>
   getRootElement?: () => HTMLElement | null
   render?: (root: HTMLElement) => void
-  reportMockingFailure?: (error: unknown) => void
+  reportMockingFailure?: (message: string, error: unknown) => void
 }
 ```
 
@@ -272,6 +324,18 @@ it('awaits mocking before rendering exactly once', async () => {
 
 it('reports a mocking startup failure and still renders exactly once', async () => {
   // enableMocking rejeita; report recebe erro; render ocorre uma vez
+})
+
+it('does not leak an unhandled rejection when mocking startup fails', async () => {
+  const unhandled = vi.fn()
+  process.on('unhandledRejection', unhandled)
+  try {
+    await bootstrap({ enableMocking: () => Promise.reject(new Error('worker')) })
+    await Promise.resolve()
+    expect(unhandled).not.toHaveBeenCalled()
+  } finally {
+    process.off('unhandledRejection', unhandled)
+  }
 })
 
 it('rejects with the existing root error when #root is absent', async () => {
@@ -301,7 +365,9 @@ export async function bootstrap(options: BootstrapOptions = {}) {
   try {
     await startMocking()
   } catch (error) {
-    ;(options.reportMockingFailure ?? console.error)('Falha ao iniciar MSW.', error)
+    const reportMockingFailure = options.reportMockingFailure
+      ?? ((message: string, cause: unknown) => console.error(message, cause))
+    reportMockingFailure('Falha ao iniciar MSW.', error)
   }
 
   const rootElement = (options.getRootElement ?? (() => document.getElementById('root')))()
@@ -453,7 +519,7 @@ git commit -m "perf(TASK-125): Reduzir grafo JavaScript inicial"
 
 - [ ] **Step 1: Completar a tabela antes/depois**
 
-Registrar para cada cenário as cinco amostras brutas, mediana de commits e `actualDuration`, requests exatas, estado visível e decisão de otimização. A mediana final não pode superar a baseline.
+Registrar para cada cenário warmup descartado, ordem rotacionada, cinco amostras brutas, fingerprints, redundâncias consecutivas, mediana de commits e `actualDuration`, dispersão/ruído, requests exatas, estado visível e decisão. A mediana final não pode superar a baseline.
 
 - [ ] **Step 2: Completar a auditoria do bundle**
 

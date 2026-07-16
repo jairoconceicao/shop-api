@@ -27,6 +27,12 @@
 - `useOrderProductsQuery` também deduplica e ordena os IDs antes de formar a query key e executa `ensureQueryData` em paralelo via `Promise.all`.
 - A presença da deduplicação no código não substitui evidência comportamental. Os cenários frios devem conter itens repetidos e comprovar uma request por ID único.
 - `CartPage` e `OrderDetailPage` calculam mapas derivados durante render. Nenhuma memoização deve ser adicionada apenas por inspeção; otimização só entra no escopo se as cinco amostras demonstrarem commits semanticamente repetidos.
+- A medição representa commits lógicos de produção e deve ser executada sem `StrictMode`, com árvore idêntica antes/depois.
+- Cada cenário terá um warmup descartado e cinco amostras medidas. A ordem dos cenários será rotacionada deterministicamente para reduzir viés de aquecimento do runtime.
+- Cada callback do Profiler será correlacionado a um fingerprint com `phase`, DOM/estado visível normalizado, status/dados das queries e props relevantes. Somente fingerprints consecutivos idênticos contam como commits redundantes.
+- `actualDuration` é evidência sujeita a ruído, não prova isolada. A mediana final deve ser `<=` baseline pelo backlog, mas toda correção precisa também de um RED/gate semântico determinístico.
+- O relatório registrará dispersão e tolerância observada. Uma inversão pequena exige um único rerun controlado do protocolo completo, sem seleção de amostras ou relaxamento do limite.
+- Cada amostra deve resetar stores auth/carrinho, snapshots privados, router/history, handlers e ledgers, timers, mocks, QueryClient/cancelamento e DOM.
 
 ## Bootstrap e bundle
 
@@ -46,8 +52,8 @@
 
 ## Decisão de escopo
 
-- Criar primeiro um harness de Profiler em Vitest e registrar cinco amostras baseline, no mesmo processo/ambiente, para Home, carrinho com IDs repetidos e detalhe de pedido com IDs repetidos.
-- Registrar por amostra: sequência de `phase`, `actualDuration`, `baseDuration`, quantidade de commits e requests. Calcular a mediana de `actualDuration` total e de commits.
+- Criar primeiro um harness de Profiler em Vitest, descartar um warmup e registrar cinco amostras baseline, no mesmo processo/ambiente, para Home, carrinho com IDs repetidos e detalhe de pedido com IDs repetidos.
+- Registrar por amostra: sequência de `phase`, fingerprint semântico, `actualDuration`, `baseDuration`, quantidade de commits e requests. Calcular a mediana de `actualDuration` total e de commits.
 - Preservar explicitamente o paralelismo de categorias/catálogo e das consultas de produtos, além da deduplicação por ID.
 - Remover o observer redundante da Home somente se a medição confirmar commit semanticamente repetido.
 - Otimizar carrinho ou pedido somente se houver commits repetidos com props, dados de query e estado visível iguais. Caso contrário, documentar “nenhuma alteração necessária”.
