@@ -5,7 +5,7 @@
 - `BASE_COMMIT`: `f6bc9e502bbeb2d81896e2439c83c082cef5be47`.
 - Plano: `57a7304`, `3c7128a`.
 - Implementação: `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`,
-  `2a99661`, `aa1399d`, `07b5223`.
+  `2a99661`, `aa1399d`, `07b5223`, `c0d4822`.
 - O backlog não foi alterado.
 
 ## Cobertura entregue
@@ -27,10 +27,10 @@
 - O ledger estrito final é:
 
 ```text
-register=0 login=1 categories=6 catalog=1 profile=2 profileUpdate=0
-passwordUpdate=0 logout=0 product=2 cartCreate=1 cartAdd=1 cartGet=6
-cartUpdate=0 cartDelete=0 orderCreate=0 ordersList=0 orderDetail=1
-orderProduct=1 orderCancel=0
+register=0 login=1 categories=8 catalog=2 profile=2 profileUpdate=0
+passwordUpdate=0 logout=0 product=2 cartCreate=1 cartAdd=1 cartGet=8
+cartUpdate=0 cartDelete=0 orderCreate=0 ordersList=0 orderDetail=2
+orderProduct=2 orderCancel=0
 ```
 
 ## Foco e teclado
@@ -63,6 +63,7 @@ orderProduct=1 orderCancel=0
 | Imagem indisponível | `zinc-500`, contraste axe `3.65:1` | uso local de `zinc-400` |
 | Checkout | observação `zinc-500`, contraste axe `3.86:1` | uso local de `zinc-400` |
 | Checkout/confirmação | `main` aninhado no `main` do StoreLayout | container interno alterado para `div` |
+| Carrinho | região viva vazia permanecia renderizada | região renderizada somente quando há anúncio |
 
 Não houve substituição global de tokens. Após as correções, os sete estados
 não apresentam violações axe `serious`/`critical` nem findings do auditor de
@@ -71,10 +72,22 @@ contraste computado.
 ## Regiões vivas, semântica e movimento
 
 - Cada estado exige exatamente um landmark `main` e um `h1`.
+- A sequência de headings não pode saltar níveis.
 - Controles e landmarks auditados exigem nome acessível não vazio.
+- Landmarks repetidos do mesmo tipo exigem nomes distintos.
 - Apenas uma busca visível chamada `Buscar produtos` permanece na árvore.
-- Alertas de validação são assertivos; status e feedbacks permanecem polite.
-- A auditoria de movimento usa `prefers-reduced-motion: reduce` e confirmou:
+- Regiões vivas visíveis não podem estar vazias, aninhadas ou duplicar a
+  combinação de severidade e anúncio.
+- O auditor de contraste não usa tolerância acima dos limites WCAG, compõe
+  canais alpha e reprova backgrounds não sólidos, como gradientes e imagens.
+- A auditoria de movimento inspeciona cada elemento e seus pseudo-elementos
+  `::before` e `::after`, usa todas as durações/iterações computadas e reprova
+  animações infinitas.
+- Quatro testes adversariais comprovam que os auditores reprovam headings e
+  landmarks inválidos, regiões vivas inválidas, movimento em elementos e
+  pseudo-elementos e contraste abaixo dos limites ou sobre gradiente.
+- A auditoria de movimento usa `prefers-reduced-motion: reduce` e confirmou
+  catálogo, dialog e pedido:
   - `scroll-behavior: auto`;
   - animações efetivas até `0.01ms`;
   - no máximo uma iteração;
@@ -110,10 +123,10 @@ contraste computado.
 
 Executados no Windows, Chromium, timezone `America/Sao_Paulo`:
 
-- accessibility isolada: 1/1 PASS;
-- accessibility `--workers=1 --repeat-each=10`: 10/10 PASS;
-- E2E Chromium completa: 15/15 PASS;
-- E2E Chromium `--repeat-each=2`: 30/30 PASS;
+- accessibility isolada: 5/5 PASS;
+- accessibility `--workers=1 --repeat-each=10`: 50/50 PASS;
+- E2E Chromium completa: 19/19 PASS;
+- E2E Chromium `--repeat-each=2`: 38/38 PASS;
 - Vitest: 130/130 arquivos, 863/863 testes PASS;
 - `npm run typecheck`: PASS;
 - `npm run lint`: PASS;
