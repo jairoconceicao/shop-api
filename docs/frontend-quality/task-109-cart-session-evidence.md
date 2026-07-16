@@ -4,6 +4,10 @@
 
 “ID inválido” pertence à fronteira persistida e de migração. As actions públicas não foram alteradas. O produto já tratava falhas de `getItem`, `setItem` e `removeItem`; esta task adicionou apenas as evidências literais ausentes para leitura e remoção.
 
+O plano previa registrar os 10 testes encontrados antes da exploração. Foi registrado o desvio para 12 testes porque a exploração comprovou lacunas literais para falhas de `getItem` e `removeItem`, e o backlog autoriza adicionar a evidência ausente para cumprir o critério de preservar o uso em memória quando o `localStorage` falhar. O produto e as actions públicas permaneceram inalterados.
+
+Commit da implementação e da evidência inicial: `731b1bd8193643933a3d46618ed19145c0ff542e`.
+
 ## Matriz de critérios
 
 | Critério | Evidência automatizada |
@@ -21,17 +25,16 @@
 | Não lançar e continuar utilizável quando `getItem` falha | `keeps the in-memory map usable when localStorage fails during rehydration` |
 | Não lançar e continuar utilizável quando `removeItem` falha | `keeps the in-memory map usable when localStorage fails during removal` |
 
-## Execuções
+## Quatro comandos exigidos pelo plano
 
-| Verificação | Resultado | Exit code |
+| Comando completo | Resultado | Exit code |
 |---|---:|---:|
-| Teste focado, execução 1 | 1 arquivo; 12/12 PASS | 0 |
-| Teste focado, execução 2 | 1 arquivo; 12/12 PASS | 0 |
-| Consumers de sessão do carrinho | 7 arquivos; 52/52 PASS | 0 |
+| `npm --prefix frontend test -- src/features/cart/store/cartSessionStore.test.ts --reporter=verbose` | Execução 1: 1 arquivo; 12/12 PASS | 0 |
+| `npm --prefix frontend test -- src/features/cart/store/cartSessionStore.test.ts --reporter=verbose` | Execução 2: 1 arquivo; 12/12 PASS | 0 |
 | `npm --prefix frontend run typecheck` | PASS | 0 |
 | `npm --prefix frontend run lint` | PASS | 0 |
 
-Comandos focados: `npm --prefix frontend test -- src/features/cart/store/cartSessionStore.test.ts --reporter=verbose`, executado duas vezes. Consumers verificados: consulta, criação, adição, contagem, cache, checkout e exclusão de cliente.
+Verificação adicional dos consumers de consulta, criação, adição, contagem, cache, checkout e exclusão de cliente: 7 arquivos e 52/52 testes PASS, exit 0.
 
 ## Transparência TDD
 
