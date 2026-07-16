@@ -89,15 +89,14 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
 
       submissionInFlightRef.current = true
       createOrderMutation.reset()
-      createOrderMutation.mutate(
-        { values: parsed.data, cart },
-        {
-          onError: () => { submissionInFlightRef.current = false },
-          onSuccess: (createdOrder) => {
-            navigate(`/pedido-confirmado/${createdOrder.id}`)
-          },
-        },
-      )
+      void createOrderMutation
+        .mutateAsync({ values: parsed.data, cart })
+        .then((createdOrder) => {
+          navigate(`/pedido-confirmado/${createdOrder.id}`)
+        })
+        .catch(() => {
+          submissionInFlightRef.current = false
+        })
       return
     }
 
