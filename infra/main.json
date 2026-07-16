@@ -1,0 +1,976 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.45.15.27210",
+      "templateHash": "5647742708874363261"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region for all resources (e.g. eastus2, brazilsouth)"
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "prod",
+      "metadata": {
+        "description": "Environment name for resource naming"
+      }
+    },
+    "workloadName": {
+      "type": "string",
+      "defaultValue": "shopapi",
+      "metadata": {
+        "description": "Workload name for resource naming"
+      }
+    },
+    "postgresAdminUsername": {
+      "type": "string",
+      "defaultValue": "shopapi",
+      "metadata": {
+        "description": "PostgreSQL admin username"
+      }
+    },
+    "postgresAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "PostgreSQL admin password (must be strong)"
+      }
+    },
+    "databaseName": {
+      "type": "string",
+      "defaultValue": "shopapi",
+      "metadata": {
+        "description": "Database name to create"
+      }
+    },
+    "containerImageName": {
+      "type": "string",
+      "defaultValue": "shop-api:latest",
+      "metadata": {
+        "description": "Docker image name to deploy (e.g. shop-api:latest)"
+      }
+    },
+    "githubRepositoryUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "GitHub repository URL for Static Web App CI/CD (leave empty to skip GitHub integration)"
+      }
+    },
+    "githubBranch": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "GitHub branch to deploy from"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "monitoring",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "17921652568657157666"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name (prod, dev, etc.)"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2025-02-01",
+              "name": "[format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+              }
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[format('appi-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]",
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+            },
+            "logAnalyticsCustomerId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2025-02-01').customerId]"
+            },
+            "logAnalyticsPrimarySharedKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2025-02-01').primarySharedKey]"
+            },
+            "applicationInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('appi-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2020-02-02').ConnectionString]"
+            },
+            "applicationInsightsName": {
+              "type": "string",
+              "value": "[format('appi-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "identity",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "9118702924067861671"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2024-11-30",
+              "name": "[format('id-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]"
+            }
+          ],
+          "outputs": {
+            "identityId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('id-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+            },
+            "identityPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('id-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2024-11-30').principalId]"
+            },
+            "identityClientId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('id-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2024-11-30').clientId]"
+            },
+            "identityName": {
+              "type": "string",
+              "value": "[format('id-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "security",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          },
+          "identityPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.identityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "15147509565049008545"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            },
+            "identityPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the managed identity to grant access"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2024-11-01",
+              "name": "[format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "enableRbacAuthorization": true,
+                "enableSoftDelete": true,
+                "enablePurgeProtection": true,
+                "publicNetworkAccess": "Enabled"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]",
+              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), parameters('identityPrincipalId'), '4633458b-17de-408a-b874-0445c86b69e6')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')]",
+                "principalId": "[parameters('identityPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "keyVaultUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2024-11-01').vaultUri]"
+            },
+            "keyVaultName": {
+              "type": "string",
+              "value": "[format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            },
+            "keyVaultId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'identity')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "database",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          },
+          "postgresAdminUsername": {
+            "value": "[parameters('postgresAdminUsername')]"
+          },
+          "postgresAdminPassword": {
+            "value": "[parameters('postgresAdminPassword')]"
+          },
+          "databaseName": {
+            "value": "[parameters('databaseName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "10615267134748948716"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            },
+            "postgresAdminUsername": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "PostgreSQL admin username"
+              }
+            },
+            "postgresAdminPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "PostgreSQL admin password"
+              }
+            },
+            "databaseName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Database name"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+              "apiVersion": "2024-08-01",
+              "name": "[format('psql-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard_B1ms",
+                "tier": "Burstable"
+              },
+              "properties": {
+                "administratorLogin": "[parameters('postgresAdminUsername')]",
+                "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
+                "version": "16",
+                "storage": {
+                  "storageSizeGB": 32,
+                  "autoGrow": "Enabled"
+                },
+                "backup": {
+                  "backupRetentionDays": 7,
+                  "geoRedundantBackup": "Disabled"
+                },
+                "highAvailability": {
+                  "mode": "Disabled"
+                },
+                "availabilityZone": "1",
+                "createMode": "Default"
+              }
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', format('psql-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')), parameters('databaseName'))]",
+              "properties": {
+                "charset": "UTF8",
+                "collation": "en_US.utf8"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', format('psql-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "serverFqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', format('psql-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2024-08-01').fullyQualifiedDomainName]"
+            },
+            "serverName": {
+              "type": "string",
+              "value": "[format('psql-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            },
+            "databaseName": {
+              "type": "string",
+              "value": "[parameters('databaseName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "container-registry",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          },
+          "identityPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.identityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "10255279043523769762"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            },
+            "identityPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the managed identity to grant AcrPull"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2025-04-01",
+              "name": "[format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Basic"
+              },
+              "properties": {
+                "adminUserEnabled": true,
+                "zoneRedundancy": "Disabled"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ContainerRegistry/registries', format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName')))]",
+              "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName'))), parameters('identityPrincipalId'), '7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+                "principalId": "[parameters('identityPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "registryLoginServer": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName'))), '2025-04-01').loginServer]"
+            },
+            "registryName": {
+              "type": "string",
+              "value": "[format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName'))]"
+            },
+            "registryId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ContainerRegistry/registries', format('cr{0}{1}001', replace(parameters('workloadName'), '-', ''), parameters('environmentName')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'identity')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "compute",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          },
+          "logAnalyticsCustomerId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsCustomerId.value]"
+          },
+          "logAnalyticsPrimarySharedKey": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsPrimarySharedKey.value]"
+          },
+          "registryLoginServer": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-registry'), '2025-04-01').outputs.registryLoginServer.value]"
+          },
+          "identityId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.identityId.value]"
+          },
+          "keyVaultUri": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'security'), '2025-04-01').outputs.keyVaultUri.value]"
+          },
+          "applicationInsightsConnectionString": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsConnectionString.value]"
+          },
+          "containerImageName": {
+            "value": "[parameters('containerImageName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "3454493946568974744"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            },
+            "logAnalyticsCustomerId": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics Workspace customer ID"
+              }
+            },
+            "logAnalyticsPrimarySharedKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Log Analytics Workspace shared key"
+              }
+            },
+            "registryLoginServer": {
+              "type": "string",
+              "metadata": {
+                "description": "Container Registry login server"
+              }
+            },
+            "identityId": {
+              "type": "string",
+              "metadata": {
+                "description": "Managed Identity resource ID"
+              }
+            },
+            "keyVaultUri": {
+              "type": "string",
+              "metadata": {
+                "description": "Key Vault URI"
+              }
+            },
+            "applicationInsightsConnectionString": {
+              "type": "string",
+              "metadata": {
+                "description": "Application Insights connection string"
+              }
+            },
+            "containerImageName": {
+              "type": "string",
+              "defaultValue": "shop-api:latest",
+              "metadata": {
+                "description": "Docker image name (e.g. shop-api:latest)"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments",
+              "apiVersion": "2025-01-01",
+              "name": "[format('cae-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "appLogsConfiguration": {
+                  "destination": "log-analytics",
+                  "logAnalyticsConfiguration": {
+                    "customerId": "[parameters('logAnalyticsCustomerId')]",
+                    "sharedKey": "[parameters('logAnalyticsPrimarySharedKey')]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2025-01-01",
+              "name": "[format('ca-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('identityId'))]": {}
+                }
+              },
+              "properties": {
+                "environmentId": "[resourceId('Microsoft.App/managedEnvironments', format('cae-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]",
+                "configuration": {
+                  "activeRevisionsMode": "Single",
+                  "registries": [
+                    {
+                      "server": "[parameters('registryLoginServer')]",
+                      "identity": "[parameters('identityId')]"
+                    }
+                  ],
+                  "ingress": {
+                    "external": true,
+                    "targetPort": 8080,
+                    "transport": "http",
+                    "allowInsecure": false
+                  }
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "shop-api",
+                      "image": "[format('{0}/{1}', parameters('registryLoginServer'), parameters('containerImageName'))]",
+                      "resources": {
+                        "cpu": "[json('0.5')]",
+                        "memory": "1Gi"
+                      },
+                      "env": [
+                        {
+                          "name": "ASPNETCORE_ENVIRONMENT",
+                          "value": "Production"
+                        },
+                        {
+                          "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                          "value": "[parameters('applicationInsightsConnectionString')]"
+                        }
+                      ]
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": 0,
+                    "maxReplicas": 2
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', format('cae-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "containerAppUrl": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/containerApps', format('ca-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2025-01-01').configuration.ingress.fqdn]"
+            },
+            "containerAppEnvironmentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/managedEnvironments', format('cae-{0}-{1}-001', parameters('workloadName'), parameters('environmentName')))]"
+            },
+            "containerAppName": {
+              "type": "string",
+              "value": "[format('ca-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-registry')]",
+        "[resourceId('Microsoft.Resources/deployments', 'identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
+        "[resourceId('Microsoft.Resources/deployments', 'security')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "frontend",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
+          "workloadName": {
+            "value": "[parameters('workloadName')]"
+          },
+          "githubRepositoryUrl": {
+            "value": "[parameters('githubRepositoryUrl')]"
+          },
+          "githubBranch": {
+            "value": "[parameters('githubBranch')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.45.15.27210",
+              "templateHash": "15434732673543476424"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for all resources"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "defaultValue": "prod",
+              "metadata": {
+                "description": "Environment name for resource naming"
+              }
+            },
+            "workloadName": {
+              "type": "string",
+              "defaultValue": "shopapi",
+              "metadata": {
+                "description": "Workload name for resource naming"
+              }
+            },
+            "githubRepositoryUrl": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "GitHub repository URL (e.g. https://github.com/user/repo)"
+              }
+            },
+            "githubBranch": {
+              "type": "string",
+              "defaultValue": "main",
+              "metadata": {
+                "description": "GitHub branch to deploy"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/staticSites",
+              "apiVersion": "2024-11-01",
+              "name": "[format('stapp-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Free",
+                "tier": "Free"
+              },
+              "properties": {
+                "repositoryUrl": "[if(not(empty(parameters('githubRepositoryUrl'))), parameters('githubRepositoryUrl'), null())]",
+                "branch": "[if(not(empty(parameters('githubRepositoryUrl'))), parameters('githubBranch'), null())]",
+                "buildProperties": {
+                  "appLocation": "frontend",
+                  "apiLocation": "",
+                  "outputLocation": "dist",
+                  "appBuildCommand": "npm run build",
+                  "apiBuildCommand": ""
+                },
+                "provider": "[if(not(empty(parameters('githubRepositoryUrl'))), 'GitHub', null())]"
+              }
+            }
+          ],
+          "outputs": {
+            "staticSiteUrl": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Web/staticSites', format('stapp-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))), '2024-11-01').defaultHostname]"
+            },
+            "staticSiteName": {
+              "type": "string",
+              "value": "[format('stapp-{0}-{1}-001', parameters('workloadName'), parameters('environmentName'))]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "containerAppUrl": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'compute'), '2025-04-01').outputs.containerAppUrl.value]"
+    },
+    "staticSiteUrl": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontend'), '2025-04-01').outputs.staticSiteUrl.value]"
+    },
+    "keyVaultUri": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'security'), '2025-04-01').outputs.keyVaultUri.value]"
+    },
+    "postgresServerFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'database'), '2025-04-01').outputs.serverFqdn.value]"
+    },
+    "applicationInsightsConnectionString": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsConnectionString.value]"
+    }
+  }
+}

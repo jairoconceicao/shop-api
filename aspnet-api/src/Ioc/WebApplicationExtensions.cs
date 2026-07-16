@@ -1,6 +1,8 @@
 using aspnet_api.Api.Endpoints;
 using aspnet_api.Api.Middleware;
+using aspnet_api.Infrastructure.Persistence;
 using aspnet_api.Ioc;
+using Microsoft.EntityFrameworkCore;
 
 namespace aspnet_api.src.Ioc;
 
@@ -8,6 +10,12 @@ public static class WebApplicationExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
+            db.Database.Migrate();
+        }
+
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
