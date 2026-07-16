@@ -108,6 +108,7 @@ orderCreate=0 ordersList=2 orderDetail=0 orderProduct=0 orderCancel=0
 
 Before the first login in the restored-session scenario, the test synchronously
 captures the fixture ledger and requires `login=0`, `profile=0`, `cartGet=0`,
+`cartCreate=0`, `cartAdd=0`, `cartUpdate=0`, `cartDelete=0`, `orderCreate=0`,
 `ordersList=0`, `orderDetail=0`, `orderProduct=0` and `orderCancel=0`. After login
 it separately observes the transition to `login=1`, `profile=1` and
 `ordersList=1`; therefore a private request occurring before authentication fails

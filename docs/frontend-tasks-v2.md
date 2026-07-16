@@ -761,8 +761,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits `17a5ee9`, `2954271`, `cdfd5a7` e `a02eb42`; revisões final e incremental aprovadas sem findings CRITICAL ou IMPORTANT. O RED inicial alcançou `GET /api/v1/pedido` no handler que aceitava somente POST; o RED incremental reproduziu a classificação indevida `product=0/orderProduct=2` após o `422` e refetch com produto em cache. O GREEN correlaciona a hidratação consumível com o frame corrente e preserva `Criado` após recusa e reload. Contagens finais: `register=0`, `login=2`, `categories=5`, `catalog=1`, `profile=1`, `profileUpdate=0`, `passwordUpdate=0`, `logout=0`, `product=1`, `cartCreate=0`, `cartAdd=0`, `cartGet=0`, `cartUpdate=0`, `cartDelete=0`, `orderCreate=0`, `ordersList=2`, `orderDetail=4`, `orderProduct=3` e `orderCancel=1`. Spec isolada 1/1, repetição isolada 20/20, suíte Chromium repetida 14/14, typecheck, lint e diff-check PASS.
 
-[ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
-  - Status: READY
+[x] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
+  - Status: DONE
   - Depends on: TASK-010, TASK-108, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -770,9 +770,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Negar a rota protegida com sessão restaurada já expirada ou expirada durante o uso.
     - Limpar storages e caches privados, redirecionar com retorno interno seguro e impedir que voltar ou atualizar reabra conteúdo privado.
     - Afirmar requests e estados de limpeza e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `ca333a1`, `b02e2d9`, `0e48f78`, `ee735e6`, `e3b2080`, `a7be7f1`, `449bcbb` e `714f50e`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. Os REDs reproduziram módulo de limpeza ausente, identidade expirada descartada, caches privados preservados, agendamento inválido para `expiraEm` malformado/token vazio e ausência de prova pré-login. O GREEN captura e consome atomicamente a identidade transitória não persistida, nega a rota sincronamente, limpa ambos auth storages, associação do carrinho, queries/mutations privadas e snapshots, preserva retorno interno e mantém back/reload bloqueados. Antes do primeiro login, requests privados permanecem explicitamente em zero; contagens finais: cenário restaurado `login=1`, `categories=2`, `profile=1`, `ordersList=1`, demais `0`; cenário com duas expirações `login=2`, `categories=2`, `profile=2`, `ordersList=2`, demais `0`. Testes focados 29/29, spec 2/2, repetição 40/40, Chromium 9/9 e repetido 18/18, suíte unitária 839/839, typecheck, lint, build e diff-check PASS.
 
 [ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:

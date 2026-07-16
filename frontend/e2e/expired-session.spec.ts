@@ -118,7 +118,12 @@ test('restaura sessão expirada sem expor pedidos e mantém bloqueio após volta
   expect(authApi.requestCounts()).toMatchObject({
     login: 0,
     profile: 0,
+    cartCreate: 0,
+    cartAdd: 0,
     cartGet: 0,
+    cartUpdate: 0,
+    cartDelete: 0,
+    orderCreate: 0,
     ordersList: 0,
     orderDetail: 0,
     orderProduct: 0,
