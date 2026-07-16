@@ -15,11 +15,13 @@ Não houve alteração nos componentes medidos: nenhum cenário apresentou finge
 
 | Cenário | Commits (5 amostras) | Duração total em ms (5 amostras) | Mediana commits | Mediana ms | Mín.–máx. ms | Redundantes |
 |---|---|---|---:|---:|---:|---|
-| Home | 2, 2, 2, 2, 2 | 19,8661; 24,2606; 23,3382; 28,8102; 22,9168 | 2 | 23,3382 | 19,8661–28,8102 | 0, 0, 0, 0, 0 |
-| Carrinho | 5, 5, 5, 5, 5 | 55,1617; 49,9287; 48,7047; 32,6640; 38,7872 | 5 | 48,7047 | 32,6640–55,1617 | 0, 0, 0, 0, 0 |
-| Pedido | 4, 4, 4, 4, 4 | 25,2805; 31,0725; 34,1710; 31,1088; 30,6806 | 4 | 31,0725 | 25,2805–34,1710 | 0, 0, 0, 0, 0 |
+| Home | 2, 2, 2, 2, 2 | 18,4410; 15,5829; 17,7773; 19,3846; 15,1650 | 2 | 17,7773 | 15,1650–19,3846 | 0, 0, 0, 0, 0 |
+| Carrinho | 5, 5, 5, 5, 5 | 23,1429; 25,1589; 25,0031; 24,9446; 24,6640 | 5 | 24,9446 | 23,1429–25,1589 | 0, 0, 0, 0, 0 |
+| Pedido | 4, 4, 4, 4, 4 | 18,6799; 19,0437; 22,8792; 19,4053; 17,5528 | 4 | 19,0437 | 17,5528–22,8792 | 0, 0, 0, 0, 0 |
 
 Classificação: `NÃO CONFIRMADO` para Home, carrinho e detalhe do pedido. `actualDuration` apresentou dispersão esperada do ambiente jsdom, mas não foi usado isoladamente para autorizar otimizações.
+
+As medições acima substituem a execução inicial, cuja revisão detectou dois defeitos de evidência: o primeiro callback podia observar referências ainda não atribuídas e o DOM era reduzido somente a texto. O protocolo corrigido cria container e QueryClient antes do render; todo callback recebe um snapshot pós-commit válido ou falha explicitamente. A serialização registra tag, role, nome acessível, texto terminal, disabled, checked, value e estados ARIA relevantes, além de status/fetchStatus/data das queries e props.
 
 ## Requests e estados visíveis
 
@@ -53,8 +55,8 @@ Classificação: `NÃO CONFIRMADO` para Home, carrinho e detalhe do pedido. `act
 
 ## Gates
 
-- Focados: 44/44.
-- Suíte completa: 848/848, executada sem concorrência com build para não introduzir contenção artificial nos imports lazy.
+- Focados antes da correção: 44/44; testes específicos dos fingerprints corrigidos: 3/3.
+- Suíte completa após correção: 850/850, executada sem concorrência com build para não introduzir contenção artificial nos imports lazy.
 - Typecheck e lint: PASS.
 - Build e verificador do grafo: PASS.
 - E2E Chromium: 9/9.

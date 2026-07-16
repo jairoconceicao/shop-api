@@ -1,13 +1,18 @@
 import { Profiler, type ProfilerOnRenderCallback } from 'react'
-import { cleanup, screen, waitFor } from '@testing-library/react'
+import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { FeedbackProvider } from '../app/providers/FeedbackProvider'
 import { AppRouter } from '../app/router/AppRouter'
+import { UnauthorizedHandlerProvider } from '../features/auth/context/UnauthorizedHandlerProvider'
+import { AuthSessionInitializer } from '../features/auth/store/AuthSessionInitializer'
 import { useAuthStore } from '../features/auth/store/authStore'
 import { useCartSessionStore } from '../features/cart/store/cartSessionStore'
 import { clearCustomerPrivateSnapshots } from '../features/customer/cache/customerPrivateSnapshots'
-import { renderIntegration } from '../shared/testing/renderIntegration'
+import { createQueryClient } from '../shared/query/queryClient'
 import { server } from '../shared/testing/server'
 
 type CommitSample = {
@@ -37,6 +42,56 @@ const measuredCustomerIds = [
 function median(values: readonly number[]) {
   const sorted = [...values].sort((a, b) => a - b)
   return sorted[Math.floor(sorted.length / 2)]
+}
+
+function normalizeText(value: string | null) {
+  return (value ?? '').replace(/\s+/g, ' ').trim()
+}
+
+function serializeSemanticDom(root: HTMLElement) {
+  return [...root.querySelectorAll<HTMLElement>('*')].map((element) => {
+    const tag = element.tagName.toLowerCase()
+    const attributes: string[] = []
+    const role = element.getAttribute('role')
+    const name = element.getAttribute('aria-label')
+      ?? element.getAttribute('alt')
+      ?? (element.id ? root.querySelector<HTMLLabelElement>(`label[for="${CSS.escape(element.id)}"]`)?.textContent : null)
+    const text = element.children.length === 0 ? normalizeText(element.textContent) : ''
+    if (role) attributes.push(`role=${role}`)
+    if (name) attributes.push(`name=${normalizeText(name)}`)
+    if (text) attributes.push(`text=${text}`)
+    if ('disabled' in element && (element as HTMLButtonElement).disabled) attributes.push('disabled=true')
+    if ('checked' in element && (element as HTMLInputElement).checked) attributes.push('checked=true')
+    if ('value' in element && (element as HTMLInputElement).value) attributes.push(`value=${(element as HTMLInputElement).value}`)
+    for (const aria of ['aria-checked', 'aria-expanded', 'aria-selected', 'aria-current', 'aria-invalid', 'aria-busy']) {
+      const value = element.getAttribute(aria)
+      if (value !== null) attributes.push(`${aria}=${value}`)
+    }
+    return [tag, ...attributes].join('|')
+  }).join('\n')
+}
+
+function createSemanticSnapshot(input: {
+  phase: CommitSample['phase']
+  root?: HTMLElement
+  queryClient?: QueryClient
+  relevantProps: Record<string, unknown>
+}) {
+  if (!input.root || !input.queryClient) {
+    throw new Error('Commit snapshot requires DOM and QueryClient.')
+  }
+  const queryState = input.queryClient.getQueryCache().getAll().map((query) => ({
+    key: query.queryKey,
+    status: query.state.status,
+    fetchStatus: query.state.fetchStatus,
+    data: query.state.data,
+  })).sort((a, b) => JSON.stringify(a.key).localeCompare(JSON.stringify(b.key)))
+  return {
+    phase: input.phase,
+    visibleDom: serializeSemanticDom(input.root),
+    queryState,
+    relevantProps: input.relevantProps,
+  }
 }
 
 function normalizeDom(value: string) {
@@ -96,7 +151,7 @@ const order = {
   items,
 }
 
-async function resetAuditState(queryClient?: ReturnType<typeof renderIntegration>['queryClient']) {
+async function resetAuditState(queryClient?: QueryClient) {
   if (queryClient) {
     await queryClient.cancelQueries()
     queryClient.clear()
@@ -115,27 +170,20 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
   vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
   const requests: string[] = []
   const commits: CommitSample[] = []
-  const auditContext: {
-    queryClient?: ReturnType<typeof renderIntegration>['queryClient']
-    container?: HTMLElement
-  } = {}
+  const queryClient = createQueryClient()
+  const container = document.createElement('div')
+  document.body.append(container)
   const onRender: ProfilerOnRenderCallback = (_id, phase, actualDuration, baseDuration) => {
-    const queryState = auditContext.queryClient?.getQueryCache().getAll().map((query) => ({
-      key: query.queryKey,
-      status: query.state.status,
-      fetchStatus: query.state.fetchStatus,
-      data: query.state.data,
-    })).sort((a, b) => JSON.stringify(a.key).localeCompare(JSON.stringify(b.key))) ?? []
     commits.push({
       phase,
       actualDuration,
       baseDuration,
-      fingerprint: JSON.stringify({
+      fingerprint: JSON.stringify(createSemanticSnapshot({
         phase,
-        visibleDom: normalizeDom(auditContext.container?.textContent ?? ''),
-        queryState,
+        root: container,
+        queryClient,
         relevantProps: { scenario },
-      }),
+      })),
     })
   }
 
@@ -173,12 +221,19 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
     seedSession(7)
   }
 
-  const result = renderIntegration(
-    <Profiler id={scenario} onRender={onRender}><AppRouter /></Profiler>,
-    { initialEntries: [scenario === 'home' ? '/' : scenario === 'cart' ? '/carrinho' : '/pedidos/41'] },
+  const result = render(
+    <MemoryRouter initialEntries={[scenario === 'home' ? '/' : scenario === 'cart' ? '/carrinho' : '/pedidos/41']}>
+      <QueryClientProvider client={queryClient}>
+        <UnauthorizedHandlerProvider>
+          <AuthSessionInitializer />
+          <FeedbackProvider>
+            <Profiler id={scenario} onRender={onRender}><AppRouter /></Profiler>
+          </FeedbackProvider>
+        </UnauthorizedHandlerProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
+    { container },
   )
-  auditContext.queryClient = result.queryClient
-  auditContext.container = result.container
 
   if (scenario === 'home') {
     await waitFor(() => expect(requests).toEqual(expect.arrayContaining([
@@ -200,7 +255,11 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
     requests: [...requests],
     visibleState: normalizeDom(result.container.textContent ?? ''),
   }
-  await resetAuditState(auditContext.queryClient)
+  expect(commits.every((commit) => {
+    const snapshot = JSON.parse(commit.fingerprint) as { visibleDom: string; queryState: unknown[] }
+    return snapshot.visibleDom.length > 0 && Array.isArray(snapshot.queryState)
+  })).toBe(true)
+  await resetAuditState(queryClient)
   return sample
 }
 
@@ -222,6 +281,30 @@ function summarize(samples: readonly ProfileSample[]) {
 
 describe('TASK-125 render performance audit', () => {
   afterEach(() => resetAuditState())
+
+  it('preserves interactive semantics in DOM fingerprints', () => {
+    const root = document.createElement('div')
+    root.innerHTML = `
+      <button role="switch" aria-label="Notificações" aria-checked="true" disabled>Ativar</button>
+      <input aria-label="Quantidade" type="number" value="3" checked>
+    `
+
+    expect(serializeSemanticDom(root)).toContain(
+      'button|role=switch|name=Notificações|text=Ativar|disabled=true|aria-checked=true',
+    )
+    expect(serializeSemanticDom(root)).toContain(
+      'input|name=Quantidade|checked=true|value=3',
+    )
+  })
+
+  it('rejects commit snapshots captured before DOM and query state are available', () => {
+    expect(() => createSemanticSnapshot({
+      phase: 'mount',
+      root: undefined,
+      queryClient: undefined,
+      relevantProps: { scenario: 'home' },
+    })).toThrow('Commit snapshot requires DOM and QueryClient.')
+  })
 
   it('measures one discarded warmup and five rotated cold samples per scenario', async () => {
     const scenarios = ['home', 'cart', 'order'] as const

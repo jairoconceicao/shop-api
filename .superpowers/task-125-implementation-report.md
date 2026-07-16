@@ -15,6 +15,8 @@
 - Verificador: RED por módulo ausente; GREEN inclui teste negativo de arquivo inicial com 500001 bytes.
 - Componentes medidos não foram otimizados porque o critério determinístico de redundância não foi satisfeito.
 - Deduplicação `[5, 5, 9] -> requests 5 e 9`, paralelismo da Home, `Promise.all`, `Set`, query keys e `ensureQueryData` foram preservados.
+- A revisão revelou que a evidência inicial podia gerar snapshot vazio no primeiro commit e perdia atributos interativos. O RED comprovou ambos os problemas. O GREEN passou a preparar container/QueryClient antes do render, rejeitar contexto incompleto e serializar tag, role, nome, texto, disabled, checked, value e ARIA relevantes.
+- O protocolo warmup + cinco amostras foi repetido após a correção. Continuaram sem fingerprints consecutivos repetidos: Home 2 commits/17,7773 ms, carrinho 5/24,9446 ms e pedido 4/19,0437 ms de mediana.
 
 ## Commits
 
@@ -27,7 +29,7 @@
 - Testes focados: 44/44.
 - Typecheck: PASS.
 - Lint: PASS.
-- Suíte completa: 848/848.
+- Suíte completa após correção: 850/850.
 - `audit:performance`: PASS; entry 464141 bytes, seis chunks lazy distintos.
 - E2E Chromium: 9/9.
 - O primeiro gate completo executado em paralelo com build teve um timeout de 1 s no import lazy do checkout. O teste passou isolado após encerrar a contenção e a suíte completa foi repetida sozinha com 848/848.
