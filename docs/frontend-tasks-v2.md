@@ -794,8 +794,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Executar o build, manter cada chunk JavaScript inicial em até 500 kB não comprimidos e cada rota lazy separada, registrando ambiente, medições, requests, chunks e grafo de imports sem rota lazy alcançando o chunk inicial.
   - Evidência: planos `25e5d8a`, `330cbbd` e `0f4852b`; implementação `f99332c`, `e90247d`, `0f84086`, `2ca0ab6` e `01b9420`; revisão final sem findings CRITICAL ou IMPORTANT. O Profiler executou warmup descartado e cinco amostras rotacionadas por cenário com fingerprints pós-commit de DOM semântico, queries e props: Home 2 commits, mediana 17,7773 ms e faixa 15,1650–19,3846; carrinho 5 commits, mediana 24,9446 ms e faixa 23,1429–25,1589; pedido 4 commits, mediana 19,0437 ms e faixa 17,5528–22,8792; zero redundâncias consecutivas em todas as amostras, sem alterações especulativas nas páginas. Home preservou categorias e catálogo paralelos; carrinho e pedido com IDs `[5, 5, 9]` emitiram somente requests de produto 5 e 9. O bootstrap removeu top-level await e o plugin associado; o entry caiu de 728165 para 464141 bytes, com seis chunks lazy distintos fora do fecho estático. Suíte 850/850, E2E Chromium 9/9, typecheck, lint, build/auditoria e diff-check PASS.
 
-[ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
-  - Status: READY
+[x] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
+  - Status: DONE
   - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
@@ -803,6 +803,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Comprovar que CPF, endereço, perfil, itens e respostas não são persistidos em storage.
     - Limpar ambos os storages, query cache, mutation cache e snapshots privados em logout, `401` e cancelamento de conta, sem permitir restauração por requests tardios.
     - Executar busca estática sem `console.*`, token ou CPF em mensagens, testar os fluxos de limpeza e registrar relatório reproduzível, além de typecheck e lint.
+  - Evidência: planos `26f361d` e `7ae9431`; implementação `ab8fc29`, `54b9ce4`, `6902152`, `29cc1fa`, `3a3a05d`, `c10052d`, `d63069f`, `0160346`, `cc9aa6c`, `1417231` e `f7bf7eb`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. O inventário confirmou somente `shop-api:auth`, com a sessão contratada, e `shop-api:cart-session`, somente com `cartIdsByCustomer`. Logout, `401` e cancelamento limpam ambos os storages, queries, mutations e snapshots privados sem afetar estado público ou sessão sucessora; respostas tardias não restauram storage, cache ou reconciliação. O auditor AST validou contratos positivos exatos em 152 arquivos, rejeitou 19 fixtures negativas e confirmou zero `console.*`. Suíte 856/856, typecheck, lint, build com entry de 464,57 kB, E2E Chromium 1/1, diff-check e revisão independente PASS.
 
 [ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
   - Status: READY
@@ -825,7 +826,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Concluir auditoria automatizada sem violações sérias, registrar checklist manual e executar os gates locais aplicáveis sem falhas.
 
 [ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-126
   - Escopo: Frontend
   - Critérios de aceite:
