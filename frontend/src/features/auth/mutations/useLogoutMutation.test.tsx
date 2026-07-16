@@ -41,7 +41,7 @@ describe('useLogoutMutation', () => {
 
     function wrapper({ children }: PropsWithChildren) {
       return (
-        <MemoryRouter initialEntries={['/pedidos']}>
+        <MemoryRouter initialEntries={['/entrar']}>
           <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
         </MemoryRouter>
       )

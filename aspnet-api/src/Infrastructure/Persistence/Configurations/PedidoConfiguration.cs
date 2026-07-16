@@ -12,7 +12,7 @@ public class PedidoConfiguration : IEntityTypeConfiguration<Pedido>
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
         builder.Property(p => p.DataPedido).IsRequired()
-            .HasColumnType("timestamp without time zone");
+            .HasColumnType("timestamp with time zone");
 
         builder.Property(p => p.ClienteId).IsRequired();
         builder.Property(p => p.FormaPagamento).HasConversion<string>().IsRequired();
