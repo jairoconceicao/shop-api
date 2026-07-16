@@ -10,7 +10,23 @@ export type RequestName =
   | 'categories'
   | 'profile'
   | 'logout'
+  | 'product'
+  | 'cartCreate'
+  | 'cartAdd'
+  | 'cartGet'
 export type ExpectedRequestCounts = Partial<Record<RequestName, number>>
+export type RequestCounts = Readonly<Record<RequestName, number>>
+
+export type ProductData = {
+  id: number
+  title: string
+  description: string
+  model: string
+  price: number
+  stock: number
+  categoryId: number
+  categoryTitle: string
+}
 
 export type RegistrationData = {
   customerId: number
@@ -28,11 +44,16 @@ export type RegistrationData = {
   state: string
   areaCode: string
   phone: string
+  product: ProductData
+  cartId: number
+  cartItemId: number
 }
 
 export type AuthApi = {
   data: RegistrationData
   expectRequestCounts(expected: ExpectedRequestCounts): void
+  requestCounts(): RequestCounts
+  seedCustomer(): void
   assertRequestCounts(): void
   reset(): void
 }
@@ -86,6 +107,18 @@ export function buildRegistrationData(testInfo: TestInfo): RegistrationData {
     state: 'SP',
     areaCode: '11',
     phone: `91234${suffix}`,
+    product: {
+      id: 42,
+      title: `Notebook TASK-118 ${suffix}`,
+      description: 'Produto determinístico para a jornada visitante.',
+      model: 'TASK-118',
+      price: 3499.9,
+      stock: 8,
+      categoryId: 118,
+      categoryTitle: 'Informática',
+    },
+    cartId: 30_000 + seed,
+    cartItemId: 40_000 + seed,
   }
 }
 
@@ -130,9 +163,35 @@ export async function installAuthApi(
     categories: 0,
     profile: 0,
     logout: 0,
+    product: 0,
+    cartCreate: 0,
+    cartAdd: 0,
+    cartGet: 0,
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
+
+  const seededCustomer = (): RegistrationRequest => ({
+    senha: data.password,
+    cpf: data.cpf,
+    nome: data.name,
+    dataNascimento: data.birthDate,
+    email: data.email,
+    endereco: {
+      logradouro: data.street,
+      numero: data.number,
+      complemento: null,
+      cep: data.postalCode,
+      bairro: data.district,
+      cidade: data.city,
+      uf: data.state,
+    },
+    celular: {
+      ddd: data.areaCode,
+      numero: data.phone,
+      whatsApp: true,
+    },
+  })
 
   const increment = (name: RequestName) => {
     counts[name] += 1
@@ -183,6 +242,13 @@ export async function installAuthApi(
 
     if (url.pathname === '/api/v1/auth/login') {
       requireMethod(route, 'POST')
+      for (const name of ['cartCreate', 'cartAdd', 'cartGet'] as const) {
+        if (counts[name] !== 0) {
+          throw new Error(
+            `Cart request ${name} occurred before login processing`,
+          )
+        }
+      }
       increment('login')
       const body = readJson<LoginRequest>(route)
       if (
@@ -201,6 +267,102 @@ export async function installAuthApi(
           usuarioId: data.userId,
           clienteId: data.customerId,
           email: data.email,
+        },
+      })
+      return
+    }
+
+    if (url.pathname === `/api/v1/produto/${data.product.id}`) {
+      requireMethod(route, 'GET')
+      increment('product')
+      await json(route, {
+        status: true,
+        data: {
+          produtoId: data.product.id,
+          titulo: data.product.title,
+          descricao: data.product.description,
+          modelo: data.product.model,
+          foto: null,
+          preco: data.product.price,
+          estoque: data.product.stock,
+          categoria: {
+            categoriaId: data.product.categoryId,
+            titulo: data.product.categoryTitle,
+          },
+        },
+      })
+      return
+    }
+
+    if (url.pathname === '/api/v1/carrinho/criar') {
+      requireMethod(route, 'POST')
+      requireAuthorization(route)
+      increment('cartCreate')
+      if (request.postData() !== null) {
+        throw new Error(
+          `Expected empty cart creation body, received ${request.postData()}`,
+        )
+      }
+      await json(
+        route,
+        {
+          status: true,
+          data: {
+            carrinhoId: data.cartId,
+            dataCarrinho: '2026-07-16T12:00:00-03:00',
+          },
+        },
+        201,
+      )
+      return
+    }
+
+    if (url.pathname === '/api/v1/carrinho/items') {
+      requireMethod(route, 'POST')
+      requireAuthorization(route)
+      increment('cartAdd')
+      const body = readJson<{
+        produtoId: number
+        quantidade: number
+        valorUnitario: number
+      }>(route)
+      const expectedBody = {
+        produtoId: data.product.id,
+        quantidade: 3,
+        valorUnitario: data.product.price,
+      }
+      if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
+        throw new Error(`Unexpected cart item body: ${JSON.stringify(body)}`)
+      }
+      await json(
+        route,
+        {
+          status: true,
+          data: { itemId: data.cartItemId },
+        },
+        201,
+      )
+      return
+    }
+
+    if (url.pathname === `/api/v1/carrinho/${data.cartId}`) {
+      requireMethod(route, 'GET')
+      requireAuthorization(route)
+      increment('cartGet')
+      await json(route, {
+        status: true,
+        data: {
+          clienteId: data.customerId,
+          carrinhoId: data.cartId,
+          dataCarrinho: '2026-07-16T12:00:00-03:00',
+          items: [
+            {
+              itemId: data.cartItemId,
+              produtoId: data.product.id,
+              quantidade: 3,
+              valorUnitario: data.product.price,
+            },
+          ],
         },
       })
       return
@@ -253,6 +415,12 @@ export async function installAuthApi(
     data,
     expectRequestCounts(nextExpected) {
       expected = { ...nextExpected }
+    },
+    requestCounts() {
+      return { ...counts }
+    },
+    seedCustomer() {
+      registeredCustomer = seededCustomer()
     },
     assertRequestCounts() {
       const mismatches = (Object.keys(counts) as RequestName[]).flatMap(
