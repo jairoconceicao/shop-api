@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -105,7 +104,6 @@ function toRequest(values: RegistrationFormValues): CreateCustomerRequest {
 const required = (message: string) => ({ required: message })
 
 export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
-  const summaryRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const registrationMutation = useRegistrationMutation()
   const {
@@ -114,14 +112,11 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
     setValue,
     setError,
     formState: { errors },
-  } = useForm<RegistrationFormValues>({
-    defaultValues: { whatsApp: false },
-    shouldFocusError: false,
-  })
+  } = useForm<RegistrationFormValues>({ defaultValues: { whatsApp: false } })
 
-  const focusSummary = () => requestAnimationFrame(
+  const focusSummary = () => requestAnimationFrame(() => requestAnimationFrame(
     () => document.getElementById('registration-error-summary')?.focus(),
-  )
+  ))
   const submitRegistration = handleSubmit(async (values) => {
     try {
       const request = toRequest(values)
@@ -145,11 +140,6 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
   if (registrationMutation.error && remoteErrors.fields.length === 0 && remoteErrors.summary.length === 0) {
     formErrors.push({ message: registrationMutation.error.message })
   }
-  useEffect(() => {
-    if (formErrors.length === 0) return
-    const frame = requestAnimationFrame(() => summaryRef.current?.focus())
-    return () => cancelAnimationFrame(frame)
-  }, [formErrors.length])
   const cpfField = register('cpf', {
     ...required('Informe seu CPF.'),
     validate: (value) => normalizeCpf(value).length === 11 || 'Informe um CPF com 11 dígitos.',
@@ -173,7 +163,7 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
         </header>
 
         <form className="mt-8 space-y-8" noValidate onSubmit={submitRegistration}>
-          <FormErrorSummary id="registration-error-summary" ref={summaryRef} errors={formErrors} />
+          <FormErrorSummary id="registration-error-summary" errors={formErrors} />
 
           <fieldset className="grid gap-5 sm:grid-cols-2">
             <legend className="col-span-full mb-1 text-lg font-semibold text-zinc-100">Dados pessoais</legend>

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -20,7 +19,6 @@ type LoginFormValues = LoginRequest & {
 }
 
 export function LoginPage() {
-  const summaryRef = useRef<HTMLDivElement>(null)
   const setSession = useAuthStore((state) => state.setSession)
   const location = useLocation()
   const navigate = useNavigate()
@@ -33,12 +31,11 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     defaultValues: { manterConectado: false },
-    shouldFocusError: false,
   })
 
-  const focusSummary = () => requestAnimationFrame(
+  const focusSummary = () => requestAnimationFrame(() => requestAnimationFrame(
     () => document.getElementById('login-error-summary')?.focus(),
-  )
+  ))
   const submitLogin = handleSubmit(async (values) => {
     const parsedValues = loginRequestSchema.safeParse({
       email: values.email,
@@ -65,11 +62,6 @@ export function LoginPage() {
     loginMutation.error ? { message: loginMutation.error.message } : null,
   ].filter((error): error is { fieldId?: string; message: string } => error !== null)
 
-  useEffect(() => {
-    if (formErrors.length === 0) return
-    const frame = requestAnimationFrame(() => summaryRef.current?.focus())
-    return () => cancelAnimationFrame(frame)
-  }, [formErrors.length])
 
   return (
     <section className="container-page flex min-h-dvh items-center justify-center py-12 sm:py-16">
@@ -94,7 +86,7 @@ export function LoginPage() {
         ) : null}
 
         <form className="mt-8 space-y-5" noValidate onSubmit={submitLogin}>
-          <FormErrorSummary id="login-error-summary" ref={summaryRef} errors={formErrors} />
+          <FormErrorSummary id="login-error-summary" errors={formErrors} />
           <Input
             id="login-email"
             label="E-mail"
