@@ -6,6 +6,24 @@ import { IconButton } from './IconButton'
 import { LinkButton } from './LinkButton'
 
 describe('Button', () => {
+  it('preserves focus and keyboard event semantics without activating when disabled', () => {
+    const onClick = vi.fn()
+    const onKeyDown = vi.fn()
+    render(<><Button onKeyDown={onKeyDown}>Continuar</Button><Button disabled onClick={onClick}>Salvar</Button></>)
+
+    const enabled = screen.getByRole('button', { name: 'Continuar' })
+    enabled.focus()
+    fireEvent.keyDown(enabled, { key: 'Enter' })
+    fireEvent.keyDown(enabled, { key: ' ' })
+
+    expect(enabled).toHaveFocus()
+    expect(onKeyDown).toHaveBeenCalledTimes(2)
+    const disabled = screen.getByRole('button', { name: 'Salvar' })
+    fireEvent.click(disabled)
+    expect(disabled).toBeDisabled()
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
   it('uses a safe button type and forwards native behavior', () => {
     const onClick = vi.fn()
 
@@ -43,6 +61,19 @@ describe('IconButton', () => {
 })
 
 describe('LinkButton', () => {
+  it('is focusable and receives the native Enter keyboard event', () => {
+    const onKeyDown = vi.fn()
+    render(<MemoryRouter><LinkButton to="/produtos" onKeyDown={onKeyDown}>Produtos</LinkButton></MemoryRouter>)
+
+    const link = screen.getByRole('link', { name: 'Produtos' })
+    link.focus()
+    fireEvent.keyDown(link, { key: 'Enter' })
+
+    expect(link).toHaveFocus()
+    expect(link).toHaveAttribute('href', '/produtos')
+    expect(onKeyDown).toHaveBeenCalledOnce()
+  })
+
   it('renders navigation as a link with button styling', () => {
     render(
       <MemoryRouter>

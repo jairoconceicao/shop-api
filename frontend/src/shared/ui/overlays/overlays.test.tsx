@@ -15,6 +15,11 @@ function LockedDialogFixture() {
 }
 
 describe('Dialog', () => {
+  it('associates its optional description with the dialog', () => {
+    render(<Dialog open onOpenChange={vi.fn()} title="Excluir item" description="Esta ação não pode ser desfeita"><button>Cancelar</button></Dialog>)
+    expect(screen.getByRole('dialog', { name: 'Excluir item' })).toHaveAccessibleDescription('Esta ação não pode ser desfeita')
+  })
+
   it('manages initial focus, traps Tab, closes with Escape and restores focus', () => {
     render(<DialogFixture />)
     const trigger = screen.getByRole('button', { name: 'Excluir' })
@@ -52,6 +57,20 @@ describe('Dialog', () => {
 })
 
 describe('DropdownMenu', () => {
+  it('skips a disabled item during keyboard navigation and does not activate it', () => {
+    const blocked = vi.fn()
+    render(<DropdownMenu label="Conta" trigger="Minha conta"><DropdownMenuItem disabled onClick={blocked}>Bloqueado</DropdownMenuItem><DropdownMenuItem>Perfil</DropdownMenuItem></DropdownMenu>)
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Conta' }), { key: 'ArrowDown' })
+    return new Promise<void>((resolve) => requestAnimationFrame(() => {
+      const disabled = screen.getByRole('menuitem', { name: 'Bloqueado' })
+      expect(disabled).toBeDisabled()
+      expect(screen.getByRole('menuitem', { name: 'Perfil' })).toHaveFocus()
+      fireEvent.click(disabled)
+      expect(blocked).not.toHaveBeenCalled()
+      resolve()
+    }))
+  })
+
   it('supports keyboard navigation, activation and Escape focus return', () => {
     const action = vi.fn()
     render(<DropdownMenu label="Conta" trigger="Minha conta"><DropdownMenuItem onClick={action}>Perfil</DropdownMenuItem><DropdownMenuItem>Sair</DropdownMenuItem></DropdownMenu>)
