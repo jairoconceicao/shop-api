@@ -805,8 +805,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Executar busca estática sem `console.*`, token ou CPF em mensagens, testar os fluxos de limpeza e registrar relatório reproduzível, além de typecheck e lint.
   - Evidência: planos `26f361d` e `7ae9431`; implementação `ab8fc29`, `54b9ce4`, `6902152`, `29cc1fa`, `3a3a05d`, `c10052d`, `d63069f`, `0160346`, `cc9aa6c`, `1417231` e `f7bf7eb`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. O inventário confirmou somente `shop-api:auth`, com a sessão contratada, e `shop-api:cart-session`, somente com `cartIdsByCustomer`. Logout, `401` e cancelamento limpam ambos os storages, queries, mutations e snapshots privados sem afetar estado público ou sessão sucessora; respostas tardias não restauram storage, cache ou reconciliação. O auditor AST validou contratos positivos exatos em 152 arquivos, rejeitou 19 fixtures negativas e confirmou zero `console.*`. Suíte 856/856, typecheck, lint, build com entry de 464,57 kB, E2E Chromium 1/1, diff-check e revisão independente PASS.
 
-[ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
-  - Status: READY
+[x] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
+  - Status: DONE
   - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
@@ -814,9 +814,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Manter `scrollWidth <= clientWidth` no documento, permitindo rolagem horizontal somente em componentes explicitamente documentados.
     - Confirmar que controles, dialogs e formulários permanecem utilizáveis em todos os viewports.
     - Registrar screenshots, findings e correções e executar a auditoria responsiva e os gates locais aplicáveis sem falhas.
+  - Evidência: planos `d172cd2` e `2b53e00`; implementação `e9e50e4`, `6088d84`, `4f7af8b`, `b5e701d`, `594138e` e `0fa3123`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. A matriz executou 5 viewports × 13 estados, totalizando 65/65 checkpoints e screenshots anexadas, com anti-flake de 25/25 jornadas e 325 checkpoints; shards 1/5 e 5/5 executaram uma jornada cada. O auditor exige documento e controles integralmente contidos e permite exatamente `categories`, `account-navigation` e `pagination`. Um RED real no resumo do carrinho em 1024/1920 px (`scrollWidth=324`, `clientWidth=270`) foi corrigido mantendo as ações em coluna; o ledger estrito foi idêntico nos cinco viewports, incluindo login, carrinho, checkout, conta e pedidos. Suíte Chromium 14/14, repetição 28/28, Vitest 856/856, typecheck, lint, build com entry de 464,68 kB, diff-check e ausência de artefatos Playwright rastreados PASS.
 
 [ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-127
   - Escopo: Frontend
   - Critérios de aceite:
