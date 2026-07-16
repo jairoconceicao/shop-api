@@ -622,7 +622,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-108
+  - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
     - Usar MSW e providers reais para persistir login conforme a escolha e aceitar somente `returnTo` interno, usando rota segura para valor externo ou malformado.
@@ -632,7 +632,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107
+  - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
     - Com MSW e providers reais, validar o body normalizado do cadastro e a navegação com confirmação após `201`.
@@ -642,7 +642,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106
+  - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
     - Com MSW e providers reais, iniciar categorias e primeira página do catálogo em paralelo e usar exclusivamente o endpoint dedicado ao filtrar por categoria.
@@ -652,7 +652,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-109
+  - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
     - Com MSW e providers reais, criar carrinho sem body antes do primeiro item e ler o carrinho existente.
@@ -662,7 +662,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-114
+  - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-114
   - Escopo: Frontend
   - Critérios de aceite:
     - Com MSW e providers reais, carregar carrinho e perfil confirmados e criar o pedido com itens confirmados, contrato estrito e data ISO.
@@ -672,7 +672,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
   - Status: BLOCKED
-  - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107
+  - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
     - Com MSW e providers reais, enviar CPF, período e paginação corretos na lista e usar cliente e pedido capturados no detalhe.
@@ -682,7 +682,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-111, TASK-112
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116
   - Escopo: Frontend
   - Critérios de aceite:
     - Criar fixtures e handlers Playwright determinísticos, com dados nomeados por teste, contadores de requests reiniciados no `beforeEach` e falha para requests não declarados.
@@ -692,7 +692,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-113
+  - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117, com storage e backend isolados e seletores semânticos.
@@ -702,7 +702,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-111, TASK-113, TASK-114, TASK-117
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117 e iniciar a jornada autenticada com estado isolado.
@@ -712,7 +712,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-115, TASK-119
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-119
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com carrinho autenticado não vazio e isolado.
@@ -722,7 +722,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-121: Criar E2E de edição de dados e troca de senha.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-112, TASK-117
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117 e carregar o perfil autenticado em estado isolado.
@@ -732,7 +732,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-116, TASK-117
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com pedidos conhecidos e isolados.
@@ -742,7 +742,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
   - Status: BLOCKED
-  - Depends on: TASK-010, TASK-108, TASK-111, TASK-117
+  - Depends on: TASK-010, TASK-108, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
     - Reutilizar a infraestrutura determinística da TASK-117 e controlar o relógio e os storages por teste.
@@ -752,7 +752,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
   - Status: BLOCKED
-  - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105
+  - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
     - Usar imports dinâmicos para checkout, confirmação, dados pessoais, senha, lista e detalhe de pedidos.
@@ -762,7 +762,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
   - Status: BLOCKED
-  - Depends on: TASK-053, TASK-069, TASK-102, TASK-124
+  - Depends on: TASK-053, TASK-069, TASK-102, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124
   - Escopo: Frontend
   - Critérios de aceite:
     - Medir com React Profiler em Vitest a Home inicial, o carrinho com IDs repetidos e o detalhe de pedido com IDs repetidos, executando cada cenário cinco vezes no mesmo ambiente e registrando a mediana antes e depois.
@@ -772,7 +772,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
   - Status: BLOCKED
-  - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109
+  - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
     - Inventariar cada chave persistida e restringir auth à sessão necessária e carrinho ao mapa de IDs.
@@ -782,7 +782,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
   - Status: BLOCKED
-  - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101
+  - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
     - Auditar as rotas principais nos viewports de 320, 375, 768, 1024 e 1920 px.
@@ -792,7 +792,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
   - Status: BLOCKED
-  - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-127
+  - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-127
   - Escopo: Frontend
   - Critérios de aceite:
     - Concluir as jornadas principais somente por teclado e verificar ordem, visibilidade e restauração de foco.
@@ -802,7 +802,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 [ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
   - Status: BLOCKED
-  - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-126
+  - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-126
   - Escopo: Frontend
   - Critérios de aceite:
     - Criar `frontend/README.md` com requisitos e versões, instalação e configuração de `VITE_API_BASE_URL` e ativação opt-in do MSW.
