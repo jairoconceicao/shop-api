@@ -23,7 +23,8 @@
 - Selecionar `Cartão`, cujo valor transportado exato é `Cartao`.
 - O body do pedido contém somente `enderecoEntrega`, `formaPagamento`, `dataPedido` e `items`; nunca contém `clienteId` ou `carrinhoId`.
 - `dataPedido` deve ser string ISO 8601 válida com offset e deve ser devolvida pelo servidor como `dataPedido` da confirmação.
-- O POST `/api/v1/pedido` ocorre exatamente uma vez, mesmo após dois cliques deliberados em “Confirmar pedido”.
+- O teste chama `form.requestSubmit(submitter)` duas vezes, sincronamente, na mesma avaliação do browser antes de React poder renderizar o estado pendente; dois eventos `submit` devem ser observados e o POST `/api/v1/pedido` deve ocorrer exatamente uma vez.
+- `AuthApi.customerSnapshot()` expõe uma cópia somente leitura do cliente salvo no backend em memória; o teste compara snapshots antes e depois do pedido para provar que a edição do checkout não alterou o perfil.
 - Contagens brutas esperadas: `login=1`, `categories=4`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `profile=1`, `orderCreate=1`; todas as demais são zero.
 - As quatro categorias correspondem às cargas completas de `/carrinho` visitante, `/carrinho` autenticado, produto e `/carrinho` após confirmação. As duas leituras de carrinho correspondem ao vínculo criado e à reconciliação do item adicionado; checkout reutiliza o cache confirmado.
 - O consumo do carrinho deve ser provado pela UI: badge positivo ausente e `/carrinho` exibe “Seu carrinho está vazio” sem novo GET do carrinho antigo.
@@ -133,7 +134,7 @@ Expected: `TASK-117` and `TASK-119` are `DONE`; `TASK-120` is `READY`; every `De
 
 **Interfaces:**
 - Consumes: `test`, `expect`, `AuthApi.seedCustomer()`, mutable cart handlers from `TASK-119`, semantic checkout controls.
-- Produces: typed requirements for `data.orderId` and request counter `orderCreate`.
+- Produces: typed requirements for `data.orderId`, request counter `orderCreate` and `customerSnapshot()`.
 
 - [ ] **Step 1: Create the E2E spec**
 
@@ -150,6 +151,8 @@ test('cria e confirma um pedido consumindo o carrinho', async ({
   const editedStreet = `${data.street} — somente pedido`
 
   authApi.seedCustomer()
+  const profileBeforeCheckout = authApi.customerSnapshot()
+  expect(profileBeforeCheckout?.endereco.logradouro).toBe(data.street)
   authApi.expectRequestCounts({
     login: 1,
     categories: 4,
@@ -204,17 +207,35 @@ test('cria e confirma um pedido consumindo o carrinho', async ({
   await expect(page.getByText(/R\$\s10\.499,70/, { exact: true })).toHaveCount(2)
 
   const confirm = page.getByRole('button', { name: 'Confirmar pedido' })
-  await confirm.dblclick()
+  const submitAttempts = await confirm.evaluate((element) => {
+    const submitter = element as HTMLButtonElement
+    const form = submitter.form
+    if (!form) throw new Error('Checkout submitter has no form')
+
+    let attempts = 0
+    form.addEventListener('submit', () => {
+      attempts += 1
+    })
+    form.requestSubmit(submitter)
+    form.requestSubmit(submitter)
+    return attempts
+  })
+  expect(submitAttempts).toBe(2)
 
   await expect(page).toHaveURL(`/pedido-confirmado/${data.orderId}`)
   await expect(
     page.getByRole('heading', { level: 1, name: 'Pedido criado' }),
   ).toBeVisible()
   const confirmation = page.getByRole('main')
-  await expect(confirmation).toContainText(String(data.orderId))
+  await expect(confirmation.getByText('Pedido', { exact: true })).toBeVisible()
+  await expect(
+    confirmation.getByText(String(data.orderId), { exact: true }),
+  ).toBeVisible()
   await expect(confirmation).toContainText('Criado')
   await expect(confirmation).toContainText('Cartao')
   await expect(confirmation).toContainText(/R\$\s10\.499,70/)
+  expect(authApi.customerSnapshot()).toEqual(profileBeforeCheckout)
+  expect(authApi.customerSnapshot()?.endereco.logradouro).toBe(data.street)
   await expect(page.getByLabel('Carrinho', { exact: true })).toBeVisible()
   await expect(
     page.getByRole('link', { name: /Carrinho com \d+ itens?/ }),
@@ -244,7 +265,7 @@ Run:
 npm --prefix frontend run typecheck
 ```
 
-Expected: FAIL because `orderId` is absent from `RegistrationData` and `orderCreate` is absent from `RequestName`.
+Expected: FAIL because `orderId` is absent from `RegistrationData`, `orderCreate` is absent from `RequestName` and `customerSnapshot` is absent from `AuthApi`.
 
 - [ ] **Step 3: Apply the exact temporary RED declarations**
 
@@ -287,9 +308,9 @@ Expected: FAIL when `POST /api/v1/pedido` reaches the unexpected-request fallbac
 
 **Interfaces:**
 - Consumes: `cartItem`, `registeredCustomer`, `requireMethod`, `requireAuthorization`, `readJson`, `json`.
-- Produces: deterministic `orderCreate` ledger, exact request validation and canonical created-order response.
+- Produces: deterministic `orderCreate` ledger, exact request validation, canonical created-order response and immutable profile observation.
 
-- [ ] **Step 1: Add request types beside `LoginRequest`**
+- [ ] **Step 1: Add request and snapshot types beside `LoginRequest`**
 
 ```ts
 type DeliveryAddressRequest = {
@@ -313,9 +334,65 @@ type CreateOrderRequest = {
     valorUnitario: number
   }>
 }
+
+export type CustomerSnapshot = {
+  readonly cpf: string
+  readonly nome: string
+  readonly dataNascimento: string
+  readonly email: string
+  readonly endereco: {
+    readonly logradouro: string
+    readonly numero: string
+    readonly complemento: string | null
+    readonly cep: string
+    readonly bairro: string
+    readonly cidade: string
+    readonly uf: string
+  }
+  readonly celular: {
+    readonly ddd: string
+    readonly numero: string
+    readonly whatsApp: boolean
+  }
+}
 ```
 
-- [ ] **Step 2: Add the endpoint before the profile route**
+- [ ] **Step 2: Extend `AuthApi` with a readonly customer snapshot**
+
+Add this exact member to `AuthApi`:
+
+```ts
+customerSnapshot(): CustomerSnapshot | null
+```
+
+Add this exact helper after `seededCustomer`:
+
+```ts
+const customerSnapshot = (): CustomerSnapshot | null => {
+  if (registeredCustomer === null) return null
+
+  return {
+    cpf: registeredCustomer.cpf,
+    nome: registeredCustomer.nome,
+    dataNascimento: registeredCustomer.dataNascimento,
+    email: registeredCustomer.email,
+    endereco: { ...registeredCustomer.endereco },
+    celular: { ...registeredCustomer.celular },
+  }
+}
+```
+
+Add this exact method to the returned `AuthApi` object immediately before `seedCustomer()`:
+
+```ts
+customerSnapshot() {
+  return customerSnapshot()
+},
+```
+
+The returned object and both nested objects are copies. The E2E can observe server state but cannot mutate `registeredCustomer`.
+
+- [ ] **Step 3: Add the endpoint before the profile route**
 
 ```ts
 if (url.pathname === '/api/v1/pedido') {
@@ -376,7 +453,7 @@ if (url.pathname === '/api/v1/pedido') {
 
 The destructuring plus exact `JSON.stringify` comparison rejects missing and extra top-level fields; nested address and item objects are also exact. The route consumes `cartItem` only after complete validation.
 
-- [ ] **Step 3: Verify the final declarations**
+- [ ] **Step 4: Verify the final declarations**
 
 The final ledger includes:
 
@@ -396,9 +473,9 @@ export type RequestName =
   | 'orderCreate'
 ```
 
-`RegistrationData` and `buildRegistrationData()` include `orderId`, and the `counts` object includes `orderCreate: 0`. Existing generic `reset()` clears the new counter automatically; `cartItem = null` already clears mutable order input.
+`RegistrationData` and `buildRegistrationData()` include `orderId`, the `counts` object includes `orderCreate: 0`, and `AuthApi` includes `customerSnapshot(): CustomerSnapshot | null`. Existing generic `reset()` clears the new counter automatically; `cartItem = null` and `registeredCustomer = null` clear both mutable order input and observed profile state.
 
-- [ ] **Step 4: Run GREEN typecheck and focused journey**
+- [ ] **Step 5: Run GREEN typecheck and focused journey**
 
 Run:
 
@@ -409,7 +486,7 @@ npm --prefix frontend run test:e2e -- checkout.spec.ts --project=chromium
 
 Expected: typecheck PASS and journey 1/1 PASS with exactly one order POST.
 
-- [ ] **Step 5: Prove previous cart journeys remain compatible**
+- [ ] **Step 6: Prove previous cart journeys remain compatible**
 
 Run:
 
@@ -419,7 +496,7 @@ npm --prefix frontend run test:e2e -- guest-cart.spec.ts cart-lifecycle.spec.ts 
 
 Expected: 3/3 PASS; unmentioned `orderCreate` remains zero in prior specs.
 
-- [ ] **Step 6: Commit shared backend**
+- [ ] **Step 7: Commit shared backend**
 
 Run:
 
@@ -457,10 +534,10 @@ Expected: no matches.
 Run:
 
 ```bash
-rg -n "dblclick|pedido-confirmado|orderId|Criado|Cartao|10\\.499,70|orderCreate: 1|Seu carrinho está vazio" frontend/e2e/checkout.spec.ts
+rg -n "requestSubmit|submitAttempts|toBe\\(2\\)|pedido-confirmado|orderId|Criado|Cartao|10\\.499,70|customerSnapshot|orderCreate: 1|Seu carrinho está vazio" frontend/e2e/checkout.spec.ts
 ```
 
-Expected: every criterion is present; `dblclick()` is the only submission action and ledger expects `orderCreate: 1`.
+Expected: both synchronous `requestSubmit(submitter)` calls, assertion of two browser submit events, exact labeled order ID, unchanged customer snapshot and ledger expectation `orderCreate: 1` are present.
 
 - [ ] **Step 3: Run twice**
 
@@ -543,13 +620,14 @@ Reviewer checklist:
 5. Payment label `Cartão` transports exact value `Cartao`.
 6. POST path, method, authorization and all body keys/values are exact.
 7. `dataPedido` is ISO with offset; `clienteId` and `carrinhoId` are absent.
-8. A deliberate double-click produces `orderCreate=1`.
-9. Confirmation route and visible ID, status, payment and total come from the mocked server response.
-10. Successful creation consumes server cart state and client cart binding.
-11. Positive badge disappears and revisiting `/carrinho` renders the empty state without GET of the old cart.
-12. Fixture reset clears order count and cart state after success or failure.
-13. Existing auth, guest-cart and cart-lifecycle specs remain green.
-14. No product, ASP.NET backend or backlog file changed.
+8. Two synchronous `requestSubmit(submitter)` calls dispatch two submit events before React rerenders, while `orderCreate=1`.
+9. Confirmation route and exact visible ID under the visible “Pedido” label, status, payment and total come from the mocked server response.
+10. `customerSnapshot()` returns copies, the pre/post snapshots are equal and the stored street remains `data.street` after the order body used `editedStreet`.
+11. Successful creation consumes server cart state and client cart binding.
+12. Positive badge disappears and revisiting `/carrinho` renders the empty state without GET of the old cart.
+13. Fixture reset clears order count, cart state and customer snapshot after success or failure.
+14. Existing auth, guest-cart and cart-lifecycle specs remain green.
+15. No product, ASP.NET backend or backlog file changed.
 
 Expected: no `CRITICAL` or `IMPORTANT`. Any such finding returns to the implementer, reruns affected gates and receives a new review.
 
@@ -584,7 +662,7 @@ The orchestrator marks only `TASK-120` as `DONE`, records evidence and commits, 
 
 ## Self-Review
 
-- **Spec coverage:** nonempty cart, checkout, order-only address edit, payment, single POST, server-backed confirmation and consumed cart each map to a visible assertion plus strict traffic validation.
+- **Spec coverage:** nonempty cart, checkout, order-only address edit with unchanged profile snapshot, payment, two synchronous submits with one POST, exact server-backed confirmation and consumed cart each map to a visible assertion plus strict traffic validation.
 - **Placeholder scan:** no placeholder, deferred implementation, implicit repetition, unspecified test or generic error-handling instruction remains.
 - **Type consistency:** endpoint, Portuguese transport keys, address fields, item fields, payment enum, response fields and route parameter match inspected production contracts.
 - **Isolation:** existing fixture clears storage and state; the new counter participates in generic assertion/reset; order consumes only per-test `cartItem`.
