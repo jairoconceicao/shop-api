@@ -827,8 +827,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Concluir auditoria automatizada sem violações sérias, registrar checklist manual e executar os gates locais aplicáveis sem falhas.
   - Evidência: planos `57a7304` e `3c7128a`; implementação `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`, `2a99661`, `aa1399d`, `07b5223`, `851c5bc`, `c0d4822`, `badbc03` e `d112336`; revisão independente concluída sem findings CRITICAL ou IMPORTANT, com os findings MINOR finais de landmark `role="navigation"` genérico e contraste isolado de texto grande corrigidos. A jornada cobre sete estados por teclado, foco e restauração em menu e três dialogs, regiões vivas, semântica, contraste WCAG AA e movimento reduzido em elementos e pseudo-elementos. Accessibility final 6/6 e testes focados finais 2/2 PASS; anti-flake accessibility 50/50, Chromium 19/19 e repetição 38/38; Vitest 130 arquivos/863 testes, typecheck, lint, build com entry de 465,83 kB, diff-check e ausência de artifacts Playwright rastreados PASS.
 
-[ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
-  - Status: READY
+[x] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
+  - Status: DONE
   - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-126
   - Escopo: Frontend
   - Critérios de aceite:
@@ -836,9 +836,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Documentar todos os scripts e a execução integrada com API, PostgreSQL e Docker, além de testes unitários, E2E e build.
     - Documentar troubleshooting e a política de dados locais inventariada na TASK-126.
     - Validar em checkout limpo que os comandos documentados podem ser copiados e executados com sucesso.
+  - Evidência: planos `a9806f4`, `7a1751c` e `77da209`; implementação e validação `3f031c7`, `50caf90`, `86f773f` e `653baae`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. Em worktree detached no commit exato, Node 26.3.1/npm 11.16.0 executaram `npm ci` com 315 pacotes e zero vulnerabilidades, typecheck, lint, Vitest 130 arquivos/863 testes, Playwright Chromium 20/20, build, grafo inicial de 465833 bytes com 6 rotas lazy e auditoria privada de 153 arquivos/19 negativos, todos com exit code zero. O Docker Desktop foi iniciado de modo oculto dentro do deadline; Docker 29.6.1, PostgreSQL 17.10 e .NET SDK 10.0.302 executaram `shop-api-db` healthy, restore e migrations com `dotnet-ef` 10.0.10, `shop-api-app` com readiness 200 e smoke Chromium real 1/1, MSW desativado, sem service worker, interceptações, erros de console, página ou CORS. Um RED real em checkout limpo revelou `NETSDK1004` e adicionou `dotnet restore` ao container one-shot; a revisão tornou o segundo terminal autocontido e separou o diagnóstico da migration dos logs da API. O cleanup confirmou containers, rede, diretório temporário e listener 5173 ausentes; worktree temporário removido, diff-check e status final PASS.
 
 [ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124, TASK-125, TASK-126, TASK-127, TASK-128, TASK-129
   - Escopo: Frontend
   - Critérios de aceite:
