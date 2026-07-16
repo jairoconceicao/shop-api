@@ -13,8 +13,8 @@
 | Ordem | Tasks | Estado | Plano executável |
 | --- | --- | --- | --- |
 | 1 | `TASK-106`–`TASK-110` | `READY` | `docs/superpowers/plans/2026-07-15-fase-8-lote-1-cobertura-deterministica.md` |
-| 2 | `TASK-111`–`TASK-116` | `READY`; `TASK-115` bloqueada até `TASK-114` | [plano detalhado de integrações MSW](./2026-07-16-fase-8-lote-2-integracoes-msw.md) |
-| 3 | `TASK-117`–`TASK-123` | `BLOCKED` até lote 2 `DONE` | criar após desbloqueio |
+| 2 | `TASK-111`–`TASK-116` | `DONE` | [plano detalhado de integrações MSW](./2026-07-16-fase-8-lote-2-integracoes-msw.md) |
+| 3 | `TASK-117`–`TASK-123` | `TASK-117` `READY`; demais bloqueadas até `TASK-117` `DONE` | `TASK-117`: `docs/superpowers/plans/2026-07-16-task-117-auth-e2e.md`; criar planos de `TASK-118`–`TASK-123` após desbloqueio |
 | 4 | `TASK-124`–`TASK-129` | `BLOCKED` até lote 3 `DONE` | criar após desbloqueio |
 | 5 | `TASK-130` | `BLOCKED` até `TASK-106`–`TASK-129` `DONE` | criar após desbloqueio |
 
