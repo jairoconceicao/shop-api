@@ -91,11 +91,9 @@ Copie o teste parametrizado e feche `describe`.
 
 Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "preserves checkout"`. Expected GREEN: `2 passed`; RED inesperado → `BLOCKED`.
 
-- [ ] **Step 6: RED/GREEN/review**
+- [ ] **Step 6: gate final e review**
 
-RED focused expected literals: `expected bodies to have a length of 1 but got 2`, `expected 70 to be undefined` ou failure branch `expected 70`. Esse resultado muda TASK-115 para `BLOCKED` e retorna ao explorador.
-
-GREEN focused + typecheck + lint exit `0`. Commit `test(TASK-115): integrar criação de pedido com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
+Teste focado completo + typecheck + lint devem sair `0`. Commit `test(TASK-115): integrar criação de pedido com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 

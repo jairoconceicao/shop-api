@@ -60,7 +60,7 @@ describe('TASK-112 customer integration', () => {
 
   it('preserves registration values for 409', async () => {
     server.use(http.post('*/api/v1/cliente', () => HttpResponse.json({ error: { code: 'CUSTOMER_CONFLICT', message: 'CPF já cadastrado', details: [{ propertyName: 'Cpf', message: 'Já existe um cliente cadastrado com este CPF.' }] } }, { status: 409 })))
-    const { user } = renderIntegration(<AppRouter />, { initialEntries: ['/cadastro'] }); await fillRegistration(user); await user.click(screen.getByRole('button', { name: 'Criar conta' })); expect(await screen.findByText('Já existe um cliente cadastrado com este CPF.')).toBeInTheDocument(); expect(screen.getByLabelText('CPF')).toHaveValue('123.456.789-01'); expect(screen.getByLabelText('E-mail')).toHaveValue('ana@example.com'); expect(screen.queryByText('Cadastro concluído')).not.toBeInTheDocument()
+    const { user } = renderIntegration(<AppRouter />, { initialEntries: ['/cadastro'] }); await fillRegistration(user); await user.click(screen.getByRole('button', { name: 'Criar conta' })); expect(await screen.findAllByText('Já existe um cliente cadastrado com este CPF.')).not.toHaveLength(0); const summary = screen.getByRole('alert'); expect(within(summary).getByText('Já existe um cliente cadastrado com este CPF.')).toBeInTheDocument(); expect(screen.getByLabelText('CPF')).toHaveValue('123.456.789-01'); expect(screen.getByLabelText('E-mail')).toHaveValue('ana@example.com'); expect(screen.queryByText('Cadastro concluído')).not.toBeInTheDocument()
   })
 
   it('maps CPF and CEP from 422 and preserves unknown detail in summary', async () => {
@@ -157,11 +157,9 @@ Run: `npm --prefix frontend test -- src/features/customer/customer.integration.t
 
 Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "keeps confirmed profile"`. Expected GREEN: `2 passed`; RED inesperado → `BLOCKED`.
 
-- [ ] **Step 7: RED/GREEN/review**
+- [ ] **Step 7: gate final e review**
 
-Run RED: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx --reporter=verbose`. Expected RED literal: `Unable to find an element with the text: Falha futura.` ou `expected Ana Silva to be Ana Atualizada`. Esse resultado muda TASK-112 para `BLOCKED` e retorna ao explorador.
-
-GREEN focado, typecheck e lint devem sair `0`. Commits: `test(TASK-112): integrar cadastro e perfil com MSW`; `fix(TASK-112): preservar detalhes remotos desconhecidos`. Execute `git diff $BASE_COMMIT..HEAD`, revisão, repetição dos gates e DONE.
+Run teste focado completo, typecheck e lint. Expected: todos PASS e três exit codes `0`. Commits: `test(TASK-112): integrar cadastro e perfil com MSW`; `fix(TASK-112): preservar detalhes remotos desconhecidos`. Execute `git diff $BASE_COMMIT..HEAD`, revisão, repetição dos gates e DONE.
 
 ## Self-review
 

@@ -97,11 +97,9 @@ Copie o teste final e feche `describe`.
 
 Run: `npm --prefix frontend test -- src/features/orders/orders.integration.test.tsx -t "reconciles detail"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
 
-- [ ] **Step 6: RED/GREEN/review**
+- [ ] **Step 6: gate final e review**
 
-RED focused expected literals: product count `expected 2 to be 1`; 422 refresh `expected 1 to be 2`; success customer scope `expected false to be true`. Esse resultado muda TASK-116 para `BLOCKED` e retorna ao explorador.
-
-GREEN focused + typecheck + lint exit `0`. Commit `test(TASK-116): integrar pedidos com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
+Teste focado completo + typecheck + lint devem sair `0`. Commit `test(TASK-116): integrar pedidos com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 

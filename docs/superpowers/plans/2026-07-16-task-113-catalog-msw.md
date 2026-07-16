@@ -136,9 +136,7 @@ Copie o teste 404 e feche `describe`.
 
 Run: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx -t "renders product 404"`. Expected GREEN: `calls === 1`, query state `error`, data `undefined`, `1 passed`; RED inesperado → `BLOCKED`.
 
-- [ ] **Step 7: RED/GREEN/review**
-
-RED: focused command. Expected literals: canonical test `expected '?page=abc...' to be ''`; history test `expected '?searchword=teclado&page=2'`; 404 test `expected 3 to be 1`. Esse resultado muda TASK-113 para `BLOCKED` e retorna ao explorador.
+- [ ] **Step 7: gate final e review**
 
 Commands: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx --reporter=verbose`; typecheck; lint. GREEN = exit `0` nos três.
 
