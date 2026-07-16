@@ -115,6 +115,15 @@ test('restaura sessão expirada sem expor pedidos e mantém bloqueio após volta
 
   await page.goto('/pedidos?status=criado#pedido')
   await expectExpiredClientState(page, data.customerId)
+  expect(authApi.requestCounts()).toMatchObject({
+    login: 0,
+    profile: 0,
+    cartGet: 0,
+    ordersList: 0,
+    orderDetail: 0,
+    orderProduct: 0,
+    orderCancel: 0,
+  })
 
   await login(page, data.email, data.password)
   await expect(page).toHaveURL('/pedidos?status=criado#pedido')
@@ -122,8 +131,11 @@ test('restaura sessão expirada sem expor pedidos e mantém bloqueio após volta
     page.getByRole('heading', { level: 1, name: 'Meus pedidos' }),
   ).toBeVisible()
   await expect.poll(() => authApi.requestCounts()).toMatchObject({
+    login: 1,
     profile: 1,
+    cartGet: 0,
     ordersList: 1,
+    orderDetail: 0,
   })
 
   await page.clock.fastForward('00:00:06')

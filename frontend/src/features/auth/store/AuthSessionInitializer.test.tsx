@@ -98,4 +98,24 @@ describe('AuthSessionInitializer', () => {
     expect(queryClient.getQueryData(['private', 'profile', 20])).toBeUndefined()
     expect(clearSnapshot).toHaveBeenCalledOnce()
   })
+
+  it.each([
+    ['an invalid expiration', { ...session, expiraEm: 'invalid-date' }],
+    ['an empty token', { ...session, token: '' }],
+  ])('invalidates %s once without scheduling a loop', async (_case, invalidSession) => {
+    const queryClient = new QueryClient()
+    const clearSnapshot = createPrivateState(queryClient)
+    useAuthStore.getState().setSession(invalidSession, 'local')
+
+    renderInitializer(queryClient)
+
+    await waitFor(() => {
+      expect(useAuthStore.getState().session).toBeNull()
+    })
+    expect(useCartSessionStore.getState().getCartId(20)).toBeUndefined()
+    expect(clearSnapshot).toHaveBeenCalledOnce()
+
+    act(() => vi.advanceTimersByTime(60_000))
+    expect(clearSnapshot).toHaveBeenCalledOnce()
+  })
 })

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { clearPrivateSession } from '../session/clearPrivateSession'
-import { useAuthStore } from './authStore'
+import { isAuthSessionExpired, useAuthStore } from './authStore'
 
 export function AuthSessionInitializer() {
   const queryClient = useQueryClient()
@@ -32,6 +32,11 @@ export function AuthSessionInitializer() {
 
   useEffect(() => {
     if (!session) {
+      return
+    }
+
+    if (isAuthSessionExpired(session)) {
+      invalidateExpiredSession()
       return
     }
 

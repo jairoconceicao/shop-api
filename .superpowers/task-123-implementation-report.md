@@ -54,6 +54,13 @@ GREEN:
 - Timed expiration calls `invalidateExpiredSession`; the following effect consumes the identity.
 - `ProtectedRoute` remains a synchronous denial and preserves the internal pathname, query and hash.
 - The existing `401` provider and auth integration tests passed without semantic changes.
+- Review correction RED: sessions introduced through the public `setSession` API with
+  an invalid `expiraEm` or an empty token remained active because the scheduler
+  compared `NaN <= 0` and otherwise scheduled from the date alone.
+- Review correction GREEN: the initializer now reuses
+  `isAuthSessionExpired(session)` before scheduling. Both malformed variants are
+  invalidated, private state is cleared once, and advancing another minute does not
+  repeat snapshot cleanup.
 
 ### Playwright
 
@@ -98,6 +105,13 @@ profileUpdate=0 passwordUpdate=0 logout=0 product=0
 cartCreate=0 cartAdd=0 cartGet=0 cartUpdate=0 cartDelete=0
 orderCreate=0 ordersList=2 orderDetail=0 orderProduct=0 orderCancel=0
 ```
+
+Before the first login in the restored-session scenario, the test synchronously
+captures the fixture ledger and requires `login=0`, `profile=0`, `cartGet=0`,
+`ordersList=0`, `orderDetail=0`, `orderProduct=0` and `orderCancel=0`. After login
+it separately observes the transition to `login=1`, `profile=1` and
+`ordersList=1`; therefore a private request occurring before authentication fails
+at the pre-login boundary instead of being hidden by the final aggregate.
 
 `setLoginExpirations` is mandatory for these journeys: every login consumes exactly one configured ISO, extra logins fail immediately, unconsumed expirations fail teardown, and `reset()` clears the queue. Existing specs retain the 2099 default when no queue is configured.
 
