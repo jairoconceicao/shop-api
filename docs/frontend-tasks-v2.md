@@ -571,54 +571,254 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 ### Fase 8 — Testes e hardening
 
 [ ] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
+  - Status: READY
+  - Depends on: TASK-012, TASK-013, TASK-034, TASK-041, TASK-046, TASK-063, TASK-076, TASK-080, TASK-086, TASK-092, TASK-096
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Mapear a cobertura existente e testar, sem duplicar combinações equivalentes, `number` e string numérica em todos os IDs e valores transportados pelos schemas e adapters do frontend.
+    - Aceitar `null` somente nos campos e envelopes permitidos pelos contratos e cobrir todos os enums canônicos de pagamento e status.
+    - Rejeitar valores desconhecidos, `NaN`, infinito, inteiros inseguros, propriedades extras e envelopes de sucesso divergentes.
+    - Executar com sucesso os testes focados de contratos, além de typecheck e lint, registrando a matriz de contratos coberta.
 
 [ ] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
+  - Status: READY
+  - Depends on: TASK-007, TASK-042, TASK-098, TASK-099
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Testar moeda brasileira com zero, valor negativo, decimal e locale esperado.
+    - Testar CPF, CEP e telefone com entrada progressiva, caracteres estranhos e limites de tamanho.
+    - Testar datas civis locais sem deslocamento por timezone, limites inclusivos, apresentação inválida e round-trip quando aplicável.
+    - Executar com sucesso os testes focados de formatadores e normalizadores, além de typecheck e lint, registrando a cobertura existente reutilizada.
 
 [ ] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
+  - Status: READY
+  - Depends on: TASK-032, TASK-033, TASK-037, TASK-039, TASK-040
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Validar a escolha entre `sessionStorage` e `localStorage`, com limpeza do storage anterior, e a reidratação de sessão válida.
+    - Limpar memória e ambos os storages quando a expiração estiver ausente, inválida ou atingida, e expirar sessão ativa pelo timer.
+    - Migrar ou descartar com segurança payload de versão anterior, corrompido ou com dados extras, sem lançar exceção.
+    - Manter o aplicativo utilizável quando a leitura ou escrita no storage falhar e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
+  - Status: READY
+  - Depends on: TASK-062, TASK-068, TASK-075, TASK-095
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Isolar IDs de carrinho por cliente e garantir que atualização, troca ou remoção altere somente a chave alvo.
+    - Descartar chaves, IDs e campos remotos inválidos, migrar a versão zero e sanitizar dados corrompidos na versão atual.
+    - Preservar o uso em memória quando o `localStorage` falhar.
+    - Mapear cada critério para teste existente ou adicionar somente a evidência ausente, executar testes focados, typecheck e lint e registrar a prova sem alterar o produto se a cobertura já for integral.
 
 [ ] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
+  - Status: READY
+  - Depends on: TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Validar operação por teclado de botões, links, campos, `QuantityInput`, paginação, dialog, menu e componentes de feedback.
+    - Verificar foco inicial, trap, Escape e retorno de foco onde aplicável.
+    - Cobrir estados disabled, loading, error, empty e skeleton e consultar nomes, descrições, roles, `aria-current` e regiões vivas por semântica.
+    - Registrar a matriz componente por critério e executar com sucesso somente os testes necessários para células descobertas, além de typecheck e lint.
 
 [ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-108
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Usar MSW e providers reais para persistir login conforme a escolha e aceitar somente `returnTo` interno, usando rota segura para valor externo ou malformado.
+    - Chamar o endpoint de logout e limpar stores e caches privados mesmo diante de falha remota ou token expirado.
+    - Tratar `401` de leitura protegida uma única vez, limpar dados privados e redirecionar sem permitir que requests tardios restaurem cache ou sessão.
+    - Verificar request, efeito visível, cache e rota, executar testes focados, typecheck e lint e falhar diante de endpoint, método ou reconciliação incorretos.
 
 [ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, validar o body normalizado do cadastro e a navegação com confirmação após `201`.
+    - Apresentar `409` no campo ou resumo sem perder valores e mapear propriedades conhecidas e desconhecidas de `422` sem emitir sucesso.
+    - Preencher o perfil por GET, confirmar alteração de CPF, enviar PUT completo e reconciliar o cache somente após resposta válida.
+    - Verificar requests e efeitos visíveis e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, iniciar categorias e primeira página do catálogo em paralelo e usar exclusivamente o endpoint dedicado ao filtrar por categoria.
+    - Serializar busca e página na URL e no request, seguir a metadata de paginação e restaurar a consulta no histórico.
+    - Canonicalizar filtros inválidos e exibir estado específico para produto `404` sem retry.
+    - Verificar request, efeito visível, cache e rota e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-109
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, criar carrinho sem body antes do primeiro item e ler o carrinho existente.
+    - Alterar quantidade por PATCH e remover por DELETE somente após confirmação, emitindo cada request esperado uma vez.
+    - Em falhas, restaurar somente o item alvo e preservar mudanças concorrentes; em `404`, remover o vínculo local.
+    - Confirmar convergência entre resposta validada, caches, lista e badge e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-114
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, carregar carrinho e perfil confirmados e criar o pedido com itens confirmados, contrato estrito e data ISO.
+    - Garantir que o payload nunca contenha `clienteId` ou `carrinhoId` e que submissão duplicada produza somente um POST.
+    - Após `201`, limpar o vínculo, invalidar pedidos e navegar para a confirmação; em `409` ou `422`, preservar o checkout e não executar efeitos de sucesso.
+    - Verificar request, cache e rota e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
+  - Status: BLOCKED
+  - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, enviar CPF, período e paginação corretos na lista e usar cliente e pedido capturados no detalhe.
+    - Hidratar somente produtos únicos e enviar exclusivamente `{ "status": "Cancelado" }` no PATCH.
+    - Em `422`, anunciar a recusa, manter o status confirmado e recarregar o detalhe; no sucesso, reconciliar detalhe e todas as listas privadas do cliente.
+    - Verificar requests, efeitos e caches e executar com sucesso testes focados, typecheck e lint.
 
 [ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-111, TASK-112
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Criar fixtures e handlers Playwright determinísticos, com dados nomeados por teste, contadores de requests reiniciados no `beforeEach` e falha para requests não declarados.
+    - Iniciar cada contexto sem cookies, `localStorage`, `sessionStorage` ou estado do backend simulado e remover dados criados no `afterEach`, inclusive após falha.
+    - Cadastrar, receber confirmação, logar, acessar rota protegida, confirmar a persistência escolhida após refresh e deslogar removendo o acesso protegido.
+    - Afirmar a contagem exata de cada request e executar a spec isolada, a suíte Chromium e `playwright test --repeat-each=2` sem dependência de ordem, worker ou dados anteriores.
 
 [ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-113
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117, com storage e backend isolados e seletores semânticos.
+    - Como visitante, selecionar quantidade e tentar adicionar, sendo redirecionado para `/entrar` com retorno interno exato.
+    - Após login, retornar ao produto sem POST automático de carrinho; exigir novo clique para adicionar.
+    - Afirmar a contagem exata dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-111, TASK-113, TASK-114, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar a jornada autenticada com estado isolado.
+    - Adicionar produto e confirmar badge e lista; alterar quantidade e confirmar subtotal e total.
+    - Remover o item após confirmação e exibir carrinho vazio com badge zero.
+    - Afirmar que cada request ocorre uma vez e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-115, TASK-119
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com carrinho autenticado não vazio e isolado.
+    - Abrir o checkout, usar ou editar o endereço somente para o pedido e selecionar a forma de pagamento.
+    - Enviar o pedido uma única vez, exibir a confirmação com dados da resposta do servidor e consumir o carrinho.
+    - Afirmar requests e estados finais e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-121: Criar E2E de edição de dados e troca de senha.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-112, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e carregar o perfil autenticado em estado isolado.
+    - Editar e salvar o perfil, exigindo confirmação para alteração de CPF e confirmando os dados salvos após refresh.
+    - Exibir regras, erros e sucesso da troca de senha e limpar valores sensíveis após a tentativa concluída.
+    - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com pedidos conhecidos e isolados.
+    - Listar e filtrar pedidos, abrir o detalhe e tentar cancelar o pedido.
+    - Receber `422`, anunciar a recusa e manter o status confirmado após reload.
+    - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
+  - Status: BLOCKED
+  - Depends on: TASK-010, TASK-108, TASK-111, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e controlar o relógio e os storages por teste.
+    - Negar a rota protegida com sessão restaurada já expirada ou expirada durante o uso.
+    - Limpar storages e caches privados, redirecionar com retorno interno seguro e impedir que voltar ou atualizar reabra conteúdo privado.
+    - Afirmar requests e estados de limpeza e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
+  - Status: BLOCKED
+  - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Usar imports dinâmicos para checkout, confirmação, dados pessoais, senha, lista e detalhe de pedidos.
+    - Manter fallback com `role="status"`, nome acessível e geometria estável e testar o carregamento sob demanda.
+    - Executar o build e comprovar chunks separados para as rotas lazy, sem vazamento para o chunk inicial.
+    - Mapear cada critério para a evidência existente e alterar o produto somente se a verificação falhar; executar testes focados, typecheck, lint e build.
 
 [ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
+  - Status: BLOCKED
+  - Depends on: TASK-053, TASK-069, TASK-102, TASK-124
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Medir com React Profiler em Vitest a Home inicial, o carrinho com IDs repetidos e o detalhe de pedido com IDs repetidos, executando cada cenário cinco vezes no mesmo ambiente e registrando a mediana antes e depois.
+    - Listar e eliminar commits repetidos que mantenham props, query data e estado visível iguais; a mediana final não pode superar o baseline.
+    - Confirmar categorias e catálogo sem waterfall e uma consulta por ID único de produto em cada carga fria de carrinho e pedido.
+    - Executar o build, manter cada chunk JavaScript inicial em até 500 kB não comprimidos e cada rota lazy separada, registrando ambiente, medições, requests, chunks e grafo de imports sem rota lazy alcançando o chunk inicial.
 
 [ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
+  - Status: BLOCKED
+  - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Inventariar cada chave persistida e restringir auth à sessão necessária e carrinho ao mapa de IDs.
+    - Comprovar que CPF, endereço, perfil, itens e respostas não são persistidos em storage.
+    - Limpar ambos os storages, query cache, mutation cache e snapshots privados em logout, `401` e cancelamento de conta, sem permitir restauração por requests tardios.
+    - Executar busca estática sem `console.*`, token ou CPF em mensagens, testar os fluxos de limpeza e registrar relatório reproduzível, além de typecheck e lint.
 
 [ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
+  - Status: BLOCKED
+  - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Auditar as rotas principais nos viewports de 320, 375, 768, 1024 e 1920 px.
+    - Manter `scrollWidth <= clientWidth` no documento, permitindo rolagem horizontal somente em componentes explicitamente documentados.
+    - Confirmar que controles, dialogs e formulários permanecem utilizáveis em todos os viewports.
+    - Registrar screenshots, findings e correções e executar a auditoria responsiva e os gates locais aplicáveis sem falhas.
 
 [ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
+  - Status: BLOCKED
+  - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-127
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Concluir as jornadas principais somente por teclado e verificar ordem, visibilidade e restauração de foco.
+    - Validar nomes, roles, landmarks, headings e anúncios de erros, status e toasts por regiões vivas.
+    - Medir contraste conforme WCAG AA e comprovar que `prefers-reduced-motion` remove movimento não essencial.
+    - Concluir auditoria automatizada sem violações sérias, registrar checklist manual e executar os gates locais aplicáveis sem falhas.
 
 [ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
+  - Status: BLOCKED
+  - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-126
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Criar `frontend/README.md` com requisitos e versões, instalação e configuração de `VITE_API_BASE_URL` e ativação opt-in do MSW.
+    - Documentar todos os scripts e a execução integrada com API, PostgreSQL e Docker, além de testes unitários, E2E e build.
+    - Documentar troubleshooting e a política de dados locais inventariada na TASK-126.
+    - Validar em checkout limpo que os comandos documentados podem ser copiados e executados com sucesso.
 
 [ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
+  - Status: BLOCKED
+  - Depends on: TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124, TASK-125, TASK-126, TASK-127, TASK-128, TASK-129
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Em checkout limpo, executar `npm ci`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e` e `npm run build`, todos com exit code zero.
+    - Rejeitar `.only`, erros, rejeições não tratadas e alterações pendentes produzidas pelo gate.
+    - Registrar contagens, duração, ambiente e commit exato da execução.
+    - Se houver falha, reabrir a task dona do comportamento e não corrigir produto diretamente na TASK-130.
 
 ### Fase 9 — Ajustes de experiência
 
