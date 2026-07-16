@@ -1,6 +1,6 @@
 # TASK-107 — relatório de implementação
 
-Status: DONE
+Status: DONE — confirmado após revisão.
 
 ## TDD
 
@@ -29,11 +29,13 @@ Status: DONE
 
 ## Self-review
 
-- Escopo restrito à TASK-107; backlog não alterado.
+- Escopo restrito à TASK-107; somente seu status e evidência foram atualizados no backlog após a revisão.
 - O helper não adiciona validação de valores não finitos, pois isso não consta dos critérios.
 - A migração troca apenas imports, constantes e expressões de formatação.
-- Nenhum finding ou concern pendente.
+- Reviewer aprovado com 0 findings CRITICAL/IMPORTANT.
+- Os 2 findings MINOR documentais foram resolvidos neste encerramento: status pós-review e evidência/ledger completos.
 
 ## Commits
 
 - `bc88d9c` — `fix(TASK-107): Centralizar formatação monetária`.
+- `20abb4f` — `test(TASK-107): Registrar evidências de formatação`.

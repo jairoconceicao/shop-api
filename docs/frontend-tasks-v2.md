@@ -581,8 +581,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Executar com sucesso os testes focados de contratos, além de typecheck e lint, registrando a matriz de contratos coberta.
   - Evidência: commits `bb8a56b`, `e5ac699` e `da32b4c`; RED inicial reconstruído de forma transparente a partir do baseline e do diff interrompido, seguido de RED reproduzido no consumer estrito de login; GREEN focado 183/183, consumers 607/607 e LoginPage 6/6; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
-  - Status: READY
+[x] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
+  - Status: DONE
   - Depends on: TASK-007, TASK-042, TASK-098, TASK-099
   - Escopo: Frontend
   - Critérios de aceite:
@@ -590,6 +590,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Testar CPF, CEP e telefone com entrada progressiva, caracteres estranhos e limites de tamanho.
     - Testar datas civis locais sem deslocamento por timezone, limites inclusivos, apresentação inválida e round-trip quando aplicável.
     - Executar com sucesso os testes focados de formatadores e normalizadores, além de typecheck e lint, registrando a cobertura existente reutilizada.
+  - Evidência: commits `bc88d9c` e `20abb4f`; RED com helper de moeda ausente e `Invalid Date` sem `RangeError`; GREEN focado 33/33 e suíte combinada 149/149; timezone UTC 12/12; typecheck/lint/diff-check PASS; reviewer aprovado com 0 CRITICAL/IMPORTANT e 2 MINOR documentais resolvidos.
 
 [ ] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
   - Status: READY
