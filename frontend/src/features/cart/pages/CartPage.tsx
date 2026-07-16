@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useIsMutating } from '@tanstack/react-query'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { getButtonClasses } from '../../../shared/ui/buttons/buttonStyles'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
@@ -19,11 +20,6 @@ import { useCartQuery } from '../queries/useCartQuery'
 import { useUpdateCartItemMutation } from '../mutations/useUpdateCartItemMutation'
 import { useDeleteCartItemMutation } from '../mutations/useDeleteCartItemMutation'
 import { cartCache } from '../cache/cartCache'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 const unavailableProduct = (productId: number): CartProductResult => ({
   status: 'error',
@@ -75,14 +71,14 @@ function CartSummary({ items }: { items: readonly CartItemContract[] }) {
         <dl className="mt-5 space-y-4">
           <div className="flex items-center justify-between gap-4 text-zinc-300">
             <dt>Subtotal</dt>
-            <dd>{brlFormatter.format(subtotal)}</dd>
+            <dd>{formatCurrency(subtotal)}</dd>
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50">
             <dt>Total</dt>
-            <dd>{brlFormatter.format(subtotal)}</dd>
+            <dd>{formatCurrency(subtotal)}</dd>
           </div>
         </dl>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3">
           <LinkButton className="w-full" to="/" variant="secondary">
             Continuar comprando
           </LinkButton>
@@ -267,7 +263,9 @@ export function CartPage() {
         <p className="mt-2 text-zinc-400">Revise os itens confirmados antes de continuar.</p>
       </header>
       {content}
-      <span aria-live="polite" className="sr-only">{removalAnnouncement}</span>
+      {removalAnnouncement ? (
+        <span aria-live="polite" className="sr-only">{removalAnnouncement}</span>
+      ) : null}
       <Dialog
         description={selectedItem ? `Você deseja remover ${selectedItem.title}? Esta ação pode ser tentada novamente se falhar.` : undefined}
         initialFocusRef={cancelRemovalRef}

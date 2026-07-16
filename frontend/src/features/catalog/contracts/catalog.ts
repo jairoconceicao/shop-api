@@ -10,23 +10,23 @@ import {
 } from '../../../shared/contracts/apiEnvelopes'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 
 const transportNumberSchema = z.union([
-  z.number(),
+  z.number().finite(),
   z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/),
 ])
 
 export const productCategorySchema = z.object({
   categoriaId: transportIdSchema,
   titulo: z.string().min(1),
-})
+}).strict()
 
 export const categorySchema = productCategorySchema.extend({
   descricao: z.string().nullable(),
-})
+}).strict()
 
 export const catalogProductSchema = z.object({
   produtoId: transportIdSchema,
@@ -35,7 +35,7 @@ export const catalogProductSchema = z.object({
   preco: transportNumberSchema,
   estoque: transportNumberSchema,
   categoria: productCategorySchema,
-})
+}).strict()
 
 export const productDetailSchema = z.object({
   produtoId: transportIdSchema,
@@ -46,7 +46,7 @@ export const productDetailSchema = z.object({
   preco: transportNumberSchema,
   estoque: transportNumberSchema,
   categoria: productCategorySchema,
-})
+}).strict()
 
 export const categoriesResponseSchema = createApiResponseSchema(
   z.array(categorySchema),

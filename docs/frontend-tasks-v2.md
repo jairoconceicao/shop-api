@@ -570,55 +570,284 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 8 — Testes e hardening
 
-[ ] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
+Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
 
-[ ] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
+Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
 
-[ ] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
+[x] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
+  - Status: DONE
+  - Depends on: TASK-012, TASK-013, TASK-034, TASK-041, TASK-046, TASK-063, TASK-076, TASK-080, TASK-086, TASK-092, TASK-096
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Mapear a cobertura existente e testar, sem duplicar combinações equivalentes, `number` e string numérica em todos os IDs e valores transportados pelos schemas e adapters do frontend.
+    - Aceitar `null` somente nos campos e envelopes permitidos pelos contratos e cobrir todos os enums canônicos de pagamento e status.
+    - Rejeitar valores desconhecidos, `NaN`, infinito, inteiros inseguros, propriedades extras e envelopes de sucesso divergentes.
+    - Executar com sucesso os testes focados de contratos, além de typecheck e lint, registrando a matriz de contratos coberta.
+  - Evidência: commits `bb8a56b`, `e5ac699` e `da32b4c`; RED inicial reconstruído de forma transparente a partir do baseline e do diff interrompido, seguido de RED reproduzido no consumer estrito de login; GREEN focado 183/183, consumers 607/607 e LoginPage 6/6; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
-[ ] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
+[x] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
+  - Status: DONE
+  - Depends on: TASK-007, TASK-042, TASK-098, TASK-099
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Testar moeda brasileira com zero, valor negativo, decimal e locale esperado.
+    - Testar CPF, CEP e telefone com entrada progressiva, caracteres estranhos e limites de tamanho.
+    - Testar datas civis locais sem deslocamento por timezone, limites inclusivos, apresentação inválida e round-trip quando aplicável.
+    - Executar com sucesso os testes focados de formatadores e normalizadores, além de typecheck e lint, registrando a cobertura existente reutilizada.
+  - Evidência: commits `bc88d9c` e `20abb4f`; RED com helper de moeda ausente e `Invalid Date` sem `RangeError`; GREEN focado 33/33 e suíte combinada 149/149; timezone UTC 12/12; typecheck/lint/diff-check PASS; reviewer aprovado com 0 CRITICAL/IMPORTANT e 2 MINOR documentais resolvidos.
 
-[ ] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
+[x] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
+  - Status: DONE
+  - Depends on: TASK-032, TASK-033, TASK-037, TASK-039, TASK-040
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Validar a escolha entre `sessionStorage` e `localStorage`, com limpeza do storage anterior, e a reidratação de sessão válida.
+    - Limpar memória e ambos os storages quando a expiração estiver ausente, inválida ou atingida, e expirar sessão ativa pelo timer.
+    - Migrar ou descartar com segurança payload de versão anterior, corrompido ou com dados extras, sem lançar exceção.
+    - Manter o aplicativo utilizável quando a leitura ou escrita no storage falhar e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `f5c2de4` e `f736141`; REDs de 5 falhas/14 testes para payload atual inválido, 3 falhas/17 para v0 e JSON corrompido e 1 falha/20 para cleanup stale sob escrita parcial; GREEN final de autenticação 32/32; typecheck/lint/diff-check PASS; reviewer aprovado com 0 findings.
 
-[ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
+[x] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
+  - Status: DONE
+  - Depends on: TASK-062, TASK-068, TASK-075, TASK-095
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Isolar IDs de carrinho por cliente e garantir que atualização, troca ou remoção altere somente a chave alvo.
+    - Descartar chaves, IDs e campos remotos inválidos, migrar a versão zero e sanitizar dados corrompidos na versão atual.
+    - Preservar o uso em memória quando o `localStorage` falhar.
+    - Mapear cada critério para teste existente ou adicionar somente a evidência ausente, executar testes focados, typecheck e lint e registrar a prova sem alterar o produto se a cobertura já for integral.
+  - Evidência: commits `731b1bd` e `d240368`; baseline de 10/10 PASS em duas execuções; cobertura ampliada para 12/12 PASS em duas execuções para provar falhas de `getItem` e `removeItem`; consumers relevantes 52/52 PASS; typecheck/lint/diff-check PASS; produto e actions públicas inalterados; reviewer aprovado com 0 findings.
 
-[ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
+[x] TASK-110: Testar componentes base por teclado, foco, estados e nomes acessíveis.
+  - Status: DONE
+  - Depends on: TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Validar operação por teclado de botões, links, campos, `QuantityInput`, paginação, dialog, menu e componentes de feedback.
+    - Verificar foco inicial, trap, Escape e retorno de foco onde aplicável.
+    - Cobrir estados disabled, loading, error, empty e skeleton e consultar nomes, descrições, roles, `aria-current` e regiões vivas por semântica.
+    - Registrar a matriz componente por critério e executar com sucesso somente os testes necessários para células descobertas, além de typecheck e lint.
+  - Evidência: commits `a1c2665`, `cbaecf8` e `62d92b8`; `user-event` focado 17/17, shared UI 43/43 e consumers relevantes 136/136; typecheck/lint/diff-check PASS; produto inalterado. Button ativa por Enter/Space, LinkButton navega por Enter e Checkbox alterna por Space; o Select usa foco por Tab e `user.selectOptions`, fluxo aceito porque `user-event` 14.6.1 não implementa mudança por `ArrowDown` no jsdom. A re-review aprovou teclado e rastreabilidade e solicitou somente o ajuste documental final incorporado. Desvio justificado: o teste monolítico não foi criado por duplicar provas proprietárias; somente células GAP foram adicionadas. O commit `59acae2` é administrativo do lote e está fora do range funcional da task.
 
-[ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
+[x] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Usar MSW e providers reais para persistir login conforme a escolha e aceitar somente `returnTo` interno, usando rota segura para valor externo ou malformado.
+    - Chamar o endpoint de logout e limpar stores e caches privados mesmo diante de falha remota ou token expirado.
+    - Tratar `401` de leitura protegida uma única vez, limpar dados privados e redirecionar sem permitir que requests tardios restaurem cache ou sessão.
+    - Verificar request, efeito visível, cache e rota, executar testes focados, typecheck e lint e falhar diante de endpoint, método ou reconciliação incorretos.
+  - Evidência: commits `6ec0d8e` e `272cb59`; integração auth 8/8 PASS, suite auth 64/64 PASS, consumidores App/cart/checkout 230/230 PASS e expiração ativa 1/1 PASS; typecheck/lint/diff-check PASS; review do range `09c47fb..272cb59` aprovada com 0 findings. Quatro warnings preexistentes de `act(...)` na suite de checkout estão fora do diff e não são bloqueantes.
 
-[ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
+[x] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, validar o body normalizado do cadastro e a navegação com confirmação após `201`.
+    - Apresentar `409` no campo ou resumo sem perder valores e mapear propriedades conhecidas e desconhecidas de `422` sem emitir sucesso.
+    - Preencher o perfil por GET, confirmar alteração de CPF, enviar PUT completo e reconciliar o cache somente após resposta válida.
+    - Verificar requests e efeitos visíveis e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `b12c096`, `aa4815c` e `93512ff`; integração e consumidores customer 50/50 PASS; typecheck/lint/diff-check PASS; review do range `aeed2db..93512ff` aprovada com 0 findings.
 
-[ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
+[x] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, iniciar categorias e primeira página do catálogo em paralelo e usar exclusivamente o endpoint dedicado ao filtrar por categoria.
+    - Serializar busca e página na URL e no request, seguir a metadata de paginação e restaurar a consulta no histórico.
+    - Canonicalizar filtros inválidos e exibir estado específico para produto `404` sem retry.
+    - Verificar request, efeito visível, cache e rota e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `929444e`, `a06a1b1` e `7fc8285`; integração de catálogo 5/5 PASS e catálogo/consumidores 75/75 PASS; typecheck/lint/diff-check PASS; review do range `2373274..7fc8285` aprovada sem findings CRITICAL ou IMPORTANT. A observação MINOR registrada está fora do escopo da TASK-113.
 
-[ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
+[x] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, criar carrinho sem body antes do primeiro item e ler o carrinho existente.
+    - Alterar quantidade por PATCH e remover por DELETE somente após confirmação, emitindo cada request esperado uma vez.
+    - Em falhas, restaurar somente o item alvo e preservar mudanças concorrentes; em `404`, remover o vínculo local.
+    - Confirmar convergência entre resposta validada, caches, lista e badge e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `a86a77f` e `dfa6bd1`; carrinho 139/139 PASS, consumidores 46/46 PASS e revisão focada 6/6 PASS; typecheck/lint/diff-check PASS; review do range `c034c13..dfa6bd1` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
-[ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
+[x] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-114
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, carregar carrinho e perfil confirmados e criar o pedido com itens confirmados, contrato estrito e data ISO.
+    - Garantir que o payload nunca contenha `clienteId` ou `carrinhoId` e que submissão duplicada produza somente um POST.
+    - Após `201`, limpar o vínculo, invalidar pedidos e navegar para a confirmação; em `409` ou `422`, preservar o checkout e não executar efeitos de sucesso.
+    - Verificar request, cache e rota e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `c114921` e `fdb0a68`; integração 201/409/422 3/3 PASS, página/navegação/mutation 24/24 PASS, consumidores de checkout 89/89 PASS e revisão focada 27/27 PASS; typecheck/lint/diff-check PASS; review do range `172bbcc..fdb0a68` aprovada sem findings CRITICAL ou IMPORTANT. Quatro warnings preexistentes de React `act(...)` permaneceram não bloqueantes.
 
-[ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
+[x] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
+  - Status: DONE
+  - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Com MSW e providers reais, enviar CPF, período e paginação corretos na lista e usar cliente e pedido capturados no detalhe.
+    - Hidratar somente produtos únicos e enviar exclusivamente `{ "status": "Cancelado" }` no PATCH.
+    - Em `422`, anunciar a recusa, manter o status confirmado e recarregar o detalhe; no sucesso, reconciliar detalhe e todas as listas privadas do cliente.
+    - Verificar requests, efeitos e caches e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `361d5e9`, `0019dc4` e `0b9f9fb`; integração de pedidos 4/4 PASS, pedidos 111/111 PASS e consumidores 18/18 PASS; typecheck/lint/diff-check PASS; review do range `26bb032..0b9f9fb` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
-[ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
+[x] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Criar fixtures e handlers Playwright determinísticos, com dados nomeados por teste, contadores de requests reiniciados no `beforeEach` e falha para requests não declarados.
+    - Iniciar cada contexto sem cookies, `localStorage`, `sessionStorage` ou estado do backend simulado e remover dados criados no `afterEach`, inclusive após falha.
+    - Cadastrar, receber confirmação, logar, acessar rota protegida, confirmar a persistência escolhida após refresh e deslogar removendo o acesso protegido.
+    - Afirmar a contagem exata de cada request e executar a spec isolada, a suíte Chromium e `playwright test --repeat-each=2` sem dependência de ordem, worker ou dados anteriores.
+  - Evidência: commits `1df7671`, `5dcaf30`, `56c0c5c`, `b7ab442` e `17b3656`; contagens brutas `register=1`, `login=1`, `categories=4`, `profile=2` e `logout=1`; suíte Chromium 2/2 PASS e `--repeat-each=2` 4/4 PASS; typecheck/lint/build/diff-check PASS; review do range `be8ef3e..17b3656` aprovada sem findings CRITICAL ou IMPORTANT. `npm audit` reportou duas vulnerabilidades moderadas e o build manteve o warning de chunk acima de 500 kB, ambos não bloqueantes.
 
-[ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
+[x] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117, com storage e backend isolados e seletores semânticos.
+    - Como visitante, selecionar quantidade e tentar adicionar, sendo redirecionado para `/entrar` com retorno interno exato.
+    - Após login, retornar ao produto sem POST automático de carrinho; exigir novo clique para adicionar.
+    - Afirmar a contagem exata dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `d78bc3a`, `fe7ac0e`, `87e5aa2` e `56ce200`; contagens exatas `login=1`, `categories=1`, `product=2`, `cartCreate=1`, `cartAdd=1` e `cartGet=2`, com `register`, `profile` e `logout` iguais a zero; spec isolada com repetição 2/2 PASS e suíte Chromium com repetição 6/6 PASS; typecheck/lint/build/diff-check PASS; review do range `2745a4c..56ce200` aprovada sem findings CRITICAL ou IMPORTANT. Os dois GETs do carrinho correspondem à ativação do badge após `setCartId` e à reconciliação após adicionar o item, sem espera temporal.
 
-[ ] TASK-121: Criar E2E de edição de dados e troca de senha.
+[x] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar a jornada autenticada com estado isolado.
+    - Adicionar produto e confirmar badge e lista; alterar quantidade e confirmar subtotal e total.
+    - Remover o item após confirmação e exibir carrinho vazio com badge zero.
+    - Afirmar que cada request ocorre uma vez e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `292557b` e `0b38d98`, ajuste documental `314124e` e relatório `652839c`; range revisado `c461201..652839c` aprovado sem findings CRITICAL ou IMPORTANT. Contagens brutas `login=1`, `categories=3`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=4`, `cartUpdate=1` e `cartDelete=1`, com os demais ledgers iguais a zero; as três leituras de categorias correspondem às montagens do shell antes do redirect, após o login e na carga direta do produto. RED comportamental confirmado no PATCH inesperado; spec isolada 1/1, compatibilidade com visitante 2/2, repetição isolada 2/2, suíte Chromium 4/4 e repetição completa 8/8 PASS; typecheck/lint/build/diff-check PASS. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
-[ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
+[x] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-119
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com carrinho autenticado não vazio e isolado.
+    - Abrir o checkout, usar ou editar o endereço somente para o pedido e selecionar a forma de pagamento.
+    - Enviar o pedido uma única vez, exibir a confirmação com dados da resposta do servidor e consumir o carrinho.
+    - Afirmar requests e estados finais e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `8826f4c` e `2f33090`, documentação `634fa8a`, correção `b72e9ee` e estabilização `2a63572`; contagens brutas estáveis `register=0`, `login=1`, `categories=2`, `catalog=1`, `profile=1`, `logout=0`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `cartUpdate=0`, `cartDelete=0` e `orderCreate=1`. RED original confirmado no POST inesperado de `/api/v1/pedido`; a task foi reaberta quando `--repeat-each=20` reproduziu 5/20 falhas (`categories` 2/3) causadas pela corrida entre a consulta do `StoreLayout` e o redirect do `ProtectedRoute` ao iniciar por `/carrinho`. A jornada passou a iniciar diretamente em `/entrar`, aguardar as consultas paralelas e estritamente validadas de categorias e catálogo da home, confirmar `/` após login e carregar o produto integralmente, removendo a requisição cancelável sem relaxar as contagens exatas. Estabilização focada 20/20 PASS, suíte Chromium atual repetida 12/12 PASS e typecheck/lint/build/diff-check PASS; TASK-120 permanece `DONE`. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
-[ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
+[x] TASK-121: Criar E2E de edição de dados e troca de senha.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e carregar o perfil autenticado em estado isolado.
+    - Editar e salvar o perfil, exigindo confirmação para alteração de CPF e confirmando os dados salvos após refresh.
+    - Exibir regras, erros e sucesso da troca de senha e limpar valores sensíveis após a tentativa concluída.
+    - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `ed6f75d` e `a3a7114` e relatório `d8dfaa8`; range revisado `9838c65..d8dfaa8` aprovado sem findings CRITICAL ou IMPORTANT após a resolução do blocker da TASK-120. A jornada da conta executou 20/20 PASS, a suíte Chromium completa 12/12 PASS e typecheck/lint/build/diff-check PASS.
 
-[ ] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
+[x] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e iniciar com pedidos conhecidos e isolados.
+    - Listar e filtrar pedidos, abrir o detalhe e tentar cancelar o pedido.
+    - Receber `422`, anunciar a recusa e manter o status confirmado após reload.
+    - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `17a5ee9`, `2954271`, `cdfd5a7` e `a02eb42`; revisões final e incremental aprovadas sem findings CRITICAL ou IMPORTANT. O RED inicial alcançou `GET /api/v1/pedido` no handler que aceitava somente POST; o RED incremental reproduziu a classificação indevida `product=0/orderProduct=2` após o `422` e refetch com produto em cache. O GREEN correlaciona a hidratação consumível com o frame corrente e preserva `Criado` após recusa e reload. Contagens finais: `register=0`, `login=2`, `categories=5`, `catalog=1`, `profile=1`, `profileUpdate=0`, `passwordUpdate=0`, `logout=0`, `product=1`, `cartCreate=0`, `cartAdd=0`, `cartGet=0`, `cartUpdate=0`, `cartDelete=0`, `orderCreate=0`, `ordersList=2`, `orderDetail=4`, `orderProduct=3` e `orderCancel=1`. Spec isolada 1/1, repetição isolada 20/20, suíte Chromium repetida 14/14, typecheck, lint e diff-check PASS.
 
-[ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
+[x] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
+  - Status: DONE
+  - Depends on: TASK-010, TASK-108, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Reutilizar a infraestrutura determinística da TASK-117 e controlar o relógio e os storages por teste.
+    - Negar a rota protegida com sessão restaurada já expirada ou expirada durante o uso.
+    - Limpar storages e caches privados, redirecionar com retorno interno seguro e impedir que voltar ou atualizar reabra conteúdo privado.
+    - Afirmar requests e estados de limpeza e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `ca333a1`, `b02e2d9`, `0e48f78`, `ee735e6`, `e3b2080`, `a7be7f1`, `449bcbb` e `714f50e`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. Os REDs reproduziram módulo de limpeza ausente, identidade expirada descartada, caches privados preservados, agendamento inválido para `expiraEm` malformado/token vazio e ausência de prova pré-login. O GREEN captura e consome atomicamente a identidade transitória não persistida, nega a rota sincronamente, limpa ambos auth storages, associação do carrinho, queries/mutations privadas e snapshots, preserva retorno interno e mantém back/reload bloqueados. Antes do primeiro login, requests privados permanecem explicitamente em zero; contagens finais: cenário restaurado `login=1`, `categories=2`, `profile=1`, `ordersList=1`, demais `0`; cenário com duas expirações `login=2`, `categories=2`, `profile=2`, `ordersList=2`, demais `0`. Testes focados 29/29, spec 2/2, repetição 40/40, Chromium 9/9 e repetido 18/18, suíte unitária 839/839, typecheck, lint, build e diff-check PASS.
 
-[ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
+[x] TASK-124: Aplicar lazy loading às rotas de checkout, conta e pedidos.
+  - Status: DONE
+  - Depends on: TASK-018, TASK-077, TASK-085, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Usar imports dinâmicos para checkout, confirmação, dados pessoais, senha, lista e detalhe de pedidos.
+    - Manter fallback com `role="status"`, nome acessível e geometria estável e testar o carregamento sob demanda.
+    - Executar o build e comprovar chunks separados para as rotas lazy, sem vazamento para o chunk inicial.
+    - Mapear cada critério para a evidência existente e alterar o produto somente se a verificação falhar; executar testes focados, typecheck, lint e build.
+  - Evidência: commits `0320b1e`, `97b0b15` e `dcb911b`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT e com o MINOR de unidade corrigido no relatório. O RED focado reproduziu 2 falhas/6 testes: checkout sem `min-h-96` e confirmação reutilizando o status `Carregando checkout`; o GREEN passou 6/6. A suíte completa passou 126 arquivos/842 testes, além de typecheck, lint, build e diff-check. O build preservou seis chunks separados (`CheckoutPage` 15,02 KiB, `OrderConfirmationPage` 4,64 KiB, `CustomerDataPage` 26,58 KiB, `CustomerPasswordPage` 9,10 KiB, `OrdersPage` 11,33 KiB e `OrderDetailPage` 17,34 KiB), com marcadores exclusivos presentes nos chunks corretos e ausentes do entry inicial. O entry `index-BZwkBxYl.js` mediu 711,10 KiB por `Length / 1KB` (728,17 kB decimais no Vite) e manteve o warning acima de 500 kB explicitamente delegado à TASK-125.
 
-[ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
+[x] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
+  - Status: DONE
+  - Depends on: TASK-053, TASK-069, TASK-102, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Medir com React Profiler em Vitest a Home inicial, o carrinho com IDs repetidos e o detalhe de pedido com IDs repetidos, executando cada cenário cinco vezes no mesmo ambiente e registrando a mediana antes e depois.
+    - Listar e eliminar commits repetidos que mantenham props, query data e estado visível iguais; a mediana final não pode superar o baseline.
+    - Confirmar categorias e catálogo sem waterfall e uma consulta por ID único de produto em cada carga fria de carrinho e pedido.
+    - Executar o build, manter cada chunk JavaScript inicial em até 500 kB não comprimidos e cada rota lazy separada, registrando ambiente, medições, requests, chunks e grafo de imports sem rota lazy alcançando o chunk inicial.
+  - Evidência: planos `25e5d8a`, `330cbbd` e `0f4852b`; implementação `f99332c`, `e90247d`, `0f84086`, `2ca0ab6` e `01b9420`; revisão final sem findings CRITICAL ou IMPORTANT. O Profiler executou warmup descartado e cinco amostras rotacionadas por cenário com fingerprints pós-commit de DOM semântico, queries e props: Home 2 commits, mediana 17,7773 ms e faixa 15,1650–19,3846; carrinho 5 commits, mediana 24,9446 ms e faixa 23,1429–25,1589; pedido 4 commits, mediana 19,0437 ms e faixa 17,5528–22,8792; zero redundâncias consecutivas em todas as amostras, sem alterações especulativas nas páginas. Home preservou categorias e catálogo paralelos; carrinho e pedido com IDs `[5, 5, 9]` emitiram somente requests de produto 5 e 9. O bootstrap removeu top-level await e o plugin associado; o entry caiu de 728165 para 464141 bytes, com seis chunks lazy distintos fora do fecho estático. Suíte 850/850, E2E Chromium 9/9, typecheck, lint, build/auditoria e diff-check PASS.
 
-[ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
+[x] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
+  - Status: DONE
+  - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Inventariar cada chave persistida e restringir auth à sessão necessária e carrinho ao mapa de IDs.
+    - Comprovar que CPF, endereço, perfil, itens e respostas não são persistidos em storage.
+    - Limpar ambos os storages, query cache, mutation cache e snapshots privados em logout, `401` e cancelamento de conta, sem permitir restauração por requests tardios.
+    - Executar busca estática sem `console.*`, token ou CPF em mensagens, testar os fluxos de limpeza e registrar relatório reproduzível, além de typecheck e lint.
+  - Evidência: planos `26f361d` e `7ae9431`; implementação `ab8fc29`, `54b9ce4`, `6902152`, `29cc1fa`, `3a3a05d`, `c10052d`, `d63069f`, `0160346`, `cc9aa6c`, `1417231` e `f7bf7eb`; revisão final aprovada sem findings CRITICAL ou IMPORTANT. O inventário confirmou somente `shop-api:auth`, com a sessão contratada, e `shop-api:cart-session`, somente com `cartIdsByCustomer`. Logout, `401` e cancelamento limpam ambos os storages, queries, mutations e snapshots privados sem afetar estado público ou sessão sucessora; respostas tardias não restauram storage, cache ou reconciliação. O auditor AST validou contratos positivos exatos em 152 arquivos, rejeitou 19 fixtures negativas e confirmou zero `console.*`. Suíte 856/856, typecheck, lint, build com entry de 464,57 kB, E2E Chromium 1/1, diff-check e revisão independente PASS.
 
-[ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
+[x] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
+  - Status: DONE
+  - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Auditar as rotas principais nos viewports de 320, 375, 768, 1024 e 1920 px.
+    - Manter `scrollWidth <= clientWidth` no documento, permitindo rolagem horizontal somente em componentes explicitamente documentados.
+    - Confirmar que controles, dialogs e formulários permanecem utilizáveis em todos os viewports.
+    - Registrar screenshots, findings e correções e executar a auditoria responsiva e os gates locais aplicáveis sem falhas.
+  - Evidência: planos `d172cd2` e `2b53e00`; implementação `e9e50e4`, `6088d84`, `4f7af8b`, `b5e701d`, `594138e` e `0fa3123`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. A matriz executou 5 viewports × 13 estados, totalizando 65/65 checkpoints e screenshots anexadas, com anti-flake de 25/25 jornadas e 325 checkpoints; shards 1/5 e 5/5 executaram uma jornada cada. O auditor exige documento e controles integralmente contidos e permite exatamente `categories`, `account-navigation` e `pagination`. Um RED real no resumo do carrinho em 1024/1920 px (`scrollWidth=324`, `clientWidth=270`) foi corrigido mantendo as ações em coluna; o ledger estrito foi idêntico nos cinco viewports, incluindo login, carrinho, checkout, conta e pedidos. Suíte Chromium 14/14, repetição 28/28, Vitest 856/856, typecheck, lint, build com entry de 464,68 kB, diff-check e ausência de artefatos Playwright rastreados PASS.
 
-[ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
+[x] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
+  - Status: DONE
+  - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-127
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Concluir as jornadas principais somente por teclado e verificar ordem, visibilidade e restauração de foco.
+    - Validar nomes, roles, landmarks, headings e anúncios de erros, status e toasts por regiões vivas.
+    - Medir contraste conforme WCAG AA e comprovar que `prefers-reduced-motion` remove movimento não essencial.
+    - Concluir auditoria automatizada sem violações sérias, registrar checklist manual e executar os gates locais aplicáveis sem falhas.
+  - Evidência: planos `57a7304` e `3c7128a`; implementação `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`, `2a99661`, `aa1399d`, `07b5223`, `851c5bc`, `c0d4822`, `badbc03` e `d112336`; reabertura `518a1f3` e estabilização `694e58e`. O gate da TASK-130 reproduziu em 1/30 execuções a confirmação de senha presente com foco ainda no `body`; a asserção passou a aguardar a condição de foco via `waitFor`, sem mudança de produto, `requestAnimationFrame` ou timeout fixo. Stress em 50 processos independentes 50/50, sequência Password+Login+Registration 16/16, accessibility 6/6, Vitest amplo final 130 arquivos/863 testes, typecheck, lint e diff-check PASS. A primeira suíte ampla concorrente com typecheck/lint teve dois timeouts fora do diff; as integrações passaram isoladas 7/7 e o rerun amplo sem concorrência passou 863/863. Revisão anterior concluída sem findings CRITICAL ou IMPORTANT; TASK-130 liberada `READY` para rerun integral.
+
+[x] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
+  - Status: DONE
+  - Depends on: TASK-003, TASK-009, TASK-010, TASK-011, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-126
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Criar `frontend/README.md` com requisitos e versões, instalação e configuração de `VITE_API_BASE_URL` e ativação opt-in do MSW.
+    - Documentar todos os scripts e a execução integrada com API, PostgreSQL e Docker, além de testes unitários, E2E e build.
+    - Documentar troubleshooting e a política de dados locais inventariada na TASK-126.
+    - Validar em checkout limpo que os comandos documentados podem ser copiados e executados com sucesso.
+  - Evidência: planos `a9806f4`, `7a1751c` e `77da209`; implementação e validação `3f031c7`, `50caf90`, `86f773f` e `653baae`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. Em worktree detached no commit exato, Node 26.3.1/npm 11.16.0 executaram `npm ci` com 315 pacotes e zero vulnerabilidades, typecheck, lint, Vitest 130 arquivos/863 testes, Playwright Chromium 20/20, build, grafo inicial de 465833 bytes com 6 rotas lazy e auditoria privada de 153 arquivos/19 negativos, todos com exit code zero. O Docker Desktop foi iniciado de modo oculto dentro do deadline; Docker 29.6.1, PostgreSQL 17.10 e .NET SDK 10.0.302 executaram `shop-api-db` healthy, restore e migrations com `dotnet-ef` 10.0.10, `shop-api-app` com readiness 200 e smoke Chromium real 1/1, MSW desativado, sem service worker, interceptações, erros de console, página ou CORS. Um RED real em checkout limpo revelou `NETSDK1004` e adicionou `dotnet restore` ao container one-shot; a revisão tornou o segundo terminal autocontido e separou o diagnóstico da migration dos logs da API. O cleanup confirmou containers, rede, diretório temporário e listener 5173 ausentes; worktree temporário removido, diff-check e status final PASS.
+
+[x] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
+  - Status: DONE
+  - Depends on: TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124, TASK-125, TASK-126, TASK-127, TASK-128, TASK-129
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Em checkout limpo, executar `npm ci`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e` e `npm run build`, todos com exit code zero.
+    - Rejeitar `.only`, erros, rejeições não tratadas e alterações pendentes produzidas pelo gate.
+    - Registrar contagens, duração, ambiente e commit exato da execução.
+    - Se houver falha, reabrir a task dona do comportamento e não corrigir produto diretamente na TASK-130.
+  - Evidência: planos e correções do executor `4641e9f`, `92a68aa`, `9b68b5d`, `8ffad7d`, `4403e31`, `e82c6bd` e `0a9bc60`; tentativas e relatórios `80c52cb`, `dfa7bfe`, `d977950`, `e769d53`, `c0711ef` e `e49ea5b`; a falha funcional de foco reabriu a TASK-128 em `518a1f3` e foi estabilizada em `694e58e`, antes do novo gate integral. No checkout detached do alvo `0a9bc60`, `npm ci` 6,963 s, typecheck 7,078 s, lint 8,394 s, Vitest 54,233 s com 130 arquivos/863 testes, Playwright `CI=true` 60,892 s com 20/20 e um worker, build 4,254 s com 390 módulos, grafo 540 ms com entry de 465833 bytes e 6 rotas lazy, e auditoria privada 1,497 s com 153 arquivos/19 testes negativos passaram com exit zero. O pacote validou 22 evidências não vazias e manifest SHA-256 `4F90DDE48FFB4A078058A6FA01224A89D2232D19D9858CA8BD30F9641B8FA6E9`; zero `.only`, skips condicionais ou sinais de runner, diff/status limpos e cleanup sem `--force`. Revisão independente aprovada sem findings CRITICAL ou IMPORTANT.
 
 ### Fase 9 — Ajustes de experiência
 

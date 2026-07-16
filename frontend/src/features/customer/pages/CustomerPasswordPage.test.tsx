@@ -43,7 +43,7 @@ describe('CustomerPasswordPage', () => {
     expect(mutateAsync).toHaveBeenCalledWith({ customerId: 7, token: 'captured', request: { senhaAtual: 'Atual#123', senhaNova: 'Nova#456A' } })
     release({ customerId: 7 })
     const confirmation = await screen.findByText('Senha alterada com sucesso.')
-    expect(confirmation).toHaveFocus()
+    await waitFor(() => expect(confirmation).toHaveFocus())
     expect(screen.getByLabelText('Senha atual')).toHaveValue('')
     expect(screen.getByLabelText('Nova senha')).toHaveValue('')
   })

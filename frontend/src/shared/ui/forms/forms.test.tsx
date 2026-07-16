@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from './Checkbox'
 import { FieldError } from './FieldError'
@@ -7,6 +8,14 @@ import { Input } from './Input'
 import { Select } from './Select'
 
 describe('Input', () => {
+  it('forwards the disabled state and remains programmatically focusable when enabled', () => {
+    render(<><Input label="Nome" /><Input label="CPF" disabled /></>)
+    const input = screen.getByRole('textbox', { name: 'Nome' })
+    input.focus()
+    expect(input).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'CPF' })).toBeDisabled()
+  })
+
   it('associates its label, hint and error with the native input', () => {
     render(<Input id="email" label="E-mail" hint="Use seu e-mail principal" error="E-mail inválido" />)
 
@@ -26,6 +35,23 @@ describe('Input', () => {
 })
 
 describe('Checkbox', () => {
+  it('toggles with Space while blocking a disabled control', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<><Checkbox id="terms" label="Aceito" error="Aceite obrigatório" onChange={onChange} /><Checkbox label="Indisponível" disabled /></>)
+    const checkbox = screen.getByRole('checkbox', { name: 'Aceito' })
+    await user.tab()
+    await user.keyboard(' ')
+
+    expect(checkbox).toHaveFocus()
+    expect(checkbox).toBeChecked()
+    expect(checkbox).toHaveAccessibleDescription('Aceite obrigatório')
+    expect(onChange).toHaveBeenCalledOnce()
+    const disabled = screen.getByRole('checkbox', { name: 'Indisponível' })
+    expect(disabled).toBeDisabled()
+    expect(disabled).not.toBeChecked()
+  })
+
   it('has a native checkbox role and accessible description', () => {
     render(<Checkbox id="remember" label="Manter conectado" description="Use apenas em dispositivo pessoal" />)
 
@@ -36,6 +62,20 @@ describe('Checkbox', () => {
 })
 
 describe('Select', () => {
+  it('changes options through user interaction after keyboard focus and forwards disabled', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<><Select label="Entrega" onChange={onChange}><option value="normal">Normal</option><option value="express">Expressa</option></Select><Select label="Pagamento" disabled><option>Pix</option></Select></>)
+    const select = screen.getByRole('combobox', { name: 'Entrega' })
+    await user.tab()
+    await user.selectOptions(select, 'express')
+
+    expect(select).toHaveFocus()
+    expect(select).toHaveValue('express')
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(screen.getByRole('combobox', { name: 'Pagamento' })).toBeDisabled()
+  })
+
   it('associates validation feedback and forwards options', () => {
     render(
       <Select id="payment" label="Pagamento" error="Escolha uma opção">
@@ -59,6 +99,13 @@ describe('FieldError', () => {
 })
 
 describe('FormErrorSummary', () => {
+  it('accepts programmatic focus for validation recovery', () => {
+    render(<FormErrorSummary data-testid="summary" errors={[{ message: 'Revise o formulário' }]} />)
+    const summary = screen.getByTestId('summary')
+    summary.focus()
+    expect(summary).toHaveFocus()
+  })
+
   it('renders nothing without errors', () => {
     const { container } = render(<FormErrorSummary errors={[]} />)
     expect(container).toBeEmptyDOMElement()

@@ -136,7 +136,10 @@ function CategoryNavigation({
 }: Pick<HeaderProps, 'categories' | 'searchword' | 'selectedCategoryId'>) {
   return (
     <nav aria-label="Categorias de produtos" className="border-t border-ink-800">
-      <div className="container-page overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        data-responsive-overflow="categories"
+        className="container-page overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <ul className="flex min-w-max items-center gap-1 py-2">
           <li>
             <Link

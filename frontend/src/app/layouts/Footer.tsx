@@ -26,7 +26,7 @@ export function Footer() {
               shop<span className="text-brand-400">.</span>
             </span>
           </Link>
-          <p className="mt-3 max-w-xs text-sm text-zinc-500">
+          <p className="mt-3 max-w-xs text-sm text-zinc-400">
             Consulte os produtos disponíveis em nosso catálogo.
           </p>
         </div>
@@ -62,7 +62,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-ink-800">
-        <div className="container-page py-5 text-xs text-zinc-600">© 2026 shop.</div>
+        <div className="container-page py-5 text-xs text-zinc-400">© 2026 shop.</div>
       </div>
     </footer>
   )

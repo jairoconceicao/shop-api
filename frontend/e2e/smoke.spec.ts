@@ -1,16 +1,16 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
-test('loads the SPA', async ({ page }) => {
-  await page.goto('/')
+test('loads the SPA', async ({ authApi, page }) => {
+  authApi.expectRequestCounts({})
+
+  await page.goto('/entrar')
 
   await expect(page).toHaveTitle('shop-api')
   await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'Encontre produtos para o seu dia a dia',
-    }),
+    page.getByRole('heading', { level: 1, name: 'Entrar na sua conta' }),
   ).toBeVisible()
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'Catálogo' }),
-  ).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Criar agora' })).toHaveAttribute(
+    'href',
+    '/cadastro',
+  )
 })

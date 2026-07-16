@@ -9,6 +9,11 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    timezoneId: 'America/Sao_Paulo',
+    storageState: {
+      cookies: [],
+      origins: [],
+    },
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,8 +23,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173',
+    command: 'npm run dev:e2e',
     url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 })

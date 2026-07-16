@@ -4,6 +4,10 @@ import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppError } from '../../../shared/errors/appError'
+import { clearPrivateSession } from '../../auth/session/clearPrivateSession'
+import { useAuthStore } from '../../auth/store/authStore'
+import { cartCache } from '../cache/cartCache'
+import * as cartCacheModule from '../cache/cartCache'
 import { useCartSessionStore } from '../store/cartSessionStore'
 import { useCreateCartMutation } from './useCreateCartMutation'
 
@@ -21,6 +25,14 @@ function createWrapper() {
 describe('useCreateCartMutation', () => {
   beforeEach(() => {
     createCart.mockReset()
+    useAuthStore.getState().setSession({
+      token: 'access-token',
+      tipo: 'Bearer',
+      expiraEm: '2099-01-01T00:00:00Z',
+      usuarioId: 10,
+      clienteId: 10,
+      email: 'customer@example.com',
+    }, 'session')
     useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100, '20': 200 } })
   })
 
@@ -60,5 +72,51 @@ describe('useCreateCartMutation', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(createCart).toHaveBeenCalledOnce()
+  })
+
+  it.each([
+    ['logout', null],
+    ['token rotation', { clienteId: 10, token: 'replacement' }],
+    ['customer change', { clienteId: 20, token: 'replacement' }],
+  ])('ignores a late response after %s', async (_reason, replacement) => {
+    let resolve!: (value: { id: number; createdAt: string }) => void
+    createCart.mockReturnValue(new Promise((done) => { resolve = done }))
+    const { result } = renderHook(() => useCreateCartMutation(), { wrapper: createWrapper() })
+
+    const pending = result.current.mutateAsync({ token: 'access-token', customerId: 10 })
+    if (replacement) {
+      useAuthStore.getState().setSession({
+        ...useAuthStore.getState().session!,
+        clienteId: replacement.clienteId,
+        token: replacement.token,
+      }, 'session')
+    } else {
+      useAuthStore.getState().clearSession()
+    }
+    resolve({ id: 101, createdAt: '2026-07-14T12:00:00Z' })
+    await act(() => pending)
+
+    expect(useCartSessionStore.getState().getCartId(10)).toBe(100)
+  })
+
+  it('does not restore storage or cache after the real private-session boundary', async () => {
+    const reconcile = vi.spyOn(cartCacheModule, 'reconcileActiveCart')
+    let resolve!: (value: { id: number; createdAt: string }) => void
+    createCart.mockReturnValue(new Promise((done) => { resolve = done }))
+    const queryClient = new QueryClient()
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+    const { result } = renderHook(() => useCreateCartMutation(), { wrapper })
+
+    const pending = result.current.mutateAsync({ token: 'access-token', customerId: 10 })
+    clearPrivateSession(queryClient, 10)
+    resolve({ id: 101, createdAt: '2026-07-14T12:00:00Z' })
+    await act(() => pending)
+
+    expect(useCartSessionStore.getState().getCartId(10)).toBeUndefined()
+    expect(localStorage.getItem('shop-api:cart-session')).not.toContain('101')
+    expect(queryClient.getQueryData(cartCache.query.detail(10, 101))).toBeUndefined()
+    expect(reconcile).not.toHaveBeenCalled()
   })
 })

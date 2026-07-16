@@ -31,10 +31,17 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     defaultValues: { manterConectado: false },
+    shouldFocusError: false,
   })
 
+  const focusSummary = () => requestAnimationFrame(() => requestAnimationFrame(
+    () => document.getElementById('login-error-summary')?.focus(),
+  ))
   const submitLogin = handleSubmit(async (values) => {
-    const parsedValues = loginRequestSchema.safeParse(values)
+    const parsedValues = loginRequestSchema.safeParse({
+      email: values.email,
+      senha: values.senha,
+    })
 
     if (!parsedValues.success) return
 
@@ -48,13 +55,14 @@ export function LoginPage() {
     } finally {
       resetField('senha')
     }
-  })
+  }, focusSummary)
 
   const formErrors = [
     errors.email?.message ? { fieldId: 'login-email', message: errors.email.message } : null,
     errors.senha?.message ? { fieldId: 'login-password', message: errors.senha.message } : null,
     loginMutation.error ? { message: loginMutation.error.message } : null,
   ].filter((error): error is { fieldId?: string; message: string } => error !== null)
+
 
   return (
     <section className="container-page flex min-h-dvh items-center justify-center py-12 sm:py-16">
@@ -79,7 +87,7 @@ export function LoginPage() {
         ) : null}
 
         <form className="mt-8 space-y-5" noValidate onSubmit={submitLogin}>
-          <FormErrorSummary errors={formErrors} />
+          <FormErrorSummary id="login-error-summary" errors={formErrors} />
           <Input
             id="login-email"
             label="E-mail"

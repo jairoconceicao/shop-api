@@ -1,11 +1,31 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from './Button'
 import { IconButton } from './IconButton'
 import { LinkButton } from './LinkButton'
 
 describe('Button', () => {
+  it('activates with Enter and Space and blocks interaction when disabled', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+    const onDisabledClick = vi.fn()
+    render(<><Button onClick={onClick}>Continuar</Button><Button disabled onClick={onDisabledClick}>Salvar</Button></>)
+
+    const enabled = screen.getByRole('button', { name: 'Continuar' })
+    await user.tab()
+    await user.keyboard('{Enter}')
+    await user.keyboard(' ')
+
+    expect(enabled).toHaveFocus()
+    expect(onClick).toHaveBeenCalledTimes(2)
+    const disabled = screen.getByRole('button', { name: 'Salvar' })
+    await user.click(disabled)
+    expect(disabled).toBeDisabled()
+    expect(onDisabledClick).not.toHaveBeenCalled()
+  })
+
   it('uses a safe button type and forwards native behavior', () => {
     const onClick = vi.fn()
 
@@ -43,6 +63,19 @@ describe('IconButton', () => {
 })
 
 describe('LinkButton', () => {
+  it('navigates with Enter while preserving the target route', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter initialEntries={['/']}><Routes><Route path="/" element={<LinkButton to="/produtos">Produtos</LinkButton>} /><Route path="/produtos" element={<h1>Catálogo</h1>} /></Routes></MemoryRouter>)
+
+    const link = screen.getByRole('link', { name: 'Produtos' })
+    await user.tab()
+
+    expect(link).toHaveFocus()
+    expect(link).toHaveAttribute('href', '/produtos')
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('heading', { name: 'Catálogo' })).toBeInTheDocument()
+  })
+
   it('renders navigation as a link with button styling', () => {
     render(
       <MemoryRouter>

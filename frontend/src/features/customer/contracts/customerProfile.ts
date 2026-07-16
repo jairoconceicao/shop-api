@@ -9,7 +9,7 @@ import {
 } from '../../../shared/formatting/personalData'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 

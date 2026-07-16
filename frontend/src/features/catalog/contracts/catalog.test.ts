@@ -20,7 +20,18 @@ const transportProduct = {
   categoria: transportCategory,
 }
 
+const transportProductDetail = {
+  produtoId: transportProduct.produtoId,
+  titulo: transportProduct.titulo,
+  preco: transportProduct.preco,
+  estoque: transportProduct.estoque,
+  categoria: transportProduct.categoria,
+}
+
 describe('adaptCategoriesResponse', () => {
+  it('rejects extra properties in category contracts', () => {
+    expect(() => adaptCategoriesResponse({ status: true, data: [{ ...transportCategory, descricao: null, extra: true }] })).toThrow()
+  })
   it('normalizes category IDs and preserves nullable descriptions', () => {
     expect(
       adaptCategoriesResponse({
@@ -52,6 +63,12 @@ describe('adaptCategoriesResponse', () => {
 })
 
 describe('adaptCatalogResponse', () => {
+  it('rejects extra properties at catalog pagination and product levels', () => {
+    const pagination = { pages: 1, size: 20, totalItems: 1, data: [transportProduct] }
+    expect(() => adaptCatalogResponse({ status: true, pagination: { ...pagination, extra: true } })).toThrow()
+    expect(() => adaptCatalogResponse({ status: true, pagination: { ...pagination, data: [{ ...transportProduct, extra: true }] } })).toThrow()
+    expect(() => adaptCatalogResponse({ status: true, pagination: { ...pagination, data: [{ ...transportProduct, categoria: { ...transportCategory, extra: true } }] } })).toThrow()
+  })
   it('normalizes products and pagination returned as transport strings', () => {
     expect(
       adaptCatalogResponse({
@@ -102,7 +119,7 @@ describe('adaptProductDetailResponse', () => {
       adaptProductDetailResponse({
         status: true,
         data: {
-          ...transportProduct,
+          ...transportProductDetail,
           descricao: null,
           modelo: 'TK-42',
           foto: null,
@@ -126,7 +143,7 @@ describe('adaptProductDetailResponse', () => {
     {
       status: false,
       data: {
-        ...transportProduct,
+        ...transportProductDetail,
         descricao: null,
         modelo: null,
         foto: null,
@@ -143,7 +160,7 @@ describe('adaptProductDetailResponse', () => {
       adaptProductDetailResponse({
         status: true,
         data: {
-          ...transportProduct,
+          ...transportProductDetail,
           produtoId: '042',
           descricao: null,
           modelo: null,

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { AppError } from '../../../shared/errors/appError'
 import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
@@ -16,11 +17,6 @@ import {
 } from '../contracts/checkout'
 import type { CheckoutProfile } from '../../customer/contracts/customerProfile'
 import { useCreateOrderMutation } from '../mutations/useCreateOrderMutation'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 const payments: readonly { value: PaymentMethod; label: string; description: string }[] = [
   { value: 'Pix', label: 'Pix', description: 'Pagamento instantâneo.' },
@@ -93,15 +89,14 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
 
       submissionInFlightRef.current = true
       createOrderMutation.reset()
-      createOrderMutation.mutate(
-        { values: parsed.data, cart },
-        {
-          onError: () => { submissionInFlightRef.current = false },
-          onSuccess: (createdOrder) => {
-            navigate(`/pedido-confirmado/${createdOrder.id}`)
-          },
-        },
-      )
+      void createOrderMutation
+        .mutateAsync({ values: parsed.data, cart })
+        .then((createdOrder) => {
+          navigate(`/pedido-confirmado/${createdOrder.id}`)
+        })
+        .catch(() => {
+          submissionInFlightRef.current = false
+        })
       return
     }
 
@@ -144,7 +139,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   )
 
   return (
-    <main className="container-page py-8 sm:py-10 lg:py-12">
+    <div className="container-page py-8 sm:py-10 lg:py-12">
       <header className="mb-6 sm:mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">Checkout</h1>
         <p className="mt-2 text-zinc-400">Revise o endereço e escolha como deseja pagar.</p>
@@ -201,16 +196,16 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
           <Card className="p-5 sm:p-6">
             <h2 className="text-xl font-semibold text-zinc-100">Resumo</h2>
             <dl className="mt-5 space-y-4">
-              <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
-              <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
+              <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{formatCurrency(subtotal)}</dd></div>
+              <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{formatCurrency(subtotal)}</dd></div>
             </dl>
             <Button className="mt-6 w-full" disabled={createOrderMutation.isPending} type="submit">
               {createOrderMutation.isPending ? 'Confirmando pedido...' : 'Confirmar pedido'}
             </Button>
-            <p className="mt-3 text-xs text-zinc-500">A confirmação do pedido será concluída na próxima etapa.</p>
+            <p className="mt-3 text-xs text-zinc-400">A confirmação do pedido será concluída na próxima etapa.</p>
           </Card>
         </aside>
       </form>
-    </main>
+    </div>
   )
 }

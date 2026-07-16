@@ -13,6 +13,7 @@ import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
+import { RouteFocusBoundary } from './RouteFocusBoundary'
 
 const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPage').then(
   ({ CheckoutPage: Page }) => ({ default: Page }),
@@ -35,14 +36,38 @@ const OrderDetailPage = lazy(() => import('../../features/orders/pages/OrderDeta
 
 function CheckoutRouteFallback() {
   return (
-    <div role="status" aria-label="Carregando checkout" aria-live="polite">
+    <div
+      role="status"
+      aria-label="Carregando checkout"
+      aria-live="polite"
+      className="surface min-h-96 p-6"
+    >
       Carregando checkout…
     </div>
   )
 }
 
-function LazyCheckoutRoute({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<CheckoutRouteFallback />}>{children}</Suspense>
+function OrderConfirmationRouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-label="Carregando confirmação do pedido"
+      aria-live="polite"
+      className="surface min-h-96 p-6"
+    >
+      Carregando confirmação do pedido…
+    </div>
+  )
+}
+
+function LazyCheckoutRoute({
+  children,
+  fallback = <CheckoutRouteFallback />,
+}: {
+  children: ReactNode
+  fallback?: ReactNode
+}) {
+  return <Suspense fallback={fallback}>{children}</Suspense>
 }
 
 function CustomerDataRouteFallback() {
@@ -72,7 +97,7 @@ function OrderDetailRouteFallback() {
 
 export function AppRouter() {
   return (
-    <Routes>
+    <RouteFocusBoundary><Routes>
       <Route element={<StoreLayout />}>
         <Route index element={<HomePage />} />
         <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
@@ -87,7 +112,7 @@ export function AppRouter() {
           <Route
             path="pedido-confirmado/:pedidoId"
             element={(
-              <LazyCheckoutRoute>
+              <LazyCheckoutRoute fallback={<OrderConfirmationRouteFallback />}>
                 <OrderConfirmationPage />
               </LazyCheckoutRoute>
             )}
@@ -109,6 +134,6 @@ export function AppRouter() {
         <Route path="cadastro" element={<RegistrationPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </Routes>
+    </Routes></RouteFocusBoundary>
   )
 }

@@ -16,7 +16,11 @@ export function AccountLayout() {
       className="container-page max-w-3xl py-8 sm:py-10"
       data-shell="account"
     >
-      <nav aria-label="Navegação da conta" className="mb-8 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav
+        aria-label="Navegação da conta"
+        data-responsive-overflow="account-navigation"
+        className="mb-8 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <ul className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
           {accountNavigation.map((item) => (
             <li key={item.to}>

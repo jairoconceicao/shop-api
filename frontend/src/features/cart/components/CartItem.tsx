@@ -1,15 +1,11 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { ProductImage } from '../../../shared/ui/media/ProductImage'
 import { Card } from '../../../shared/ui/surfaces/Card'
 import type { CartItem as CartItemContract } from '../contracts/cart'
 import type { CartProductResult } from '../queries/useCartProductsQuery'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 export interface CartItemProps {
   actions: ReactNode
@@ -50,13 +46,13 @@ export function CartItem({
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <dt className="text-zinc-400">Preço unitário</dt>
           <dd className="text-right text-zinc-100">
-            {brlFormatter.format(item.unitPrice)}
+            {formatCurrency(item.unitPrice)}
           </dd>
           <dt className="text-zinc-400">Quantidade</dt>
           <dd className="text-right text-zinc-100">{item.quantity}</dd>
           <dt className="font-semibold text-zinc-200">Subtotal</dt>
           <dd className="text-right font-semibold text-zinc-100">
-            {brlFormatter.format(subtotal)}
+            {formatCurrency(subtotal)}
           </dd>
         </dl>
 

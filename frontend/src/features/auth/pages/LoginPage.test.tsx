@@ -64,6 +64,7 @@ describe('LoginPage', () => {
 
     expect(await screen.findAllByText('Informe um e-mail válido.')).toHaveLength(2)
     expect(screen.getAllByText('Informe sua senha.')).toHaveLength(2)
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus())
     expect(requests).toBe(0)
   })
 
@@ -71,20 +72,23 @@ describe('LoginPage', () => {
     { keepConnected: false, persistence: 'session' as const },
     { keepConnected: true, persistence: 'local' as const },
   ])('stores the session using $persistence persistence', async ({ keepConnected, persistence }) => {
+    let requestBody: unknown
     server.use(
-      http.post('https://api.example.com/api/v1/auth/login', () =>
-        HttpResponse.json({
+      http.post('https://api.example.com/api/v1/auth/login', async ({ request }) => {
+        requestBody = await request.json()
+
+        return HttpResponse.json({
           status: true,
           data: {
             token: 'header.payload.signature',
             tipo: 'Bearer',
-            expiraEm: '2026-07-14T18:00:00-03:00',
+            expiraEm: '2099-07-14T18:00:00-03:00',
             usuarioId: 10,
             clienteId: 20,
             email: 'cliente@exemplo.com',
           },
-        }),
-      ),
+        })
+      }),
     )
     renderPage()
 
@@ -98,6 +102,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
     await waitFor(() => expect(useAuthStore.getState().session?.clienteId).toBe(20))
+    expect(requestBody).toEqual({ email: 'cliente@exemplo.com', senha: 'senha-secreta' })
     expect(useAuthStore.getState().persistence).toBe(persistence)
     expect(await screen.findByText('/')).toBeInTheDocument()
   })
@@ -111,7 +116,7 @@ describe('LoginPage', () => {
           data: {
             token: 'header.payload.signature',
             tipo: 'Bearer',
-            expiraEm: '2026-07-14T18:00:00-03:00',
+            expiraEm: '2099-07-14T18:00:00-03:00',
             usuarioId: 10,
             clienteId: 20,
             email: 'cliente@exemplo.com',

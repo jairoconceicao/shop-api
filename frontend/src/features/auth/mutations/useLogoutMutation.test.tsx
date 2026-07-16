@@ -61,4 +61,26 @@ describe('useLogoutMutation', () => {
     expect(queryClient.getQueryData(['catalog'])).toEqual(['Product'])
     expect(result.current.location.pathname).toBe('/entrar')
   })
+
+  it('does not redirect or clear a successor session after an obsolete logout settles', async () => {
+    let settle!: () => void
+    vi.mocked(logout).mockReturnValue(new Promise((resolve) => { settle = resolve }))
+    useAuthStore.getState().setSession(session, 'session')
+    const queryClient = new QueryClient()
+    function wrapper({ children }: PropsWithChildren) {
+      return <MemoryRouter initialEntries={['/pedidos']}><QueryClientProvider client={queryClient}>{children}</QueryClientProvider></MemoryRouter>
+    }
+    const { result } = renderHook(
+      () => ({ mutation: useLogoutMutation(), location: useLocation() }),
+      { wrapper },
+    )
+
+    act(() => result.current.mutation.mutate(session.token))
+    useAuthStore.getState().setSession({ ...session, token: 'successor-token' }, 'session')
+    settle()
+    await waitFor(() => expect(result.current.mutation.isPending).toBe(false))
+
+    expect(useAuthStore.getState().session?.token).toBe('successor-token')
+    expect(result.current.location.pathname).toBe('/pedidos')
+  })
 })

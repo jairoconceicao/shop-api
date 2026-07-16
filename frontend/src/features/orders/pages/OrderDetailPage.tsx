@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { AppError } from '../../../shared/errors/appError'
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
 import { Skeleton } from '../../../shared/ui/states/Skeleton'
@@ -14,7 +15,6 @@ import { useOrderDetailQuery } from '../queries/useOrderDetailQuery'
 import { useOrderProductsQuery } from '../queries/useOrderProductsQuery'
 import { parseOrderId } from '../routing/orderId'
 
-const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short' })
 
 function PageState({
@@ -165,7 +165,7 @@ export function OrderDetailPage() {
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex items-center justify-between border-t border-zinc-700 pt-4 text-lg font-bold text-zinc-50"><span>Total</span><span>{currency.format(calculateOrderTotal(order.items))}</span></div>
+        <div className="mt-4 flex items-center justify-between border-t border-zinc-700 pt-4 text-lg font-bold text-zinc-50"><span>Total</span><span>{formatCurrency(calculateOrderTotal(order.items))}</span></div>
       </section>
 
       {cancellationAvailable ? (
