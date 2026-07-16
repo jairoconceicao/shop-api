@@ -750,8 +750,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits funcionais `ed6f75d` e `a3a7114` e relatório `d8dfaa8`; range revisado `9838c65..d8dfaa8` aprovado sem findings CRITICAL ou IMPORTANT após a resolução do blocker da TASK-120. A jornada da conta executou 20/20 PASS, a suíte Chromium completa 12/12 PASS e typecheck/lint/build/diff-check PASS.
 
-[ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
-  - Status: READY
+[x] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
+  - Status: DONE
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -759,6 +759,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Listar e filtrar pedidos, abrir o detalhe e tentar cancelar o pedido.
     - Receber `422`, anunciar a recusa e manter o status confirmado após reload.
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits `17a5ee9`, `2954271`, `cdfd5a7` e `a02eb42`; revisões final e incremental aprovadas sem findings CRITICAL ou IMPORTANT. O RED inicial alcançou `GET /api/v1/pedido` no handler que aceitava somente POST; o RED incremental reproduziu a classificação indevida `product=0/orderProduct=2` após o `422` e refetch com produto em cache. O GREEN correlaciona a hidratação consumível com o frame corrente e preserva `Criado` após recusa e reload. Contagens finais: `register=0`, `login=2`, `categories=5`, `catalog=1`, `profile=1`, `profileUpdate=0`, `passwordUpdate=0`, `logout=0`, `product=1`, `cartCreate=0`, `cartAdd=0`, `cartGet=0`, `cartUpdate=0`, `cartDelete=0`, `orderCreate=0`, `ordersList=2`, `orderDetail=4`, `orderProduct=3` e `orderCancel=1`. Spec isolada 1/1, repetição isolada 20/20, suíte Chromium repetida 14/14, typecheck, lint e diff-check PASS.
 
 [ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
   - Status: READY

@@ -29,7 +29,7 @@
    corrente do frame. Em `/pedidos/:id`, a primeira hidratação conta como
    `orderProduct`; depois de navegar para `/produtos/:id`, o marcador é
    consumido como `product`.
-6. O GREEN focado passou com contagens exatas:
+7. O GREEN focado passou com contagens exatas:
 
 ```text
 register=0 login=2 categories=5 catalog=1 profile=1 profileUpdate=0
