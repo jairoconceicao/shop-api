@@ -104,6 +104,8 @@ describe('CartPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Carrinho' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Explorar catálogo' })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('link', { name: 'Continuar comprando' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ir para checkout' })).not.toBeInTheDocument()
   })
 
   it('renders an accessible loading status while the confirmed cart is pending', () => {
@@ -142,6 +144,22 @@ describe('CartPage', () => {
     expect(screen.queryByText('R$ 9.999,00')).not.toBeInTheDocument()
   })
 
+  it('shows catalog and checkout actions in the cart summary when items exist', () => {
+    Object.assign(cartQuery, { data: cart, hasCart: true })
+    productsQuery.data = [product(1, 'Primeiro produto'), product(2, 'Segundo produto')]
+
+    renderPage()
+
+    const summary = screen.getByRole('complementary', { name: 'Resumo do carrinho' })
+    const links = within(summary).getAllByRole('link')
+
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAccessibleName('Continuar comprando')
+    expect(links[0]).toHaveAttribute('href', '/')
+    expect(links[1]).toHaveAccessibleName('Ir para checkout')
+    expect(links[1]).toHaveAttribute('href', '/checkout')
+  })
+
   it('keeps failed product hydration actionable without hiding successful items', () => {
     Object.assign(cartQuery, { data: cart, hasCart: true })
     productsQuery.data = [
@@ -164,6 +182,8 @@ describe('CartPage', () => {
     renderPage()
 
     expect(screen.getByRole('heading', { name: 'Seu carrinho está vazio' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Continuar comprando' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ir para checkout' })).not.toBeInTheDocument()
   })
 
   it('updates quantity within product stock and locks the control while pending', () => {

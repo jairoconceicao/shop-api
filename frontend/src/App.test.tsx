@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -12,8 +12,71 @@ import { server } from './shared/testing/server'
 const { fetchProductDetail } = vi.hoisted(() => ({ fetchProductDetail: vi.fn() }))
 vi.mock('./features/catalog/services/productDetailService', () => ({ fetchProductDetail }))
 
+const apiBaseUrl = 'https://api.example.com/api/v1'
+
+function emptyCategoriesHandler() {
+  return http.get(`${apiBaseUrl}/categoria`, () => HttpResponse.json({
+    status: true,
+    data: [],
+  }))
+}
+
+function emptyCatalogHandlers() {
+  return [
+    emptyCategoriesHandler(),
+    http.get(`${apiBaseUrl}/produto`, ({ request }) => {
+      const url = new URL(request.url)
+      expect(url.searchParams.get('page')).toBe('1')
+      expect(url.searchParams.get('size')).toBe('20')
+
+      return HttpResponse.json({
+        status: true,
+        pagination: { pages: 0, size: 20, totalItems: 0, data: [] },
+      })
+    }),
+  ]
+}
+
+function customerProfileHandler() {
+  return http.get(`${apiBaseUrl}/cliente/20`, ({ request }) => {
+    expect(request.headers.get('Authorization')).toBe(
+      'Bearer header.payload.signature',
+    )
+
+    return HttpResponse.json({
+      status: true,
+      data: {
+        clienteId: 20,
+        cpf: '12345678901',
+        nome: 'Cliente',
+        dataNascimento: '1990-01-01',
+        email: 'cliente@exemplo.com',
+        endereco: {
+          logradouro: 'Rua A', numero: '10', complemento: null,
+          cep: '12345678', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP',
+        },
+        celular: { ddd: '11', numero: '999999999', whatsApp: true },
+      },
+    })
+  })
+}
+
+function emptyOrdersHandler() {
+  return http.get(`${apiBaseUrl}/pedido`, ({ request }) => {
+    const url = new URL(request.url)
+    expect(url.searchParams.get('cpf')).toBe('12345678901')
+    expect(url.searchParams.get('page')).toBe('1')
+    expect(url.searchParams.get('size')).toBe('20')
+
+    return HttpResponse.json({
+      status: true,
+      pagination: { pages: 0, size: 20, totalItems: 0, data: [] },
+    })
+  })
+}
+
 describe('App', () => {
-  const queryClient = new QueryClient()
+  let queryClient: QueryClient
 
   function renderApp(route: string) {
     return render(
@@ -33,7 +96,12 @@ describe('App', () => {
   }
 
   beforeEach(() => {
-    queryClient.clear()
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, refetchOnMount: false },
+        mutations: { retry: false },
+      },
+    })
     useCartSessionStore.setState({ cartIdsByCustomer: {} })
     fetchProductDetail.mockReset()
     fetchProductDetail.mockResolvedValue({
@@ -60,6 +128,8 @@ describe('App', () => {
   })
 
   it('renders the product detail page in the store route', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(emptyCategoriesHandler())
     const { container } = renderApp('/produtos/42')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Notebook Pro 14' })).toBeInTheDocument()
@@ -67,13 +137,19 @@ describe('App', () => {
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
-  afterEach(() => vi.unstubAllEnvs())
+  afterEach(async () => {
+    cleanup()
+    await queryClient.cancelQueries()
+    queryClient.clear()
+    vi.unstubAllEnvs()
+  })
 
   it('returns from the real login flow to the exact product URL without adding automatically', async () => {
     let cartRequests = 0
     useAuthStore.getState().clearSession()
     vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
     server.use(
+      emptyCategoriesHandler(),
       http.post('https://api.example.com/api/v1/auth/login', () =>
         HttpResponse.json({
           status: true,
@@ -115,28 +191,58 @@ describe('App', () => {
     expect(cartRequests).toBe(0)
   })
 
-  it.each([
-    ['/', 'Encontre produtos para o seu dia a dia'],
-    ['/pedido-confirmado/7', 'Confirmação do pedido'],
-    ['/pedidos', 'Meus pedidos'],
-  ])('renders the store route %s', async (route, heading) => {
-    const { container } = renderApp(route)
+  it('renders the home store route', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(...emptyCatalogHandlers())
 
-    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+    const { container } = renderApp('/')
+
+    expect(await screen.findByRole('heading', {
+      level: 1,
+      name: 'Encontre produtos para o seu dia a dia',
+    })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  it('renders the order confirmation store route', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(emptyCategoriesHandler())
+    const { container } = renderApp('/pedido-confirmado/7')
+
+    expect(await screen.findByRole('heading', {
+      level: 1,
+      name: 'Confirmação do pedido',
+    })).toBeInTheDocument()
+    expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
+  })
+
+  it('renders the orders store route', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(emptyCategoriesHandler(), customerProfileHandler(), emptyOrdersHandler())
+
+    const { container } = renderApp('/pedidos')
+
+    expect(await screen.findByRole('heading', {
+      level: 1,
+      name: 'Meus pedidos',
+    })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
   })
 
   it('renders the order detail store route with confirmed API data', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
-    server.use(http.get('https://api.example.com/api/v1/pedido/7', () => HttpResponse.json({
-      status: true,
-      data: {
-        pedidoId: 7, carrinhoId: 9, clienteId: 20, dataPedido: '2026-07-15T12:00:00Z',
-        formaPagamento: 'Pix', status: 'Criado',
-        enderecoEntrega: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' },
-        items: [{ itemId: 3, produtoId: 5, quantidade: 2, valorUnitario: 12.5 }],
-      },
-    })))
+    server.use(
+      emptyCategoriesHandler(),
+      http.get('https://api.example.com/api/v1/pedido/7', () => HttpResponse.json({
+        status: true,
+        data: {
+          pedidoId: 7, carrinhoId: 9, clienteId: 20, dataPedido: '2026-07-15T12:00:00Z',
+          formaPagamento: 'Pix', status: 'Criado',
+          enderecoEntrega: { logradouro: 'Rua A', numero: '10', complemento: null, cep: '12345678', bairro: 'Centro', cidade: 'São Paulo', uf: 'SP' },
+          items: [{ itemId: 3, produtoId: 5, quantidade: 2, valorUnitario: 12.5 }],
+        },
+      })),
+    )
 
     const { container } = renderApp('/pedidos/7')
 
@@ -148,6 +254,7 @@ describe('App', () => {
     let customerRequests = 0
     vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
     server.use(
+      emptyCategoriesHandler(),
       http.get('https://api.example.com/api/v1/cliente/20', ({ request }) => {
         customerRequests += 1
         expect(request.headers.get('Authorization')).toBe('Bearer header.payload.signature')
@@ -185,6 +292,8 @@ describe('App', () => {
   })
 
   it('renders the real empty cart page in the protected store route', () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(emptyCategoriesHandler())
     const { container } = renderApp('/carrinho')
 
     expect(screen.getByRole('heading', { level: 1, name: 'Carrinho' })).toBeInTheDocument()
@@ -215,11 +324,20 @@ describe('App', () => {
   it.each([
     ['/minha-conta/dados', 'Carregando página de dados', 'status'],
     ['/minha-conta/senha', 'Carregando página de senha', 'status'],
-  ])('nests the account route %s inside the store shell', (route, accessibleName, role) => {
+  ])('nests the account route %s inside the store shell', async (route, accessibleName, role) => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
+    server.use(emptyCategoriesHandler(), customerProfileHandler())
+
     const { container } = renderApp(route)
 
     expect(screen.getByRole(role, { name: accessibleName })).toBeInTheDocument()
     expect(container.querySelector('[data-shell="store"]')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Minha conta' })).toBeInTheDocument()
+    if (route.endsWith('/dados')) {
+      expect(await screen.findByLabelText('Nome completo')).toBeInTheDocument()
+    } else {
+      expect(await screen.findByRole('button', { name: 'Alterar senha' })).toBeInTheDocument()
+    }
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0))
   })
 })

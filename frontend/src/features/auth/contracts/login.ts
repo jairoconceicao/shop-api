@@ -10,7 +10,7 @@ const transportIdSchema = z.union([
 ])
 
 export const loginRequestSchema = z.object({
-  email: z.email().trim(),
+  email: z.string().trim().pipe(z.email()),
   senha: z.string().min(1),
 })
 

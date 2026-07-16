@@ -82,6 +82,14 @@ function CartSummary({ items }: { items: readonly CartItemContract[] }) {
             <dd>{brlFormatter.format(subtotal)}</dd>
           </div>
         </dl>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <LinkButton className="w-full" to="/" variant="secondary">
+            Continuar comprando
+          </LinkButton>
+          <LinkButton className="w-full" to="/checkout">
+            Ir para checkout
+          </LinkButton>
+        </div>
       </Card>
     </aside>
   )
