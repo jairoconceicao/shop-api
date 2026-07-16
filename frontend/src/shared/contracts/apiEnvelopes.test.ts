@@ -34,6 +34,10 @@ describe('createApiResponseSchema', () => {
   it('rejects data that does not match the supplied schema', () => {
     expect(() => schema.parse({ data: { id: '1', name: 'Keyboard' } })).toThrow()
   })
+
+  it('rejects properties outside the success envelope contract', () => {
+    expect(() => schema.parse({ data: null, unexpected: true })).toThrow()
+  })
 })
 
 describe('createPagedResponseSchema', () => {
@@ -80,6 +84,13 @@ describe('createPagedResponseSchema', () => {
       schema.parse({ pagination: { data: [{ id: 1 }] } }),
     ).toThrow()
   })
+
+  it('rejects extra pagination properties and unsafe numeric integers', () => {
+    expect(() => schema.parse({ pagination: { extra: true } })).toThrow()
+    for (const field of ['pages', 'size', 'totalItems'] as const) {
+      expect(() => schema.parse({ pagination: { [field]: Number.MAX_SAFE_INTEGER + 1 } })).toThrow()
+    }
+  })
 })
 
 describe('apiErrorResponseSchema', () => {
@@ -104,5 +115,10 @@ describe('apiErrorResponseSchema', () => {
     expect(() =>
       apiErrorResponseSchema.parse({ error: { code: 422 } }),
     ).toThrow()
+  })
+
+  it('rejects properties outside error envelope levels', () => {
+    expect(() => apiErrorResponseSchema.parse({ extra: true })).toThrow()
+    expect(() => apiErrorResponseSchema.parse({ error: { extra: true } })).toThrow()
   })
 })

@@ -5,6 +5,8 @@ import {
   adaptOrderResponse,
   adaptOrdersPage,
   createCancelOrderRequest,
+  orderStatuses,
+  orderStatusSchema,
 } from './orders'
 import { orderQueryKeys } from '../cache/orderQueryKeys'
 
@@ -70,6 +72,10 @@ describe('adaptOrdersPage', () => {
 })
 
 describe('adaptOrderResponse', () => {
+  it.each(orderStatuses)('accepts canonical order status %s', (status) => {
+    expect(orderStatusSchema.parse(status)).toBe(status)
+  })
+
   it('normalizes a successful order detail response', () => {
     expect(adaptOrderResponse(responseWith({ status: 'Devolvido' }))).toEqual({
       id: 41,

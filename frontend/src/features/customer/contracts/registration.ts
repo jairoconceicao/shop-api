@@ -4,7 +4,7 @@ import { normalizeId } from '../../../shared/adapters/numbers'
 import { createApiResponseSchema } from '../../../shared/contracts/apiEnvelopes'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 
@@ -16,13 +16,13 @@ export const addressRequestSchema = z.object({
   bairro: z.string().trim().min(1).max(100),
   cidade: z.string().trim().min(1).max(100),
   uf: z.string().trim().length(2),
-})
+}).strict()
 
 export const phoneRequestSchema = z.object({
   ddd: z.string().regex(/^\d{2}$/),
   numero: z.string().trim().min(1).max(30),
   whatsApp: z.boolean(),
-})
+}).strict()
 
 export const createCustomerRequestSchema = z.object({
   senha: z.string().min(8).max(200),
@@ -32,11 +32,11 @@ export const createCustomerRequestSchema = z.object({
   email: z.string().trim().email().max(200),
   endereco: addressRequestSchema,
   celular: phoneRequestSchema,
-})
+}).strict()
 
 export const createCustomerResponseDataSchema = z.object({
   clienteId: transportIdSchema,
-})
+}).strict()
 
 export const createCustomerResponseSchema = createApiResponseSchema(
   createCustomerResponseDataSchema,

@@ -30,6 +30,11 @@ const validRequest = {
 }
 
 describe('createCustomerRequestSchema', () => {
+  it('rejects extra properties at request and nested levels', () => {
+    expect(() => createCustomerRequestSchema.parse({ ...validRequest, extra: true })).toThrow()
+    expect(() => createCustomerRequestSchema.parse({ ...validRequest, endereco: { ...validRequest.endereco, extra: true } })).toThrow()
+    expect(() => createCustomerRequestSchema.parse({ ...validRequest, celular: { ...validRequest.celular, extra: true } })).toThrow()
+  })
   it('validates all fields from CreateClienteRequest', () => {
     expect(createCustomerRequestSchema.parse(validRequest)).toEqual(validRequest)
   })
@@ -71,6 +76,10 @@ describe('adaptCreateCustomerRequest', () => {
 })
 
 describe('createCustomerResponseSchema', () => {
+  it('rejects extra properties at every response level', () => {
+    expect(() => createCustomerResponseSchema.parse({ data: null, extra: true })).toThrow()
+    expect(() => createCustomerResponseSchema.parse({ data: { clienteId: 1, extra: true } })).toThrow()
+  })
   it('accepts the optional and nullable envelope described by OpenAPI', () => {
     expect(createCustomerResponseSchema.parse({})).toEqual({})
     expect(createCustomerResponseSchema.parse({ data: null })).toEqual({ data: null })

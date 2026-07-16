@@ -5,12 +5,12 @@ import { deliveryAddressSchema, paymentMethodSchema } from './checkout'
 import { orderStatusSchema } from '../../orders/contracts/orders'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 
 const transportNumberSchema = z.union([
-  z.number(),
+  z.number().finite(),
   z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/),
 ])
 

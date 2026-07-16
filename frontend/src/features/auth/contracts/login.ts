@@ -5,14 +5,14 @@ import { createApiResponseSchema } from '../../../shared/contracts/apiEnvelopes'
 import type { AuthSession } from '../store/authStore'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 
 export const loginRequestSchema = z.object({
   email: z.string().trim().pipe(z.email()),
   senha: z.string().min(1),
-})
+}).strict()
 
 export const loginResponseDataSchema = z.object({
   token: z.string().min(1),
@@ -21,7 +21,7 @@ export const loginResponseDataSchema = z.object({
   usuarioId: transportIdSchema,
   clienteId: transportIdSchema,
   email: z.email(),
-})
+}).strict()
 
 export const loginResponseSchema = createApiResponseSchema(
   loginResponseDataSchema,

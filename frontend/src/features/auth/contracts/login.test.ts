@@ -16,6 +16,9 @@ const validData = {
 }
 
 describe('loginRequestSchema', () => {
+  it('rejects properties outside the request contract', () => {
+    expect(() => loginRequestSchema.parse({ email: 'cliente@exemplo.com', senha: 'senha', extra: true })).toThrow()
+  })
   it('validates the login request and normalizes surrounding email spaces', () => {
     expect(
       loginRequestSchema.parse({
@@ -37,6 +40,10 @@ describe('loginRequestSchema', () => {
 })
 
 describe('loginResponseSchema', () => {
+  it('rejects extra properties at every response level', () => {
+    expect(() => loginResponseSchema.parse({ data: null, extra: true })).toThrow()
+    expect(() => loginResponseSchema.parse({ data: { ...validData, extra: true } })).toThrow()
+  })
   it('accepts the optional and nullable envelope described by OpenAPI', () => {
     expect(loginResponseSchema.parse({})).toEqual({})
     expect(loginResponseSchema.parse({ data: null })).toEqual({ data: null })

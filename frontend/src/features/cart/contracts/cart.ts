@@ -4,12 +4,12 @@ import { normalizeId, normalizeNumber } from '../../../shared/adapters/numbers'
 import { createApiResponseSchema } from '../../../shared/contracts/apiEnvelopes'
 
 const transportIdSchema = z.union([
-  z.number().int(),
+  z.number().int().safe(),
   z.string().regex(/^-?(?:0|[1-9]\d*)$/),
 ])
 
 const transportNumberSchema = z.union([
-  z.number(),
+  z.number().finite(),
   z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/),
 ])
 
@@ -26,28 +26,28 @@ export const updateCartItemRequestSchema = z.object({
 const createdCartDataSchema = z.object({
   carrinhoId: transportIdSchema,
   dataCarrinho: z.iso.datetime({ offset: true }),
-})
+}).strict()
 
-const addedCartItemDataSchema = z.object({ itemId: transportIdSchema })
+const addedCartItemDataSchema = z.object({ itemId: transportIdSchema }).strict()
 
 const cartItemIdDataSchema = z.object({
   itemId: transportIdSchema,
   produtoId: transportIdSchema,
-})
+}).strict()
 
 const cartItemDataSchema = z.object({
   itemId: transportIdSchema,
   produtoId: transportIdSchema,
   quantidade: transportNumberSchema,
   valorUnitario: transportNumberSchema,
-})
+}).strict()
 
 const cartDataSchema = z.object({
   clienteId: transportIdSchema,
   carrinhoId: transportIdSchema,
   dataCarrinho: z.iso.datetime({ offset: true }),
   items: z.array(cartItemDataSchema),
-})
+}).strict()
 
 export const createCartResponseSchema = createApiResponseSchema(createdCartDataSchema)
 export const cartResponseSchema = createApiResponseSchema(cartDataSchema)

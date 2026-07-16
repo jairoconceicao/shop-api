@@ -26,6 +26,11 @@ describe('cart requests', () => {
 })
 
 describe('cart responses', () => {
+  it('rejects extra properties in response data and nested items', () => {
+    expect(() => adaptCreateCartResponse({ status: true, data: { carrinhoId: 1, dataCarrinho: '2026-07-14T12:30:00Z', extra: true } })).toThrow()
+    const data = { clienteId: 12, carrinhoId: 900, dataCarrinho: '2026-07-14T12:30:00Z', items: [{ itemId: 7, produtoId: 42, quantidade: 1, valorUnitario: 10, extra: true }] }
+    expect(() => adaptCartResponse({ status: true, data })).toThrow()
+  })
   it('normalizes creation', () => {
     expect(adaptCreateCartResponse({ status: true, data: {
       carrinhoId: '900', dataCarrinho: '2026-07-14T12:30:00Z',
