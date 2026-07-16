@@ -570,8 +570,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 8 — Testes e hardening
 
-[ ] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
-  - Status: READY
+[x] TASK-106: Testar schemas e adapters com números em string, dados nulos, enums e contrato inválido.
+  - Status: DONE
   - Depends on: TASK-012, TASK-013, TASK-034, TASK-041, TASK-046, TASK-063, TASK-076, TASK-080, TASK-086, TASK-092, TASK-096
   - Escopo: Frontend
   - Critérios de aceite:
@@ -579,6 +579,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Aceitar `null` somente nos campos e envelopes permitidos pelos contratos e cobrir todos os enums canônicos de pagamento e status.
     - Rejeitar valores desconhecidos, `NaN`, infinito, inteiros inseguros, propriedades extras e envelopes de sucesso divergentes.
     - Executar com sucesso os testes focados de contratos, além de typecheck e lint, registrando a matriz de contratos coberta.
+  - Evidência: commits `bb8a56b`, `e5ac699` e `da32b4c`; RED inicial reconstruído de forma transparente a partir do baseline e do diff interrompido, seguido de RED reproduzido no consumer estrito de login; GREEN focado 183/183, consumers 607/607 e LoginPage 6/6; typecheck/lint/diff-check PASS; reviewer aprovado sem findings.
 
 [ ] TASK-107: Testar formatadores e normalizadores de moeda, CPF, telefone, CEP e datas.
   - Status: READY
