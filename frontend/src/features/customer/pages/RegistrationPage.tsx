@@ -119,7 +119,9 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
     shouldFocusError: false,
   })
 
-  const focusSummary = () => requestAnimationFrame(() => summaryRef.current?.focus())
+  const focusSummary = () => requestAnimationFrame(
+    () => document.getElementById('registration-error-summary')?.focus(),
+  )
   const submitRegistration = handleSubmit(async (values) => {
     try {
       const request = toRequest(values)
@@ -171,7 +173,7 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
         </header>
 
         <form className="mt-8 space-y-8" noValidate onSubmit={submitRegistration}>
-          <FormErrorSummary ref={summaryRef} errors={formErrors} />
+          <FormErrorSummary id="registration-error-summary" ref={summaryRef} errors={formErrors} />
 
           <fieldset className="grid gap-5 sm:grid-cols-2">
             <legend className="col-span-full mb-1 text-lg font-semibold text-zinc-100">Dados pessoais</legend>

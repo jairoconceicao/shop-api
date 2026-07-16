@@ -85,7 +85,7 @@ describe('RegistrationPage', () => {
     expect((await screen.findAllByText('Informe seu CPF.')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Informe o logradouro.').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Informe o celular.').length).toBeGreaterThan(0)
-    expect(screen.getByRole('alert')).toHaveFocus()
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus())
     expect(onSubmit).not.toHaveBeenCalled()
   })
 

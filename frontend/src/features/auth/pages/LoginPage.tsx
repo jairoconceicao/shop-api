@@ -36,7 +36,9 @@ export function LoginPage() {
     shouldFocusError: false,
   })
 
-  const focusSummary = () => requestAnimationFrame(() => summaryRef.current?.focus())
+  const focusSummary = () => requestAnimationFrame(
+    () => document.getElementById('login-error-summary')?.focus(),
+  )
   const submitLogin = handleSubmit(async (values) => {
     const parsedValues = loginRequestSchema.safeParse({
       email: values.email,
@@ -92,7 +94,7 @@ export function LoginPage() {
         ) : null}
 
         <form className="mt-8 space-y-5" noValidate onSubmit={submitLogin}>
-          <FormErrorSummary ref={summaryRef} errors={formErrors} />
+          <FormErrorSummary id="login-error-summary" ref={summaryRef} errors={formErrors} />
           <Input
             id="login-email"
             label="E-mail"
