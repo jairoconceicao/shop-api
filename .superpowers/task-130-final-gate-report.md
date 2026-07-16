@@ -1,6 +1,31 @@
 # TASK-130 — Relatório do gate final do MVP
 
-## Resultado
+## Resultado da tentativa no commit 4403e31
+
+- Resultado: **BLOCKED**.
+- Classificação: `executor`.
+- Owner funcional: `none`.
+- Gate alcançado: nenhum; a falha ocorreu antes de `npm ci`.
+- Decisão: preservar checkout/logs, corrigir o executor e repetir o gate
+  integralmente.
+
+O helper PowerShell foi declarado com o nome `R`, que colidiu com o alias
+preexistente `R` para `Invoke-History`. A primeira invocação falhou com:
+
+```text
+A positional parameter cannot be found that accepts argument 'npm-ci'.
+```
+
+Nenhum comando do frontend foi executado. O checkout detached foi preservado
+limpo em `E:\CodeRepo\shop-api\.worktrees\task-130-final-gate`, no commit
+`4403e3188d988666f1ef657d2a659c0068a1d347`. Logs externos:
+
+`C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-4403e3188d988666f1ef657d2a659c0068a1d347`
+
+O resultado aprovado abaixo pertence à tentativa anterior e não satisfaz o
+novo contrato de 19 evidências; não pode ser usado para concluir a task.
+
+## Resultado anterior
 
 - Resultado da segunda execução: **PASS**, aguardando revisão independente.
 - Commit alvo: `8ffad7dec1d25787a9549861c67f2ca3f69ab779`.

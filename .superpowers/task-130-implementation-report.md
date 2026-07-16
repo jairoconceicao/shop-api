@@ -1,6 +1,22 @@
 # TASK-130 — Relatório de implementação
 
-## Escopo executado
+## Tentativa no commit 4403e31
+
+```text
+targetCommit=4403e3188d988666f1ef657d2a659c0068a1d347
+failedStep=executor sequencial, antes de npm ci
+exitCode=1
+classification=executor
+ownerTask=none
+log=C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-4403e3188d988666f1ef657d2a659c0068a1d347
+decision=preservar worktree/logs; corrigir colisão de alias; repetir gate completo
+```
+
+O nome `R` usado pelo helper colidiu com o alias PowerShell `Invoke-History`.
+Nenhum comando de produto foi executado, nenhuma correção foi aplicada e o
+backlog não foi alterado.
+
+## Escopo da tentativa anterior
 
 O gate foi repetido integralmente em checkout detached no commit
 `8ffad7dec1d25787a9549861c67f2ca3f69ab779`, sem reutilizar resultados da
