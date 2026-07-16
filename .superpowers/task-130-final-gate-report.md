@@ -1,5 +1,29 @@
 # TASK-130 — Relatório do gate final do MVP
 
+## Resultado da tentativa no commit e82c6bd
+
+- Resultado: **FAILED** no gate 4, `npm test`.
+- Commit alvo: `e82c6bde3ab9b147339d594395ff9861e9e6feba`.
+- Resultado Vitest: 1 falha, 862 sucessos, 130 arquivos.
+- Falha observada:
+  `CustomerPasswordPage.test.tsx:46`, o status “Senha alterada com sucesso”
+  deveria receber foco, mas o foco permaneceu no `body`.
+- Classificação preliminar: `functional`; requer reprodução antes de atribuir
+  task dona.
+- Owner: `none` até reprodução e revisão.
+- Decisão: preservar checkout e logs, não corrigir produto e não executar os
+  gates posteriores.
+
+Gates anteriores concluídos com exit 0: `npm ci`, typecheck e lint. O único
+efeito no checkout foi a normalização de EOL permitida do
+`mockServiceWorker.js`, comprovada como semântico-zero e restaurada. O checkout
+detached permanece limpo em
+`E:\CodeRepo\shop-api\.worktrees\task-130-final-gate`.
+
+Logs:
+
+`C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-e82c6bde3ab9b147339d594395ff9861e9e6feba`
+
 ## Resultado da tentativa no commit 4403e31
 
 - Resultado: **BLOCKED**.

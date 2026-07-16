@@ -1,5 +1,21 @@
 # TASK-130 — Relatório de implementação
 
+## Tentativa no commit e82c6bd
+
+```text
+targetCommit=e82c6bde3ab9b147339d594395ff9861e9e6feba
+failedStep=4 npm test
+exitCode=1
+classification=functional-preliminary
+ownerTask=none pending reproduction
+log=C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-e82c6bde3ab9b147339d594395ff9861e9e6feba\04-vitest.log
+decision=preservar checkout/logs; reproduzir e atribuir ownership antes de correção; repetir gate completo
+```
+
+Os gates `npm ci`, typecheck e lint passaram. Vitest interrompeu a sequência
+com 1 falha em 863 testes. Nenhuma correção, retry ou gate posterior foi
+executado. O backlog não foi alterado.
+
 ## Tentativa no commit 4403e31
 
 ```text
