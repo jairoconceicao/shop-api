@@ -633,4 +633,24 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Cobrir por testes a renderização das ações com itens, seus textos e destinos exatos, e a ausência das ações sem itens.
     - Não alterar regras de negócio do carrinho, caches, mutations ou o guard de checkout.
 
+[ ] TASK-132: Corrigir a normalização do e-mail no schema de login.
+  - Status: READY
+  - Depends on: TASK-034, TASK-035
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Aplicar `trim` ao e-mail antes de validar seu formato, aceitando credenciais cujo endereço válido contenha somente espaços externos e produzindo o e-mail normalizado no contrato de login.
+    - Preservar a rejeição de e-mail vazio ou inválido, as regras atuais de senha e propriedades extras, sem alterar o serviço, a mutation ou o mapeamento de erros da autenticação.
+    - Cobrir por testes de autenticação o e-mail válido com espaços externos, a saída normalizada e as rejeições existentes, sem reduzir a cobertura atual do schema, serviço ou formulário.
+    - Executar testes focados de autenticação, suíte completa, typecheck, lint, build e diff-check sem falhas antes de concluir a task.
+
+[ ] TASK-133: Eliminar rejeições não tratadas dos testes de aplicação e carrinho.
+  - Status: READY
+  - Depends on: TASK-071, TASK-105
+  - Escopo: Frontend
+  - Critérios de aceite:
+    - Eliminar as seis rejeições não tratadas observadas em `App.test.tsx` e `useConfirmedCartCount.test.tsx`, isolando cada teste e impedindo que requests ou promises sobrevivam ao seu ciclo de execução.
+    - Usar `QueryClient` exclusivo de testes, com lifecycle e limpeza determinísticos, e handlers MSW intencionais para cada request exercitado pelos cenários.
+    - Manter `onUnhandledRequest: 'error'`; não adicionar handlers wildcard, bypass de requests desconhecidos, supressão global de erros ou mocks que escondam falhas reais de integração.
+    - Finalizar os testes afetados sem unhandled rejections, `Error` reportado pelo runner ou saída inesperada em `stderr`, preservando as asserções de comportamento de aplicação e contagem confirmada do carrinho.
+    - Executar testes focados dos dois arquivos, suíte completa, typecheck, lint, build e diff-check sem falhas antes de concluir a task.
 
