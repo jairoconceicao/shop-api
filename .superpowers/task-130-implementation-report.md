@@ -1,5 +1,22 @@
 # TASK-130 — Relatório de implementação
 
+## Tentativa no commit 3e09fc6
+
+```text
+targetCommit=3e09fc61e76185ed3319d035157bc96ef8256d24
+failedStep=geração de runner-signals.log
+exitCode=1
+classification=executor
+ownerTask=none
+log=C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-3e09fc61e76185ed3319d035157bc96ef8256d24
+decision=preservar checkout/logs; corrigir writer de saída vazia; repetir gate completo
+```
+
+Os seis gates obrigatórios e as duas auditorias passaram. A execução foi
+interrompida antes de modifiers, manifest e cleanup porque uma busca sem
+matches não materializou o arquivo obrigatório `runner-signals.log`. Nenhuma
+correção ou repetição foi feita e o backlog não foi alterado.
+
 ## Tentativa no commit e82c6bd
 
 ```text

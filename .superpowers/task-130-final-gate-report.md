@@ -1,5 +1,27 @@
 # TASK-130 — Relatório do gate final do MVP
 
+## Resultado da tentativa no commit 3e09fc6
+
+- Resultado: **BLOCKED** na geração das evidências.
+- Commit alvo: `3e09fc61e76185ed3319d035157bc96ef8256d24`.
+- Classificação: `executor`.
+- Owner funcional: `none`.
+- Todos os oito comandos executados passaram.
+
+Resultados: Vitest 863/863, Playwright 20/20 com `CI=true`, build com entry de
+465.833 bytes, seis rotas lazy e auditoria privada com 153 arquivos e 19 testes
+negativos.
+
+Depois dos gates, a busca de sinais dos runners teve zero ocorrências. O
+pipeline `rg | Set-Content` não criou `runner-signals.log`; o self-check
+seguinte falhou com `Cannot find path`. Assim, o contrato de 20 evidências não
+foi atendido e o cleanup não foi executado.
+
+Checkout detached limpo preservado em
+`E:\CodeRepo\shop-api\.worktrees\task-130-final-gate`. Logs:
+
+`C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-3e09fc61e76185ed3319d035157bc96ef8256d24`
+
 ## Resultado da tentativa no commit e82c6bd
 
 - Resultado: **FAILED** no gate 4, `npm test`.
