@@ -183,11 +183,113 @@ expect(() => adaptCatalogResponse({ ...page, extra: true })).toThrow()
 
 Run: `npm --prefix frontend test -- src/shared/adapters/numbers.test.ts src/shared/contracts/apiEnvelopes.test.ts src/features/auth/contracts/login.test.ts src/features/catalog/contracts/catalog.test.ts src/features/cart/contracts/cart.test.ts src/features/checkout/contracts/checkout.test.ts src/features/checkout/contracts/order.test.ts src/features/customer/contracts/registration.test.ts src/features/customer/contracts/customerProfile.test.ts src/features/orders/contracts/orders.test.ts`
 
-Expected: FAIL em strictness de `createApiResponseSchema`, login, catálogo e carrinho; enums e adapters estritos de pedidos permanecem PASS.
+Expected: FAIL em strictness de `createApiResponseSchema`, login, catálogo, carrinho, registration e profile; checkout/create-order/orders permanecem PASS nas provas já estritas.
 
 - [ ] **Step 4: implementar o mínimo após RED**
 
-Altere `createApiResponseSchema` e `createPagedResponseSchema`: aplique `.strict()` no envelope, pagination e schemas de dados exportados. Troque `z.number()` transportado por `z.number().finite()`; troque IDs por união `z.number().int().safe()` e string inteira, mantendo `normalizeNumber`/`normalizeId`. Login exige `status !== false` e `data` não nulo. Catálogo permite `null` somente em `descricao`, `modelo`, `foto`, `thumb`; pedido permite `data: null` no envelope, mas o adapter rejeita esse resultado. Carrinho não permite `null` em IDs, quantidade ou valor.
+Use as definições finais abaixo. Mantenha os adapters abaixo das definições sem mudança, exceto a validação já mostrada pelos testes.
+
+```ts
+// frontend/src/shared/contracts/apiEnvelopes.ts
+const transportIntegerSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+export function createApiResponseSchema<T extends z.ZodType>(dataSchema: T) {
+  return z.object({ status: z.boolean().optional(), message: z.string().optional(), data: dataSchema.nullable().optional() }).strict()
+}
+export function createPagedResponseSchema<T extends z.ZodType>(itemSchema: T) {
+  return z.object({ status: z.boolean().optional(), message: z.string().optional(), pagination: z.object({ pages: transportIntegerSchema.optional(), size: transportIntegerSchema.optional(), totalItems: transportIntegerSchema.optional(), data: z.array(itemSchema).optional() }).strict().optional() }).strict()
+}
+export const apiErrorResponseSchema = z.object({ error: z.object({ code: z.string().optional(), message: z.string().optional(), details: z.unknown().optional() }).strict().optional() }).strict()
+```
+
+```ts
+// frontend/src/features/auth/contracts/login.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+export const loginRequestSchema = z.object({ email: z.string().trim().pipe(z.email()), senha: z.string().min(1) }).strict()
+export const loginResponseDataSchema = z.object({ token: z.string().min(1), tipo: z.string().min(1), expiraEm: z.iso.datetime({ offset: true }), usuarioId: transportIdSchema, clienteId: transportIdSchema, email: z.email() }).strict()
+export const loginResponseSchema = createApiResponseSchema(loginResponseDataSchema)
+```
+
+```ts
+// frontend/src/features/catalog/contracts/catalog.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+const transportNumberSchema = z.union([z.number().finite(), z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/)])
+export const productCategorySchema = z.object({ categoriaId: transportIdSchema, titulo: z.string().min(1) }).strict()
+export const categorySchema = productCategorySchema.extend({ descricao: z.string().nullable() }).strict()
+export const catalogProductSchema = z.object({ produtoId: transportIdSchema, titulo: z.string().min(1), thumb: z.string().nullable(), preco: transportNumberSchema, estoque: transportNumberSchema, categoria: productCategorySchema }).strict()
+export const productDetailSchema = z.object({ produtoId: transportIdSchema, titulo: z.string().min(1), descricao: z.string().nullable(), modelo: z.string().nullable(), foto: z.string().nullable(), preco: transportNumberSchema, estoque: transportNumberSchema, categoria: productCategorySchema }).strict()
+export const categoriesResponseSchema = createApiResponseSchema(z.array(categorySchema))
+export const catalogResponseSchema = createPagedResponseSchema(catalogProductSchema)
+export const productDetailResponseSchema = createApiResponseSchema(productDetailSchema)
+```
+
+```ts
+// frontend/src/features/cart/contracts/cart.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+const transportNumberSchema = z.union([z.number().finite(), z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/)])
+export const addCartItemRequestSchema = z.object({ produtoId: transportIdSchema, quantidade: transportNumberSchema, valorUnitario: transportNumberSchema }).strict()
+export const updateCartItemRequestSchema = z.object({ quantidade: transportNumberSchema }).strict()
+const createdCartDataSchema = z.object({ carrinhoId: transportIdSchema, dataCarrinho: z.iso.datetime({ offset: true }) }).strict()
+const addedCartItemDataSchema = z.object({ itemId: transportIdSchema }).strict()
+const cartItemIdDataSchema = z.object({ itemId: transportIdSchema, produtoId: transportIdSchema }).strict()
+const cartItemDataSchema = z.object({ itemId: transportIdSchema, produtoId: transportIdSchema, quantidade: transportNumberSchema, valorUnitario: transportNumberSchema }).strict()
+const cartDataSchema = z.object({ clienteId: transportIdSchema, carrinhoId: transportIdSchema, dataCarrinho: z.iso.datetime({ offset: true }), items: z.array(cartItemDataSchema) }).strict()
+export const createCartResponseSchema = createApiResponseSchema(createdCartDataSchema)
+export const cartResponseSchema = createApiResponseSchema(cartDataSchema)
+export const addCartItemResponseSchema = createApiResponseSchema(addedCartItemDataSchema)
+export const cartItemIdResponseSchema = createApiResponseSchema(cartItemIdDataSchema)
+```
+
+```ts
+// frontend/src/features/checkout/contracts/checkout.ts
+export const paymentMethodSchema = z.enum(['Pix', 'Cartao', 'Boleto'])
+export const checkoutFormSchema = z.object({ enderecoEntrega: deliveryAddressSchema, formaPagamento: paymentMethodSchema }).strict()
+```
+
+```ts
+// frontend/src/features/checkout/contracts/order.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+const transportNumberSchema = z.union([z.number().finite(), z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/)])
+const orderItemRequestSchema = z.object({ itemId: transportIdSchema.nullable(), produtoId: transportIdSchema, quantidade: transportNumberSchema, valorUnitario: transportNumberSchema }).strict()
+export const createOrderRequestSchema = z.object({ enderecoEntrega: deliveryAddressSchema, formaPagamento: paymentMethodSchema, dataPedido: z.iso.datetime({ offset: true }), items: z.array(orderItemRequestSchema) }).strict()
+const createdOrderDataSchema = z.object({ pedidoId: transportIdSchema, clienteId: transportIdSchema, dataPedido: z.iso.datetime({ offset: true }), formaPagamento: paymentMethodSchema, status: orderStatusSchema, valorTotal: transportNumberSchema }).strict()
+const createdOrderResponseSchema = z.object({ status: z.boolean().optional(), message: z.string().optional(), data: createdOrderDataSchema.nullable().optional() }).strict()
+```
+
+```ts
+// frontend/src/features/customer/contracts/registration.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+export const addressRequestSchema = z.object({ logradouro: z.string().trim().min(1).max(200), numero: z.string().trim().min(1).max(50), complemento: z.string().trim().max(200).nullable(), cep: z.string().trim().min(1).max(20), bairro: z.string().trim().min(1).max(100), cidade: z.string().trim().min(1).max(100), uf: z.string().trim().length(2) }).strict()
+export const phoneRequestSchema = z.object({ ddd: z.string().regex(/^\d{2}$/), numero: z.string().trim().min(1).max(30), whatsApp: z.boolean() }).strict()
+export const createCustomerRequestSchema = z.object({ senha: z.string().min(8).max(200), cpf: z.string().regex(/^\d{11}$/), nome: z.string().trim().min(1).max(200), dataNascimento: z.iso.date(), email: z.string().trim().email().max(200), endereco: addressRequestSchema, celular: phoneRequestSchema }).strict()
+export const createCustomerResponseDataSchema = z.object({ clienteId: transportIdSchema }).strict()
+export const createCustomerResponseSchema = createApiResponseSchema(createCustomerResponseDataSchema)
+```
+
+```ts
+// frontend/src/features/customer/contracts/customerProfile.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+const customerAddressSchema = z.object({ logradouro: z.string().trim().min(1).max(200), numero: z.string().trim().min(1).max(50), complemento: z.string().trim().max(200).nullable(), cep: z.string().trim().min(1).max(20), bairro: z.string().trim().min(1).max(100), cidade: z.string().trim().min(1).max(100), uf: z.string().trim().length(2).transform((value) => value.toUpperCase()) }).strict()
+export const deliveryAddressSchema = customerAddressSchema.extend({ complemento: z.string().trim().min(1).max(200).nullable().optional(), cep: z.string().trim().regex(/^\d{8}$/), uf: z.string().trim().length(2).regex(/^[A-Za-z]{2}$/) }).strict()
+const customerPhoneSchema = z.object({ ddd: z.string().regex(/^\d{2}$/), numero: z.string().trim().min(1).max(30), whatsApp: z.boolean() }).strict()
+const customerDetailSchema = z.object({ clienteId: transportIdSchema, cpf: z.string().regex(/^\d{11}$/), nome: z.string().trim().min(1).max(200), dataNascimento: notFutureDateSchema, email: z.string().trim().email().max(200), endereco: customerAddressSchema, celular: customerPhoneSchema }).strict()
+const customerIdSchema = z.object({ clienteId: transportIdSchema }).strict()
+const customerProfileResponseSchema = createApiResponseSchema(customerDetailSchema)
+const customerIdResponseSchema = createApiResponseSchema(customerIdSchema)
+```
+
+```ts
+// frontend/src/features/orders/contracts/orders.ts
+const transportIdSchema = z.union([z.number().int().safe(), z.string().regex(/^-?(?:0|[1-9]\d*)$/)])
+const transportNumberSchema = z.union([z.number().finite(), z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/)])
+export const orderStatuses = ['Criado', 'EmProcessamento', 'Processado', 'Cancelado', 'Devolvido'] as const
+export const orderStatusSchema = z.enum(orderStatuses)
+const orderItemSchema = z.object({ itemId: transportIdSchema, produtoId: transportIdSchema, quantidade: transportNumberSchema, valorUnitario: transportNumberSchema }).strict()
+const orderSchema = z.object({ pedidoId: transportIdSchema, carrinhoId: transportIdSchema, clienteId: transportIdSchema, enderecoEntrega: deliveryAddressSchema, dataPedido: z.iso.datetime({ offset: true }), formaPagamento: paymentMethodSchema, status: orderStatusSchema, items: z.array(orderItemSchema) }).strict()
+const ordersPageSchema = z.object({ status: z.literal(true), message: z.string().optional(), pagination: z.object({ pages: transportIdSchema, size: transportIdSchema, totalItems: transportIdSchema, data: z.array(orderSchema) }).strict() }).strict()
+const orderResponseSchema = z.object({ status: z.literal(true), message: z.string().optional(), data: orderSchema.nullable() }).strict()
+const cancelledOrderSchema = z.object({ pedidoId: transportIdSchema, clienteId: transportIdSchema, dataPedido: z.iso.datetime({ offset: true }), status: z.literal('Cancelado') }).strict()
+const cancelledOrderResponseSchema = z.object({ status: z.literal(true), message: z.string().optional(), data: cancelledOrderSchema.nullable() }).strict()
+```
 
 - [ ] **Step 5: GREEN, gates e commits**
 
@@ -322,30 +424,43 @@ Substitua os nove `new Intl.NumberFormat(...).format(...)` pelos imports de `for
 As nove edições literais são:
 
 ```ts
-// catalog/components/ProductCard.tsx e catalog/pages/ProductDetailPage.tsx
+// frontend/src/features/catalog/components/ProductCard.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar brlFormatter.format(product.price) por formatCurrency(product.price)
+<span>{formatCurrency(product.price)}</span>
 
-// cart/components/CartItem.tsx
+// frontend/src/features/catalog/pages/ProductDetailPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar brlFormatter.format(item.unitPrice) por formatCurrency(item.unitPrice)
-// trocar brlFormatter.format(item.unitPrice * item.quantity) por formatCurrency(item.unitPrice * item.quantity)
+<dd className="text-3xl font-bold text-zinc-50">{formatCurrency(product.price)}</dd>
 
-// cart/pages/CartPage.tsx
+// frontend/src/features/cart/components/CartItem.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar brlFormatter.format(cartTotal) por formatCurrency(cartTotal)
+<span>{formatCurrency(item.unitPrice)}</span>
+<span>{formatCurrency(subtotal)}</span>
 
-// checkout/pages/CheckoutPage.tsx e checkout/pages/OrderConfirmationPage.tsx
+// frontend/src/features/cart/pages/CartPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar brlFormatter.format(total) por formatCurrency(total)
+<dd>{formatCurrency(subtotal)}</dd>
 
-// orders/components/OrderCard.tsx e orders/components/OrderItem.tsx
+// frontend/src/features/checkout/pages/CheckoutPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar brlFormatter.format(total) e currency.format(value) por formatCurrency(value)
+<dd>{formatCurrency(subtotal)}</dd>
 
-// orders/pages/OrderDetailPage.tsx
+// frontend/src/features/checkout/pages/OrderConfirmationPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-// trocar currency.format(calculateOrderTotal(order.items)) por formatCurrency(calculateOrderTotal(order.items))
+<dd className="mt-1 text-xl font-semibold text-zinc-50">{formatCurrency(order.total)}</dd>
+
+// frontend/src/features/orders/components/OrderCard.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+<span>{formatCurrency(calculateOrderTotal(order.items))}</span>
+
+// frontend/src/features/orders/components/OrderItem.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+<p className="text-sm text-zinc-400">{formatCurrency(item.unitPrice)} cada</p>
+<p className="mt-2 font-semibold text-zinc-100">{formatCurrency(item.unitPrice * item.quantity)}</p>
+
+// frontend/src/features/orders/pages/OrderDetailPage.tsx
+import { formatCurrency } from '../../../shared/formatting/currency'
+<span>{formatCurrency(calculateOrderTotal(order.items))}</span>
 ```
 
 Remova as nove constantes locais `brlFormatter`/`currency`. `rg -n "Intl.NumberFormat" frontend/src/features` retorna zero após a edição.
@@ -691,17 +806,15 @@ it('announces an error summary and links to the invalid field', () => {
 })
 ```
 
-Acrescente ainda: em `forms.test.tsx`, `fireEvent.keyDown(checkbox,{key:' '})`, mudança de `Select` por `fireEvent.change`, disabled sem callback e `summary.focus(); expect(summary).toHaveFocus()`; em `overlays.test.tsx`, Enter no primeiro `menuitem`, item disabled sem callback e Escape retornando foco; em `feedback.test.tsx`, `getByRole('alert')`, `getByRole('status')` e botão `Fechar notificação`; em `states.test.tsx`, heading `Carrinho vazio`, alert de erro, retry e `aria-hidden=true`; em `indicators.test.tsx`, `pressed:true`, disabled e callback zero. Os testes nomeados de `QuantityInput`, `Pagination` e `Dialog` permanecem sem duplicação.
-
 - [ ] **Step 3: RED, correção mínima e GREEN**
 
-Run: `npm --prefix frontend test -- src/shared/ui/baseComponents.hardening.test.tsx src/shared/ui/buttons/buttons.test.tsx src/shared/ui/forms/forms.test.tsx src/shared/ui/forms/QuantityInput.test.tsx src/shared/ui/navigation/Pagination.test.tsx src/shared/ui/overlays/overlays.test.tsx src/shared/ui/feedback/feedback.test.tsx src/shared/ui/states/states.test.tsx src/shared/ui/indicators/indicators.test.tsx`. Expected: FAIL nas assertions novas; após corrigir semântica no componente proprietário, PASS.
+Run: `npm --prefix frontend test -- src/shared/ui/baseComponents.hardening.test.tsx src/shared/ui/buttons/buttons.test.tsx src/shared/ui/forms/forms.test.tsx src/shared/ui/forms/QuantityInput.test.tsx src/shared/ui/navigation/Pagination.test.tsx src/shared/ui/overlays/overlays.test.tsx src/shared/ui/feedback/feedback.test.tsx src/shared/ui/states/states.test.tsx src/shared/ui/indicators/indicators.test.tsx`. Expected: PASS; os 19 exports já apresentam a semântica exercitada pelo arquivo completo.
 
 Run: `npm --prefix frontend run typecheck`; `npm --prefix frontend run lint`; `npm --prefix frontend test`. Expected: todos exit `0`; a suíte global encerra o gate do lote.
 
 - [ ] **Step 4: commits e gate do lote**
 
-`git add frontend/src/shared/ui/baseComponents.hardening.test.tsx frontend/src/shared/ui/buttons/buttons.test.tsx frontend/src/shared/ui/forms/forms.test.tsx frontend/src/shared/ui/forms/QuantityInput.test.tsx frontend/src/shared/ui/navigation/Pagination.test.tsx frontend/src/shared/ui/overlays/overlays.test.tsx frontend/src/shared/ui/feedback/feedback.test.tsx frontend/src/shared/ui/states/states.test.tsx frontend/src/shared/ui/indicators/indicators.test.tsx docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`. Depois adicione somente os componentes listados no RED e use `git commit -m "fix(TASK-110): corrigir semântica dos componentes base"`.
+`git add frontend/src/shared/ui/baseComponents.hardening.test.tsx frontend/src/shared/ui/buttons/buttons.test.tsx frontend/src/shared/ui/forms/forms.test.tsx frontend/src/shared/ui/forms/QuantityInput.test.tsx frontend/src/shared/ui/navigation/Pagination.test.tsx frontend/src/shared/ui/overlays/overlays.test.tsx frontend/src/shared/ui/feedback/feedback.test.tsx frontend/src/shared/ui/states/states.test.tsx frontend/src/shared/ui/indicators/indicators.test.tsx docs/frontend-quality/task-110-component-matrix.md && git commit -m "test(TASK-110): completar matriz dos componentes base"`.
 
 Após revisão aprovada e backlog atualizado, confirme `TASK-106`–`TASK-110` `DONE`, `git status --short` sem mudanças pendentes e só então altere `TASK-111`–`TASK-116` para `READY` em uma operação de backlog própria.
 
