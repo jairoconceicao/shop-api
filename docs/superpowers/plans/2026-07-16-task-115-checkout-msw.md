@@ -20,7 +20,7 @@ Este plano inclui o patch literal de navegação após `201`. Outros REDs mudam 
 **Files:**
 - Create: `frontend/src/features/checkout/checkout.integration.test.tsx`
 - Modify: `frontend/src/features/checkout/pages/CheckoutPage.tsx`
-- Modify test: `frontend/src/features/checkout/pages/CheckoutPage.test.tsx`
+- Create test: `frontend/src/features/checkout/pages/CheckoutPage.navigation.test.tsx`
 
 **Interfaces:** exact keys `cartQueryKeys.detail(7,70)`, `orderQueryKeys.all`, `orderConfirmationKey(7,900)`; POST `/api/v1/pedido`.
 
@@ -96,24 +96,128 @@ Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.t
 
 Diagnóstico: o callback global de `useCreateOrderMutation` remove o vínculo do carrinho antes do callback local `onSuccess` passado a `mutate`. O `CheckoutGuard` observa `hasCart=false`, redireciona para `/carrinho` e desmonta o `MutationObserver`. O TanStack Query só dispara callbacks locais de `mutate` enquanto o observer tem listeners; após a desmontagem, a navegação local é suprimida.
 
-- [ ] **Step 5: escrever regressão isolada de Promise**
+- [ ] **Step 5: escrever regressão isolada completa**
 
-Em `CheckoutPage.test.tsx`, substitua o mock da mutation para expor `mutateAsync` e adicione:
+Crie um arquivo separado para que os mocks não substituam a mutation real usada pelos testes HTTP existentes em `CheckoutPage.test.tsx`:
 
 ```tsx
-it('navigates from the mutateAsync result after the checkout observer unmounts', async () => {
-  let resolveOrder!: (order: CreatedOrder) => void
-  const promise = new Promise<CreatedOrder>((resolve) => { resolveOrder = resolve })
-  mutateAsync.mockReturnValueOnce(promise)
-  const view = renderPage()
-  fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
-  view.unmount()
-  resolveOrder({ id: 900, customerId: 7, createdAt: '2026-07-16T12:00:00.000Z', paymentMethod: 'Pix', status: 'Criado', total: 399.8 })
-  await waitFor(() => expect(navigate).toHaveBeenCalledWith('/pedido-confirmado/900'))
+// frontend/src/features/checkout/pages/CheckoutPage.navigation.test.tsx
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CreatedOrder } from '../contracts/order'
+import { CheckoutPage } from './CheckoutPage'
+
+const { mutateAsync, navigate, reset, mutationState } = vi.hoisted(() => ({
+  mutateAsync: vi.fn(),
+  navigate: vi.fn(),
+  reset: vi.fn(),
+  mutationState: {
+    error: null as Error | null,
+    isPending: false,
+  },
+}))
+
+vi.mock('react-router-dom', async (importOriginal) => ({
+  ...await importOriginal<typeof import('react-router-dom')>(),
+  useNavigate: () => navigate,
+  useOutletContext: () => undefined,
+}))
+
+vi.mock('../mutations/useCreateOrderMutation', () => ({
+  useCreateOrderMutation: () => ({
+    error: mutationState.error,
+    isPending: mutationState.isPending,
+    mutateAsync,
+    reset,
+  }),
+}))
+
+const cart = {
+  customerId: 7,
+  id: 70,
+  createdAt: '2026-07-16T10:00:00Z',
+  items: [{ id: 701, productId: 42, quantity: 2, unitPrice: 199.9 }],
+}
+
+const profile = {
+  customerId: 7,
+  address: {
+    logradouro: 'Rua A',
+    numero: '10',
+    complemento: null,
+    cep: '01001000',
+    bairro: 'Centro',
+    cidade: 'São Paulo',
+    uf: 'SP',
+  },
+}
+
+const createdOrder: CreatedOrder = {
+  id: 900,
+  customerId: 7,
+  createdAt: '2026-07-16T12:00:00.000Z',
+  paymentMethod: 'Pix',
+  status: 'Criado',
+  total: 399.8,
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve
+    reject = onReject
+  })
+  return { promise, reject, resolve }
+}
+
+function renderPage() {
+  return render(<CheckoutPage cart={cart} profile={profile} />)
+}
+
+describe('CheckoutPage mutation Promise navigation', () => {
+  beforeEach(() => {
+    mutateAsync.mockReset()
+    navigate.mockReset()
+    reset.mockReset()
+    mutationState.error = null
+    mutationState.isPending = false
+  })
+
+  it('navigates from the mutateAsync result after the checkout observer unmounts', async () => {
+    const order = deferred<CreatedOrder>()
+    mutateAsync.mockReturnValueOnce(order.promise)
+    const view = renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    expect(reset).toHaveBeenCalledOnce()
+    expect(mutateAsync).toHaveBeenCalledOnce()
+    view.unmount()
+    order.resolve(createdOrder)
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/pedido-confirmado/900'))
+  })
+
+  it('unlocks submission after mutateAsync rejects', async () => {
+    const first = deferred<CreatedOrder>()
+    mutateAsync.mockReturnValueOnce(first.promise).mockResolvedValueOnce(createdOrder)
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    expect(mutateAsync).toHaveBeenCalledOnce()
+    first.reject(new Error('pedido recusado'))
+    await first.promise.catch(() => undefined)
+    await Promise.resolve()
+    expect(navigate).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pedido' }))
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(2))
+    expect(reset).toHaveBeenCalledTimes(2)
+    expect(navigate).toHaveBeenCalledWith('/pedido-confirmado/900')
+  })
 })
 ```
 
-Run: `npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx -t "navigates from the mutateAsync result"`. Expected RED: `mutateAsync` não foi chamado ou `navigate` não recebeu `/pedido-confirmado/900`.
+O mock retorna exatamente a superfície usada pela página: `mutateAsync`, `isPending`, `error` e `reset`. `CreatedOrder` é importado do contrato real e a fixture contém somente seus campos.
+
+Run: `npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.navigation.test.tsx --reporter=verbose`. Expected RED antes do patch: dois testes falham porque `mutateAsync` não é chamado; a implementação ainda usa `mutate`.
 
 - [ ] **Step 6: aplicar patch literal em CheckoutPage**
 
@@ -134,7 +238,7 @@ void createOrderMutation
 
 Esse patch preserva o guard de single-submit (`submissionInFlightRef` + `isPending`), o erro já exposto por `createOrderMutation.error` e o unlock somente em rejeição. A Promise de `mutateAsync` resolve mesmo após a desmontagem do observer local.
 
-Run regressão isolada do Step 5. Expected GREEN: `1 passed`.
+Run regressão isolada do Step 5. Expected GREEN: `2 passed`; resolução navega após unmount e rejeição permite uma segunda submissão.
 
 Run integração `201` do Step 4. Expected GREEN: heading `Pedido criado`, rota `/pedido-confirmado/900`, snapshot presente, vínculo/cache removidos e pedidos invalidados.
 
@@ -150,7 +254,7 @@ Execute:
 
 ```powershell
 npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx --reporter=verbose
-npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx src/features/checkout/mutations/useCreateOrderMutation.test.tsx --reporter=verbose
+npm --prefix frontend test -- src/features/checkout/pages/CheckoutPage.test.tsx src/features/checkout/pages/CheckoutPage.navigation.test.tsx src/features/checkout/mutations/useCreateOrderMutation.test.tsx --reporter=verbose
 npm --prefix frontend run typecheck
 npm --prefix frontend run lint
 ```
