@@ -28,7 +28,39 @@ Execute os lotes nesta ordem:
 4. `TASK-124` a `TASK-129`: hardening e documentação
 5. `TASK-130`: gate final
 
-Uma task pode começar quando estiver `READY`, todas as dependências estiverem `DONE` e nenhum writer ativo alterar os mesmos componentes. No início deste plano, somente `TASK-106` a `TASK-110` podem receber `READY`. As demais permanecem `BLOCKED` até suas dependências terminarem.
+Uma task pode começar quando estiver `READY`, todas as dependências estiverem `DONE` e nenhum writer ativo alterar os mesmos componentes. Os gates de lote complementam o campo `Depends on`: uma dependência individual concluída não libera uma task antes do gate do lote anterior.
+
+Use esta matriz para definir o status inicial e o desbloqueio de cada task:
+
+| Task | Status inicial | Condição para receber `READY` |
+| --- | --- | --- |
+| `TASK-106` | `READY` | Dependências anteriores à Fase 8 em `DONE` |
+| `TASK-107` | `READY` | Dependências anteriores à Fase 8 em `DONE` |
+| `TASK-108` | `READY` | Dependências anteriores à Fase 8 em `DONE` |
+| `TASK-109` | `READY` | Dependências anteriores à Fase 8 em `DONE` |
+| `TASK-110` | `READY` | Dependências anteriores à Fase 8 em `DONE` |
+| `TASK-111` | `BLOCKED` | `TASK-106` a `TASK-110` em `DONE`; dependência direta `TASK-108` satisfeita |
+| `TASK-112` | `BLOCKED` | `TASK-106` a `TASK-110` em `DONE`; dependências diretas `TASK-106` e `TASK-107` satisfeitas |
+| `TASK-113` | `BLOCKED` | `TASK-106` a `TASK-110` em `DONE`; dependência direta `TASK-106` satisfeita |
+| `TASK-114` | `BLOCKED` | `TASK-106` a `TASK-110` em `DONE`; dependência direta `TASK-109` satisfeita |
+| `TASK-115` | `BLOCKED` | `TASK-106` a `TASK-110` e `TASK-114` em `DONE` |
+| `TASK-116` | `BLOCKED` | `TASK-106` a `TASK-110` em `DONE`; dependências diretas `TASK-106` e `TASK-107` satisfeitas |
+| `TASK-117` | `BLOCKED` | `TASK-111` a `TASK-116` em `DONE` |
+| `TASK-118` | `BLOCKED` | `TASK-111` a `TASK-117` em `DONE`; a infraestrutura compartilhada da `TASK-117` aprovada |
+| `TASK-119` | `BLOCKED` | `TASK-111` a `TASK-117` em `DONE` |
+| `TASK-120` | `BLOCKED` | `TASK-111` a `TASK-117` e `TASK-119` em `DONE` |
+| `TASK-121` | `BLOCKED` | `TASK-111` a `TASK-117` em `DONE` |
+| `TASK-122` | `BLOCKED` | `TASK-111` a `TASK-117` em `DONE` |
+| `TASK-123` | `BLOCKED` | `TASK-111` a `TASK-117` em `DONE` |
+| `TASK-124` | `BLOCKED` | `TASK-117` a `TASK-123` em `DONE` |
+| `TASK-125` | `BLOCKED` | `TASK-117` a `TASK-124` em `DONE` |
+| `TASK-126` | `BLOCKED` | `TASK-117` a `TASK-123` em `DONE`; `TASK-108` e `TASK-109` em `DONE` |
+| `TASK-127` | `BLOCKED` | `TASK-117` a `TASK-123` em `DONE` |
+| `TASK-128` | `BLOCKED` | `TASK-117` a `TASK-123` e `TASK-127` em `DONE` |
+| `TASK-129` | `BLOCKED` | `TASK-117` a `TASK-123` e `TASK-126` em `DONE` |
+| `TASK-130` | `BLOCKED` | `TASK-106` a `TASK-129` em `DONE` |
+
+Dentro de um lote, execute em paralelo somente tasks que já estejam `READY` e não compartilhem componentes. O lote seguinte permanece bloqueado até todas as tasks do lote atual chegarem a `DONE`.
 
 ## Regras de status e execução
 
@@ -120,7 +152,9 @@ Todos os testes devem isolar storage, usar seletores semânticos e controlar a r
 ### TASK-117: cadastro, login, rota protegida e logout
 
 - **Depends on**: `TASK-010`, `TASK-111`, `TASK-112`
-- **Critérios**: cadastrar, receber confirmação, logar, abrir rota protegida e deslogar; verificar persistência escolhida após refresh; confirmar que logout remove o acesso protegido
+- **Infraestrutura compartilhada**: criar fixtures e handlers Playwright determinísticos, com dados nomeados por teste e contadores de request reiniciados no `beforeEach`; iniciar cada contexto com cookies, `localStorage`, `sessionStorage` e estado do backend simulado vazios; remover dados criados no `afterEach`, mesmo quando o teste falhar
+- **Isolamento verificável**: executar a spec isolada, a suíte completa e `playwright test --repeat-each=2`; os resultados não podem depender da ordem, de dados de outra jornada ou de worker anterior
+- **Critérios da jornada**: cadastrar, receber confirmação, logar, abrir rota protegida e deslogar; verificar persistência escolhida após refresh; confirmar que logout remove o acesso protegido; registrar e afirmar a contagem exata de cada request esperado e falhar diante de requests não declarados
 
 ### TASK-118: visitante redirecionado antes de adicionar produto
 
@@ -165,7 +199,11 @@ Este lote mede propriedades transversais e registra resultados reproduzíveis. A
 ### TASK-125: performance e bundle
 
 - **Depends on**: `TASK-053`, `TASK-069`, `TASK-102`, `TASK-124`
-- **Critérios**: registrar requests e chunks; eliminar waterfall entre categorias e catálogo; consultar cada produto repetido uma vez; medir e corrigir renders evitáveis relevantes; impedir imports lazy no chunk inicial; concluir build sem alertas acima do limite configurado
+- **Ferramentas e cenários**: usar React Profiler em Vitest para medir a Home no carregamento inicial, o carrinho com IDs de produto repetidos e o detalhe de pedido com IDs repetidos; executar cada cenário cinco vezes no mesmo ambiente e registrar a mediana de commits antes e depois das correções
+- **Meta de renders**: listar cada commit repetido que mantenha props, query data e estado visível iguais; reduzir a zero esses commits evitáveis; a mediana final de cada cenário deve ser menor ou igual ao baseline registrado
+- **Meta de rede**: categorias e primeira página do catálogo começam sem waterfall; carrinho e pedido emitem uma consulta por ID único de produto em cada carga fria
+- **Meta de bundle**: `npm run build` deve manter cada chunk JavaScript inicial em até 500 kB não comprimidos e cada rota lazy em chunk separado; o valor de 500 kB vem do [`build.chunkSizeWarningLimit` padrão do Vite 6](https://v6.vite.dev/config/build-options#build-chunksizewarninglimit), pois `frontend/vite.config.ts` não o sobrescreve
+- **Evidência esperada**: relatório com ambiente, cinco medições, baseline, resultado, requests por cenário, lista de chunks e grafo de imports; nenhum import de rota lazy pode alcançar o chunk inicial
 
 ### TASK-126: privacidade e persistência
 
