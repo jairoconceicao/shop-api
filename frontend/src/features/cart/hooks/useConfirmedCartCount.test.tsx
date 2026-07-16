@@ -21,7 +21,15 @@ function cart(items: Array<{ id: number; quantity: number }>): Cart {
 }
 
 function createClient() {
-  return new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: Infinity,
+        refetchOnMount: false,
+      },
+    },
+  })
 }
 
 function setup(client = createClient()) {
@@ -47,10 +55,16 @@ describe('useConfirmedCartCount', () => {
   })
 
   it('retorna zero para visitante, cliente sem vínculo e consulta com erro', () => {
-    expect(setup().result.current).toBe(0)
+    const visitor = setup()
+    expect(visitor.result.current).toBe(0)
+    visitor.unmount()
+    visitor.client.clear()
 
     useAuthStore.setState({ session })
-    expect(setup().result.current).toBe(0)
+    const withoutCart = setup()
+    expect(withoutCart.result.current).toBe(0)
+    withoutCart.unmount()
+    withoutCart.client.clear()
 
     useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
     const client = createClient()
@@ -58,7 +72,10 @@ describe('useConfirmedCartCount', () => {
     client.getQueryCache().find({ queryKey: cartQueryKeys.detail(10, 100) })?.setState({
       status: 'error', error: new Error('falha'), data: undefined,
     })
-    expect(setup(client).result.current).toBe(0)
+    const failed = setup(client)
+    expect(failed.result.current).toBe(0)
+    failed.unmount()
+    client.clear()
   })
 
   it('preserva o último total confirmado quando um refetch em background falha', () => {
