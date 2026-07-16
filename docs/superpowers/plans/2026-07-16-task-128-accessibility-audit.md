@@ -21,6 +21,13 @@
 - Screenshots e JSON são attachments do Playwright e não entram no Git.
 - Preservar mocks, autorização, bodies, queries, rotas e contagens estritas.
 - Qualquer correção de produto exige RED focado, GREEN e regressão afetada.
+- Somente mudança de `pathname` representa página nova; `search` e `hash` na
+  mesma pathname nunca movem foco.
+- O primeiro carregamento nunca rouba foco.
+- `PUSH`, `REPLACE` e `POP` para outra pathname focalizam o heading real da
+  página de destino.
+- Rotas lazy aguardam estruturalmente o heading, sem timeout, polling ou
+  fallback focalizável.
 
 ---
 
@@ -147,56 +154,137 @@ git commit -m "test(TASK-128): Definir auditor de acessibilidade"
 
 **Interfaces:**
 - Produces: `RouteFocusBoundary({ children }: PropsWithChildren)`.
-- Consumes: `useLocation()` e o primeiro `main h1` renderizado.
+- Consumes: `useLocation()`, `useNavigationType()` e o primeiro `main h1`
+  real renderizado.
 
-- [ ] **Step 1: Implementar boundary mínimo**
+- [ ] **Step 1: Escrever seis REDs da política de página**
 
-Usar a localização como gatilho e `requestAnimationFrame` para focalizar o
-heading depois do commit:
+Adicionar testes de integração do boundary, além do RED E2E já reproduzido:
 
-```tsx
-export function RouteFocusBoundary({ children }: PropsWithChildren) {
-  const location = useLocation()
-  const initialized = useRef(false)
+1. **initial load:** renderizar `/entrar` com foco preexistente fora da
+   aplicação e provar que o boundary não focaliza o `h1`;
+2. **PUSH/REPLACE eager:** parametrizar os dois tipos, navegar
+   `/entrar` → `/cadastro` e focalizar o `h1` novo exatamente uma vez em cada
+   execução;
+3. **PUSH lazy:** trocar pathname, renderizar apenas fallback `role=status`,
+   provar que ele não recebe foco e inserir depois o `h1` real, que deve ser
+   focalizado sem avançar timer;
+4. **same pathname:** alterar primeiro `?page=2` e depois `#endereco` mantendo
+   a pathname; o elemento ativo e a contagem de chamadas a `focus()` não
+   mudam;
+5. **POP/back:** navegar `/entrar` → `/cadastro`, executar voltar e avançar e
+   focalizar respectivamente os headings reais de cada pathname;
+6. **cleanup/race/overlays:** iniciar uma rota lazy A, navegar para B antes do
+   heading A surgir, inserir ambos e provar que somente B recebe foco; depois
+   abrir/fechar menu e dialog na pathname B e provar restauração dos triggers,
+   sem chamada adicional do boundary.
 
-  useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true
-      return
-    }
-    const frame = requestAnimationFrame(() => {
-      document.querySelector<HTMLElement>('main h1')?.focus()
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [location.hash, location.pathname, location.search])
+Run:
 
-  return children
-}
+```powershell
+cd frontend
+npx vitest run src/app/router/RouteFocusBoundary.test.tsx
 ```
 
-Garantir `tabIndex={-1}` em cada `main h1` alcançado pela jornada, ou extrair
-um `PageHeading` somente se o RED demonstrar repetição suficiente. Não focar
-no primeiro carregamento.
+Expected: os seis casos FAIL pela ausência do boundary; o caso lazy não usa
+fake timeout como condição de sucesso.
 
-- [ ] **Step 2: Instalar no router**
+- [ ] **Step 2: Implementar resolução estrutural cancelável**
+
+O effect depende apenas de `location.pathname`. No primeiro effect, guardar a
+pathname/heading e retornar sem foco. Em pathname posterior:
+
+1. desconectar o observer da pathname anterior;
+2. guardar `previousHeading`, obtido antes da troca;
+3. procurar sincronicamente um `main h1` conectado, com `tabIndex=-1`, que não
+   seja `previousHeading`;
+4. se existir, focalizar uma vez e encerrar;
+5. se não existir, observar somente a subtree do `main`/root da aplicação com
+   `MutationObserver`;
+6. a cada mutação, repetir a mesma resolução;
+7. desconectar após foco, nova pathname ou unmount.
+
+Uma estrutura equivalente:
+
+```tsx
+function findNewRouteHeading(previous: HTMLElement | null) {
+  const heading = document.querySelector<HTMLElement>('main h1')
+  return heading?.isConnected && heading !== previous ? heading : null
+}
+
+useEffect(() => {
+  if (initialPathname.current === null) {
+    initialPathname.current = pathname
+    previousHeading.current =
+      document.querySelector<HTMLElement>('main h1')
+    return
+  }
+
+  let active = true
+  const previous = previousHeading.current
+  const focusWhenReady = () => {
+    const heading = findNewRouteHeading(previous)
+    if (!active || !heading) return false
+    heading.focus()
+    previousHeading.current = heading
+    return true
+  }
+
+  if (focusWhenReady()) return
+  const root = document.querySelector('main')?.parentElement
+    ?? document.getElementById('root')
+  if (!root) return
+
+  const observer = new MutationObserver(() => {
+    if (focusWhenReady()) observer.disconnect()
+  })
+  observer.observe(root, { childList: true, subtree: true })
+
+  return () => {
+    active = false
+    observer.disconnect()
+  }
+}, [pathname])
+```
+
+Não incluir `search`, `hash` ou `navigationType` nas dependências. Usar
+`useNavigationType()` somente para registrar/assertar nos testes que `POP`,
+`PUSH` e `REPLACE` para outra pathname seguem a mesma política.
+
+Não usar `requestAnimationFrame`, `setTimeout`, `waitForTimeout`, polling nem
+foco no fallback. Se a subtree for substituída durante Suspense, o observer no
+root da aplicação continua válido; se uma nova pathname vencer a race, o
+cleanup invalida o callback antigo antes de observar a nova página.
+
+- [ ] **Step 3: Tornar headings de página programaticamente focáveis**
+
+Adicionar `tabIndex={-1}` aos headings `main h1` reais cobertos pelo router,
+incluindo estados de erro que representam a página. Não adicionar `h1` aos
+fallbacks lazy. Se o mesmo componente renderiza mais de um estado exclusivo,
+ambos os headings recebem o atributo.
+
+- [ ] **Step 4: Instalar no router**
 
 Envolver o conteúdo das rotas com `RouteFocusBoundary` dentro do contexto do
 router, sem remontar providers ou layouts.
 
-- [ ] **Step 3: Executar GREEN e regressões**
+- [ ] **Step 5: Executar GREEN unitário, lazy e E2E**
 
 ```powershell
 cd frontend
+npx vitest run src/app/router/RouteFocusBoundary.test.tsx src/app/router/AppRouter.lazy.test.tsx
 npx playwright test e2e/accessibility.spec.ts --project=chromium --workers=1 -g "foco após rota"
-npx vitest run src/App.test.tsx src/app/router
+npx vitest run src/App.test.tsx src/app/layouts
 ```
 
-Expected: foco no `h1` de cadastro; regressões PASS.
+Expected: seis casos PASS; fallback nunca recebe foco; POP/back focaliza a
+pathname restaurada; busca/hash preservam o foco; race não produz foco tardio;
+menu/dialog restauram triggers; E2E focaliza cadastro.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```powershell
-git add frontend/src/app/router frontend/src/features
+git add frontend/src/app/router frontend/src/features frontend/e2e/accessibility.spec.ts
 git commit -m "fix(TASK-128): Restaurar foco após navegação"
 ```
 
@@ -466,6 +554,8 @@ Registrar:
 - base e commits;
 - sete estados e sequência de teclado;
 - reprodução/solução do foco pós-rota;
+- política de pathname, initial load, `PUSH`/`REPLACE`/`POP`, search/hash;
+- evidência de espera estrutural lazy, cleanup e race sem timeout;
 - ordem, indicador e restauração de foco;
 - menu e três dialogs;
 - landmarks, headings, nomes e busca duplicada;
@@ -500,6 +590,10 @@ summaries, landmarks/headings/nomes, buscas, live regions, axe sem
 serious/critical, contraste com alpha/thresholds/exceção disabled, reduced
 motion computed, artifacts, ledger, 10/10 e gates.
 
+Para o boundary, o reviewer deve rejeitar dependência em `search`/`hash`,
+timeout/polling, foco no fallback, ausência de teste POP/back ou observer que
+possa sobreviver a uma navegação concorrente.
+
 Findings `CRITICAL` ou `IMPORTANT` retornam ao implementador com RED, correção,
 gates afetados e nova revisão.
 
@@ -523,6 +617,8 @@ Expected: diff-check limpo e worktree sem mudanças.
   regiões vivas, axe, contraste e movimento estão mapeados.
 - **TDD:** foco pós-rota já possui reprodução; demais correções dependem de
   RED concreto antes de código de produto.
+- **Foco de rota:** seis REDs cobrem initial, pathname eager/lazy, search/hash,
+  POP/back e cleanup/races/overlays; não há timeout arbitrário.
 - **Custo:** uma jornada representativa repetida dez vezes, sem matriz 65×.
 - **Contraste:** alpha, texto grande, disabled e `zinc-500/600` caso a caso
   estão explícitos.

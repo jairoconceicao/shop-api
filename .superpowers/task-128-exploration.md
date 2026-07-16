@@ -50,11 +50,35 @@ after:  BODY, sem id e sem tabindex
 ```
 
 O link desmontado perde foco e nenhuma região da nova página o recebe. A
-implementação deve criar um boundary global, acionado por mudança de
-`pathname/search/hash`, que focaliza o `h1` principal com `tabIndex={-1}` após
-o conteúdo da rota estabilizar. O boundary não deve roubar foco em mudanças
-internas da mesma localização nem interferir na restauração explícita de
-`Dialog` e `DropdownMenu`.
+implementação deve criar um boundary global cuja unidade de página é
+exclusivamente `location.pathname`:
+
+- o carregamento inicial não move foco;
+- `search` e `hash` na mesma pathname não representam página nova e não movem
+  foco;
+- `PUSH`, `REPLACE` e `POP` que chegam a outra pathname focalizam o heading da
+  página de destino;
+- voltar/avançar pelo histórico para outra pathname aplica a mesma política,
+  sem tentar restaurar o controle da página desmontada.
+
+Rotas lazy não podem depender de `requestAnimationFrame`, polling ou timeout
+arbitrário. Ao detectar uma pathname nova, o boundary deve guardar o `h1`
+anterior e observar de forma cancelável a subtree do `main` até surgir um
+`main h1` conectado e diferente do anterior. Os fallbacks atuais não possuem
+`h1`, portanto não recebem foco. O observer focaliza uma única vez, desconecta
+imediatamente e também é desconectado por uma navegação mais nova ou pelo
+unmount; uma navegação antiga nunca pode focalizar o heading de uma rota
+posterior.
+
+Se o heading real já estiver presente no commit da pathname, a mesma função de
+resolução o encontra sincronicamente, sem aguardar um frame. Todos os headings
+de página precisam de `tabIndex={-1}`.
+
+Menus e dialogs não alteram a pathname e, portanto, não acionam o boundary. Os
+testes devem provar que fechar `DropdownMenu` e `Dialog` continua restaurando o
+trigger, inclusive depois de uma navegação que já concluiu o foco do heading.
+O observer pendente deve ser cancelado se outra pathname começar antes de o
+heading lazy anterior surgir, evitando races e foco tardio.
 
 ## Semântica e nomes
 
