@@ -141,16 +141,30 @@ checkout:
    `npm run build`, `npm run verify:production-graph`,
    `npm run audit:private-data`;
 4. executar a topologia Docker, migrations e readiness da API;
-5. iniciar o frontend host com a API real e obter HTTP 200 da raiz;
+5. iniciar o frontend host com MSW ausente/desativado e executar um smoke
+   Chromium sem fixtures: abrir a Home, observar o `GET /api/v1/categoria`
+   respondido pela API real e rejeitar CORS, console ou page errors;
 6. executar o cleanup nomeado;
 7. remover o worktree temporário somente depois de confirmar o caminho absoluto
    sob `.worktrees` e `git worktree list`.
 
-O daemon está parado na exploração. A implementação deve tentar, no Windows,
-iniciar com segurança o Docker Desktop existente via `Start-Process` com janela
-oculta e aguardar em polling curto por `docker info`. Se o executável não
-existir ou o daemon não ficar saudável, a validação integrada permanece
-pendente e a TASK-129 não pode receber `DONE`.
+O daemon está parado na exploração. Todo `docker info` deve verificar
+`$LASTEXITCODE`, pois comandos nativos não lançam exceção PowerShell por
+default. A implementação deve tentar, no Windows, iniciar com segurança o
+Docker Desktop existente via `Start-Process` com janela oculta, registrar o
+processo/status e aguardar até um deadline explícito. Se o executável não
+existir, o processo sair, ou o daemon não ficar saudável, a validação integrada
+permanece pendente e a TASK-129 não pode receber `DONE`.
+
+Readiness do banco e API deve ter deadline e detectar container `exited` antes
+do prazo, emitindo `docker logs` no erro. Todo o lote integrado deve estar sob
+`try/finally`, com cleanup condicional apenas de `shop-api-app`,
+`shop-api-db` e `shop-api-network`.
+
+O worktree de validação não pode ser aninhado no worktree corrente. O diretório
+administrativo deve ser derivado de `git worktree list --porcelain` e
+`git rev-parse --git-common-dir`; o checkout temporário será irmão dos demais
+worktrees no diretório administrativo compartilhado.
 
 ## Troubleshooting obrigatório
 

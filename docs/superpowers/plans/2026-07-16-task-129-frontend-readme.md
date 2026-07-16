@@ -147,12 +147,16 @@ PowerShell e shells POSIX.
 
 - [ ] **Step 1: Documentar preflight e cleanup idempotente em PowerShell**
 
-O README deve orientar a partir da raiz do repositório e definir:
+O README deve orientar a partir da raiz do repositório e colocar criação de
+rede, banco, migration, API, readiness e uso integrado dentro de um único
+`try/finally`. O `finally` usa inspeção condicional e remove somente os três
+nomes autorizados. No preflight, definir:
 
 ```powershell
 $ErrorActionPreference = 'Stop'
 $repo = (Get-Location).Path
-docker info | Out-Null
+docker info *> $null
+if ($LASTEXITCODE -ne 0) { throw 'Docker daemon indisponível.' }
 
 docker rm -f shop-api-app 2>$null
 docker rm -f shop-api-db 2>$null
@@ -172,6 +176,19 @@ if (docker network inspect shop-api-network 2>$null) { docker network rm shop-ap
 Preferir a variante condicional no texto final. Nunca usar `docker system
 prune`, `docker volume prune` ou remoção por filtro amplo.
 
+O bloco integrado final do README deve terminar com:
+
+```powershell
+} finally {
+  if (docker container inspect shop-api-app 2>$null) { docker rm -f shop-api-app }
+  if (docker container inspect shop-api-db 2>$null) { docker rm -f shop-api-db }
+  if (docker network inspect shop-api-network 2>$null) { docker network rm shop-api-network }
+}
+```
+
+Assim, falha de pull, migration, readiness, API ou frontend sempre aciona o
+cleanup dos recursos nomeados.
+
 - [ ] **Step 2: Documentar PostgreSQL e readiness**
 
 Adicionar:
@@ -189,10 +206,20 @@ docker run --name shop-api-db --network shop-api-network `
 do {
   Start-Sleep -Seconds 2
   $dbHealth = docker inspect --format='{{.State.Health.Status}}' shop-api-db
+  $dbState = docker inspect --format='{{.State.Status}}' shop-api-db
+  if ($dbState -eq 'exited') {
+    docker logs shop-api-db
+    throw 'shop-api-db encerrou antes do readiness.'
+  }
+  if ((Get-Date) -ge $dbDeadline) {
+    docker logs shop-api-db
+    throw 'Timeout aguardando shop-api-db.'
+  }
 } until ($dbHealth -eq 'healthy')
 ```
 
 Declarar que o banco é efêmero porque nenhum volume nomeado é criado.
+Antes do loop, definir `$dbDeadline = (Get-Date).AddMinutes(2)`.
 
 - [ ] **Step 3: Documentar migrations com o override correto**
 
@@ -226,16 +253,26 @@ docker run --name shop-api-app --network shop-api-network `
 
 do {
   Start-Sleep -Seconds 2
+  $apiState = docker inspect --format='{{.State.Status}}' shop-api-app
+  if ($apiState -eq 'exited') {
+    docker logs shop-api-app
+    throw 'shop-api-app encerrou antes do readiness.'
+  }
   try {
     $response = Invoke-WebRequest -UseBasicParsing http://localhost:5228/api/v1/categoria
   } catch {
     $response = $null
+  }
+  if ((Get-Date) -ge $apiDeadline) {
+    docker logs shop-api-app
+    throw 'Timeout aguardando shop-api-app.'
   }
 } until ($response.StatusCode -ge 200 -and $response.StatusCode -lt 300)
 ```
 
 Não chamar a rota de “health”; explicar que é um readiness por endpoint público
 porque o backend não expõe healthcheck.
+Antes do loop, definir `$apiDeadline = (Get-Date).AddMinutes(3)`.
 
 - [ ] **Step 5: Documentar frontend host e smoke**
 
@@ -249,7 +286,9 @@ npm run dev -- --host 127.0.0.1
 ```
 
 Abrir `http://127.0.0.1:5173` e confirmar que a Home consulta categorias/API
-real sem erro CORS. O README deve distinguir essa execução dos testes E2E.
+real sem erro CORS. O README deve distinguir essa execução dos testes E2E e
+explicar que a validação automatizada usa Chromium sem fixtures, handlers ou
+interceptação de API.
 
 - [ ] **Step 6: Documentar cleanup exato**
 
@@ -327,7 +366,8 @@ git commit -m "docs(TASK-129): Documentar execução do frontend"
 ### Task 4: Validar em worktree detached limpo
 
 **Files:**
-- Test: checkout temporário em `.worktrees/task-129-readme-validation`
+- Test: checkout temporário irmão dos worktrees existentes, no diretório
+  administrativo compartilhado
 - Evidence: `.superpowers/task-129-implementation-report.md`
 
 **Interfaces:**
@@ -336,17 +376,30 @@ git commit -m "docs(TASK-129): Documentar execução do frontend"
 
 - [ ] **Step 1: Criar o worktree com caminho verificado**
 
-Na raiz do worktree principal:
+Derivar o diretório administrativo compartilhado sem aninhar o checkout no
+worktree corrente:
 
 ```powershell
-$root = (git rev-parse --show-toplevel).Trim()
-$validation = [IO.Path]::GetFullPath((Join-Path $root '.worktrees/task-129-readme-validation'))
-$allowed = [IO.Path]::GetFullPath((Join-Path $root '.worktrees')) + [IO.Path]::DirectorySeparatorChar
+$currentRoot = [IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim())
+$commonDir = [IO.Path]::GetFullPath((git rev-parse --git-common-dir).Trim())
+$porcelain = git worktree list --porcelain
+$roots = @($porcelain | Where-Object { $_ -like 'worktree *' } | ForEach-Object {
+  [IO.Path]::GetFullPath($_.Substring(9))
+})
+$mainRoot = $roots | Where-Object {
+  [IO.Path]::GetFullPath((Join-Path $_ '.git')) -eq $commonDir
+} | Select-Object -First 1
+if (-not $mainRoot) { throw "Checkout principal não identificado. commonDir=$commonDir" }
+$allowed = [IO.Path]::GetFullPath((Join-Path $mainRoot '.worktrees')) + [IO.Path]::DirectorySeparatorChar
+$validation = [IO.Path]::GetFullPath((Join-Path $allowed 'task-129-readme-validation'))
 if (-not $validation.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
-  throw "Caminho de validação fora de .worktrees: $validation"
+  throw "Caminho de validação fora do diretório administrativo: $validation"
+}
+if ($validation.StartsWith($currentRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "Worktree temporário não pode ser aninhado no checkout corrente: $validation"
 }
 git worktree add --detach $validation HEAD
-git worktree list
+git worktree list --porcelain
 git -C $validation status --short
 ```
 
@@ -376,71 +429,165 @@ Primeiro:
 
 ```powershell
 $dockerReady = $false
-try { docker info | Out-Null; $dockerReady = $true } catch {}
+docker info *> $null
+$dockerReady = $LASTEXITCODE -eq 0
+$desktopProcess = $null
 if (-not $dockerReady) {
   $desktop = @(
     "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
     "$env:LOCALAPPDATA\Docker\Docker Desktop.exe"
   ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
   if (-not $desktop) { throw 'Docker Desktop não encontrado.' }
-  Start-Process -FilePath $desktop -WindowStyle Hidden
+  $desktopProcess = Start-Process -FilePath $desktop -WindowStyle Hidden -PassThru
   $deadline = (Get-Date).AddMinutes(3)
   do {
     Start-Sleep -Seconds 5
-    try { docker info | Out-Null; $dockerReady = $true } catch {}
+    $desktopProcess.Refresh()
+    if ($desktopProcess.HasExited) {
+      throw "Docker Desktop encerrou antes do daemon ficar pronto. ExitCode=$($desktopProcess.ExitCode)"
+    }
+    docker info *> $null
+    $dockerReady = $LASTEXITCODE -eq 0
   } until ($dockerReady -or (Get-Date) -ge $deadline)
 }
-if (-not $dockerReady) { throw 'Docker daemon indisponível; TASK-129 bloqueada.' }
+if (-not $dockerReady) {
+  $status = if ($desktopProcess) { "pid=$($desktopProcess.Id), exited=$($desktopProcess.HasExited)" } else { 'processo não iniciado' }
+  throw "Docker daemon indisponível até $deadline; TASK-129 bloqueada. Docker Desktop: $status"
+}
 ```
 
 Não instalar Docker, não encerrar processos e não alterar contextos Docker
 globais.
 
-- [ ] **Step 4: Copiar e executar o procedimento integrado**
+- [ ] **Step 4: Executar integração e smoke Chromium real sob cleanup garantido**
 
-Executar, a partir do checkout de validação, os blocos de rede, PostgreSQL,
-migration, API e readiness documentados no README. Iniciar o Vite como processo
-temporário:
+Executar todo o procedimento integrado em `try/finally`. O smoke cria uma
+configuração Playwright temporária fora do repositório, usa `webServer` próprio
+para controlar a árvore do Vite e não importa fixtures E2E do projeto:
 
 ```powershell
-$env:VITE_API_BASE_URL='http://localhost:5228'
-$env:VITE_ENABLE_MSW='false'
-$frontend = Start-Process -FilePath npm.cmd `
-  -ArgumentList 'run','dev','--','--host','127.0.0.1' `
-  -WorkingDirectory "$validation/frontend" `
-  -WindowStyle Hidden -PassThru
 try {
-  $deadline = (Get-Date).AddMinutes(2)
+  docker network create shop-api-network
+  if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar shop-api-network.' }
+  docker run --name shop-api-db --network shop-api-network `
+    -e POSTGRES_USER=shopapi -e POSTGRES_PASSWORD=shopapi -e POSTGRES_DB=shopapi `
+    -p 5432:5432 --health-cmd='pg_isready -U shopapi -d shopapi' `
+    --health-interval=2s --health-timeout=3s --health-retries=30 -d postgres:17
+  if ($LASTEXITCODE -ne 0) { throw 'Falha ao iniciar shop-api-db.' }
+  $dbDeadline = (Get-Date).AddMinutes(2)
   do {
     Start-Sleep -Seconds 2
-    try { $home = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173 } catch { $home = $null }
-  } until (($home.StatusCode -eq 200) -or (Get-Date) -ge $deadline)
-  if ($home.StatusCode -ne 200) { throw 'Frontend não ficou pronto.' }
-  $categories = Invoke-WebRequest -UseBasicParsing http://localhost:5228/api/v1/categoria
-  if ($categories.StatusCode -lt 200 -or $categories.StatusCode -ge 300) {
-    throw 'API integrada não respondeu com sucesso.'
-  }
+    $dbHealth = docker inspect --format='{{.State.Health.Status}}' shop-api-db
+    $dbState = docker inspect --format='{{.State.Status}}' shop-api-db
+    if ($dbState -eq 'exited' -or (Get-Date) -ge $dbDeadline) {
+      docker logs shop-api-db
+      throw "shop-api-db não ficou saudável; state=$dbState health=$dbHealth"
+    }
+  } until ($dbHealth -eq 'healthy')
+
+  docker run --rm --network shop-api-network -v "${validation}:/workspace" `
+    -w /workspace/aspnet-api `
+    -e 'ConnectionStrings__ShopDb=Host=shop-api-db;Port=5432;Database=shopapi;Username=shopapi;Password=shopapi' `
+    mcr.microsoft.com/dotnet/sdk:10.0 `
+    sh -lc 'dotnet tool install --global dotnet-ef --version 10.* && export PATH="$PATH:/root/.dotnet/tools" && dotnet ef database update'
+  if ($LASTEXITCODE -ne 0) { throw 'Migration EF Core falhou.' }
+
+  docker run --name shop-api-app --network shop-api-network `
+    -v "${validation}:/workspace" -w /workspace/aspnet-api `
+    -e ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=http://+:8080 `
+    -e 'ConnectionStrings__ShopDb=Host=shop-api-db;Port=5432;Database=shopapi;Username=shopapi;Password=shopapi' `
+    -p 5228:8080 -d mcr.microsoft.com/dotnet/sdk:10.0 `
+    dotnet run --no-launch-profile --urls http://+:8080
+  if ($LASTEXITCODE -ne 0) { throw 'Falha ao iniciar shop-api-app.' }
+  $apiDeadline = (Get-Date).AddMinutes(3)
+  do {
+    Start-Sleep -Seconds 2
+    $apiState = docker inspect --format='{{.State.Status}}' shop-api-app
+    if ($apiState -eq 'exited') {
+      docker logs shop-api-app
+      throw 'shop-api-app encerrou antes do readiness.'
+    }
+    try { $apiResponse = Invoke-WebRequest -UseBasicParsing http://localhost:5228/api/v1/categoria } catch { $apiResponse = $null }
+    if ((Get-Date) -ge $apiDeadline) {
+      docker logs shop-api-app
+      throw 'Timeout aguardando shop-api-app.'
+    }
+  } until ($apiResponse.StatusCode -ge 200 -and $apiResponse.StatusCode -lt 300)
+
+  $smokeDir = Join-Path ([IO.Path]::GetTempPath()) "shop-api-task-129-$PID"
+  New-Item -ItemType Directory -Path $smokeDir | Out-Null
+  $smokeSpec = Join-Path $smokeDir 'integrated-smoke.spec.ts'
+  $smokeConfig = Join-Path $smokeDir 'playwright.config.ts'
+  @'
+import { expect, test } from '@playwright/test'
+
+test('loads Home against the real API without MSW, CORS, console or page errors', async ({ page }) => {
+  const consoleErrors: string[] = []
+  const pageErrors: string[] = []
+  page.on('console', message => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('pageerror', error => pageErrors.push(error.message))
+
+  const categoriesResponse = page.waitForResponse(response =>
+    response.request().method() === 'GET' &&
+    response.url() === 'http://localhost:5228/api/v1/categoria'
+  )
+  await page.goto('http://127.0.0.1:5173/')
+  const response = await categoriesResponse
+  expect(response.status()).toBeGreaterThanOrEqual(200)
+  expect(response.status()).toBeLessThan(300)
+  expect(response.fromServiceWorker()).toBe(false)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  expect(consoleErrors).toEqual([])
+  expect(pageErrors).toEqual([])
+})
+'@ | Set-Content -LiteralPath $smokeSpec
+  @"
+import { defineConfig } from '$($validation.Replace('\', '/'))/frontend/node_modules/@playwright/test/index.js'
+export default defineConfig({
+  testDir: '$($smokeDir.Replace('\', '/'))',
+  timeout: 30_000,
+  reporter: 'line',
+  use: { browserName: 'chromium' },
+  webServer: {
+    command: 'npx vite --host 127.0.0.1 --port 5173 --strictPort',
+    cwd: '$($validation.Replace('\', '/'))/frontend',
+    env: { VITE_API_BASE_URL: 'http://localhost:5228', VITE_ENABLE_MSW: 'false' },
+    url: 'http://127.0.0.1:5173',
+    reuseExistingServer: false,
+    timeout: 120_000,
+  },
+})
+"@ | Set-Content -LiteralPath $smokeConfig
+  & "$validation/frontend/node_modules/.bin/playwright.cmd" test --config $smokeConfig
+  if ($LASTEXITCODE -ne 0) { throw 'Smoke Chromium integrado falhou.' }
 } finally {
-  if ($frontend -and -not $frontend.HasExited) { Stop-Process -Id $frontend.Id }
+  if ($smokeDir -and (Test-Path -LiteralPath $smokeDir)) {
+    Remove-Item -LiteralPath $smokeDir -Recurse -Force
+  }
+  if (docker container inspect shop-api-app 2>$null) { docker rm -f shop-api-app }
+  if (docker container inspect shop-api-db 2>$null) { docker rm -f shop-api-db }
+  if (docker network inspect shop-api-network 2>$null) { docker network rm shop-api-network }
 }
+
+$portReleased = -not (Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue)
+if (-not $portReleased) { throw 'A árvore do Vite não foi encerrada; porta 5173 ainda está ocupada.' }
 ```
 
-Esperado: frontend HTTP 200 e endpoint real de categorias 2xx. A API integrada
-deve estar com MSW desativado.
+Esperado: Playwright encerra zero; a Home observou a resposta real 2xx de
+categorias, `fromServiceWorker() === false`, zero console/page errors e nenhuma
+falha CORS. O `webServer` encerra a árvore que iniciou e a porta 5173 fica livre.
 
 - [ ] **Step 5: Executar cleanup e remover o worktree com segurança**
 
 ```powershell
-if (docker container inspect shop-api-app 2>$null) { docker rm -f shop-api-app }
-if (docker container inspect shop-api-db 2>$null) { docker rm -f shop-api-db }
-if (docker network inspect shop-api-network 2>$null) { docker network rm shop-api-network }
-
-Set-Location $root
+Set-Location $currentRoot
 $resolvedValidation = [IO.Path]::GetFullPath($validation)
 if (-not $resolvedValidation.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
-  throw "Recusa de remoção fora de .worktrees: $resolvedValidation"
+  throw "Recusa de remoção fora do diretório administrativo: $resolvedValidation"
 }
-git worktree list
+git worktree list --porcelain
 git worktree remove $resolvedValidation
 git worktree prune
 ```
