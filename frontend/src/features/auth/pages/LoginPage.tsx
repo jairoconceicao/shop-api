@@ -33,8 +33,10 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     defaultValues: { manterConectado: false },
+    shouldFocusError: false,
   })
 
+  const focusSummary = () => requestAnimationFrame(() => summaryRef.current?.focus())
   const submitLogin = handleSubmit(async (values) => {
     const parsedValues = loginRequestSchema.safeParse({
       email: values.email,
@@ -53,7 +55,7 @@ export function LoginPage() {
     } finally {
       resetField('senha')
     }
-  })
+  }, focusSummary)
 
   const formErrors = [
     errors.email?.message ? { fieldId: 'login-email', message: errors.email.message } : null,
@@ -62,7 +64,9 @@ export function LoginPage() {
   ].filter((error): error is { fieldId?: string; message: string } => error !== null)
 
   useEffect(() => {
-    if (formErrors.length > 0) summaryRef.current?.focus()
+    if (formErrors.length === 0) return
+    const frame = requestAnimationFrame(() => summaryRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
   }, [formErrors.length])
 
   return (

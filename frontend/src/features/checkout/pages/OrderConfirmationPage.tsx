@@ -31,19 +31,19 @@ export function OrderConfirmationPage() {
 
   if (!order) {
     return (
-      <main className="container-page py-8 sm:py-10 lg:py-12">
+      <div className="container-page py-8 sm:py-10 lg:py-12">
         <h1 className="sr-only">Confirmação do pedido</h1>
         <EmptyState
           title="Confirmação indisponível"
           description="Não foi possível recuperar os dados desta confirmação."
           action={<LinkButton to="/">Voltar à loja</LinkButton>}
         />
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="container-page py-8 sm:py-10 lg:py-12">
+    <div className="container-page py-8 sm:py-10 lg:py-12">
       <header className="mx-auto max-w-3xl text-center">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">Pedido criado</h1>
         <p className="mt-3 text-zinc-400">Os dados confirmados do pedido estão abaixo.</p>
@@ -59,6 +59,6 @@ export function OrderConfirmationPage() {
         </dl>
         <div className="mt-7"><LinkButton to="/">Voltar à loja</LinkButton></div>
       </Card>
-    </main>
+    </div>
   )
 }

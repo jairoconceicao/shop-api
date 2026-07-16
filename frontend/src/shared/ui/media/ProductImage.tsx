@@ -48,7 +48,7 @@ export function ProductImage({
       ) : (
         <div
           aria-label={alt}
-          className="grid h-full w-full place-content-center gap-2 p-4 text-center text-zinc-500"
+          className="grid h-full w-full place-content-center gap-2 p-4 text-center text-zinc-400"
           role="img"
         >
           <svg

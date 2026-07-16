@@ -114,8 +114,12 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
     setValue,
     setError,
     formState: { errors },
-  } = useForm<RegistrationFormValues>({ defaultValues: { whatsApp: false } })
+  } = useForm<RegistrationFormValues>({
+    defaultValues: { whatsApp: false },
+    shouldFocusError: false,
+  })
 
+  const focusSummary = () => requestAnimationFrame(() => summaryRef.current?.focus())
   const submitRegistration = handleSubmit(async (values) => {
     try {
       const request = toRequest(values)
@@ -130,7 +134,7 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
         })
       }
     }
-  })
+  }, focusSummary)
   const remoteErrors = getRemoteErrors(registrationMutation.error?.details)
   const formErrors: FormError[] = Object.entries(errors).flatMap(([field, error]) =>
     error.message ? [{ fieldId: `registration-${field}`, message: error.message } satisfies FormError] : [],
@@ -140,7 +144,9 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
     formErrors.push({ message: registrationMutation.error.message })
   }
   useEffect(() => {
-    if (formErrors.length > 0) summaryRef.current?.focus()
+    if (formErrors.length === 0) return
+    const frame = requestAnimationFrame(() => summaryRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
   }, [formErrors.length])
   const cpfField = register('cpf', {
     ...required('Informe seu CPF.'),

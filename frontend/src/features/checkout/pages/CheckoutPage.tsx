@@ -139,7 +139,7 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
   )
 
   return (
-    <main className="container-page py-8 sm:py-10 lg:py-12">
+    <div className="container-page py-8 sm:py-10 lg:py-12">
       <header className="mb-6 sm:mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">Checkout</h1>
         <p className="mt-2 text-zinc-400">Revise o endereço e escolha como deseja pagar.</p>
@@ -202,10 +202,10 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
             <Button className="mt-6 w-full" disabled={createOrderMutation.isPending} type="submit">
               {createOrderMutation.isPending ? 'Confirmando pedido...' : 'Confirmar pedido'}
             </Button>
-            <p className="mt-3 text-xs text-zinc-500">A confirmação do pedido será concluída na próxima etapa.</p>
+            <p className="mt-3 text-xs text-zinc-400">A confirmação do pedido será concluída na próxima etapa.</p>
           </Card>
         </aside>
       </form>
-    </main>
+    </div>
   )
 }
