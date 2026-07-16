@@ -139,4 +139,30 @@ describe('useCartSessionStore', () => {
     expect(() => useCartSessionStore.getState().setCartId(10, 100)).not.toThrow()
     expect(useCartSessionStore.getState().getCartId(10)).toBe(100)
   })
+
+  it('keeps the in-memory map usable when localStorage fails during rehydration', async () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100 } })
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('Storage unavailable')
+    })
+
+    await expect(useCartSessionStore.persist.rehydrate()).resolves.toBeUndefined()
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({})
+
+    useCartSessionStore.getState().setCartId(20, 200)
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '20': 200 })
+  })
+
+  it('keeps the in-memory map usable when localStorage fails during removal', () => {
+    useCartSessionStore.setState({ cartIdsByCustomer: { '10': 100, '20': 200 } })
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('Storage unavailable')
+    })
+
+    expect(() => useCartSessionStore.persist.clearStorage()).not.toThrow()
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '10': 100, '20': 200 })
+
+    useCartSessionStore.getState().removeCartId(10)
+    expect(useCartSessionStore.getState().cartIdsByCustomer).toEqual({ '20': 200 })
+  })
 })
