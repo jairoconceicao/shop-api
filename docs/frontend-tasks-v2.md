@@ -783,8 +783,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Mapear cada critério para a evidência existente e alterar o produto somente se a verificação falhar; executar testes focados, typecheck, lint e build.
   - Evidência: commits `0320b1e`, `97b0b15` e `dcb911b`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT e com o MINOR de unidade corrigido no relatório. O RED focado reproduziu 2 falhas/6 testes: checkout sem `min-h-96` e confirmação reutilizando o status `Carregando checkout`; o GREEN passou 6/6. A suíte completa passou 126 arquivos/842 testes, além de typecheck, lint, build e diff-check. O build preservou seis chunks separados (`CheckoutPage` 15,02 KiB, `OrderConfirmationPage` 4,64 KiB, `CustomerDataPage` 26,58 KiB, `CustomerPasswordPage` 9,10 KiB, `OrdersPage` 11,33 KiB e `OrderDetailPage` 17,34 KiB), com marcadores exclusivos presentes nos chunks corretos e ausentes do entry inicial. O entry `index-BZwkBxYl.js` mediu 711,10 KiB por `Length / 1KB` (728,17 kB decimais no Vite) e manteve o warning acima de 500 kB explicitamente delegado à TASK-125.
 
-[ ] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
-  - Status: READY
+[x] TASK-125: Auditar waterfalls, deduplicação de produtos, re-renderizações e imports que ampliem o bundle.
+  - Status: DONE
   - Depends on: TASK-053, TASK-069, TASK-102, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124
   - Escopo: Frontend
   - Critérios de aceite:
@@ -792,9 +792,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Listar e eliminar commits repetidos que mantenham props, query data e estado visível iguais; a mediana final não pode superar o baseline.
     - Confirmar categorias e catálogo sem waterfall e uma consulta por ID único de produto em cada carga fria de carrinho e pedido.
     - Executar o build, manter cada chunk JavaScript inicial em até 500 kB não comprimidos e cada rota lazy separada, registrando ambiente, medições, requests, chunks e grafo de imports sem rota lazy alcançando o chunk inicial.
+  - Evidência: planos `25e5d8a`, `330cbbd` e `0f4852b`; implementação `f99332c`, `e90247d`, `0f84086`, `2ca0ab6` e `01b9420`; revisão final sem findings CRITICAL ou IMPORTANT. O Profiler executou warmup descartado e cinco amostras rotacionadas por cenário com fingerprints pós-commit de DOM semântico, queries e props: Home 2 commits, mediana 17,7773 ms e faixa 15,1650–19,3846; carrinho 5 commits, mediana 24,9446 ms e faixa 23,1429–25,1589; pedido 4 commits, mediana 19,0437 ms e faixa 17,5528–22,8792; zero redundâncias consecutivas em todas as amostras, sem alterações especulativas nas páginas. Home preservou categorias e catálogo paralelos; carrinho e pedido com IDs `[5, 5, 9]` emitiram somente requests de produto 5 e 9. O bootstrap removeu top-level await e o plugin associado; o entry caiu de 728165 para 464141 bytes, com seis chunks lazy distintos fora do fecho estático. Suíte 850/850, E2E Chromium 9/9, typecheck, lint, build/auditoria e diff-check PASS.
 
 [ ] TASK-126: Auditar persistência local, remoção de dados privados e ausência de logs sensíveis.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-032, TASK-039, TASK-040, TASK-062, TASK-084, TASK-095, TASK-108, TASK-109, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
@@ -804,7 +805,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Executar busca estática sem `console.*`, token ou CPF em mensagens, testar os fluxos de limpeza e registrar relatório reproduzível, além de typecheck e lint.
 
 [ ] TASK-127: Auditar responsividade entre 320 px e desktop amplo sem overflow horizontal.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-030, TASK-043, TASK-052, TASK-058, TASK-071, TASK-079, TASK-088, TASK-093, TASK-100, TASK-101, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123
   - Escopo: Frontend
   - Critérios de aceite:
