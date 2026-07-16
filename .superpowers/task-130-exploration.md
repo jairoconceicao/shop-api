@@ -9,6 +9,16 @@
   reaberta e a TASK-130 volta a `BLOCKED`.
 - Esta exploração e o plano são somente documentais. Nenhum gate foi executado.
 
+## Tentativa 1 do executor
+
+A primeira tentativa operacional posterior ao planejamento falhou no próprio
+executor antes de validar o gate integral: a expressão PowerShell
+`-replace '\','/'` usa regex inválida para uma barra invertida isolada. A
+classificação é `executor`, portanto nenhuma task funcional é reaberta e
+nenhum resultado parcial conta como gate. O checkout preservado deve ser
+capturado, confirmado limpo/listado/no caminho exato e removido sem `--force`;
+depois o gate integral recomeça desde `npm ci` no novo `HEAD`.
+
 ## Fontes factuais
 
 O `frontend/package.json` expõe os cinco gates pedidos no backlog:
@@ -107,12 +117,18 @@ worktrees em logs externos antes de considerar remoção. Antes de remover,
 resolver o
 caminho absoluto e comprovar que ele é exatamente o caminho temporário
 registrado e está listado por `git worktree list --porcelain`. Usar
-`git worktree remove --force -- <caminho>` somente se o checkout estiver limpo
-ou contiver apenas EOL semântico-zero já restaurado. Se houver mudança real,
+`git worktree remove -- <caminho>` somente se o checkout estiver limpo ou
+contiver apenas EOL semântico-zero já restaurado. Se houver mudança real,
 inclusive untracked inesperado, preservar o worktree para investigação; não
 forçar remoção e não depender de patch Git, que não preserva conteúdo
 untracked. Se a captura falhar, também manter o worktree. Depois da remoção
 segura, executar `git worktree prune`.
+
+Normalização para comparação com a saída Git deve usar
+`.Replace([char]92, [char]47)`, nunca `-replace` regex. Antes de `worktree add`
+e novamente antes do cleanup, um self-check deve provar que
+`C:\repo\.worktrees\x` vira `C:/repo/.worktrees/x` e que um caminho já
+normalizado permanece idêntico.
 
 ## Conclusão esperada
 

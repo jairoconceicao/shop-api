@@ -21,6 +21,8 @@
   infraestrutura ou do executor não reabre task funcional.
 - Não restaurar mudanças exceto CRLF/EOL semântico-zero de `frontend/public/mockServiceWorker.js`, comprovado antes.
 - Backlog só muda depois da revisão independente aprovada.
+- Tentativa 1 foi falha de executor por `-replace '\','/'`; nenhum resultado
+  parcial vale e o gate integral deve recomeçar no novo `HEAD`.
 
 ---
 
@@ -73,13 +75,28 @@ $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $logRoot = Join-Path $tempRoot "shop-api-task-130-$targetCommit"
 $logRoot = [IO.Path]::GetFullPath($logRoot)
 
+function Convert-ToGitPath {
+  param([Parameter(Mandatory)][string]$Path)
+  return $Path.Replace([char]92, [char]47)
+}
+
+$normalizationCases = @{
+  'C:\repo\.worktrees\x' = 'C:/repo/.worktrees/x'
+  'C:/repo/.worktrees/x' = 'C:/repo/.worktrees/x'
+}
+foreach ($case in $normalizationCases.GetEnumerator()) {
+  $actual = Convert-ToGitPath $case.Key
+  if ($actual -ne $case.Value) {
+    throw "Self-check de normalização falhou: '$($case.Key)' => '$actual'"
+  }
+}
+
 if ((Split-Path -Parent $gateWorktree) -ne $worktreeParent) {
   throw "Worktree não é filho direto de .worktrees: $gateWorktree"
 }
 if (-not $logRoot.StartsWith($tempRoot)) {
   throw "Logs fora do temp do sistema: $logRoot"
 }
-if (Test-Path -LiteralPath $gateWorktree) { throw "Worktree alvo já existe" }
 if (Test-Path -LiteralPath $logRoot) { throw "Diretório de logs já existe" }
 
 $listedRoots = @(
@@ -91,6 +108,9 @@ foreach ($listedRoot in $listedRoots) {
   # O destino administrativo fica fisicamente sob mainRoot/.worktrees por
   # contrato; a sobreposição proibida é com qualquer outro checkout listado.
   if ($listedRoot -eq $mainRoot) { continue }
+  # O caminho exato pode ser o checkout preservado da tentativa 1; Step 2A
+  # exige que esteja limpo e o remove sem force antes do novo add.
+  if ($listedRoot -eq $gateWorktree) { continue }
   $listedPrefix = $listedRoot.TrimEnd('\') + '\'
   $gatePrefix = $gateWorktree.TrimEnd('\') + '\'
   if ($gateWorktree.StartsWith($listedPrefix) -or
@@ -103,7 +123,50 @@ New-Item -ItemType Directory -Path $logRoot | Out-Null
 
 Expected: `mainRoot` vem da primeira entrada administrativa; destino é
 exatamente `<mainRoot>/.worktrees/task-130-final-gate`, filho direto, sem
-sobreposição com checkout listado; nenhum delete é executado.
+sobreposição com checkout listado, exceto o caminho exato preservado da
+tentativa 1 que será tratado no Step 2A; self-check cobre barras Windows e
+caminho já normalizado; nenhum delete é executado neste step.
+
+- [ ] **Step 2A: Limpar com segurança checkout preservado da tentativa 1**
+
+Se `<mainRoot>/.worktrees/task-130-final-gate` existir, tratá-lo exclusivamente
+como candidato preservado da tentativa 1 e executar antes de criar o novo
+checkout. Se não existir, pular este step.
+
+```powershell
+$preserved = $gateWorktree
+# Executar o restante deste bloco somente quando Test-Path $preserved for true.
+$listedBeforeRetry = git worktree list --porcelain
+if ($LASTEXITCODE -ne 0) { throw "Falha ao listar tentativa preservada" }
+$preservedGitPath = Convert-ToGitPath $preserved
+$preservedPattern = [regex]::Escape($preservedGitPath)
+$isListed = $listedBeforeRetry -match "(?m)^worktree $preservedPattern$"
+$isDirectChild = (Split-Path -Parent $preserved) -eq $worktreeParent
+$preservedStatus = @(git -C $preserved status --short)
+$statusOk = $LASTEXITCODE -eq 0 -and $preservedStatus.Count -eq 0
+
+git -C $preserved rev-parse HEAD *>&1 |
+  Set-Content -LiteralPath (Join-Path $logRoot 'attempt-1-head.log')
+git -C $preserved status --short *>&1 |
+  Set-Content -LiteralPath (Join-Path $logRoot 'attempt-1-status.log')
+git -C $preserved diff --binary *>&1 |
+  Set-Content -LiteralPath (Join-Path $logRoot 'attempt-1.patch')
+
+if (-not ($isListed -and $isDirectChild -and $statusOk)) {
+  throw "Tentativa 1 preservada não pode ser removida com segurança"
+}
+git worktree remove -- $preserved
+if ($LASTEXITCODE -ne 0) { throw "Falha ao remover tentativa 1 sem force" }
+git worktree prune
+if (Test-Path -LiteralPath $preserved) {
+  throw "Diretório da tentativa 1 ainda existe"
+}
+```
+
+Expected: capturas externas existem, checkout está listado, limpo e no filho
+direto exato; remoção ocorre sem `--force`. Se qualquer validação falhar,
+preservar o checkout e parar. Depois, criar novo detached no novo `$targetCommit`
+e repetir os seis comandos desde `npm ci`.
 
 - [ ] **Step 3: Criar e validar o worktree**
 
@@ -367,13 +430,18 @@ finally {
   }
 
   $listed = git worktree list --porcelain
-  $escaped = [regex]::Escape(($gateWorktree -replace '\\','/'))
+  $normalizedGateWorktree = Convert-ToGitPath $gateWorktree
+  if ((Convert-ToGitPath 'C:\repo\.worktrees\x') -ne
+      'C:/repo/.worktrees/x') {
+    throw "Self-check de normalização falhou antes do cleanup"
+  }
+  $escaped = [regex]::Escape($normalizedGateWorktree)
   $isDirectChild = (Split-Path -Parent $gateWorktree) -eq $worktreeParent
   $unexpectedStatus = @(git -C $gateWorktree status --short)
   $isClean = $LASTEXITCODE -eq 0 -and $unexpectedStatus.Count -eq 0
   if ($captureSucceeded -and $isDirectChild -and $isClean -and
       $listed -match "(?m)^worktree $escaped$") {
-    git worktree remove --force -- $gateWorktree
+    git worktree remove -- $gateWorktree
     if ($LASTEXITCODE -eq 0) {
       git worktree prune
     } else {
@@ -390,7 +458,7 @@ finally {
 Expected: HEAD, status, patch binário e inventário são externos antes de
 qualquer remoção. Somente checkout limpo (inclusive após EOL restaurado) é
 removido. Qualquer alteração real ou untracked inesperado preserva o worktree,
-pois patch Git não arquiva seu conteúdo; nunca usar force remove nesse caso.
+pois patch Git não arquiva seu conteúdo; remoção é sempre sem `--force`.
 `$logRoot` sempre permanece.
 
 - [ ] **Step 3: Delegar revisão independente**
