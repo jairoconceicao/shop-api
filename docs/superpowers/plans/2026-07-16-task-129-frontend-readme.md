@@ -421,7 +421,8 @@ npm run audit:private-data
 ```
 
 Esperado: todos exit code zero. Registrar versões, contagens e duração no
-relatório.
+relatório. O diretório `.task-129-smoke` ainda não pode existir durante estes
+gates, em especial durante `npm run audit:private-data`.
 
 - [ ] **Step 3: Tentar iniciar o Docker Desktop quando o daemon estiver parado**
 
@@ -461,9 +462,11 @@ globais.
 
 - [ ] **Step 4: Executar integração e smoke Chromium real sob cleanup garantido**
 
-Executar todo o procedimento integrado em `try/finally`. O smoke cria uma
-configuração Playwright temporária fora do repositório, usa `webServer` próprio
-para controlar a árvore do Vite e não importa fixtures E2E do projeto:
+Executar todo o procedimento integrado em `try/finally`. Somente depois de
+todos os gates anteriores, o smoke cria uma configuração Playwright temporária
+sob `<validation>/frontend/.task-129-smoke`, usa o `node_modules` local,
+controla a árvore do Vite com `webServer` próprio e não importa fixtures E2E do
+projeto:
 
 ```powershell
 try {
@@ -514,7 +517,16 @@ try {
     }
   } until ($apiResponse.StatusCode -ge 200 -and $apiResponse.StatusCode -lt 300)
 
-  $smokeDir = Join-Path ([IO.Path]::GetTempPath()) "shop-api-task-129-$PID"
+  $frontendRoot = [IO.Path]::GetFullPath((Join-Path $validation 'frontend'))
+  $smokeDir = [IO.Path]::GetFullPath((Join-Path $frontendRoot '.task-129-smoke'))
+  $frontendPrefix = $frontendRoot + [IO.Path]::DirectorySeparatorChar
+  if (-not $smokeDir.StartsWith($frontendPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+      (Split-Path -Parent $smokeDir) -ne $frontendRoot) {
+    throw "Diretório de smoke fora do frontend validado: $smokeDir"
+  }
+  if (Test-Path -LiteralPath $smokeDir) {
+    throw "Diretório de smoke já existe antes da validação: $smokeDir"
+  }
   New-Item -ItemType Directory -Path $smokeDir | Out-Null
   $smokeSpec = Join-Path $smokeDir 'integrated-smoke.spec.ts'
   $smokeConfig = Join-Path $smokeDir 'playwright.config.ts'
@@ -543,28 +555,43 @@ test('loads Home against the real API without MSW, CORS, console or page errors'
   expect(pageErrors).toEqual([])
 })
 '@ | Set-Content -LiteralPath $smokeSpec
-  @"
-import { defineConfig } from '$($validation.Replace('\', '/'))/frontend/node_modules/@playwright/test/index.js'
+  @'
+import { defineConfig } from '@playwright/test'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const smokeDirectory = dirname(fileURLToPath(import.meta.url))
+
 export default defineConfig({
-  testDir: '$($smokeDir.Replace('\', '/'))',
+  testDir: '.',
   timeout: 30_000,
   reporter: 'line',
   use: { browserName: 'chromium' },
   webServer: {
     command: 'npx vite --host 127.0.0.1 --port 5173 --strictPort',
-    cwd: '$($validation.Replace('\', '/'))/frontend',
+    cwd: resolve(smokeDirectory, '..'),
     env: { VITE_API_BASE_URL: 'http://localhost:5228', VITE_ENABLE_MSW: 'false' },
     url: 'http://127.0.0.1:5173',
     reuseExistingServer: false,
     timeout: 120_000,
   },
 })
-"@ | Set-Content -LiteralPath $smokeConfig
-  & "$validation/frontend/node_modules/.bin/playwright.cmd" test --config $smokeConfig
+'@ | Set-Content -LiteralPath $smokeConfig
+  Push-Location $frontendRoot
+  try {
+    & "$frontendRoot/node_modules/.bin/playwright.cmd" test --config $smokeConfig
+  } finally {
+    Pop-Location
+  }
   if ($LASTEXITCODE -ne 0) { throw 'Smoke Chromium integrado falhou.' }
 } finally {
   if ($smokeDir -and (Test-Path -LiteralPath $smokeDir)) {
-    Remove-Item -LiteralPath $smokeDir -Recurse -Force
+    $resolvedSmoke = [IO.Path]::GetFullPath($smokeDir)
+    if (-not $resolvedSmoke.StartsWith($frontendPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+        (Split-Path -Parent $resolvedSmoke) -ne $frontendRoot) {
+      throw "Recusa de remoção do smoke fora do frontend validado: $resolvedSmoke"
+    }
+    Remove-Item -LiteralPath $resolvedSmoke -Recurse -Force
   }
   if (docker container inspect shop-api-app 2>$null) { docker rm -f shop-api-app }
   if (docker container inspect shop-api-db 2>$null) { docker rm -f shop-api-db }
@@ -578,6 +605,7 @@ if (-not $portReleased) { throw 'A árvore do Vite não foi encerrada; porta 517
 Esperado: Playwright encerra zero; a Home observou a resposta real 2xx de
 categorias, `fromServiceWorker() === false`, zero console/page errors e nenhuma
 falha CORS. O `webServer` encerra a árvore que iniciou e a porta 5173 fica livre.
+Confirmar que `.task-129-smoke` foi removido antes de `git status --short`.
 
 - [ ] **Step 5: Executar cleanup e remover o worktree com segurança**
 

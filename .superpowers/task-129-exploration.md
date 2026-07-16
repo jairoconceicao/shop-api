@@ -140,12 +140,18 @@ checkout:
    `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`,
    `npm run build`, `npm run verify:production-graph`,
    `npm run audit:private-data`;
-4. executar a topologia Docker, migrations e readiness da API;
-5. iniciar o frontend host com MSW ausente/desativado e executar um smoke
+4. somente depois dos gates, criar o diretório temporário de smoke dentro de
+   `<worktree-validado>/frontend/.task-129-smoke`, com caminho absoluto
+   verificado, para que Playwright resolva o `node_modules` local sem entrar na
+   auditoria de dados privados;
+5. executar a topologia Docker, migrations e readiness da API;
+6. iniciar o frontend host com MSW ausente/desativado e executar um smoke
    Chromium sem fixtures: abrir a Home, observar o `GET /api/v1/categoria`
    respondido pela API real e rejeitar CORS, console ou page errors;
-6. executar o cleanup nomeado;
-7. remover o worktree temporário somente depois de confirmar o caminho absoluto
+7. remover `.task-129-smoke` no `finally`, usando `-LiteralPath` somente após
+   confirmar que o alvo é filho direto do frontend validado;
+8. executar o cleanup nomeado;
+9. remover o worktree temporário somente depois de confirmar o caminho absoluto
    sob `.worktrees` e `git worktree list`.
 
 O daemon está parado na exploração. Todo `docker info` deve verificar
