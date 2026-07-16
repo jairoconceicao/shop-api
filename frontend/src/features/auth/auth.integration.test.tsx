@@ -108,7 +108,7 @@ describe('TASK-111 auth integration', () => {
     expect(useAuthStore.getState().session).toBeNull()
     expect(sessionStorage.getItem('shop-api:auth')).toBeNull()
     expect(localStorage.getItem('shop-api:auth')).toBeNull()
-    expect(useCartSessionStore.getState().getCartId(7)).toBe(70)
+    expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
     expect(queryClient.getQueryData(['private', 'seed'])).toBeUndefined()
   })
 
@@ -182,7 +182,7 @@ describe('TASK-111 auth integration', () => {
     expect(useAuthStore.getState().session).toBeNull()
     expect(sessionStorage.getItem('shop-api:auth')).toBeNull()
     expect(localStorage.getItem('shop-api:auth')).toBeNull()
-    expect(useCartSessionStore.getState().getCartId(7)).toBe(70)
+    expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
     expect(queryClient.getQueryData(['private', 'unauthorized-a'])).toBeUndefined()
     expect(queryClient.getQueryData(['private', 'unauthorized-b'])).toBeUndefined()
     expect(queryClient.getQueryData(['private', 'late'])).toBeUndefined()
