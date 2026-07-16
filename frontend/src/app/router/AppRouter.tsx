@@ -13,6 +13,7 @@ import { CheckoutGuard } from '../../features/checkout/routing/CheckoutGuard'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { StoreLayout } from '../layouts/StoreLayout'
 import { NotFoundPage } from './NotFoundPage'
+import { RouteFocusBoundary } from './RouteFocusBoundary'
 
 const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPage').then(
   ({ CheckoutPage: Page }) => ({ default: Page }),
@@ -96,7 +97,7 @@ function OrderDetailRouteFallback() {
 
 export function AppRouter() {
   return (
-    <Routes>
+    <RouteFocusBoundary><Routes>
       <Route element={<StoreLayout />}>
         <Route index element={<HomePage />} />
         <Route path="produtos/:produtoId" element={<ProductDetailPage />} />
@@ -133,6 +134,6 @@ export function AppRouter() {
         <Route path="cadastro" element={<RegistrationPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </Routes>
+    </Routes></RouteFocusBoundary>
   )
 }
