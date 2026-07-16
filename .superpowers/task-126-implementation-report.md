@@ -7,6 +7,9 @@
 - `54b9ce4` — logout, `401`, cancelamento, resposta tardia e bootstrap
 - `6902152` — auditor reproduzível e evidência
 - `29cc1fa` — expectativas de integração da nova limpeza
+- `c10052d` — logout obsoleto não redireciona sessão sucessora
+- `d63069f` — auditor AST conservador e dez testes negativos
+- `0160346`, `cc9aa6c` — fronteira real da resposta tardia do carrinho
 
 ## Alterações
 
@@ -19,7 +22,11 @@
   completa ainda ativa.
 - Bootstrap não envia causa ao console sem reporter explicitamente injetado.
 - `audit:private-data` inventaria sinks e chaves, bloqueia console/mensagens
-  sensíveis e contém testes negativos para terceira chave e chave dinâmica.
+  sensíveis por AST e contém testes negativos para terceira chave, aliases,
+  wrappers, `persist`, chave dinâmica, payloads privados e `AppError`.
+- Logout A que termina após login B não limpa B nem redireciona sua rota.
+- O teste tardio usa `clearPrivateSession` real e prova ausência de storage,
+  detail cache e reconciliação.
 
 ## Evidência TDD
 

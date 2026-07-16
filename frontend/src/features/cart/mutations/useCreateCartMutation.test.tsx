@@ -7,6 +7,7 @@ import { AppError } from '../../../shared/errors/appError'
 import { clearPrivateSession } from '../../auth/session/clearPrivateSession'
 import { useAuthStore } from '../../auth/store/authStore'
 import { cartCache } from '../cache/cartCache'
+import * as cartCacheModule from '../cache/cartCache'
 import { useCartSessionStore } from '../store/cartSessionStore'
 import { useCreateCartMutation } from './useCreateCartMutation'
 
@@ -99,6 +100,7 @@ describe('useCreateCartMutation', () => {
   })
 
   it('does not restore storage or cache after the real private-session boundary', async () => {
+    const reconcile = vi.spyOn(cartCacheModule, 'reconcileActiveCart')
     let resolve!: (value: { id: number; createdAt: string }) => void
     createCart.mockReturnValue(new Promise((done) => { resolve = done }))
     const queryClient = new QueryClient()
@@ -115,5 +117,6 @@ describe('useCreateCartMutation', () => {
     expect(useCartSessionStore.getState().getCartId(10)).toBeUndefined()
     expect(localStorage.getItem('shop-api:cart-session')).not.toContain('101')
     expect(queryClient.getQueryData(cartCache.query.detail(10, 101))).toBeUndefined()
+    expect(reconcile).not.toHaveBeenCalled()
   })
 })
