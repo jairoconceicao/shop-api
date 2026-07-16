@@ -115,10 +115,12 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
   vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com')
   const requests: string[] = []
   const commits: CommitSample[] = []
-  let queryClient: ReturnType<typeof renderIntegration>['queryClient'] | undefined
-  let container: HTMLElement | undefined
+  const auditContext: {
+    queryClient?: ReturnType<typeof renderIntegration>['queryClient']
+    container?: HTMLElement
+  } = {}
   const onRender: ProfilerOnRenderCallback = (_id, phase, actualDuration, baseDuration) => {
-    const queryState = queryClient?.getQueryCache().getAll().map((query) => ({
+    const queryState = auditContext.queryClient?.getQueryCache().getAll().map((query) => ({
       key: query.queryKey,
       status: query.state.status,
       fetchStatus: query.state.fetchStatus,
@@ -130,7 +132,7 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
       baseDuration,
       fingerprint: JSON.stringify({
         phase,
-        visibleDom: normalizeDom(container?.textContent ?? ''),
+        visibleDom: normalizeDom(auditContext.container?.textContent ?? ''),
         queryState,
         relevantProps: { scenario },
       }),
@@ -175,8 +177,8 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
     <Profiler id={scenario} onRender={onRender}><AppRouter /></Profiler>,
     { initialEntries: [scenario === 'home' ? '/' : scenario === 'cart' ? '/carrinho' : '/pedidos/41'] },
   )
-  queryClient = result.queryClient
-  container = result.container
+  auditContext.queryClient = result.queryClient
+  auditContext.container = result.container
 
   if (scenario === 'home') {
     await waitFor(() => expect(requests).toEqual(expect.arrayContaining([
@@ -198,7 +200,7 @@ async function runScenario(scenario: 'home' | 'cart' | 'order'): Promise<Profile
     requests: [...requests],
     visibleState: normalizeDom(result.container.textContent ?? ''),
   }
-  await resetAuditState(queryClient)
+  await resetAuditState(auditContext.queryClient)
   return sample
 }
 

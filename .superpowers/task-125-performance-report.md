@@ -50,3 +50,11 @@ Classificação: `NÃO CONFIRMADO` para Home, carrinho e detalhe do pedido. `act
 - O fecho de imports estáticos do entry contém somente o entry; nenhuma das seis sources lazy é alcançável estaticamente.
 - O verificador possui teste negativo que prova a falha `exceeds 500000 bytes`.
 - `vite-plugin-top-level-await` foi removido da configuração, `package.json` e lockfile.
+
+## Gates
+
+- Focados: 44/44.
+- Suíte completa: 848/848, executada sem concorrência com build para não introduzir contenção artificial nos imports lazy.
+- Typecheck e lint: PASS.
+- Build e verificador do grafo: PASS.
+- E2E Chromium: 9/9.
