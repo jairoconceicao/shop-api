@@ -695,8 +695,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Verificar requests, efeitos e caches e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `361d5e9`, `0019dc4` e `0b9f9fb`; integração de pedidos 4/4 PASS, pedidos 111/111 PASS e consumidores 18/18 PASS; typecheck/lint/diff-check PASS; review do range `26bb032..0b9f9fb` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
-[ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
-  - Status: READY
+[x] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
+  - Status: DONE
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116
   - Escopo: Frontend
   - Critérios de aceite:
@@ -704,9 +704,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Iniciar cada contexto sem cookies, `localStorage`, `sessionStorage` ou estado do backend simulado e remover dados criados no `afterEach`, inclusive após falha.
     - Cadastrar, receber confirmação, logar, acessar rota protegida, confirmar a persistência escolhida após refresh e deslogar removendo o acesso protegido.
     - Afirmar a contagem exata de cada request e executar a spec isolada, a suíte Chromium e `playwright test --repeat-each=2` sem dependência de ordem, worker ou dados anteriores.
+  - Evidência: commits `1df7671`, `5dcaf30`, `56c0c5c`, `b7ab442` e `17b3656`; contagens brutas `register=1`, `login=1`, `categories=4`, `profile=2` e `logout=1`; suíte Chromium 2/2 PASS e `--repeat-each=2` 4/4 PASS; typecheck/lint/build/diff-check PASS; review do range `be8ef3e..17b3656` aprovada sem findings CRITICAL ou IMPORTANT. `npm audit` reportou duas vulnerabilidades moderadas e o build manteve o warning de chunk acima de 500 kB, ambos não bloqueantes.
 
 [ ] TASK-118: Criar E2E de visitante redirecionado ao login antes de adicionar um produto.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-060, TASK-061, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -716,7 +717,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem exata dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -736,7 +737,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar requests e estados finais e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-121: Criar E2E de edição de dados e troca de senha.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -746,7 +747,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -756,7 +757,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
 
 [ ] TASK-123: Criar E2E de sessão expirada durante acesso protegido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-108, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
