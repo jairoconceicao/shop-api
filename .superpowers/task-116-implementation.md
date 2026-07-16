@@ -16,8 +16,9 @@
 - Cancelamento recusado com PATCH estrito `{ "status": "Cancelado" }`,
   anúncio acessível, status `Criado` preservado e refetch confirmado.
 - Cancelamento bem-sucedido com detalhe reconciliado para `Cancelado`,
-  invalidação das listas do cliente `7` e preservação das listas do cliente
-  `8`.
+  invalidação de múltiplas listas descendentes do cliente `7`, com filtros,
+  páginas e `sessionScope` distintos, e preservação das listas análogas do
+  cliente `8`.
 
 ## Ajustes literais ao plano
 
@@ -26,6 +27,11 @@
 - Configurado `VITE_API_BASE_URL` no teste, seguindo as integrações existentes.
 - O matcher da lista foi restringido ao heading `Pedido 900` para evitar a
   ambiguidade com o link `Ver pedido 900`.
+- Após review, o sucesso passou a consultar `getQueriesData` pelos prefixos
+  `orderQueryKeys.lists(7)` e `orderQueryKeys.lists(8)`. A prova exige que
+  todas as chaves privadas descendentes do cliente `7` estejam invalidadas e
+  que os dados e estados do cliente `8` permaneçam inalterados; uma
+  invalidação limitada à chave canônica exata não satisfaz o teste.
 
 ## Verificação
 

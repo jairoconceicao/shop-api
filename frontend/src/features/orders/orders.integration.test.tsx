@@ -339,22 +339,48 @@ describe('TASK-116 orders integration', () => {
     const { user, queryClient } = renderIntegration(<AppRouter />, {
       initialEntries: ['/pedidos/900'],
     })
-    const customer7ListKey = orderQueryKeys.list(
-      7,
-      undefined,
-      undefined,
-      1,
-      20,
-    )
-    const customer8ListKey = orderQueryKeys.list(
-      8,
-      undefined,
-      undefined,
-      1,
-      20,
-    )
-    queryClient.setQueryData(customer7ListKey, { marker: 'customer-7' })
-    queryClient.setQueryData(customer8ListKey, { marker: 'customer-8' })
+    const customer7ListKeys = [
+      [
+        ...orderQueryKeys.list(7, undefined, undefined, 1, 20),
+        701,
+      ] as const,
+      [
+        ...orderQueryKeys.list(
+          7,
+          '2026-06-01T03:00:00.000Z',
+          '2026-07-01T02:59:59.999Z',
+          3,
+          20,
+        ),
+        702,
+      ] as const,
+    ]
+    const customer8ListKeys = [
+      [
+        ...orderQueryKeys.list(8, undefined, undefined, 2, 20),
+        801,
+      ] as const,
+      [
+        ...orderQueryKeys.list(
+          8,
+          '2026-05-01T03:00:00.000Z',
+          '2026-06-01T02:59:59.999Z',
+          4,
+          20,
+        ),
+        802,
+      ] as const,
+    ]
+    customer7ListKeys.forEach((queryKey, index) => {
+      queryClient.setQueryData(queryKey, {
+        marker: `customer-7-list-${index + 1}`,
+      })
+    })
+    customer8ListKeys.forEach((queryKey, index) => {
+      queryClient.setQueryData(queryKey, {
+        marker: `customer-8-list-${index + 1}`,
+      })
+    })
 
     expect(await screen.findByText('Criado')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
@@ -390,11 +416,31 @@ describe('TASK-116 orders integration', () => {
     expect(
       detailEntries.every(([, data]) => data?.status === 'Cancelado'),
     ).toBe(true)
-    expect(queryClient.getQueryState(customer7ListKey)?.isInvalidated).toBe(
-      true,
-    )
-    expect(queryClient.getQueryState(customer8ListKey)?.isInvalidated).toBe(
-      false,
-    )
+    const customer7Lists = queryClient.getQueriesData<{ marker: string }>({
+      queryKey: orderQueryKeys.lists(7),
+    })
+    const customer8Lists = queryClient.getQueriesData<{ marker: string }>({
+      queryKey: orderQueryKeys.lists(8),
+    })
+
+    expect(customer7Lists).toHaveLength(2)
+    expect(customer7Lists.map(([, data]) => data?.marker)).toEqual([
+      'customer-7-list-1',
+      'customer-7-list-2',
+    ])
+    expect(
+      customer7Lists.every(([queryKey]) =>
+        queryClient.getQueryState(queryKey)?.isInvalidated === true),
+    ).toBe(true)
+
+    expect(customer8Lists).toHaveLength(2)
+    expect(customer8Lists.map(([, data]) => data?.marker)).toEqual([
+      'customer-8-list-1',
+      'customer-8-list-2',
+    ])
+    expect(
+      customer8Lists.every(([queryKey]) =>
+        queryClient.getQueryState(queryKey)?.isInvalidated === false),
+    ).toBe(true)
   })
 })
