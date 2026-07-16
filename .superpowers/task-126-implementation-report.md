@@ -10,6 +10,7 @@
 - `c10052d` — logout obsoleto não redireciona sessão sucessora
 - `d63069f` — auditor AST conservador e dez testes negativos
 - `0160346`, `cc9aa6c` — fronteira real da resposta tardia do carrinho
+- auditor final valida contratos positivos exatos e dezenove testes negativos
 
 ## Alterações
 
@@ -24,6 +25,11 @@
 - `audit:private-data` inventaria sinks e chaves, bloqueia console/mensagens
   sensíveis por AST e contém testes negativos para terceira chave, aliases,
   wrappers, `persist`, chave dinâmica, payloads privados e `AppError`.
+- Auth aceita somente `partialize => { session, persistence }` e schema de
+  sessão com `token`, `tipo`, `expiraEm`, `usuarioId`, `clienteId` e `email`;
+  carrinho aceita somente `{ cartIdsByCustomer }`. Identidade, spread, campo
+  extra e shape dinâmico falham. O parâmetro `key` só é autorizado quando está
+  estruturalmente no adapter conhecido e vinculado ao contrato correspondente.
 - Logout A que termina após login B não limpa B nem redireciona sua rota.
 - O teste tardio usa `clearPrivateSession` real e prova ausência de storage,
   detail cache e reconciliação.
@@ -41,7 +47,7 @@
 - `npm test`: 129 arquivos, 854 testes, PASS.
 - `npm run typecheck`: PASS.
 - `npm run lint`: PASS.
-- `npm run audit:private-data`: 152 arquivos, duas chaves, zero console; testes
-  negativos PASS.
+- `npm run audit:private-data`: 152 arquivos, duas chaves, zero console; 19
+  testes negativos PASS.
 - `npm run build`: PASS; chunk inicial `464.54 kB`.
 - `npx playwright test e2e/auth.spec.ts --project=chromium`: 1/1 PASS.
