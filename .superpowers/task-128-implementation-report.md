@@ -6,9 +6,9 @@
 - Plano: `57a7304`, `3c7128a`.
 - Implementação: `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`,
   `2a99661`, `aa1399d`, `07b5223`, `851c5bc`, `c0d4822`, `badbc03`
-  e `d112336`.
-- O backlog foi atualizado somente após a aprovação: TASK-128 `DONE`,
-  TASK-129 preservada `READY` e TASK-130 preservada `BLOCKED` por TASK-129.
+  `d112336`, `754a453`, `518a1f3` e `694e58e`.
+- O backlog registra TASK-128 `DONE`, TASK-129 `DONE` e TASK-130 `READY`
+  para repetir o gate integral.
 
 ## Cobertura entregue
 
@@ -122,6 +122,14 @@ contraste computado.
   reproduziu uma corrida entre o foco padrão do React Hook Form e o summary.
 - A correção final usa `shouldFocusError: false` e o callback inválido.
 - Anti-flake final: 10/10.
+- A TASK-128 foi reaberta no commit `518a1f3` após o gate da TASK-130
+  reproduzir em 1/30 execuções a confirmação de senha presente enquanto o
+  foco ainda permanecia no `body`.
+- A causa era a asserção síncrona imediatamente após `findByText`: presença e
+  foco são condições assíncronas distintas. O commit `694e58e` passou a
+  aguardar somente a condição de foco com `waitFor`, sem alterar produto,
+  adicionar `requestAnimationFrame` ou espera temporal fixa.
+- Stress após a correção: 50/50 processos independentes PASS.
 
 ## Gates finais
 
@@ -129,10 +137,14 @@ Executados no Windows, Chromium, timezone `America/Sao_Paulo`:
 
 - accessibility isolada final: 6/6 PASS;
 - focados de landmark genérico e texto grande: 2/2 PASS;
+- sequência Password + Login + Registration: 16/16 PASS;
 - accessibility `--workers=1 --repeat-each=10`: 50/50 PASS;
 - E2E Chromium completa: 19/19 PASS;
 - E2E Chromium `--repeat-each=2`: 38/38 PASS;
 - Vitest: 130/130 arquivos, 863/863 testes PASS;
+- duas integrações fora do diff excederam o timeout quando a primeira suíte
+  ampla concorreu com typecheck e lint; passaram isoladas 7/7 e o rerun amplo
+  sem concorrência passou 863/863;
 - `npm run typecheck`: PASS;
 - `npm run lint`: PASS;
 - `npm run build`: PASS;
