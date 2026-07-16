@@ -56,6 +56,32 @@ export async function assertDocumentSemantics(page: Page) {
 
   const visibleSearches = page.getByRole('search', { name: 'Buscar produtos' })
   if (await visibleSearches.count() > 0) await expect(visibleSearches).toHaveCount(1)
+
+  const semanticFindings = await page.locator('body').evaluate(() => {
+    const findings: string[] = []
+    let previousLevel = 0
+    for (const heading of document.querySelectorAll('h1,h2,h3,h4,h5,h6')) {
+      if ((heading as HTMLElement).offsetParent === null) continue
+      const level = Number(heading.tagName.slice(1))
+      if (previousLevel > 0 && level > previousLevel + 1) {
+        findings.push(`Heading salta de h${previousLevel} para h${level}`)
+      }
+      previousLevel = level
+    }
+    for (const role of ['navigation', 'search']) {
+      const names = [...document.querySelectorAll(
+        role === 'navigation' ? 'nav' : '[role="search"]',
+      )].filter((element) => (element as HTMLElement).offsetParent !== null)
+        .map((element) => element.getAttribute('aria-label')
+          ?? document.getElementById(element.getAttribute('aria-labelledby') ?? '')?.textContent?.trim()
+          ?? '')
+      if (names.length > 1 && (names.some((name) => !name) || new Set(names).size !== names.length)) {
+        findings.push(`Landmarks ${role} repetidos sem nomes distintos: ${names.join('|')}`)
+      }
+    }
+    return findings
+  })
+  expect(semanticFindings).toEqual([])
 }
 
 export async function assertVisibleFocus(locator: Locator) {
@@ -80,16 +106,36 @@ export async function assertLiveRegions(page: Page) {
       const style = getComputedStyle(element)
       if (style.display === 'none' || style.visibility === 'hidden') return []
       const text = element.textContent?.trim() ?? ''
-      if (!text) return []
+      if (!text) return [`Região viva visível vazia: ${element.outerHTML}`]
       const role = element.getAttribute('role')
       const live = element.getAttribute('aria-live')
       const expected = role === 'alert' ? 'assertive' : role === 'status' ? 'polite' : live
+      const nested = element.parentElement?.closest('[role="alert"],[role="status"],[aria-live]')
+      if (nested) return [`Região viva aninhada: ${text}`]
       return expected === live || (role === 'alert' && live === null)
         || (role === 'status' && live === null)
         ? []
         : [`${role ?? 'region'} "${text}" deveria usar aria-live=${expected}`]
     }),
   )
+  const duplicates = await page.locator('[role="alert"],[role="status"],[aria-live]').evaluateAll(
+    (elements) => {
+      const seen = new Set<string>()
+      return elements.flatMap((element) => {
+        if ((element as HTMLElement).offsetParent === null) return []
+        const text = element.textContent?.replace(/\s+/g, ' ').trim().toLocaleLowerCase() ?? ''
+        const politeness = element.getAttribute('aria-live')
+          ?? (element.getAttribute('role') === 'alert' ? 'assertive' : 'polite')
+        const key = `${politeness}:${text}`
+        if (!text || !seen.has(key)) {
+          seen.add(key)
+          return []
+        }
+        return [`Anúncio duplicado: ${key}`]
+      })
+    },
+  )
+  findings.push(...duplicates)
   expect(findings).toEqual([])
 }
 
@@ -150,7 +196,9 @@ export async function auditTextContrast(page: Page, testInfo: TestInfo, state: s
     const background = (element: Element) => {
       let color: Rgba = { r: 0, g: 0, b: 0, a: 0 }
       for (let node: Element | null = element; node; node = node.parentElement) {
-        const parsed = parse(getComputedStyle(node).backgroundColor)
+        const computed = getComputedStyle(node)
+        if (computed.backgroundImage !== 'none') return null
+        const parsed = parse(computed.backgroundColor)
         if (parsed) color = composite(color, parsed)
         if (color.a >= 0.999) return color
       }
@@ -163,8 +211,14 @@ export async function auditTextContrast(page: Page, testInfo: TestInfo, state: s
         && !element.closest(':disabled,[aria-disabled="true"]'))
       .map((element) => {
         const style = getComputedStyle(element)
-        const foreground = composite(parse(style.color)!, background(element))
         const bg = background(element)
+        if (!bg) return {
+          text: element.innerText.trim().slice(0, 100),
+          selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}`,
+          foreground: null, background: null, fontSize: 0, fontWeight: 0,
+          ratio: 0, threshold: 4.5, unsupportedBackground: true,
+        }
+        const foreground = composite(parse(style.color)!, bg)
         const fontSize = Number.parseFloat(style.fontSize)
         const fontWeight = Number.parseInt(style.fontWeight, 10) || 400
         const threshold = fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700) ? 3 : 4.5
@@ -172,7 +226,7 @@ export async function auditTextContrast(page: Page, testInfo: TestInfo, state: s
           text: element.innerText.trim().slice(0, 100),
           selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}`,
           foreground, background: bg, fontSize, fontWeight,
-          ratio: ratio(foreground, bg), threshold,
+          ratio: ratio(foreground, bg), threshold, unsupportedBackground: false,
         }
       })
   })
@@ -180,7 +234,7 @@ export async function auditTextContrast(page: Page, testInfo: TestInfo, state: s
     body: Buffer.from(JSON.stringify(report, null, 2)),
     contentType: 'application/json',
   })
-  const failures = report.filter(({ ratio, threshold }) => ratio + 0.01 < threshold)
+  const failures = report.filter(({ ratio, threshold }) => ratio < threshold)
   expect(failures, JSON.stringify(failures, null, 2)).toEqual([])
 }
 
@@ -191,15 +245,17 @@ export async function assertReducedMotion(page: Page) {
       return Number.parseFloat(trimmed) * (trimmed.endsWith('ms') ? 1 : 1000)
     })
     const nodes = [root, ...root.querySelectorAll<HTMLElement>('*')]
-    return nodes.flatMap((element) => {
-      const style = getComputedStyle(element)
+    return nodes.flatMap((element) => [null, '::before', '::after'].flatMap((pseudo) => {
+      const style = getComputedStyle(element, pseudo)
       const maxAnimation = Math.max(...parseTimes(style.animationDuration), 0)
       const maxTransition = Math.max(...parseTimes(style.transitionDuration), 0)
-      const iterations = Math.max(...style.animationIterationCount.split(',').map(Number), 0)
+      const iterationValues = style.animationIterationCount.split(',').map((value) =>
+        value.trim() === 'infinite' ? Number.POSITIVE_INFINITY : Number(value))
+      const iterations = Math.max(...iterationValues, 0)
       return maxAnimation > 0.01 || maxTransition > 0.01 || iterations > 1
-        ? [{ tag: element.tagName, maxAnimation, maxTransition, iterations }]
+        ? [{ tag: element.tagName, pseudo, maxAnimation, maxTransition, iterations }]
         : []
-    })
+    }))
   })
   expect(await page.locator('html').evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe('auto')
   expect(findings).toEqual([])

@@ -263,7 +263,9 @@ export function CartPage() {
         <p className="mt-2 text-zinc-400">Revise os itens confirmados antes de continuar.</p>
       </header>
       {content}
-      <span aria-live="polite" className="sr-only">{removalAnnouncement}</span>
+      {removalAnnouncement ? (
+        <span aria-live="polite" className="sr-only">{removalAnnouncement}</span>
+      ) : null}
       <Dialog
         description={selectedItem ? `Você deseja remover ${selectedItem.title}? Esta ação pode ser tentada novamente se falhar.` : undefined}
         initialFocusRef={cancelRemovalRef}

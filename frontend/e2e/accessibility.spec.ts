@@ -60,6 +60,7 @@ test('audita as jornadas principais por teclado', async ({ authApi, page }, test
   const loginSummary = page.getByRole('alert')
   await expect(loginSummary).toBeFocused()
   await expect(page.getByLabel('Senha')).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByLabel('Senha')).toHaveAttribute('aria-describedby', /login-password-error/)
   await auditState(page, testInfo, 'login-error')
 
   const createNow = page.getByRole('link', { name: 'Criar agora' })
@@ -68,6 +69,10 @@ test('audita as jornadas principais por teclado', async ({ authApi, page }, test
   await expect(page.getByRole('heading', { level: 1, name: 'Cadastro de cliente' })).toBeFocused()
   await activateByKeyboard(page, page.getByRole('button', { name: 'Criar conta' }))
   await expect(page.getByRole('alert')).toBeFocused()
+  for (const label of ['CPF', 'CEP', 'Celular']) {
+    await expect(page.getByLabel(label, { exact: true })).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.getByLabel(label, { exact: true })).toHaveAttribute('aria-describedby', /-error/)
+  }
   await auditState(page, testInfo, 'registration-error')
 
   await page.goto('/entrar')
@@ -129,18 +134,53 @@ test('audita as jornadas principais por teclado', async ({ authApi, page }, test
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.reload()
   await assertReducedMotion(page)
+  await page.goto('/')
+  await assertReducedMotion(page)
+  await page.goto(`/pedidos/${data.orderId}`)
+  await activateByKeyboard(page, page.getByRole('button', { name: 'Cancelar pedido' }))
+  await assertReducedMotion(page)
 
   authApi.expectRequestCounts({
+    register: 0,
     login: 1,
-    categories: 6,
-    catalog: 1,
+    categories: 8,
+    catalog: 2,
     profile: 2,
+    profileUpdate: 0,
+    passwordUpdate: 0,
+    logout: 0,
     product: 2,
     cartCreate: 1,
     cartAdd: 1,
-    cartGet: 6,
+    cartGet: 8,
+    cartUpdate: 0,
+    cartDelete: 0,
+    orderCreate: 0,
     ordersList: 0,
-    orderDetail: 1,
-    orderProduct: 1,
+    orderDetail: 2,
+    orderProduct: 2,
+    orderCancel: 0,
+  })
+})
+
+test.describe('auditores adversariais', () => {
+  test('rejeita saltos de heading e landmarks duplicados', async ({ page }) => {
+    await page.setContent('<main><h1>A</h1><h3>B</h3><nav aria-label="X"></nav><nav aria-label="X"></nav></main>')
+    await expect(assertDocumentSemantics(page)).rejects.toThrow()
+  })
+
+  test('rejeita regiões vivas vazias, aninhadas e duplicadas', async ({ page }) => {
+    await page.setContent('<main><h1>A</h1><div role="status"></div><div role="alert"><span role="alert"> Erro </span></div><p role="status">Ok</p><p aria-live="polite"> ok </p></main>')
+    await expect(assertLiveRegions(page)).rejects.toThrow()
+  })
+
+  test('rejeita movimento em elemento e pseudo-elementos, inclusive infinite', async ({ page }) => {
+    await page.setContent('<style>html{scroll-behavior:auto}div{animation:x 1s infinite}div::before{content:"x";transition:opacity 2s}</style><div>x</div>')
+    await expect(assertReducedMotion(page)).rejects.toThrow()
+  })
+
+  test('rejeita contraste abaixo de 4.5, texto grande abaixo de 3 e gradiente', async ({ page }, testInfo) => {
+    await page.setContent('<main style="background:#fff"><h1 style="font-size:24px;color:#888">Grande</h1><p style="color:#777">Normal</p><p style="background-image:linear-gradient(#fff,#000);color:#fff">Gradiente</p></main>')
+    await expect(auditTextContrast(page, testInfo, 'adversarial')).rejects.toThrow()
   })
 })
