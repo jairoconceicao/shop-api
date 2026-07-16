@@ -11,6 +11,9 @@ vi.mock('../../features/checkout/routing/CheckoutGuard', () => ({ CheckoutGuard:
 vi.mock('../../features/checkout/pages/CheckoutPage', () => ({
   CheckoutPage: () => <h1>Checkout carregado</h1>,
 }))
+vi.mock('../../features/checkout/pages/OrderConfirmationPage', () => ({
+  OrderConfirmationPage: () => <h1>Confirmação carregada</h1>,
+}))
 vi.mock('../../features/customer/pages/CustomerDataPage', () => ({
   CustomerDataPage: () => <h1>Dados do cliente carregados</h1>,
 }))
@@ -32,8 +35,23 @@ describe('AppRouter lazy checkout routes', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('status', { name: 'Carregando checkout' })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Carregando checkout' })).toHaveClass('min-h-96')
     expect(await screen.findByRole('heading', { name: 'Checkout carregado' })).toBeInTheDocument()
+  })
+
+  it('loads order confirmation with its own accessible stable fallback', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pedido-confirmado/41']}>
+        <AppRouter />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('status', { name: 'Carregando confirmação do pedido' }),
+    ).toHaveClass('min-h-96')
+    expect(
+      await screen.findByRole('heading', { name: 'Confirmação carregada' }),
+    ).toBeInTheDocument()
   })
 
   it('loads customer data in a lazy route with an accessible stable fallback', async () => {

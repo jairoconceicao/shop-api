@@ -35,14 +35,38 @@ const OrderDetailPage = lazy(() => import('../../features/orders/pages/OrderDeta
 
 function CheckoutRouteFallback() {
   return (
-    <div role="status" aria-label="Carregando checkout" aria-live="polite">
+    <div
+      role="status"
+      aria-label="Carregando checkout"
+      aria-live="polite"
+      className="surface min-h-96 p-6"
+    >
       Carregando checkout…
     </div>
   )
 }
 
-function LazyCheckoutRoute({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<CheckoutRouteFallback />}>{children}</Suspense>
+function OrderConfirmationRouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-label="Carregando confirmação do pedido"
+      aria-live="polite"
+      className="surface min-h-96 p-6"
+    >
+      Carregando confirmação do pedido…
+    </div>
+  )
+}
+
+function LazyCheckoutRoute({
+  children,
+  fallback = <CheckoutRouteFallback />,
+}: {
+  children: ReactNode
+  fallback?: ReactNode
+}) {
+  return <Suspense fallback={fallback}>{children}</Suspense>
 }
 
 function CustomerDataRouteFallback() {
@@ -87,7 +111,7 @@ export function AppRouter() {
           <Route
             path="pedido-confirmado/:pedidoId"
             element={(
-              <LazyCheckoutRoute>
+              <LazyCheckoutRoute fallback={<OrderConfirmationRouteFallback />}>
                 <OrderConfirmationPage />
               </LazyCheckoutRoute>
             )}
