@@ -682,8 +682,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Verificar request, cache e rota e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `c114921` e `fdb0a68`; integração 201/409/422 3/3 PASS, página/navegação/mutation 24/24 PASS, consumidores de checkout 89/89 PASS e revisão focada 27/27 PASS; typecheck/lint/diff-check PASS; review do range `172bbcc..fdb0a68` aprovada sem findings CRITICAL ou IMPORTANT. Quatro warnings preexistentes de React `act(...)` permaneceram não bloqueantes.
 
-[ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
-  - Status: READY
+[x] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
+  - Status: DONE
   - Depends on: TASK-009, TASK-096, TASK-097, TASK-098, TASK-099, TASK-100, TASK-101, TASK-102, TASK-103, TASK-104, TASK-105, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -691,6 +691,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Hidratar somente produtos únicos e enviar exclusivamente `{ "status": "Cancelado" }` no PATCH.
     - Em `422`, anunciar a recusa, manter o status confirmado e recarregar o detalhe; no sucesso, reconciliar detalhe e todas as listas privadas do cliente.
     - Verificar requests, efeitos e caches e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `361d5e9`, `0019dc4` e `0b9f9fb`; integração de pedidos 4/4 PASS, pedidos 111/111 PASS e consumidores 18/18 PASS; typecheck/lint/diff-check PASS; review do range `26bb032..0b9f9fb` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
 [ ] TASK-117: Criar E2E de cadastro, login, rota protegida e logout.
   - Status: BLOCKED
