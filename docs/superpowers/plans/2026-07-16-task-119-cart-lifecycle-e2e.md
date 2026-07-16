@@ -21,6 +21,7 @@
 - Usar seletores semânticos; não usar CSS, XPath, `data-testid`, `nth`, `first`, `last` ou `waitForTimeout`.
 - O item entra com quantidade `3`, muda para `4` e usa preço unitário `3499.9`.
 - As mutações brutas esperadas são exatamente uma de cada: `cartCreate=1`, `cartAdd=1`, `cartUpdate=1`, `cartDelete=1`.
+- As leituras auxiliares de categorias são exatamente `categories=3`: montagem inicial do `StoreLayout` em `/carrinho` antes de `ProtectedRoute` redirecionar para `/entrar`; nova montagem do `StoreLayout` ao retornar autenticado para `/carrinho`; e carga completa do `StoreLayout` em `page.goto(productPath)`. A navegação SPA do produto de volta ao carrinho reutiliza o layout e o cache, sem uma quarta leitura.
 - Os GETs brutos esperados são `product=2` e `cartGet=4`: badge após `setCartId`, reconciliação do POST, reconciliação do PATCH e reconciliação do DELETE.
 - Totais esperados: antes do PATCH `R$ 10.499,70`; após o PATCH `R$ 13.999,60`. Nas assertions, usar regex com espaço normal ou não separável.
 - Commits de implementação: `test(TASK-119): Tornar carrinho E2E mutável` e `test(TASK-119): Cobrir ciclo completo do carrinho`.
@@ -55,7 +56,7 @@ DELETE /api/v1/carrinho/items/:itemId
 
 ```text
 login=1
-categories=1
+categories=3
 product=2
 cartCreate=1
 cartAdd=1
@@ -67,7 +68,7 @@ profile=0
 logout=0
 ```
 
-As quatro leituras do carrinho são intencionais e devem permanecer visíveis na evidência. O critério de uma emissão por request aplica-se a cada comando de mutação; as reconciliações GET canônicas são afirmadas pela contagem bruta real, sem deduplicação artificial na fixture.
+As três leituras de categorias são pré-requisitos do shell na sequência exata da rota: `/carrinho` monta `StoreLayout` antes do redirect protegido para o shell público de `/entrar`; o login retorna a `/carrinho` e remonta `StoreLayout`; `page.goto(productPath)` inicia outra carga completa em `StoreLayout`; o clique seguinte no carrinho é navegação SPA dentro do mesmo layout. As quatro leituras do carrinho também são intencionais e devem permanecer visíveis na evidência. O critério do backlog de que “cada request ocorre uma vez” refere-se aos comandos de criar carrinho, adicionar item, atualizar quantidade e remover item (`cartCreate`, `cartAdd`, `cartUpdate` e `cartDelete`); leituras auxiliares de categorias, produto e carrinho são afirmadas pelas contagens brutas reais, sem deduplicação artificial na fixture.
 
 ---
 
@@ -133,7 +134,7 @@ test('adiciona, altera a quantidade e remove o item do carrinho', async ({
   authApi.seedCustomer()
   authApi.expectRequestCounts({
     login: 1,
-    categories: 1,
+    categories: 3,
     product: 2,
     cartCreate: 1,
     cartAdd: 1,
