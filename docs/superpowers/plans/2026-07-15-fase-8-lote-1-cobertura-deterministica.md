@@ -419,48 +419,76 @@ Run: `npm --prefix frontend test -- src/shared/formatting/personalData.test.ts s
 
 Registre em `docs/frontend-quality/task-107-formatting-matrix.md` as entradas e saídas literais acima, o round-trip e os cinco arquivos executados. Depois rode `npm --prefix frontend run typecheck` e `npm --prefix frontend run lint`; expected exit `0`.
 
-Substitua os nove `new Intl.NumberFormat(...).format(...)` pelos imports de `formatCurrency`. Commit: `git add frontend/src/shared/formatting frontend/src/shared/dates frontend/src/features/catalog frontend/src/features/cart frontend/src/features/checkout frontend/src/features/orders docs/frontend-quality/task-107-formatting-matrix.md && git commit -m "feat(TASK-107): centralizar formatação monetária"`.
+Substitua nove instâncias de `Intl.NumberFormat` e treze chamadas `.format(...)`. Commit: `git add frontend/src/shared/formatting frontend/src/shared/dates frontend/src/features/catalog frontend/src/features/cart frontend/src/features/checkout frontend/src/features/orders docs/frontend-quality/task-107-formatting-matrix.md && git commit -m "feat(TASK-107): centralizar formatação monetária"`.
 
-As nove edições literais são:
+As nove edições abaixo preservam o markup real:
 
-```ts
+```tsx
 // frontend/src/features/catalog/components/ProductCard.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<span>{formatCurrency(product.price)}</span>
+<p className="text-xl font-bold text-zinc-100">
+  {formatCurrency(product.price)}
+</p>
 
 // frontend/src/features/catalog/pages/ProductDetailPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<dd className="text-3xl font-bold text-zinc-50">{formatCurrency(product.price)}</dd>
+<div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{formatCurrency(product.price)}</dd></div>
 
 // frontend/src/features/cart/components/CartItem.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<span>{formatCurrency(item.unitPrice)}</span>
-<span>{formatCurrency(subtotal)}</span>
+<dt className="text-zinc-400">Preço unitário</dt>
+<dd className="text-right text-zinc-100">
+  {formatCurrency(item.unitPrice)}
+</dd>
+<dt className="text-zinc-400">Quantidade</dt>
+<dd className="text-right text-zinc-100">{item.quantity}</dd>
+<dt className="font-semibold text-zinc-200">Subtotal</dt>
+<dd className="text-right font-semibold text-zinc-100">
+  {formatCurrency(subtotal)}
+</dd>
 
 // frontend/src/features/cart/pages/CartPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<dd>{formatCurrency(subtotal)}</dd>
+<dl className="mt-5 space-y-4">
+  <div className="flex items-center justify-between gap-4 text-zinc-300">
+    <dt>Subtotal</dt>
+    <dd>{formatCurrency(subtotal)}</dd>
+  </div>
+  <div className="flex items-center justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50">
+    <dt>Total</dt>
+    <dd>{formatCurrency(subtotal)}</dd>
+  </div>
+</dl>
 
 // frontend/src/features/checkout/pages/CheckoutPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<dd>{formatCurrency(subtotal)}</dd>
+<dl className="mt-5 space-y-4">
+  <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{formatCurrency(subtotal)}</dd></div>
+  <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{formatCurrency(subtotal)}</dd></div>
+</dl>
 
 // frontend/src/features/checkout/pages/OrderConfirmationPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<dd className="mt-1 text-xl font-semibold text-zinc-50">{formatCurrency(order.total)}</dd>
+<div className="sm:col-span-2"><dt className="text-sm text-zinc-400">Valor total</dt><dd className="mt-1 text-xl font-semibold text-zinc-50">{formatCurrency(order.total)}</dd></div>
 
 // frontend/src/features/orders/components/OrderCard.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<span>{formatCurrency(calculateOrderTotal(order.items))}</span>
+<div>
+  <dt className="text-sm text-zinc-400">Valor total</dt>
+  <dd className="mt-1 break-words text-lg font-semibold text-zinc-50">
+    {formatCurrency(calculateOrderTotal(order.items))}
+  </dd>
+</div>
 
 // frontend/src/features/orders/components/OrderItem.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
+<p className="mt-1 text-sm text-zinc-400">Quantidade: {item.quantity}</p>
 <p className="text-sm text-zinc-400">{formatCurrency(item.unitPrice)} cada</p>
 <p className="mt-2 font-semibold text-zinc-100">{formatCurrency(item.unitPrice * item.quantity)}</p>
 
 // frontend/src/features/orders/pages/OrderDetailPage.tsx
 import { formatCurrency } from '../../../shared/formatting/currency'
-<span>{formatCurrency(calculateOrderTotal(order.items))}</span>
+<div className="mt-4 flex items-center justify-between border-t border-zinc-700 pt-4 text-lg font-bold text-zinc-50"><span>Total</span><span>{formatCurrency(calculateOrderTotal(order.items))}</span></div>
 ```
 
 Remova as nove constantes locais `brlFormatter`/`currency`. `rg -n "Intl.NumberFormat" frontend/src/features` retorna zero após a edição.
