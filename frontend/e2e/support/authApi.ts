@@ -16,6 +16,7 @@ export type RequestName =
   | 'cartGet'
   | 'cartUpdate'
   | 'cartDelete'
+  | 'orderCreate'
 export type ExpectedRequestCounts = Partial<Record<RequestName, number>>
 export type RequestCounts = Readonly<Record<RequestName, number>>
 
@@ -49,12 +50,14 @@ export type RegistrationData = {
   product: ProductData
   cartId: number
   cartItemId: number
+  orderId: number
 }
 
 export type AuthApi = {
   data: RegistrationData
   expectRequestCounts(expected: ExpectedRequestCounts): void
   requestCounts(): RequestCounts
+  customerSnapshot(): CustomerSnapshot | null
   seedCustomer(): void
   assertRequestCounts(): void
   reset(): void
@@ -79,6 +82,49 @@ type RegistrationRequest = {
 }
 
 type LoginRequest = { email: string; senha: string }
+
+type DeliveryAddressRequest = {
+  logradouro: string
+  numero: string
+  complemento: string | null
+  cep: string
+  bairro: string
+  cidade: string
+  uf: string
+}
+
+type CreateOrderRequest = {
+  enderecoEntrega: DeliveryAddressRequest
+  formaPagamento: string
+  dataPedido: string
+  items: Array<{
+    itemId: number | null
+    produtoId: number
+    quantidade: number
+    valorUnitario: number
+  }>
+}
+
+export type CustomerSnapshot = {
+  readonly cpf: string
+  readonly nome: string
+  readonly dataNascimento: string
+  readonly email: string
+  readonly endereco: {
+    readonly logradouro: string
+    readonly numero: string
+    readonly complemento: string | null
+    readonly cep: string
+    readonly bairro: string
+    readonly cidade: string
+    readonly uf: string
+  }
+  readonly celular: {
+    readonly ddd: string
+    readonly numero: string
+    readonly whatsApp: boolean
+  }
+}
 
 function numericSeed(testInfo: TestInfo) {
   const source = `${testInfo.titlePath.join('|')}|${testInfo.workerIndex}|${testInfo.repeatEachIndex}`
@@ -121,6 +167,7 @@ export function buildRegistrationData(testInfo: TestInfo): RegistrationData {
     },
     cartId: 30_000 + seed,
     cartItemId: 40_000 + seed,
+    orderId: 50_000 + seed,
   }
 }
 
@@ -171,6 +218,7 @@ export async function installAuthApi(
     cartGet: 0,
     cartUpdate: 0,
     cartDelete: 0,
+    orderCreate: 0,
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
@@ -202,6 +250,19 @@ export async function installAuthApi(
       whatsApp: true,
     },
   })
+
+  const customerSnapshot = (): CustomerSnapshot | null => {
+    if (registeredCustomer === null) return null
+
+    return {
+      cpf: registeredCustomer.cpf,
+      nome: registeredCustomer.nome,
+      dataNascimento: registeredCustomer.dataNascimento,
+      email: registeredCustomer.email,
+      endereco: { ...registeredCustomer.endereco },
+      celular: { ...registeredCustomer.celular },
+    }
+  }
 
   const increment = (name: RequestName) => {
     counts[name] += 1
@@ -452,6 +513,65 @@ export async function installAuthApi(
       return
     }
 
+    if (url.pathname === '/api/v1/pedido') {
+      requireMethod(route, 'POST')
+      requireAuthorization(route)
+      increment('orderCreate')
+
+      if (registeredCustomer === null || cartItem === null) {
+        throw new Error('Cannot create an order without customer and cart item')
+      }
+
+      const body = readJson<CreateOrderRequest>(route)
+      const expectedBody = {
+        enderecoEntrega: {
+          ...registeredCustomer.endereco,
+          logradouro: `${data.street} — somente pedido`,
+        },
+        formaPagamento: 'Cartao',
+        items: [{
+          itemId: cartItem.itemId,
+          produtoId: cartItem.productId,
+          quantidade: cartItem.quantity,
+          valorUnitario: cartItem.unitPrice,
+        }],
+      }
+      const { dataPedido, ...bodyWithoutDate } = body
+
+      if (JSON.stringify(bodyWithoutDate) !== JSON.stringify(expectedBody)) {
+        throw new Error(`Unexpected order body: ${JSON.stringify(body)}`)
+      }
+      if (
+        typeof dataPedido !== 'string'
+        || Number.isNaN(Date.parse(dataPedido))
+        || !/(?:Z|[+-]\d{2}:\d{2})$/.test(dataPedido)
+      ) {
+        throw new Error(
+          `Expected ISO order date with offset, received ${dataPedido}`,
+        )
+      }
+      if ('clienteId' in body || 'carrinhoId' in body) {
+        throw new Error(
+          `Forbidden order identifiers: ${JSON.stringify(body)}`,
+        )
+      }
+
+      const total = cartItem.quantity * cartItem.unitPrice
+      cartItem = null
+      await json(route, {
+        status: true,
+        data: {
+          pedidoId: data.orderId,
+          clienteId: data.customerId,
+          dataPedido,
+          formaPagamento: 'Cartao',
+          status: 'Criado',
+          valorTotal: total,
+        },
+      }, 201)
+      return
+    }
+
     if (url.pathname === `/api/v1/cliente/${data.customerId}`) {
       requireMethod(route, 'GET')
       requireAuthorization(route)
@@ -495,6 +615,9 @@ export async function installAuthApi(
     },
     requestCounts() {
       return { ...counts }
+    },
+    customerSnapshot() {
+      return customerSnapshot()
     },
     seedCustomer() {
       registeredCustomer = seededCustomer()
