@@ -228,6 +228,7 @@ type RequestName =
   | 'register' | 'login' | 'categories' | 'profile' | 'logout'
   | 'product' | 'cartCreate' | 'cartAdd' | 'cartGet'
 
+type ExpectedRequestCounts = Partial<Record<RequestName, number>>
 type ProductData = {
   id: number
   title: string
@@ -242,7 +243,7 @@ type ProductData = {
 type RequestCounts = Readonly<Record<RequestName, number>>
 
 type AuthApi = {
-  data: RegistrationData & { product: ProductData; cartId: number; cartItemId: number }
+  data: RegistrationData
   expectRequestCounts(expected: ExpectedRequestCounts): void
   requestCounts(): RequestCounts
   seedCustomer(): void
@@ -251,9 +252,9 @@ type AuthApi = {
 }
 ```
 
-- [ ] **Step 1: Ampliar os tipos e dados determinísticos**
+- [ ] **Step 1: Substituir as declarações públicas pelos tipos finais**
 
-In `frontend/e2e/support/authApi.ts`, replace `RequestName`, extend `RegistrationData`, and initialize the new data:
+In `frontend/e2e/support/authApi.ts`, replace the declarations from `RequestName` through `AuthApi` with:
 
 ```ts
 export type RequestName =
@@ -267,6 +268,7 @@ export type RequestName =
   | 'cartAdd'
   | 'cartGet'
 
+export type ExpectedRequestCounts = Partial<Record<RequestName, number>>
 export type RequestCounts = Readonly<Record<RequestName, number>>
 
 export type ProductData = {
@@ -279,34 +281,82 @@ export type ProductData = {
   categoryId: number
   categoryTitle: string
 }
+
+export type RegistrationData = {
+  customerId: number
+  userId: number
+  cpf: string
+  name: string
+  birthDate: string
+  email: string
+  password: string
+  street: string
+  number: string
+  postalCode: string
+  district: string
+  city: string
+  state: string
+  areaCode: string
+  phone: string
+  product: ProductData
+  cartId: number
+  cartItemId: number
+}
+
+export type AuthApi = {
+  data: RegistrationData
+  expectRequestCounts(expected: ExpectedRequestCounts): void
+  requestCounts(): RequestCounts
+  seedCustomer(): void
+  assertRequestCounts(): void
+  reset(): void
+}
 ```
 
-Add to `RegistrationData`:
+- [ ] **Step 2: Substituir o builder pelos dados determinísticos completos**
+
+Replace the complete `buildRegistrationData` function with:
 
 ```ts
-product: ProductData
-cartId: number
-cartItemId: number
+export function buildRegistrationData(testInfo: TestInfo): RegistrationData {
+  const seed = numericSeed(testInfo)
+  const suffix = seed.toString().padStart(4, '0')
+
+  return {
+    customerId: 20_000 + seed,
+    userId: 10_000 + seed,
+    cpf: `9000000${suffix}`,
+    name: `Cliente TASK-117 ${suffix}`,
+    birthDate: '1990-05-20',
+    email: `task-117-${suffix}@example.test`,
+    password: `Senha@${suffix}`,
+    street: `Rua TASK-117 ${suffix}`,
+    number: '117',
+    postalCode: '12345678',
+    district: 'Centro',
+    city: 'São Paulo',
+    state: 'SP',
+    areaCode: '11',
+    phone: `91234${suffix}`,
+    product: {
+      id: 42,
+      title: `Notebook TASK-118 ${suffix}`,
+      description: 'Produto determinístico para a jornada visitante.',
+      model: 'TASK-118',
+      price: 3499.9,
+      stock: 8,
+      categoryId: 118,
+      categoryTitle: 'Informática',
+    },
+    cartId: 30_000 + seed,
+    cartItemId: 40_000 + seed,
+  }
+}
 ```
 
-Add to the returned value of `buildRegistrationData`:
+- [ ] **Step 3: Substituir a inicialização do ledger e criar o seed explícito**
 
-```ts
-product: {
-  id: 42,
-  title: `Notebook TASK-118 ${suffix}`,
-  description: 'Produto determinístico para a jornada visitante.',
-  model: 'TASK-118',
-  price: 3499.9,
-  stock: 8,
-  categoryId: 118,
-  categoryTitle: 'Informática',
-},
-cartId: 30_000 + seed,
-cartItemId: 40_000 + seed,
-```
-
-Replace the `counts` initializer with:
+Inside `installAuthApi`, replace the complete `counts` initializer and declare `seededCustomer` before `context.route`:
 
 ```ts
 const counts: Record<RequestName, number> = {
@@ -320,13 +370,9 @@ const counts: Record<RequestName, number> = {
   cartAdd: 0,
   cartGet: 0,
 }
-```
+let expected: ExpectedRequestCounts = {}
+let registeredCustomer: RegistrationRequest | null = null
 
-- [ ] **Step 2: Criar o seed explícito sem fabricar uma chamada de cadastro**
-
-Inside `installAuthApi`, before the route handler, add:
-
-```ts
 const seededCustomer = (): RegistrationRequest => ({
   senha: data.password,
   cpf: data.cpf,
@@ -350,27 +396,31 @@ const seededCustomer = (): RegistrationRequest => ({
 })
 ```
 
-This method must only prepare backend state; it must not increment `register`.
+`seededCustomer()` prepares backend state without incrementing `register`.
 
-- [ ] **Step 3: Impedir requests de carrinho antes ou durante o login no próprio handler**
+- [ ] **Step 4: Substituir o início do handler de login pelo precheck exato**
 
-In the existing `/api/v1/auth/login` branch, insert this block after `requireMethod(route, 'POST')` and before `increment('login')`:
+Replace the opening of the existing `/api/v1/auth/login` branch through its current `const body = readJson<LoginRequest>(route)` with:
 
 ```ts
-for (const name of ['cartCreate', 'cartAdd', 'cartGet'] as const) {
-  if (counts[name] !== 0) {
-    throw new Error(
-      `Cart request ${name} occurred before or during login`,
-    )
+if (url.pathname === '/api/v1/auth/login') {
+  requireMethod(route, 'POST')
+  for (const name of ['cartCreate', 'cartAdd', 'cartGet'] as const) {
+    if (counts[name] !== 0) {
+      throw new Error(
+        `Cart request ${name} occurred before login processing`,
+      )
+    }
   }
-}
+  increment('login')
+  const body = readJson<LoginRequest>(route)
 ```
 
-This backend invariant complements the browser checkpoints and fails even if navigation becomes too fast to observe an intermediate UI state.
+The remaining existing login validation and response follow `const body`. This invariant detects cart requests completed before login processing begins. The browser checkpoint immediately after navigation to `/entrar` proves the pre-login state; the checkpoint after login and the final exact counters prove that no request occurred during authentication or automatic return.
 
-- [ ] **Step 4: Adicionar os handlers estritos antes do fallback inesperado**
+- [ ] **Step 5: Substituir o fallback pelos handlers estritos e pelo fallback final**
 
-Insert before the `await route.abort('blockedbyclient')` fallback:
+Replace the final unexpected-request fallback with the following complete tail of the route callback:
 
 ```ts
 if (url.pathname === `/api/v1/produto/${data.product.id}`) {
@@ -456,31 +506,53 @@ if (url.pathname === `/api/v1/carrinho/${data.cartId}`) {
   })
   return
 }
+
+await route.abort('blockedbyclient')
+throw new Error(
+  `Unexpected API request: ${request.method()} ${request.url()}`,
+)
 ```
 
-- [ ] **Step 5: Expor seed e snapshot defensivo dos contadores**
+- [ ] **Step 6: Substituir o objeto retornado pela implementação final**
 
-Extend `AuthApi`:
+Replace the complete returned object at the end of `installAuthApi` with:
 
 ```ts
-requestCounts(): RequestCounts
-seedCustomer(): void
+return {
+  data,
+  expectRequestCounts(nextExpected) {
+    expected = { ...nextExpected }
+  },
+  requestCounts() {
+    return { ...counts }
+  },
+  seedCustomer() {
+    registeredCustomer = seededCustomer()
+  },
+  assertRequestCounts() {
+    const mismatches = (Object.keys(counts) as RequestName[]).flatMap(
+      (name) => {
+        const wanted = expected[name] ?? 0
+        return counts[name] === wanted
+          ? []
+          : [`${name}: expected ${wanted}, received ${counts[name]}`]
+      },
+    )
+    if (mismatches.length > 0) {
+      throw new Error(`Request count mismatch:\n${mismatches.join('\n')}`)
+    }
+  },
+  reset() {
+    registeredCustomer = null
+    expected = {}
+    ;(Object.keys(counts) as RequestName[]).forEach((name) => {
+      counts[name] = 0
+    })
+  },
+}
 ```
 
-Add to the returned object:
-
-```ts
-requestCounts() {
-  return { ...counts }
-},
-seedCustomer() {
-  registeredCustomer = seededCustomer()
-},
-```
-
-Keep `reset()` clearing `registeredCustomer`, expectations and every key of `counts`.
-
-- [ ] **Step 6: Executar o GREEN de tipagem e a spec**
+- [ ] **Step 7: Executar o GREEN de tipagem e a spec**
 
 Run:
 
@@ -491,7 +563,7 @@ npm --prefix frontend run test:e2e -- guest-cart.spec.ts --project=chromium
 
 Expected: typecheck PASS; `guest-cart.spec.ts` 1/1 PASS; contagens finais `login=1`, `categories=1`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=1`; todas as demais iguais a zero.
 
-- [ ] **Step 7: Commitar a extensão compartilhada**
+- [ ] **Step 8: Commitar a extensão compartilhada**
 
 Run:
 
