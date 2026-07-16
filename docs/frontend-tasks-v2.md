@@ -622,8 +622,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
 
 ### Fase 9 — Ajustes de experiência
 
-[ ] TASK-131: Adicionar ações de checkout e continuidade de compra ao resumo do carrinho.
-  - Status: READY
+[x] TASK-131: Adicionar ações de checkout e continuidade de compra ao resumo do carrinho.
+  - Status: DONE
   - Depends on: TASK-071, TASK-077
   - Escopo: Frontend
   - Critérios de aceite:
@@ -632,9 +632,10 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter nomes acessíveis, navegação e ativação por teclado, foco visível e layout responsivo sem overflow horizontal entre 320 px e desktop amplo.
     - Cobrir por testes a renderização das ações com itens, seus textos e destinos exatos, e a ausência das ações sem itens.
     - Não alterar regras de negócio do carrinho, caches, mutations ou o guard de checkout.
+  - Evidência: commit `665e85c`; RED 1 falha/17 pass e GREEN 18/18; gate final global 115 arquivos/747 testes; typecheck/lint/build/diff-check PASS; revisores aprovaram sem findings CRITICAL, IMPORTANT ou MINOR. TASK-132 e TASK-133 resolveram o gate externo necessário para concluir esta task.
 
-[ ] TASK-132: Corrigir a normalização do e-mail no schema de login.
-  - Status: READY
+[x] TASK-132: Corrigir a normalização do e-mail no schema de login.
+  - Status: DONE
   - Depends on: TASK-034, TASK-035
   - Escopo: Frontend
   - Critérios de aceite:
@@ -642,9 +643,10 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Preservar a rejeição de e-mail vazio ou inválido, as regras atuais de senha e propriedades extras, sem alterar o serviço, a mutation ou o mapeamento de erros da autenticação.
     - Cobrir por testes de autenticação o e-mail válido com espaços externos, a saída normalizada e as rejeições existentes, sem reduzir a cobertura atual do schema, serviço ou formulário.
     - Executar testes focados de autenticação, suíte completa, typecheck, lint, build e diff-check sem falhas antes de concluir a task.
+  - Evidência: commit `902c3c6`; RED 4/13 e GREEN focado 13/13 mais autenticação 40/40; gate final global 115 arquivos/747 testes; typecheck/lint/build/diff-check PASS; revisores aprovaram sem findings CRITICAL, IMPORTANT ou MINOR. A correção resolveu parte do gate externo da TASK-131.
 
-[ ] TASK-133: Eliminar rejeições não tratadas dos testes de aplicação e carrinho.
-  - Status: READY
+[x] TASK-133: Eliminar rejeições não tratadas dos testes de aplicação e carrinho.
+  - Status: DONE
   - Depends on: TASK-071, TASK-105
   - Escopo: Frontend
   - Critérios de aceite:
@@ -653,4 +655,4 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Manter `onUnhandledRequest: 'error'`; não adicionar handlers wildcard, bypass de requests desconhecidos, supressão global de erros ou mocks que escondam falhas reais de integração.
     - Finalizar os testes afetados sem unhandled rejections, `Error` reportado pelo runner ou saída inesperada em `stderr`, preservando as asserções de comportamento de aplicação e contagem confirmada do carrinho.
     - Executar testes focados dos dois arquivos, suíte completa, typecheck, lint, build e diff-check sem falhas antes de concluir a task.
-
+  - Evidência: commit `a14abe1`; RED do hook/App/conjunto com 3/3/6 errors e GREEN 9/9, 13/13 e 22/22; gate final global 115 arquivos/747 testes; typecheck/lint/build/diff-check PASS; revisores aprovaram sem findings CRITICAL, IMPORTANT ou MINOR. O isolamento resolveu a parte restante do gate externo da TASK-131.
