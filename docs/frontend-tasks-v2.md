@@ -592,8 +592,8 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Executar com sucesso os testes focados de formatadores e normalizadores, além de typecheck e lint, registrando a cobertura existente reutilizada.
   - Evidência: commits `bc88d9c` e `20abb4f`; RED com helper de moeda ausente e `Invalid Date` sem `RangeError`; GREEN focado 33/33 e suíte combinada 149/149; timezone UTC 12/12; typecheck/lint/diff-check PASS; reviewer aprovado com 0 CRITICAL/IMPORTANT e 2 MINOR documentais resolvidos.
 
-[ ] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
-  - Status: READY
+[x] TASK-108: Testar `authStore`, expiração, escolha de storage e migração de versão.
+  - Status: DONE
   - Depends on: TASK-032, TASK-033, TASK-037, TASK-039, TASK-040
   - Escopo: Frontend
   - Critérios de aceite:
@@ -601,6 +601,7 @@ Nenhuma mudança de backend faz parte deste MVP. O frontend consumirá o contrat
     - Limpar memória e ambos os storages quando a expiração estiver ausente, inválida ou atingida, e expirar sessão ativa pelo timer.
     - Migrar ou descartar com segurança payload de versão anterior, corrompido ou com dados extras, sem lançar exceção.
     - Manter o aplicativo utilizável quando a leitura ou escrita no storage falhar e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `f5c2de4` e `f736141`; REDs de 5 falhas/14 testes para payload atual inválido, 3 falhas/17 para v0 e JSON corrompido e 1 falha/20 para cleanup stale sob escrita parcial; GREEN final de autenticação 32/32; typecheck/lint/diff-check PASS; reviewer aprovado com 0 findings.
 
 [ ] TASK-109: Testar `cartSessionStore`, troca de cliente, ID inválido e migração de versão.
   - Status: READY
