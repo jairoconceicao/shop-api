@@ -14,6 +14,8 @@ export type RequestName =
   | 'cartCreate'
   | 'cartAdd'
   | 'cartGet'
+  | 'cartUpdate'
+  | 'cartDelete'
 export type ExpectedRequestCounts = Partial<Record<RequestName, number>>
 export type RequestCounts = Readonly<Record<RequestName, number>>
 
@@ -167,9 +169,17 @@ export async function installAuthApi(
     cartCreate: 0,
     cartAdd: 0,
     cartGet: 0,
+    cartUpdate: 0,
+    cartDelete: 0,
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
+  let cartItem: {
+    itemId: number
+    productId: number
+    quantity: number
+    unitPrice: number
+  } | null = null
 
   const seededCustomer = (): RegistrationRequest => ({
     senha: data.password,
@@ -242,7 +252,13 @@ export async function installAuthApi(
 
     if (url.pathname === '/api/v1/auth/login') {
       requireMethod(route, 'POST')
-      for (const name of ['cartCreate', 'cartAdd', 'cartGet'] as const) {
+      for (const name of [
+        'cartCreate',
+        'cartAdd',
+        'cartGet',
+        'cartUpdate',
+        'cartDelete',
+      ] as const) {
         if (counts[name] !== 0) {
           throw new Error(
             `Cart request ${name} occurred before login processing`,
@@ -334,6 +350,12 @@ export async function installAuthApi(
       if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
         throw new Error(`Unexpected cart item body: ${JSON.stringify(body)}`)
       }
+      cartItem = {
+        itemId: data.cartItemId,
+        productId: body.produtoId,
+        quantity: body.quantidade,
+        unitPrice: body.valorUnitario,
+      }
       await json(
         route,
         {
@@ -343,6 +365,58 @@ export async function installAuthApi(
         201,
       )
       return
+    }
+
+    if (url.pathname === `/api/v1/carrinho/items/${data.cartItemId}`) {
+      requireAuthorization(route)
+
+      if (request.method() === 'PATCH') {
+        increment('cartUpdate')
+        const body = readJson<{ quantidade: number }>(route)
+        const expectedBody = { quantidade: 4 }
+        if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
+          throw new Error(
+            `Unexpected cart update body: ${JSON.stringify(body)}`,
+          )
+        }
+        if (cartItem === null) {
+          throw new Error('Cannot update a cart item before it is added')
+        }
+        cartItem = { ...cartItem, quantity: body.quantidade }
+        await json(route, {
+          status: true,
+          data: {
+            itemId: data.cartItemId,
+            produtoId: data.product.id,
+          },
+        })
+        return
+      }
+
+      if (request.method() === 'DELETE') {
+        increment('cartDelete')
+        if (request.postData() !== null) {
+          throw new Error(
+            `Expected empty cart delete body, received ${request.postData()}`,
+          )
+        }
+        if (cartItem === null) {
+          throw new Error('Cannot delete a cart item before it is added')
+        }
+        cartItem = null
+        await json(route, {
+          status: true,
+          data: {
+            itemId: data.cartItemId,
+            produtoId: data.product.id,
+          },
+        })
+        return
+      }
+
+      throw new Error(
+        `Expected PATCH or DELETE ${request.url()}, received ${request.method()}`,
+      )
     }
 
     if (url.pathname === `/api/v1/carrinho/${data.cartId}`) {
@@ -355,14 +429,17 @@ export async function installAuthApi(
           clienteId: data.customerId,
           carrinhoId: data.cartId,
           dataCarrinho: '2026-07-16T12:00:00-03:00',
-          items: [
-            {
-              itemId: data.cartItemId,
-              produtoId: data.product.id,
-              quantidade: 3,
-              valorUnitario: data.product.price,
-            },
-          ],
+          items:
+            cartItem === null
+              ? []
+              : [
+                  {
+                    itemId: cartItem.itemId,
+                    produtoId: cartItem.productId,
+                    quantidade: cartItem.quantity,
+                    valorUnitario: cartItem.unitPrice,
+                  },
+                ],
         },
       })
       return
@@ -436,6 +513,7 @@ export async function installAuthApi(
       }
     },
     reset() {
+      cartItem = null
       registeredCustomer = null
       expected = {}
       ;(Object.keys(counts) as RequestName[]).forEach((name) => {
