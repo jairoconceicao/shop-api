@@ -58,17 +58,21 @@ const API_FIELD_MAP: Record<string, RegistrationField> = {
   celular: 'celular',
 }
 
-function getRemoteFieldErrors(details: unknown) {
-  if (!Array.isArray(details)) return []
-
-  return details.flatMap((detail: ApiNotification) => {
+function getRemoteErrors(details: unknown): {
+  fields: Array<{ field: RegistrationField; message: string }>
+  summary: string[]
+} {
+  if (!Array.isArray(details)) return { fields: [], summary: [] }
+  const fields: Array<{ field: RegistrationField; message: string }> = []
+  const summary: string[] = []
+  details.forEach((detail: ApiNotification) => {
     if (typeof detail?.message !== 'string' || typeof detail.propertyName !== 'string') return []
-
     const property = detail.propertyName.split('.').at(-1)?.toLocaleLowerCase() ?? ''
     const field = API_FIELD_MAP[property]
-
-    return field ? [{ field, message: detail.message }] : []
+    if (field) fields.push({ field, message: detail.message })
+    else summary.push(detail.message)
   })
+  return { fields, summary }
 }
 
 export interface RegistrationPageProps {
@@ -119,17 +123,18 @@ export function RegistrationPage({ onSubmit }: RegistrationPageProps) {
       navigate('/entrar', { replace: true, state: { registrationSucceeded: true } })
     } catch (error) {
       if (error instanceof AppError) {
-        getRemoteFieldErrors(error.details).forEach(({ field, message }) => {
+        getRemoteErrors(error.details).fields.forEach(({ field, message }) => {
           setError(field, { type: 'server', message })
         })
       }
     }
   })
-  const remoteFieldErrors = getRemoteFieldErrors(registrationMutation.error?.details)
+  const remoteErrors = getRemoteErrors(registrationMutation.error?.details)
   const formErrors: FormError[] = Object.entries(errors).flatMap(([field, error]) =>
     error.message ? [{ fieldId: `registration-${field}`, message: error.message } satisfies FormError] : [],
   )
-  if (registrationMutation.error && remoteFieldErrors.length === 0) {
+  formErrors.push(...remoteErrors.summary.map((message) => ({ message })))
+  if (registrationMutation.error && remoteErrors.fields.length === 0 && remoteErrors.summary.length === 0) {
     formErrors.push({ message: registrationMutation.error.message })
   }
   const cpfField = register('cpf', {
