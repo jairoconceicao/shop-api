@@ -28,6 +28,8 @@
 - Tentativa 3 teve colisão de helper/alias PowerShell; helpers curtos são
   proibidos, o checkout antigo passa pelo cleanup preservado e o gate integral
   recomeça no novo `HEAD`.
+- Tentativa 4 teve coleta incorreta de zero matches do `rg`; toda busca captura
+  saída e exit code antes de escrever, com smoke fresh-process para zero/um.
 
 ---
 
@@ -151,6 +153,36 @@ if ($LASTEXITCODE -ne 0 -or
   throw "Smoke fresh-process do writer falhou"
 }
 
+$collectorSmokeScript = @"
+$writerDefinition
+`$root = '$($logRoot.Replace("'","''"))'
+`$source = Join-Path `$root 'collector-source.txt'
+'alpha' | Set-Content -LiteralPath `$source
+foreach (`$case in @(
+  @{ Pattern = 'missing'; Name = 'collector-zero.txt'; Expected = 'result=none' },
+  @{ Pattern = 'alpha'; Name = 'collector-one.txt'; Expected = 'matchCount=1' }
+)) {
+  `$matches = @(rg -n `$case.Pattern `$source 2>&1)
+  `$code = `$LASTEXITCODE
+  `$target = Join-Path `$root `$case.Name
+  if (`$code -eq 0) {
+    @('result=matches; matchCount=' + `$matches.Count) + `$matches |
+      Set-Content -LiteralPath `$target -Encoding utf8
+  } elseif (`$code -eq 1) {
+    Write-RequiredEvidenceResult -LiteralPath `$target -Result 'result=none'
+  } else {
+    throw "rg smoke falhou: `$code"
+  }
+  if (-not (Test-Path -LiteralPath `$target -PathType Leaf) -or
+      (Get-Item -LiteralPath `$target).Length -le 0 -or
+      (Get-Content -Raw -LiteralPath `$target) -notmatch `$case.Expected) {
+    throw "Coleta smoke inválida: `$(`$case.Name)"
+  }
+}
+"@
+& pwsh -NoLogo -NoProfile -Command $collectorSmokeScript
+if ($LASTEXITCODE -ne 0) { throw "Smoke fresh-process da coleta falhou" }
+
 if ((Split-Path -Parent $gateWorktree) -ne $worktreeParent) {
   throw "Worktree não é filho direto de .worktrees: $gateWorktree"
 }
@@ -187,7 +219,8 @@ sobreposição com checkout listado, exceto o caminho exato preservado da
 tentativa 1 que será tratado no Step 2A; self-check cobre barras Windows e
 caminho já normalizado; nenhum delete é executado neste step.
 `Write-RequiredEvidenceResult` resolve como `Function` no processo atual e em
-`pwsh -NoProfile` novo, que efetivamente cria `writer-smoke.txt`.
+`pwsh -NoProfile` novo, que efetivamente cria `writer-smoke.txt`. Outro
+processo novo comprova arquivos não vazios para zero e uma correspondência.
 
 - [ ] **Step 2A: Limpar com segurança checkout preservado da tentativa 1**
 
@@ -351,14 +384,18 @@ não alcança o próximo passo depois de falha.
 ```powershell
 $runnerPatterns = 'Unhandled Errors|Unhandled Rejection|Test runner error|Worker process exited unexpectedly'
 $runnerSignalLog = Join-Path $logRoot 'runner-signals.log'
-rg -n -i $runnerPatterns `
+$runnerMatches = @(rg -n -i $runnerPatterns `
   (Join-Path $logRoot '04-vitest.log') `
-  (Join-Path $logRoot '05-playwright.log') *>&1 |
-  Set-Content -LiteralPath $runnerSignalLog
-if ($LASTEXITCODE -gt 1) { throw "Falha ao inspecionar logs dos runners" }
-if ((Get-Item -LiteralPath $runnerSignalLog).Length -eq 0) {
+  (Join-Path $logRoot '05-playwright.log') 2>&1)
+$runnerCode = $LASTEXITCODE
+if ($runnerCode -eq 0) {
+  @("result=matches; matchCount=$($runnerMatches.Count)") + $runnerMatches |
+    Set-Content -LiteralPath $runnerSignalLog -Encoding utf8
+} elseif ($runnerCode -eq 1) {
   Write-RequiredEvidenceResult -LiteralPath $runnerSignalLog `
     -Result 'result=none; source=vitest,playwright'
+} else {
+  throw "Falha ao inspecionar logs dos runners: exit $runnerCode"
 }
 ```
 
@@ -396,31 +433,41 @@ auditor privado e self-test aprovados.
 
 ```powershell
 $focusLog = Join-Path $logRoot '09-focused-or-skipped-tests.log'
-$unconditional = rg -n `
+$unconditional = @(rg -n `
   --glob '!node_modules/**' `
   --glob '!dist/**' `
   --glob '!playwright-report/**' `
   --glob '!test-results/**' `
   '\b(?:test|it|describe)\.only\s*\(|\b(?:test|it|describe)\.skip\s*\(\s*[''"]' `
-  $frontend 2>&1 | Tee-Object -FilePath $focusLog
+  $frontend 2>&1)
 $focusExit = $LASTEXITCODE
-if ($focusExit -eq 0) { throw "Existem modifiers incondicionais: $unconditional" }
-if ($focusExit -ne 1) { throw "Busca de .only/.skip falhou com exit $focusExit" }
-if ((Get-Item -LiteralPath $focusLog).Length -eq 0) {
+if ($focusExit -eq 0) {
+  @("result=matches; matchCount=$($unconditional.Count)") + $unconditional |
+    Set-Content -LiteralPath $focusLog -Encoding utf8
+  throw "Existem modifiers incondicionais; consulte $focusLog"
+} elseif ($focusExit -eq 1) {
   Write-RequiredEvidenceResult -LiteralPath $focusLog `
     -Result 'result=none; rule=unconditional-only-or-skip'
+} else {
+  throw "Busca de .only/.skip falhou com exit $focusExit"
 }
 
 $conditionalLog = Join-Path $logRoot '09b-conditional-skips.log'
-rg -n `
+$conditionalMatches = @(rg -n `
   --glob '!node_modules/**' `
   --glob '!dist/**' `
   '\b(?:test|it|describe)\.skip\s*\(' `
-  $frontend 2>&1 | Set-Content -LiteralPath $conditionalLog
-if ($LASTEXITCODE -gt 1) { throw "Inventário de skips condicionais falhou" }
-if ((Get-Item -LiteralPath $conditionalLog).Length -eq 0) {
+  $frontend 2>&1)
+$conditionalCode = $LASTEXITCODE
+if ($conditionalCode -eq 0) {
+  @("result=matches; matchCount=$($conditionalMatches.Count)") +
+    $conditionalMatches |
+    Set-Content -LiteralPath $conditionalLog -Encoding utf8
+} elseif ($conditionalCode -eq 1) {
   Write-RequiredEvidenceResult -LiteralPath $conditionalLog `
     -Result 'result=none; rule=conditional-skip-inventory'
+} else {
+  throw "Inventário de skips condicionais falhou: exit $conditionalCode"
 }
 ```
 
@@ -527,6 +574,8 @@ finally {
 
     $requiredEvidence = @(
       'writer-smoke.txt',
+      'collector-zero.txt',
+      'collector-one.txt',
       'summary.tsv',
       '01-npm-ci.log',
       '02-typecheck.log',
@@ -617,8 +666,8 @@ Expected: HEAD, status, patch binário e inventário são externos antes de
 qualquer remoção. Somente checkout limpo (inclusive após EOL restaurado) é
 removido. Qualquer alteração real ou untracked inesperado preserva o worktree,
 pois patch Git não arquiva seu conteúdo; remoção é sempre sem `--force`.
-O self-check exige todos os 20 arquivos, incluindo o smoke fresh-process do
-helper e conteúdo explícito, e gera
+O self-check exige todos os 22 arquivos, incluindo os smokes fresh-process do
+helper/coletor e conteúdo explícito, e gera
 `evidence-manifest.tsv` com tamanho/SHA-256 mais
 `evidence-manifest.sha256`; ausência, vazio ou erro de hash preserva o
 worktree. `$logRoot` sempre permanece.

@@ -37,6 +37,16 @@ proibidos. Antes do rerun, o checkout antigo deve seguir o cleanup preservado:
 capturar evidências, validar caminho/listagem/status limpo e remover sem
 `--force`. O novo gate começa integralmente no novo `HEAD`.
 
+## Tentativa 4 do executor
+
+A quarta tentativa expôs coleta incorreta quando `rg` retorna zero matches:
+pipe direto para `Set-Content` não garante arquivo auditável e pode obscurecer
+o exit code. A classificação é `executor`. Toda coleta deve capturar primeiro
+`$matches = @(rg ... 2>&1)` e `$code = $LASTEXITCODE`; exit 0 escreve
+cabeçalho mais matches, exit 1 escreve `result=none` pelo helper, e exit maior
+que 1 falha. Um processo PowerShell novo deve provar os casos zero e um match
+antes do rerun integral no novo `HEAD`.
+
 ## Fontes factuais
 
 O `frontend/package.json` expõe os cinco gates pedidos no backlog:
