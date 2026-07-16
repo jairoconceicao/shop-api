@@ -181,11 +181,11 @@ function emptyCatalogHandlers() {
     http.get(`${apiBaseUrl}/produto`, ({ request }) => {
       const url = new URL(request.url)
       expect(url.searchParams.get('page')).toBe('1')
-      expect(url.searchParams.get('size')).toBe('12')
+      expect(url.searchParams.get('size')).toBe('20')
 
       return HttpResponse.json({
         status: true,
-        pagination: { pages: 0, size: 12, totalItems: 0, data: [] },
+        pagination: { pages: 0, size: 20, totalItems: 0, data: [] },
       })
     }),
   ]
@@ -231,6 +231,7 @@ function emptyOrdersHandler() {
 ```
 
 Essas factories retornam handlers somente para requests que o cenário declara. Não movê-las para `shared/testing/handlers.ts`, pois isso faria requests acidentais parecerem atendidos em toda a suíte.
+O tamanho 20 corresponde ao contrato observado em `HomePage.tsx` e à request atual da rota raiz.
 
 - [ ] **Step 8: Associar handlers apenas aos cenários que iniciam cada request**
 
