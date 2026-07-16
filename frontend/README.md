@@ -147,7 +147,7 @@ try {
     -w /workspace/aspnet-api `
     -e 'ConnectionStrings__ShopDb=Host=shop-api-db;Port=5432;Database=shopapi;Username=shopapi;Password=shopapi' `
     mcr.microsoft.com/dotnet/sdk:10.0 `
-    sh -lc 'dotnet tool install --global dotnet-ef --version 10.* && export PATH="$PATH:/root/.dotnet/tools" && dotnet ef database update'
+    sh -lc 'dotnet restore && dotnet tool install --global dotnet-ef --version 10.* && export PATH="$PATH:/root/.dotnet/tools" && dotnet ef database update'
   if ($LASTEXITCODE -ne 0) { throw 'Migration EF Core falhou.' }
 
   docker run --name shop-api-app --network shop-api-network `
