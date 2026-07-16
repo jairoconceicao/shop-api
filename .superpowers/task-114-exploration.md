@@ -155,4 +155,3 @@ limpeza esperada.
 4. Manter o harness de rollback exatamente por item; ele está alinhado à implementação.
 5. Rodar cada filtro do plano, o arquivo completo, typecheck e lint. Qualquer RED restante
    deve bloquear TASK-114, pois o plano declara que não há mudança de produto prevista.
-
