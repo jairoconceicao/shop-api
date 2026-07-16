@@ -8,7 +8,7 @@
 
 **Tech Stack:** Vitest, Testing Library, MSW, TanStack Query, React Router.
 
-**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-113 para `BLOCKED` e retorna ao explorador.
+Este plano inclui o patch literal de canonicalização. Outros REDs mudam TASK-113 para `BLOCKED` e retornam ao explorador.
 
 ## Global Constraints
 
@@ -18,12 +18,13 @@
 
 **Files:**
 - Create: `frontend/src/features/catalog/catalog.integration.test.tsx`
+- Modify: `frontend/src/features/catalog/pages/HomePage.tsx`
 
 **Interfaces:** consumes `renderIntegration`, AppRouter; requests `/api/v1/categoria`, `/api/v1/produto`, `/api/v1/produto/categoria/5`, `/api/v1/produto/42`; catalog size literal `20`.
 
 - [ ] **Step 1: workflow**
 
-BASE_COMMIT → relatório do explorador dos quatro arquivos → implementador → IN_PROGRESS.
+BASE_COMMIT → relatório do explorador dos dois arquivos listados → implementador → IN_PROGRESS.
 
 #### Complete target listing
 
@@ -89,21 +90,59 @@ Copie do listing o início até antes de `describe`.
 
 Copie `beforeEach` e os dois primeiros testes.
 
+Run cada comportamento: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx -t "starts categories"`; depois troque o filtro para `serializes search`. Expected GREEN: `1 passed` em cada comando; RED inesperado → `BLOCKED`.
+
 - [ ] **Step 4: adicionar categoria e canonicalização**
 
 Copie os testes do endpoint dedicado e filtros inválidos.
 
-- [ ] **Step 5: adicionar 404 sem stale**
+Run: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx -t "uses only dedicated category endpoint"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+
+Run: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx -t "canonicalizes invalid filters before the request"`. Expected RED: `expected '?page=abc&categoriaId=-2&searchword=%20%20' to be ''`.
+
+- [ ] **Step 5: implementar replace canônico literal**
+
+Em `HomePage.tsx`, acrescente `useEffect` ao import React e use o `useNavigate` já importado. Dentro de `HomePage`, após `categoryId`, insira:
+
+```tsx
+const navigate = useNavigate()
+const canonicalSearch = serializeCatalogUrl({
+  page: catalogUrl.page,
+  ...(catalogUrl.searchword ? { searchword: catalogUrl.searchword } : {}),
+  ...(categoryId !== undefined ? { categoriaId: String(categoryId) } : {}),
+}).toString()
+
+useEffect(() => {
+  if (searchParams.toString() === canonicalSearch) return
+  void navigate(
+    { pathname: location.pathname, search: canonicalSearch ? `?${canonicalSearch}` : '' },
+    { replace: true },
+  )
+}, [canonicalSearch, location.pathname, navigate, searchParams])
+```
+
+O import final fica:
+
+```tsx
+import { useEffect } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+```
+
+Run: comando focado anterior. Expected GREEN: `1 passed`, URL vazia e request `?page=1&size=20`.
+
+- [ ] **Step 6: adicionar 404 sem stale**
 
 Copie o teste 404 e feche `describe`.
 
-- [ ] **Step 6: RED/GREEN/review**
+Run: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx -t "renders product 404"`. Expected GREEN: `calls === 1`, query state `error`, data `undefined`, `1 passed`; RED inesperado → `BLOCKED`.
+
+- [ ] **Step 7: RED/GREEN/review**
 
 RED: focused command. Expected literals: canonical test `expected '?page=abc...' to be ''`; history test `expected '?searchword=teclado&page=2'`; 404 test `expected 3 to be 1`. Esse resultado muda TASK-113 para `BLOCKED` e retorna ao explorador.
 
 Commands: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx --reporter=verbose`; typecheck; lint. GREEN = exit `0` nos três.
 
-Commit: `test(TASK-113): integrar catálogo com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
+Commits: `test(TASK-113): integrar catálogo com MSW`; `fix(TASK-113): canonicalizar filtros inválidos`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 

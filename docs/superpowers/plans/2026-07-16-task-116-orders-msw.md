@@ -83,13 +83,19 @@ Copie o início do listing até antes de `describe`.
 
 Copie `beforeEach` e os dois primeiros testes.
 
+Run cada comportamento com `-t "sends CPF"` e `-t "uses captured customer"`. Expected GREEN: `1 passed` por comando; RED inesperado → `BLOCKED`.
+
 - [ ] **Step 4: adicionar cancelamento 422**
 
 Copie o terceiro teste com dialog/copy reais.
 
+Run: `npm --prefix frontend test -- src/features/orders/orders.integration.test.tsx -t "sends only Cancelado"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+
 - [ ] **Step 5: adicionar cancelamento bem-sucedido**
 
 Copie o teste final e feche `describe`.
+
+Run: `npm --prefix frontend test -- src/features/orders/orders.integration.test.tsx -t "reconciles detail"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
 
 - [ ] **Step 6: RED/GREEN/review**
 

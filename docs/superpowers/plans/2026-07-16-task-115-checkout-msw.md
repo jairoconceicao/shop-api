@@ -83,9 +83,13 @@ Copie `beforeEach` e `afterEach`; execute `npm --prefix frontend run typecheck`.
 
 Copie o primeiro teste.
 
+Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "posts strict confirmed contract once"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+
 - [ ] **Step 5: adicionar branches 409/422**
 
 Copie o teste parametrizado e feche `describe`.
+
+Run: `npm --prefix frontend test -- src/features/checkout/checkout.integration.test.tsx -t "preserves checkout"`. Expected GREEN: `2 passed`; RED inesperado → `BLOCKED`.
 
 - [ ] **Step 6: RED/GREEN/review**
 

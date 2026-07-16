@@ -8,7 +8,7 @@
 
 **Tech Stack:** React, Vitest, Testing Library, MSW, TanStack Query, React Router, Zustand.
 
-**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-112 para `BLOCKED` e retorna ao explorador.
+Este plano inclui o patch literal do mapper `422`. Outros REDs mudam TASK-112 para `BLOCKED` e retornam ao explorador.
 
 ## Global Constraints
 
@@ -19,17 +19,18 @@
 
 **Files:**
 - Create: `frontend/src/features/customer/customer.integration.test.tsx`
+- Modify: `frontend/src/features/customer/pages/RegistrationPage.tsx`
 
 **Interfaces:** consumes `renderIntegration(ReactElement,{initialEntries})`, `customerProfileQueryKeys.detail(7)`, `AppRouter`, auth store.
 
 - [ ] **Step 1: workflow**
 
-Registre BASE_COMMIT, obtenha relatório do explorador sobre estes quatro arquivos, envie relatório ao implementador e registre IN_PROGRESS.
+Registre BASE_COMMIT, obtenha relatório do explorador sobre os dois arquivos listados, envie relatório ao implementador e registre IN_PROGRESS.
 
 #### Complete target listing
 
 ```tsx
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { AppRouter } from '../../app/router/AppRouter'
@@ -64,7 +65,7 @@ describe('TASK-112 customer integration', () => {
 
   it('maps CPF and CEP from 422 and preserves unknown detail in summary', async () => {
     server.use(http.post('*/api/v1/cliente', () => HttpResponse.json({ error: { code: 'VALIDATION_ERROR', message: 'Revise os dados', details: [{ propertyName: 'Cpf', message: 'CPF inválido.' }, { propertyName: 'Endereco.Cep', message: 'CEP inválido.' }, { propertyName: 'CampoNovo', message: 'Falha futura.' }] } }, { status: 422 })))
-    const { user } = renderIntegration(<AppRouter />, { initialEntries: ['/cadastro'] }); await fillRegistration(user); await user.click(screen.getByRole('button', { name: 'Criar conta' })); expect(await screen.findByText('CPF inválido.')).toBeInTheDocument(); expect(screen.getByLabelText('CPF')).toHaveAccessibleDescription('CPF inválido.'); expect(screen.getByLabelText('CEP')).toHaveAccessibleDescription('CEP inválido.'); expect(screen.getByRole('alert')).toHaveTextContent('Falha futura.'); expect(screen.getByLabelText('CPF')).toHaveValue('123.456.789-01'); expect(screen.getByLabelText('CEP')).toHaveValue('01001-000'); expect(screen.queryByText('Cadastro concluído')).not.toBeInTheDocument()
+    const { user } = renderIntegration(<AppRouter />, { initialEntries: ['/cadastro'] }); await fillRegistration(user); await user.click(screen.getByRole('button', { name: 'Criar conta' })); expect(await screen.findAllByText('CPF inválido.')).not.toHaveLength(0); expect(await screen.findAllByText('CEP inválido.')).not.toHaveLength(0); expect(screen.getByLabelText('CPF')).toHaveAccessibleDescription('CPF inválido.'); expect(screen.getByLabelText('CEP')).toHaveAccessibleDescription('CEP inválido.'); const summary = screen.getByRole('alert'); expect(within(summary).getByText('Falha futura.')).toBeInTheDocument(); expect(screen.getByLabelText('CPF')).toHaveValue('123.456.789-01'); expect(screen.getByLabelText('CEP')).toHaveValue('01001-000'); expect(screen.queryByText('Cadastro concluído')).not.toBeInTheDocument()
   })
 
   it('loads profile, confirms CPF change and reconciles cache after PUT', async () => {
@@ -92,19 +93,75 @@ Copie do listing o início do arquivo até antes de `describe`.
 
 Copie `beforeEach`, `sends normalized registration and navigates after 201` e `preserves registration values for 409`.
 
+Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "sends normalized registration"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+
+Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "preserves registration values for 409"`. Expected GREEN: `1 passed`; RED inesperado → `BLOCKED`.
+
 - [ ] **Step 4: adicionar cadastro 422**
 
 Copie `maps CPF and CEP from 422 and preserves unknown detail in summary`.
 
-- [ ] **Step 5: adicionar PUT deferred e falhas**
+Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "maps CPF and CEP from 422"`. Expected RED: `Unable to find an element with the text: Falha futura.`
+
+- [ ] **Step 5: implementar mapper 422 literal**
+
+Substitua `getRemoteFieldErrors` por:
+
+```tsx
+function getRemoteErrors(details: unknown): {
+  fields: Array<{ field: RegistrationField; message: string }>
+  summary: string[]
+} {
+  if (!Array.isArray(details)) return { fields: [], summary: [] }
+  const fields: Array<{ field: RegistrationField; message: string }> = []
+  const summary: string[] = []
+  details.forEach((detail: ApiNotification) => {
+    if (typeof detail?.message !== 'string' || typeof detail.propertyName !== 'string') return
+    const property = detail.propertyName.split('.').at(-1)?.toLocaleLowerCase() ?? ''
+    const field = API_FIELD_MAP[property]
+    if (field) fields.push({ field, message: detail.message })
+    else summary.push(detail.message)
+  })
+  return { fields, summary }
+}
+```
+
+No `catch`, use:
+
+```tsx
+getRemoteErrors(error.details).fields.forEach(({ field, message }) => {
+  setError(field, { type: 'server', message })
+})
+```
+
+Na renderização, substitua `remoteFieldErrors` e o fallback por:
+
+```tsx
+const remoteErrors = getRemoteErrors(registrationMutation.error?.details)
+const formErrors: FormError[] = Object.entries(errors).flatMap(([field, error]) =>
+  error.message ? [{ fieldId: `registration-${field}`, message: error.message } satisfies FormError] : [],
+)
+formErrors.push(...remoteErrors.summary.map((message) => ({ message })))
+if (registrationMutation.error && remoteErrors.fields.length === 0 && remoteErrors.summary.length === 0) {
+  formErrors.push({ message: registrationMutation.error.message })
+}
+```
+
+Run: comando focado anterior. Expected GREEN: `1 passed`, CPF e CEP descritos, `Falha futura.` dentro do summary.
+
+- [ ] **Step 6: adicionar PUT deferred e falhas**
 
 Copie os dois testes de perfil e feche `describe`.
 
-- [ ] **Step 6: RED/GREEN/review**
+Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "loads profile, confirms CPF change"`. Expected GREEN: cache antigo antes de `putGate.resolve`, cache novo depois, `1 passed`; RED inesperado → `BLOCKED`.
+
+Run: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx -t "keeps confirmed profile"`. Expected GREEN: `2 passed`; RED inesperado → `BLOCKED`.
+
+- [ ] **Step 7: RED/GREEN/review**
 
 Run RED: `npm --prefix frontend test -- src/features/customer/customer.integration.test.tsx --reporter=verbose`. Expected RED literal: `Unable to find an element with the text: Falha futura.` ou `expected Ana Silva to be Ana Atualizada`. Esse resultado muda TASK-112 para `BLOCKED` e retorna ao explorador.
 
-GREEN focado, typecheck e lint devem sair `0`. Commit: `test(TASK-112): integrar cadastro e perfil com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, revisão, repetição dos gates e DONE.
+GREEN focado, typecheck e lint devem sair `0`. Commits: `test(TASK-112): integrar cadastro e perfil com MSW`; `fix(TASK-112): preservar detalhes remotos desconhecidos`. Execute `git diff $BASE_COMMIT..HEAD`, revisão, repetição dos gates e DONE.
 
 ## Self-review
 
