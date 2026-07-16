@@ -164,8 +164,8 @@ test('audita as jornadas principais por teclado', async ({ authApi, page }, test
 })
 
 test.describe('auditores adversariais', () => {
-  test('rejeita saltos de heading e landmarks duplicados', async ({ page }) => {
-    await page.setContent('<main><h1>A</h1><h3>B</h3><nav aria-label="X"></nav><nav aria-label="X"></nav></main>')
+  test('rejeita saltos de heading e landmarks nativos ou genéricos duplicados', async ({ page }) => {
+    await page.setContent('<main><h1>A</h1><h3>B</h3><nav aria-label="X"></nav><div role="navigation" aria-label="X"></div></main>')
     await expect(assertDocumentSemantics(page)).rejects.toThrow()
   })
 
@@ -179,8 +179,13 @@ test.describe('auditores adversariais', () => {
     await expect(assertReducedMotion(page)).rejects.toThrow()
   })
 
-  test('rejeita contraste abaixo de 4.5, texto grande abaixo de 3 e gradiente', async ({ page }, testInfo) => {
-    await page.setContent('<main style="background:#fff"><h1 style="font-size:24px;color:#888">Grande</h1><p style="color:#777">Normal</p><p style="background-image:linear-gradient(#fff,#000);color:#fff">Gradiente</p></main>')
+  test('rejeita contraste abaixo de 4.5 e gradiente', async ({ page }, testInfo) => {
+    await page.setContent('<main style="background:#fff"><h1>Auditoria</h1><p style="color:#777">Normal</p><p style="background-image:linear-gradient(#fff,#000);color:#fff">Gradiente</p></main>')
     await expect(auditTextContrast(page, testInfo, 'adversarial')).rejects.toThrow()
+  })
+
+  test('rejeita isoladamente texto grande com contraste abaixo de 3', async ({ page }, testInfo) => {
+    await page.setContent('<main><h1 style="background:#fff;font-size:24px;color:#999">Grande abaixo de 3</h1></main>')
+    await expect(auditTextContrast(page, testInfo, 'adversarial-large-text')).rejects.toThrow()
   })
 })

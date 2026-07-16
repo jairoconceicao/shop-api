@@ -30,7 +30,7 @@ export async function assertDocumentSemantics(page: Page) {
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
 
   const unnamed = await page.locator(
-    'a[href],button,input,select,textarea,[role="menu"],[role="dialog"],nav,form[role="search"]',
+    'a[href],button,input,select,textarea,[role="menu"],[role="dialog"],nav,[role="navigation"],form[role="search"]',
   ).evaluateAll((elements) => elements
     .filter((element) => {
       const style = getComputedStyle(element)
@@ -70,7 +70,7 @@ export async function assertDocumentSemantics(page: Page) {
     }
     for (const role of ['navigation', 'search']) {
       const names = [...document.querySelectorAll(
-        role === 'navigation' ? 'nav' : '[role="search"]',
+        role === 'navigation' ? 'nav,[role="navigation"]' : '[role="search"]',
       )].filter((element) => (element as HTMLElement).offsetParent !== null)
         .map((element) => element.getAttribute('aria-label')
           ?? document.getElementById(element.getAttribute('aria-labelledby') ?? '')?.textContent?.trim()
