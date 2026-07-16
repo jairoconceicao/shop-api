@@ -1,13 +1,9 @@
 import type { CatalogProduct } from '../contracts/catalog'
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { Badge } from '../../../shared/ui/indicators/Badge'
 import { ProductImage } from '../../../shared/ui/media/ProductImage'
 import { Card } from '../../../shared/ui/surfaces/Card'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 export interface ProductCardProps {
   product: CatalogProduct
@@ -30,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.title}
         </h2>
         <p className="text-xl font-bold text-zinc-100">
-          {brlFormatter.format(product.price)}
+          {formatCurrency(product.price)}
         </p>
         <Badge
           aria-label={availability}

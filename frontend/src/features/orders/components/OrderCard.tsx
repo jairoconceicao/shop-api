@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Badge } from '../../../shared/ui/indicators/Badge'
 import { Card } from '../../../shared/ui/surfaces/Card'
 import type { Order } from '../contracts/orders'
@@ -7,11 +8,6 @@ import {
   calculateOrderTotal,
   getOrderStatusLabel,
 } from '../formatting/orderPresentation'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
@@ -57,7 +53,7 @@ export function OrderCard({ order }: OrderCardProps) {
         <div className="min-w-0">
           <dt className="text-sm text-zinc-400">Valor total</dt>
           <dd className="mt-1 break-words text-lg font-semibold text-zinc-50">
-            {brlFormatter.format(calculateOrderTotal(order.items))}
+            {formatCurrency(calculateOrderTotal(order.items))}
           </dd>
         </div>
       </dl>

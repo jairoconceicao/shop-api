@@ -24,6 +24,14 @@ describe('CPF presentation and normalization', () => {
   it('removes presentation characters and limits the normalized value', () => {
     expect(normalizeCpf('123.456.789-01 extra 99')).toBe('12345678901')
   })
+
+  it.each([
+    ['abc123.456.789-01xyz', '12345678901'],
+    ['1234567890199', '12345678901'],
+  ])('keeps normalization stable after formatting %s', (input, expected) => {
+    expect(normalizeCpf(input)).toBe(expected)
+    expect(normalizeCpf(formatCpf(input))).toBe(expected)
+  })
 })
 
 describe('postal code presentation and normalization', () => {
@@ -38,6 +46,14 @@ describe('postal code presentation and normalization', () => {
 
   it('removes presentation characters and limits the normalized value', () => {
     expect(normalizePostalCode('12345-678 99')).toBe('12345678')
+  })
+
+  it.each([
+    ['CEP 12345-678 xx99', '12345678'],
+    ['123456789', '12345678'],
+  ])('keeps normalization stable after formatting %s', (input, expected) => {
+    expect(normalizePostalCode(input)).toBe(expected)
+    expect(normalizePostalCode(formatPostalCode(input))).toBe(expected)
   })
 })
 
@@ -56,6 +72,14 @@ describe('cell phone presentation and normalization', () => {
 
   it('removes presentation characters and limits the normalized value', () => {
     expect(normalizeCellPhone('(11) 91234-5678 extra 99')).toBe('11912345678')
+  })
+
+  it.each([
+    ['tel:+55 (11) 91234-5678', '55119123456'],
+    ['1191234567899', '11912345678'],
+  ])('keeps digit truncation stable after formatting %s', (input, expected) => {
+    expect(normalizeCellPhone(input)).toBe(expected)
+    expect(normalizeCellPhone(formatCellPhone(input))).toBe(expected)
   })
 
   it('splits the normalized value into the request contract fields', () => {

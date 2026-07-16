@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { AppError } from '../../../shared/errors/appError'
 import { InlineAlert } from '../../../shared/ui/feedback/InlineAlert'
@@ -16,11 +17,6 @@ import {
 } from '../contracts/checkout'
 import type { CheckoutProfile } from '../../customer/contracts/customerProfile'
 import { useCreateOrderMutation } from '../mutations/useCreateOrderMutation'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 const payments: readonly { value: PaymentMethod; label: string; description: string }[] = [
   { value: 'Pix', label: 'Pix', description: 'Pagamento instantâneo.' },
@@ -201,8 +197,8 @@ export function CheckoutPage(props: CheckoutPageProps = {}) {
           <Card className="p-5 sm:p-6">
             <h2 className="text-xl font-semibold text-zinc-100">Resumo</h2>
             <dl className="mt-5 space-y-4">
-              <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
-              <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{brlFormatter.format(subtotal)}</dd></div>
+              <div className="flex justify-between gap-4 text-zinc-300"><dt>Subtotal</dt><dd>{formatCurrency(subtotal)}</dd></div>
+              <div className="flex justify-between gap-4 border-t border-ink-700 pt-4 text-lg font-semibold text-zinc-50"><dt>Total</dt><dd>{formatCurrency(subtotal)}</dd></div>
             </dl>
             <Button className="mt-6 w-full" disabled={createOrderMutation.isPending} type="submit">
               {createOrderMutation.isPending ? 'Confirmando pedido...' : 'Confirmar pedido'}

@@ -1,16 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { EmptyState } from '../../../shared/ui/states/EmptyState'
 import { Card } from '../../../shared/ui/surfaces/Card'
 import { useAuthStore } from '../../auth/store/authStore'
 import { getOrderConfirmation } from '../cache/orderConfirmationCache'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
@@ -59,7 +55,7 @@ export function OrderConfirmationPage() {
           <div><dt className="text-sm text-zinc-400">Status</dt><dd className="mt-1 font-semibold text-zinc-100">{order.status}</dd></div>
           <div><dt className="text-sm text-zinc-400">Data</dt><dd className="mt-1 font-semibold text-zinc-100">{dateFormatter.format(new Date(order.createdAt))}</dd></div>
           <div><dt className="text-sm text-zinc-400">Forma de pagamento</dt><dd className="mt-1 font-semibold text-zinc-100">{order.paymentMethod}</dd></div>
-          <div className="sm:col-span-2"><dt className="text-sm text-zinc-400">Valor total</dt><dd className="mt-1 text-xl font-semibold text-zinc-50">{brlFormatter.format(order.total)}</dd></div>
+          <div className="sm:col-span-2"><dt className="text-sm text-zinc-400">Valor total</dt><dd className="mt-1 text-xl font-semibold text-zinc-50">{formatCurrency(order.total)}</dd></div>
         </dl>
         <div className="mt-7"><LinkButton to="/">Voltar à loja</LinkButton></div>
       </Card>

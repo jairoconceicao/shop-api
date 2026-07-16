@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
+import { formatCurrency } from '../../../shared/formatting/currency'
 import { Button } from '../../../shared/ui/buttons/Button'
 import { LinkButton } from '../../../shared/ui/buttons/LinkButton'
 import { QuantityInput } from '../../../shared/ui/forms/QuantityInput'
@@ -13,11 +14,6 @@ import { useAddProductToCart } from '../../cart/hooks/useAddProductToCart'
 import type { ProductDetail } from '../contracts/catalog'
 import { isProductNotFoundError, useProductDetailQuery } from '../queries/useProductDetailQuery'
 import { parseProductId } from '../routing/productId'
-
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 function ProductNotFound() {
   return (
@@ -147,7 +143,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
           </h1>
           <dl className="mt-6 space-y-4 text-zinc-300">
             <div><dt className="text-sm text-zinc-500">Modelo</dt><dd className="mt-1">{product.model ?? 'Não informado'}</dd></div>
-            <div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{brlFormatter.format(product.price)}</dd></div>
+            <div><dt className="sr-only">Preço</dt><dd className="text-3xl font-bold text-zinc-50">{formatCurrency(product.price)}</dd></div>
             <div><dt className="sr-only">Estoque</dt><dd>{stockLabel}</dd></div>
           </dl>
           <ProductPurchaseControls product={product} availableStock={availableStock} />
