@@ -3,15 +3,14 @@ import { type PropsWithChildren, useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { subscribeToUnauthorized } from '../../../shared/api/apiClient'
-import { clearPrivateCache } from '../../../shared/query/privateCache'
+import { clearPrivateSession } from '../session/clearPrivateSession'
 import { useAuthStore } from '../store/authStore'
 import { UnauthorizedHandlerContext } from './UnauthorizedHandlerContext'
 
 /* eslint-disable react-refresh/only-export-components -- TASK-111 exposes the real boundary factory for integration coverage. */
 export type UnauthorizedHandlerDependencies = {
   getReturnTo: () => string
-  clearSession: () => void
-  clearCache: () => void
+  clearPrivateSession: () => void
   navigate: (to: string, options: { replace: true; state: { returnTo: string } }) => void
 }
 
@@ -33,8 +32,7 @@ export function createUnauthorizedHandler(
 
     latch.current = true
     const returnTo = dependencies.getReturnTo()
-    dependencies.clearSession()
-    dependencies.clearCache()
+    dependencies.clearPrivateSession()
     dependencies.navigate('/entrar', { replace: true, state: { returnTo } })
   }
 }
@@ -54,8 +52,10 @@ export function UnauthorizedHandlerProvider({ children }: PropsWithChildren) {
   /* eslint-disable react-hooks/refs */
   const handleUnauthorized = useMemo(() => createUnauthorizedHandler({
     getReturnTo: () => `${location.pathname}${location.search}${location.hash}`,
-    clearSession: () => useAuthStore.getState().clearSession(),
-    clearCache: () => clearPrivateCache(queryClient),
+    clearPrivateSession: () => {
+      const customerId = useAuthStore.getState().session?.clienteId
+      if (customerId !== undefined) clearPrivateSession(queryClient, customerId)
+    },
     navigate,
   }, unauthorizedLatch), [location.hash, location.pathname, location.search, navigate, queryClient])
   /* eslint-enable react-hooks/refs */

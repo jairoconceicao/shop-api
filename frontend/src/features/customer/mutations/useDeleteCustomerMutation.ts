@@ -3,10 +3,9 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AppError } from '../../../shared/errors/appError'
-import { clearPrivateCache, privateCacheMeta } from '../../../shared/query/privateCache'
+import { privateCacheMeta } from '../../../shared/query/privateCache'
+import { clearPrivateSession } from '../../auth/session/clearPrivateSession'
 import { useAuthStore } from '../../auth/store/authStore'
-import { useCartSessionStore } from '../../cart/store/cartSessionStore'
-import { clearCustomerPrivateSnapshots } from '../cache/customerPrivateSnapshots'
 import { deleteCustomer, type DeleteCustomerVariables } from '../services/deleteCustomerService'
 
 export function useDeleteCustomerMutation() {
@@ -22,10 +21,7 @@ export function useDeleteCustomerMutation() {
         || current?.clienteId !== attempt.customerId
         || current.token !== attempt.token) return
 
-      useCartSessionStore.getState().removeCartId(attempt.customerId)
-      useAuthStore.getState().clearSession()
-      clearPrivateCache(queryClient)
-      clearCustomerPrivateSnapshots(attempt.customerId)
+      clearPrivateSession(queryClient, attempt.customerId)
       navigate('/', { replace: true, state: { accountCancelled: true } })
     },
     onSettled: () => { pendingRef.current = null },

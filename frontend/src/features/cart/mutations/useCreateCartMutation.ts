@@ -5,6 +5,7 @@ import type { CreatedCart } from '../contracts/cart'
 import { cartCache, reconcileActiveCart } from '../cache/cartCache'
 import { createCart } from '../services/createCartService'
 import { useCartSessionStore } from '../store/cartSessionStore'
+import { useAuthStore } from '../../auth/store/authStore'
 
 type CreateCartVariables = {
   token: string
@@ -21,7 +22,9 @@ export function useCreateCartMutation() {
     meta: cartCache.meta,
     mutationFn: ({ token }) => createCart(token),
     retry: false,
-    onSuccess: async (cart, { customerId, reconcile = true }) => {
+    onSuccess: async (cart, { customerId, token, reconcile = true }) => {
+      const session = useAuthStore.getState().session
+      if (session?.clienteId !== customerId || session.token !== token) return
       setCartId(customerId, cart.id)
       if (reconcile) await reconcileActiveCart(queryClient, customerId, cart.id)
     },

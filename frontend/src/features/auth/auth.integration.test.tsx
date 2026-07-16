@@ -116,7 +116,11 @@ describe('TASK-111 auth integration', () => {
     const clearSession = vi.fn()
     const clearCache = vi.fn()
     const navigate = vi.fn()
-    const handler = createUnauthorizedHandler({ getReturnTo: () => '/pedidos', clearSession, clearCache, navigate })
+    const handler = createUnauthorizedHandler({
+      getReturnTo: () => '/pedidos',
+      clearPrivateSession: () => { clearSession(); clearCache() },
+      navigate,
+    })
     handler()
     handler()
     expect(clearSession).toHaveBeenCalledOnce()
@@ -131,7 +135,11 @@ describe('TASK-111 auth integration', () => {
     const clearCache = vi.fn()
     const navigate = vi.fn()
     const latch = { current: false }
-    const handler = createUnauthorizedHandler({ getReturnTo: () => '/pedidos', clearSession, clearCache, navigate }, latch)
+    const handler = createUnauthorizedHandler({
+      getReturnTo: () => '/pedidos',
+      clearPrivateSession: () => { clearSession(); clearCache() },
+      navigate,
+    }, latch)
     handler()
     handler()
     expect(clearSession).toHaveBeenCalledOnce()

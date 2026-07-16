@@ -27,9 +27,7 @@ export async function bootstrap(options: BootstrapOptions = {}) {
   try {
     await startMocking()
   } catch (error) {
-    const report = options.reportMockingFailure
-      ?? ((message: string, cause: unknown) => console.error(message, cause))
-    report('Falha ao iniciar MSW.', error)
+    options.reportMockingFailure?.('Falha ao iniciar MSW.', error)
   }
 
   const rootElement = (options.getRootElement

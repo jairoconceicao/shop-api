@@ -55,6 +55,18 @@ describe('bootstrap', () => {
     }
   })
 
+  it('does not log a mocking failure without an explicit reporter', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    await bootstrap({
+      enableMocking: () => Promise.reject(new Error('sensitive credentials')),
+      getRootElement: () => document.createElement('div'),
+      render: vi.fn(),
+    })
+
+    expect(consoleError).not.toHaveBeenCalled()
+  })
+
   it('rejects with the existing root error when #root is absent', async () => {
     await expect(bootstrap({
       enableMocking: () => Promise.resolve(),
