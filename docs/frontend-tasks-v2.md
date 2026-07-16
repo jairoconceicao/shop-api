@@ -638,8 +638,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Verificar request, efeito visível, cache e rota, executar testes focados, typecheck e lint e falhar diante de endpoint, método ou reconciliação incorretos.
   - Evidência: commits `6ec0d8e` e `272cb59`; integração auth 8/8 PASS, suite auth 64/64 PASS, consumidores App/cart/checkout 230/230 PASS e expiração ativa 1/1 PASS; typecheck/lint/diff-check PASS; review do range `09c47fb..272cb59` aprovada com 0 findings. Quatro warnings preexistentes de `act(...)` na suite de checkout estão fora do diff e não são bloqueantes.
 
-[ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
-  - Status: READY
+[x] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
+  - Status: DONE
   - Depends on: TASK-009, TASK-041, TASK-042, TASK-043, TASK-044, TASK-045, TASK-086, TASK-087, TASK-088, TASK-089, TASK-090, TASK-091, TASK-092, TASK-093, TASK-094, TASK-095, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -647,6 +647,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Apresentar `409` no campo ou resumo sem perder valores e mapear propriedades conhecidas e desconhecidas de `422` sem emitir sucesso.
     - Preencher o perfil por GET, confirmar alteração de CPF, enviar PUT completo e reconciliar o cache somente após resposta válida.
     - Verificar requests e efeitos visíveis e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `b12c096`, `aa4815c` e `93512ff`; integração e consumidores customer 50/50 PASS; typecheck/lint/diff-check PASS; review do range `aeed2db..93512ff` aprovada com 0 findings.
 
 [ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
   - Status: READY
