@@ -717,8 +717,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar a contagem exata dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits `d78bc3a`, `fe7ac0e`, `87e5aa2` e `56ce200`; contagens exatas `login=1`, `categories=1`, `product=2`, `cartCreate=1`, `cartAdd=1` e `cartGet=2`, com `register`, `profile` e `logout` iguais a zero; spec isolada com repetição 2/2 PASS e suíte Chromium com repetição 6/6 PASS; typecheck/lint/build/diff-check PASS; review do range `2745a4c..56ce200` aprovada sem findings CRITICAL ou IMPORTANT. Os dois GETs do carrinho correspondem à ativação do badge após `setCartId` e à reconciliação após adicionar o item, sem espera temporal.
 
-[ ] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
-  - Status: READY
+[x] TASK-119: Criar E2E de adicionar, alterar quantidade e remover item do carrinho.
+  - Status: DONE
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -726,9 +726,10 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Adicionar produto e confirmar badge e lista; alterar quantidade e confirmar subtotal e total.
     - Remover o item após confirmação e exibir carrinho vazio com badge zero.
     - Afirmar que cada request ocorre uma vez e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `292557b` e `0b38d98`, ajuste documental `314124e` e relatório `652839c`; range revisado `c461201..652839c` aprovado sem findings CRITICAL ou IMPORTANT. Contagens brutas `login=1`, `categories=3`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=4`, `cartUpdate=1` e `cartDelete=1`, com os demais ledgers iguais a zero; as três leituras de categorias correspondem às montagens do shell antes do redirect, após o login e na carga direta do produto. RED comportamental confirmado no PATCH inesperado; spec isolada 1/1, compatibilidade com visitante 2/2, repetição isolada 2/2, suíte Chromium 4/4 e repetição completa 8/8 PASS; typecheck/lint/build/diff-check PASS. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
 [ ] TASK-120: Criar E2E de carrinho, checkout e confirmação do pedido.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-119
   - Escopo: Frontend
   - Critérios de aceite:
