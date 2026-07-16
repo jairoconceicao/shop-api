@@ -26,8 +26,10 @@ export function useLogoutMutation() {
         && current?.clienteId === identity.clienteId
         && current.token === identity.token) {
         clearPrivateSession(queryClient, identity.clienteId)
+        navigate('/entrar', { replace: true })
+      } else if (!current) {
+        navigate('/entrar', { replace: true })
       }
-      navigate('/entrar', { replace: true })
     },
     retry: false,
   })
