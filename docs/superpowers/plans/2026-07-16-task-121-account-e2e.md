@@ -273,7 +273,14 @@ test('atualiza dados e troca a senha com confirmação e limpeza sensível', asy
   expect(authApi.requestCounts().passwordUpdate).toBe(0)
 
   await page.getByLabel('Nova senha').fill(firstNewPassword)
-  await expect(rules).toContainText('Atendida')
+  const satisfiedRules = rules.getByRole('listitem')
+  await expect(satisfiedRules).toHaveCount(4)
+  await expect(satisfiedRules).toHaveText([
+    /Mínimo de oito caracteres\s+Atendida/,
+    /Uma letra maiúscula\s+Atendida/,
+    /Um número\s+Atendida/,
+    /Um caractere especial entre !@#\$%\s+Atendida/,
+  ])
   await page.getByRole('button', { name: 'Alterar senha' }).click()
   await expect(page.getByRole('alert')).toContainText('Senha atual incorreta.')
   await expect(page.getByLabel('Senha atual')).toHaveValue(data.password)
@@ -296,6 +303,7 @@ test('atualiza dados e troca a senha com confirmação e limpeza sensível', asy
     profileUpdate: 1,
     passwordUpdate: 2,
   })
+  expect(authApi.requestCounts().passwordUpdate).toBe(2)
 })
 ```
 
@@ -388,6 +396,9 @@ if (url.pathname === `/api/v1/cliente/${data.customerId}/senha`) {
   if (registeredCustomer === null) {
     throw new Error('Password update requested before customer seed')
   }
+  if (passwordAttempts >= 2) {
+    throw new Error('Unexpected additional password update attempt')
+  }
 
   const body = readJson<UpdatePasswordRequest>(route)
   const expectedNewPassword =
@@ -427,7 +438,7 @@ if (url.pathname === `/api/v1/cliente/${data.customerId}/senha`) {
 }
 ```
 
-The handler rejects a missing/extra key through exact JSON comparison, never returns either password, mutates the stored password only on the accepted second attempt and rejects any third attempt because its body cannot match the second-attempt contract and the final count gate is two.
+The handler rejects a missing/extra key through exact JSON comparison, never returns either password, mutates the stored password only on the accepted second attempt and rejects any third attempt explicitly before reading or accepting another body. The journey also finishes with the exact assertion `passwordUpdate === 2`.
 
 - [ ] **Step 4: Replace the GET-only profile handler with method branches**
 
@@ -589,10 +600,10 @@ Expected: dialog contents, pre-confirmation zero count, success, backend snapsho
 Run:
 
 ```bash
-rg -n "Mínimo de oito caracteres|Uma letra maiúscula|Um número|Um caractere especial|passwordUpdate\\)\\.toBe\\(0\\)|Senha atual incorreta|Primeira@|Final@|Senha alterada com sucesso|toHaveValue\\(''\\)" frontend/e2e/account.spec.ts
+rg -n "Mínimo de oito caracteres|Uma letra maiúscula|Um número|Um caractere especial|toHaveCount\\(4\\)|toHaveText|passwordUpdate\\)\\.toBe\\(0\\)|passwordUpdate\\)\\.toBe\\(2\\)|Senha atual incorreta|Primeira@|Final@|Senha alterada com sucesso|toHaveValue\\(''\\)" frontend/e2e/account.spec.ts
 ```
 
-Expected: local no-request proof, first remote error, second success and cleanup of both password fields are present.
+Expected: local no-request proof, four exact satisfied list items, first remote error, second success, exact final count two and cleanup of both password fields are present.
 
 - [ ] **Step 4: Run twice**
 
@@ -682,7 +693,7 @@ Reviewer checklist:
 12. After `422`, current password remains and new password is empty.
 13. Second attempt sends the exact final body, succeeds and updates server password without exposing it.
 14. After success, both password fields are empty and the status is visible.
-15. Exactly two password PUTs occur; any third or divergent body fails.
+15. Exactly two password PUTs occur; the handler explicitly rejects `passwordAttempts >= 2` before reading a third body, and the spec ends with exact `passwordUpdate === 2`.
 16. Fixture reset clears profile, password, counters and attempt index after success or failure.
 17. Existing auth and checkout specs remain green.
 18. No product, ASP.NET backend or backlog file changed.
