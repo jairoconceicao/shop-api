@@ -31,7 +31,8 @@
 - Registration `422`: CPF/CEP field mapping plus unknown detail in the summary.
 - GET `/api/v1/cliente/7`: authenticated profile hydration.
 - PUT `/api/v1/cliente/7`: CPF confirmation, complete request ledger, old cache
-  while pending, and new cache only after response and refetch.
+  and zero PUTs before confirmation; exactly one PUT after confirmation, old
+  cache while pending, still one PUT and new cache after response and refetch.
 - Profile `409` and `422`: confirmed cache preserved and success suppressed.
 - Global MSW setup remains `server.listen({ onUnhandledRequest: 'error' })`.
 
@@ -58,3 +59,5 @@ Result: exit 0
 
 - `b12c096` — `test(TASK-112): Integrar cadastro e perfil com MSW`
 - Product/report commit: recorded after this report is staged.
+- Review correction: test commit records the explicit zero/one PUT boundary
+  around CPF confirmation and guards against duplicate submission.
