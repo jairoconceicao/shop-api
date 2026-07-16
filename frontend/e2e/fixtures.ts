@@ -14,14 +14,14 @@ type AuthFixtures = { authApi: AuthApi }
 
 const test = base.extend<AuthFixtures>({
   authApi: [
-    async ({ context }, use, testInfo) => {
+    async ({ context }, runTest, testInfo) => {
       await context.clearCookies()
 
       const authApi = await installAuthApi(context, testInfo)
       authApi.reset()
 
       try {
-        await use(authApi)
+        await runTest(authApi)
       } finally {
         try {
           authApi.assertRequestCounts()

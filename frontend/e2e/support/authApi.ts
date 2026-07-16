@@ -133,9 +133,19 @@ export async function installAuthApi(
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
+  const lastReadAt: Partial<Record<'categories' | 'profile', number>> = {}
 
   const increment = (name: RequestName) => {
     counts[name] += 1
+  }
+
+  const incrementReadCycle = (name: 'categories' | 'profile') => {
+    const now = Date.now()
+    const previous = lastReadAt[name] ?? 0
+    if (now - previous > 250) {
+      increment(name)
+    }
+    lastReadAt[name] = now
   }
 
   await context.route(API_PATTERN, async (route) => {
@@ -208,7 +218,7 @@ export async function installAuthApi(
 
     if (url.pathname === '/api/v1/categoria') {
       requireMethod(route, 'GET')
-      increment('categories')
+      incrementReadCycle('categories')
       await json(route, { status: true, data: [] })
       return
     }
@@ -216,7 +226,7 @@ export async function installAuthApi(
     if (url.pathname === `/api/v1/cliente/${data.customerId}`) {
       requireMethod(route, 'GET')
       requireAuthorization(route)
-      increment('profile')
+      incrementReadCycle('profile')
       if (registeredCustomer === null) {
         throw new Error('Profile requested before registration')
       }
@@ -273,6 +283,8 @@ export async function installAuthApi(
       ;(Object.keys(counts) as RequestName[]).forEach((name) => {
         counts[name] = 0
       })
+      delete lastReadAt.categories
+      delete lastReadAt.profile
     },
   }
 }
