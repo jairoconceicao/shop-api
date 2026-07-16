@@ -16,8 +16,20 @@ export function AuthSessionInitializer() {
       return
     }
 
-    const expiresIn = Date.parse(session.expiraEm) - Date.now()
-    const timeout = window.setTimeout(clearSession, expiresIn)
+    let timeout: number
+
+    const scheduleExpiration = () => {
+      const expiresIn = Date.parse(session.expiraEm) - Date.now()
+
+      if (expiresIn <= 0) {
+        clearSession()
+        return
+      }
+
+      timeout = window.setTimeout(scheduleExpiration, Math.min(expiresIn, 2_147_483_647))
+    }
+
+    scheduleExpiration()
 
     return () => window.clearTimeout(timeout)
   }, [clearSession, session])
