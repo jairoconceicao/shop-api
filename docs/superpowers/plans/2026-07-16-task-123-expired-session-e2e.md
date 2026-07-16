@@ -4,7 +4,7 @@
 
 **Goal:** Garantir que uma sessão restaurada já expirada ou que expire durante o uso nunca exponha rota privada, remova todo estado privado do cliente e permaneça bloqueada após voltar ou recarregar.
 
-**Architecture:** Manter `ProtectedRoute` como negação síncrona e mover os efeitos para uma rotina única de limpeza privada, parametrizada pela identidade capturada do cliente e pelo `QueryClient`. O inicializador de sessão chamará essa rotina tanto imediatamente após reidratação quanto no timeout; testes de integração provarão limpeza de memória e caches, enquanto Playwright provará as duas jornadas reais e o histórico de navegação.
+**Architecture:** Manter `ProtectedRoute` como negação síncrona por `isAuthSessionExpired` e mover somente os efeitos dos dois caminhos de expiração para uma rotina de limpeza privada. Na reidratação, o auth store captura atomicamente uma identidade transitória e não persistida antes de anular a sessão; o inicializador consome essa identidade depois de limpar carrinho, caches e snapshots. Logout, `401` e cancelamento de conta permanecem em seus fluxos atuais.
 
 **Tech Stack:** React 19, React Router 7, Zustand 5, TanStack Query 5, Vitest/Testing Library/MSW e Playwright 1.61.
 
@@ -19,6 +19,7 @@
 - Voltar ou recarregar não pode reabrir conteúdo privado.
 - Calibrar as contagens E2E observando o RED; não copiar contagens de outra spec.
 - Não ampliar, refatorar ou mudar a semântica global de respostas `401`; a TASK-111 continua dona desse comportamento.
+- Centralizar somente expiração restaurada e expiração por relógio; logout, `401` e cancelamento de conta continuam próprios.
 
 ---
 
@@ -26,10 +27,11 @@
 
 - Create: `frontend/src/features/auth/session/clearPrivateSession.ts` — rotina única e idempotente de limpeza por cliente.
 - Create: `frontend/src/features/auth/session/clearPrivateSession.test.ts` — prova auth, cart, query/mutation cache e snapshots.
+- Modify: `frontend/src/features/auth/store/authStore.ts` — preserva transitoriamente a identidade da sessão expirada sem persistir nem autorizar acesso.
+- Modify: `frontend/src/features/auth/store/authStore.test.ts` — prova a corrida de reidratação, captura e consumo da identidade.
 - Modify: `frontend/src/features/auth/store/AuthSessionInitializer.tsx` — captura a sessão e dispara limpeza completa na expiração imediata ou agendada.
 - Create: `frontend/src/features/auth/store/AuthSessionInitializer.test.tsx` — relógio controlado e expiração durante uso.
 - Modify: `frontend/src/features/auth/routing/ProtectedRoute.test.tsx` — reforça a negação síncrona sem flash de conteúdo.
-- Modify: `frontend/src/app/providers/AppProviders.tsx` — entrega o `QueryClient` necessário ao inicializador sem criar cliente paralelo.
 - Create: `frontend/e2e/expired-session.spec.ts` — duas jornadas E2E independentes.
 - Modify: `frontend/e2e/support/authApi.ts` — somente se o RED demonstrar necessidade de expiração configurável ou inspeção determinística adicional; preservar falha estrita para request inesperado.
 - Modify: `docs/frontend-tasks-v2.md` — somente após aprovação, para evidência e status `DONE`.
@@ -56,8 +58,8 @@ useAuthStore.getState().setSession(sessionForCustomer7, 'local')
 sessionStorage.setItem(AUTH_STORE_KEY, 'stale-session-copy')
 useCartSessionStore.getState().setCartId(7, 70)
 useCartSessionStore.getState().setCartId(8, 80)
-queryClient.setQueryData(['private', 'profile', 7], { cpf: '12345678901' })
-// Construir query com meta.private=true e mutation com meta.private=true.
+// Construir uma query privada e outra pública, ambas com dados.
+// Construir uma mutation privada e outra pública, com meta explícita.
 registerCustomerPrivateSnapshot(7, clearCustomerSnapshot)
 
 clearPrivateSession(queryClient, 7)
@@ -69,11 +71,12 @@ expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
 expect(useCartSessionStore.getState().getCartId(8)).toBe(80)
 expect(localStorage.getItem(CART_SESSION_STORE_KEY)).not.toContain('"7":70')
 expect(queryClient.getQueryData(['private', 'profile', 7])).toBeUndefined()
-expect(queryClient.getMutationCache().getAll()).toHaveLength(0)
+expect(queryClient.getMutationCache().find({ mutationKey: ['private', 'save', 7] })).toBeUndefined()
+expect(queryClient.getMutationCache().find({ mutationKey: ['public', 'newsletter'] })).toBeDefined()
 expect(clearCustomerSnapshot).toHaveBeenCalledOnce()
 ```
 
-Marcar explicitamente query e mutation com `meta: { private: true }` e adicionar dados públicos para provar que a rotina não apaga cache público.
+Marcar explicitamente query e mutation privadas com `meta: { private: true }`; a query e mutation públicas devem usar `meta: { private: false }` e sobreviver.
 
 - [ ] **Step 2: Executar o RED**
 
@@ -124,20 +127,65 @@ git commit -m "test(TASK-123): Centralizar limpeza da sessão privada"
 ### Task 2: Aplicar a limpeza à expiração imediata e por relógio
 
 **Files:**
+- Modify: `frontend/src/features/auth/store/authStore.test.ts`
+- Modify: `frontend/src/features/auth/store/authStore.ts`
 - Create: `frontend/src/features/auth/store/AuthSessionInitializer.test.tsx`
 - Modify: `frontend/src/features/auth/store/AuthSessionInitializer.tsx`
-- Modify: `frontend/src/app/providers/AppProviders.tsx`
 - Modify: `frontend/src/features/auth/routing/ProtectedRoute.test.tsx`
 
 **Interfaces:**
 - Consumes: `clearPrivateSession(queryClient, customerId)` da Task 1 e o `QueryClient` já criado em `frontend/src/shared/query/queryClient.ts`.
-- Produces: `AuthSessionInitializer` que limpa uma identidade capturada uma única vez na expiração e `ProtectedRoute` que continua negando a rota no mesmo render.
+- Produces: `expiredSessionIdentity: { clienteId: number } | null` não persistida no `AuthState`, `consumeExpiredSessionIdentity(): { clienteId: number } | null`, inicializador que consome a identidade uma única vez e guard que nega no mesmo render.
 
-- [ ] **Step 1: Escrever RED para sessão já expirada**
+- [ ] **Step 1: Escrever RED para a corrida da reidratação**
 
-Renderizar os providers reais com relógio fixo, auth expirada persistida nos dois storages, carrinho do cliente, query/mutation privadas e snapshot registrado. A primeira asserção de UI deve provar que o heading privado nunca aparece e que `/entrar` recebe `returnTo: '/pedidos?status=criado#pedido'`; em seguida aguardar a remoção de todas as camadas privadas.
+Em `authStore.test.ts`, persistir sessão expirada do cliente 20 e reidratar. Provar simultaneamente:
 
-- [ ] **Step 2: Escrever RED para sessão que expira durante uso**
+```ts
+expect(useAuthStore.getState().session).toBeNull()
+expect(useAuthStore.getState().expiredSessionIdentity).toEqual({ clienteId: 20 })
+expect(localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+expect(useAuthStore.getState().consumeExpiredSessionIdentity()).toEqual({ clienteId: 20 })
+expect(useAuthStore.getState().consumeExpiredSessionIdentity()).toBeNull()
+```
+
+Também provar que `partialize` não grava `expiredSessionIdentity`. Este RED deve falhar porque o store atual descarta a identidade.
+
+- [ ] **Step 2: Executar o RED da corrida**
+
+```powershell
+npx vitest run src/features/auth/store/authStore.test.ts
+```
+
+Expected: FAIL na identidade ausente, enquanto `session === null` confirma que o guard não foi relaxado.
+
+- [ ] **Step 3: Implementar a captura transitória mínima**
+
+Em `invalidateExpiredSession(now)`, ler a sessão uma vez e, quando expirada, fazer uma única atualização de estado que produza:
+
+```ts
+{
+  session: null,
+  persistence: 'session',
+  expiredSessionIdentity: { clienteId: session.clienteId },
+}
+```
+
+Depois remover `AUTH_STORE_KEY` dos dois storages. `consumeExpiredSessionIdentity()` deve retornar a identidade corrente e anulá-la atomicamente. `setSession()` deve zerar qualquer identidade antiga. Manter `partialize` restrito a `{ session, persistence }`.
+
+- [ ] **Step 4: Executar o GREEN do store**
+
+```powershell
+npx vitest run src/features/auth/store/authStore.test.ts
+```
+
+Expected: PASS; sessão expirada nunca permanece autenticada e a identidade existe somente até o consumo.
+
+- [ ] **Step 5: Escrever RED de integração para sessão já expirada**
+
+Renderizar com relógio fixo, auth expirada persistida, carrinho, caches e snapshot. A primeira asserção de UI deve provar que o heading privado nunca monta e `/entrar` recebe `returnTo: '/pedidos?status=criado#pedido'`; depois aguardar limpeza completa. Esse teste reproduz a corrida: `ProtectedRoute` nega com a sessão expirada/nula enquanto o effect consome `expiredSessionIdentity`.
+
+- [ ] **Step 6: Escrever RED para sessão que expira durante uso**
 
 Com `vi.useFakeTimers({ shouldAdvanceTime: true })`, iniciar uma sessão válida que expira em cinco segundos, renderizar conteúdo privado, avançar `5_001 ms` e afirmar:
 
@@ -148,7 +196,7 @@ expect(screen.getByText('/entrar|/pedidos?status=criado#pedido')).toBeInTheDocum
 
 Depois provar a mesma limpeza completa da Task 1.
 
-- [ ] **Step 3: Executar os REDs**
+- [ ] **Step 7: Executar os REDs do inicializador**
 
 Run:
 
@@ -158,17 +206,15 @@ npx vitest run src/features/auth/store/AuthSessionInitializer.test.tsx src/featu
 
 Expected: pelo menos o teste de limpeza completa FAIL, pois o inicializador atual chama apenas `clearSession()`.
 
-- [ ] **Step 4: Injetar o cliente existente e limpar pela identidade capturada**
+- [ ] **Step 8: Consumir a identidade e limpar**
 
-Alterar `AuthSessionInitializer` para obter o `QueryClient` por `useQueryClient()`. Em ambos os ramos de expiração, capturar `const customerId = session.clienteId` e chamar `clearPrivateSession(queryClient, customerId)`. Manter o timeout máximo de `2_147_483_647`, cancelar no cleanup do effect e não adicionar efeitos ao `ProtectedRoute`.
+Alterar `AuthSessionInitializer` para obter o cliente existente por `useQueryClient()`. Quando `expiredSessionIdentity` estiver presente, consumir uma vez e chamar `clearPrivateSession(queryClient, clienteId)`. Para sessão ativa que alcance o timeout, chamar primeiro `invalidateExpiredSession(expiration)`; a atualização captura a identidade e o effect seguinte a consome. Manter timeout máximo, cancelamento no cleanup e nenhum efeito no `ProtectedRoute`.
 
-Em `AppProviders`, manter exatamente um `QueryClientProvider`; não instanciar cliente novo por render.
-
-- [ ] **Step 5: Reforçar o guard síncrono**
+- [ ] **Step 9: Reforçar o guard síncrono**
 
 No teste existente de `ProtectedRoute`, usar um elemento privado com spy/efeito e provar que uma sessão já expirada resulta diretamente no destino de login sem montar o conteúdo protegido. Preservar pathname, search e hash internos; não aceitar URL externa como origem.
 
-- [ ] **Step 6: Executar GREEN e regressões de autenticação**
+- [ ] **Step 10: Executar GREEN e regressões de autenticação**
 
 Run:
 
@@ -178,15 +224,15 @@ npx vitest run src/features/auth/store/AuthSessionInitializer.test.tsx src/featu
 
 Expected: todos PASS, inclusive os testes de `401` existentes sem alteração de semântica.
 
-- [ ] **Step 7: Refatorar sem mudar comportamento**
+- [ ] **Step 11: Refatorar sem mudar comportamento**
 
-Remover setup duplicado dos testes com factories locais para sessão, cache e storages. Não mover o tratamento de `401` para a nova rotina nesta task.
+Remover setup duplicado. Não mover logout, `401` ou cancelamento de conta para a rotina nova.
 
-- [ ] **Step 8: Reexecutar após refactor e commit**
+- [ ] **Step 12: Reexecutar após refactor e commit**
 
 ```powershell
 npx vitest run src/features/auth/store/AuthSessionInitializer.test.tsx src/features/auth/routing/ProtectedRoute.test.tsx src/features/auth/auth.integration.test.tsx
-git add frontend/src/features/auth frontend/src/app/providers/AppProviders.tsx
+git add frontend/src/features/auth
 git commit -m "fix(TASK-123): Invalidar estado privado ao expirar sessão"
 ```
 
@@ -196,11 +242,11 @@ Expected: testes PASS antes do commit.
 
 **Files:**
 - Create: `frontend/e2e/expired-session.spec.ts`
-- Modify if required by observed RED: `frontend/e2e/support/authApi.ts`
+- Modify: `frontend/e2e/support/authApi.ts`
 
 **Interfaces:**
 - Consumes: fixture `test/expect`, `authApi.seedCustomer()`, `authApi.expectRequestCounts()` e relógio Playwright.
-- Produces: dois testes independentes que calibram contagens exatas e não dependem de ordem.
+- Produces: `authApi.setLoginExpirations(expirations: string[]): void` e dois testes independentes.
 
 - [ ] **Step 1: Escrever helper local para semear estado**
 
@@ -228,14 +274,15 @@ Antes da navegação, fixar o relógio com `page.clock.install({ time: new Date(
 - `sessionStorage['shop-api:auth'] === null`;
 - `shop-api:cart-session` não contém a associação do cliente;
 - URL `/entrar`;
-- após autenticar, o destino é exatamente `/pedidos?status=criado#pedido`, demonstrando retorno interno seguro;
-- após nova expiração/limpeza, `page.goBack()` e `page.reload()` continuam sem conteúdo privado.
+- antes de autenticar, configurar `authApi.setLoginExpirations([expirationAfterLogin])`, com vencimento poucos segundos no futuro;
+- após autenticar, o destino é exatamente `/pedidos?status=criado#pedido`;
+- avançar o clock além desse vencimento, aguardar nova limpeza e só então executar `page.goBack()` e `page.reload()`.
 
 Não use URL externa como estado semeado; o retorno nasce da localização interna atual.
 
 - [ ] **Step 3: Escrever o cenário RED “expira durante uso”**
 
-Semear sessão válida por poucos segundos, abrir `/pedidos`, aguardar o heading e os requests privados iniciais, avançar o relógio além de `expiraEm` com `page.clock.fastForward()`, afirmar redirecionamento e limpeza completa dos storages. Executar `goBack()` e `reload()` e confirmar novamente login, ausência de heading/card privado e ausência de novos requests privados.
+Configurar `authApi.setLoginExpirations([expirationAfterFirstLogin, expirationAfterSecondLogin])`. Fazer o primeiro login, abrir `/pedidos`, aguardar heading/requests e avançar além do primeiro vencimento. No login exibido, autenticar uma segunda vez; confirmar retorno a `/pedidos` e sessão válida com o segundo vencimento. Avançar além do segundo vencimento, aguardar limpeza e somente então executar `goBack()` e `reload()`, confirmando login, ausência de conteúdo e ausência de novos requests privados.
 
 - [ ] **Step 4: Executar RED isolado e registrar contagens observadas**
 
@@ -250,7 +297,7 @@ Expected: FAIL pela lacuna de limpeza antes do GREEN. Registrar no relatório de
 
 - [ ] **Step 5: Calibrar o ledger sem afrouxar o mock**
 
-Definir `authApi.expectRequestCounts({...})` separadamente em cada teste usando somente os valores observados no RED/GREEN. Se for necessário variar `expiraEm` do login, adicionar a menor API explícita em `AuthApi`; não aceitar curingas, não remover `assertRequestCounts()` e não permitir rota inesperada.
+Adicionar `setLoginExpirations(expirations)` ao fixture: quando configurado, cada POST `/auth/login` consome exatamente o próximo ISO; login excedente falha e `assertRequestCounts()` falha se restar vencimento não consumido. Quando não configurado, preservar o vencimento padrão `2099-12-31T23:59:59-03:00` para não alterar specs existentes. `reset()` limpa a fila. Definir ledgers separados com valores observados; não aceitar curingas nem rota inesperada.
 
 - [ ] **Step 6: Executar GREEN e repetição anti-flake**
 
@@ -330,7 +377,7 @@ Em `.superpowers/task-123-implementation-report.md`, registrar:
 - resultados de typecheck, lint, testes e build;
 - confirmação de limpeza dos dois auth storages, cart association/storage, query cache, mutation cache e snapshots;
 - confirmação de `ProtectedRoute` síncrono, returnTo interno, back/reload;
-- decisão explícita: tratamento de `401` não foi ampliado.
+- decisão explícita: somente expirações foram centralizadas; logout, `401` e cancelamento continuam próprios.
 
 - [ ] **Step 4: Commit do relatório**
 
@@ -362,4 +409,4 @@ Expected: diff-check limpo e worktree sem mudanças.
 - Escopo: nenhum passo altera backend ou amplia o tratamento de `401`.
 - TDD: cada mudança de produção é precedida por RED executado e seguida por GREEN/refactor.
 - Placeholders: as únicas variações condicionais são baseadas em evidência do RED; nenhuma etapa permite enfraquecer mocks ou omitir contagens.
-- Consistência: a única interface nova é `clearPrivateSession(queryClient, customerId)` e todos os consumidores usam essa assinatura.
+- Consistência: as interfaces novas são `clearPrivateSession(queryClient, customerId)`, identidade transitória/consumo no auth store e `setLoginExpirations(string[])`.
