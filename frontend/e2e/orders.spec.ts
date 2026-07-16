@@ -8,14 +8,14 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
 
   authApi.seedCustomer()
   authApi.expectRequestCounts({
-    login: 1,
-    categories: 3,
+    login: 2,
+    categories: 5,
     catalog: 1,
     profile: 1,
     ordersList: 2,
-    orderDetail: 3,
+    orderDetail: 4,
     product: 1,
-    orderProduct: 2,
+    orderProduct: 3,
     orderCancel: 1,
   })
 
@@ -120,6 +120,40 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
     .poll(() => authApi.requestCounts())
     .toMatchObject({ orderDetail: 2, orderCancel: 1 })
 
+  await page
+    .getByRole('link', { name: data.product.title })
+    .first()
+    .click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: data.product.title }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(
+    page.getByRole('heading', { level: 1, name: data.product.title }),
+  ).toBeVisible()
+  await expect.poll(() => authApi.requestCounts()).toMatchObject({
+    categories: 2,
+    product: 1,
+    orderProduct: 1,
+  })
+
+  await page.goto(`/pedidos/${data.orderId}`)
+  await expect(page).toHaveURL('/entrar')
+  await page.getByLabel('E-mail').fill(data.email)
+  await page.getByLabel('Senha').fill(data.password)
+  await page.getByRole('checkbox', { name: 'Manter conectado' }).check()
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await expect(page).toHaveURL(`/pedidos/${data.orderId}`)
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: `Pedido ${data.orderId}`,
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: data.product.title }),
+  ).toHaveCount(2)
+
   await page.reload()
   await expect(page).toHaveURL(`/pedidos/${data.orderId}`)
   await expect(
@@ -138,18 +172,10 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
   ).toHaveCount(2)
   await expect.poll(() => authApi.requestCounts()).toMatchObject({
     ordersList: 2,
-    orderDetail: 3,
-    orderProduct: 2,
+    orderDetail: 4,
+    orderProduct: 3,
     orderCancel: 1,
-  })
-
-  await page.goto(`/produtos/${data.product.id}`)
-  await expect(
-    page.getByRole('heading', { level: 1, name: data.product.title }),
-  ).toBeVisible()
-  await expect.poll(() => authApi.requestCounts()).toMatchObject({
-    categories: 3,
+    categories: 5,
     product: 1,
-    orderProduct: 2,
   })
 })

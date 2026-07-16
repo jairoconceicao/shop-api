@@ -54,15 +54,17 @@ A exploração confirmou ledgers dedicados para:
 
 ```text
 ordersList=2
-orderDetail=3
-orderProduct=2
+orderDetail=4
+product=1
+orderProduct=3
 orderCancel=1
 ```
 
 Os demais valores deveriam continuar literais e ser ajustados apenas a partir
-do tráfego observado. A navegação SPA evita uma remontagem artificial do shell;
-por isso a jornada funcional usa duas leituras de categorias antes de uma
-posterior navegação fria para produto comum adicionada na correção de revisão.
+do tráfego observado. A implementação final registra `login=2` e
+`categories=5`, pois a prova de revisão inclui uma carga fria do produto comum,
+uma tentativa protegida de retorno ao detalhe, novo login pela UI e o reload
+final do detalhe.
 
 ## Resultado
 

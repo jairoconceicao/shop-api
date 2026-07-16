@@ -443,10 +443,12 @@ export async function installAuthApi(
           `Expected empty product body, received ${request.postData()}`,
         )
       }
-      if (pendingOrderProduct) {
+      const framePath = new URL(request.frame().url()).pathname
+      if (pendingOrderProduct && framePath.startsWith('/pedidos/')) {
         pendingOrderProduct = false
         increment('orderProduct')
       } else {
+        pendingOrderProduct = false
         increment('product')
       }
       await json(route, {

@@ -21,19 +21,21 @@
    existente aceitava apenas `POST`.
 3. Foram adicionados fixtures determinísticos, quatro ledgers e handlers
    estritos para lista, detalhe, produto do pedido e cancelamento recusado.
-4. A navegação para a lista passou a usar o menu semântico da SPA. Isso evita
-   uma remontagem artificial do shell e estabiliza `categories=2`: home após
-   login e reload do detalhe.
-5. O `Referer` do fetch não representou de forma confiável a rota corrente da
-   SPA. O ledger `orderProduct` é classificado após a leitura confirmada do
-   detalhe, mantendo as jornadas anteriores no ledger `product`.
+4. A navegação para a lista usa o menu semântico da SPA.
+5. O primeiro marcador consumível ainda deixava contexto pendente quando o
+   refetch após `422` reutilizava o produto em cache. O RED incremental navegou
+   para o produto comum antes do reload e observou `product=0/orderProduct=2`.
+6. A correlação final combina o marcador armado pelo GET do detalhe com a URL
+   corrente do frame. Em `/pedidos/:id`, a primeira hidratação conta como
+   `orderProduct`; depois de navegar para `/produtos/:id`, o marcador é
+   consumido como `product`.
 6. O GREEN focado passou com contagens exatas:
 
 ```text
-register=0 login=1 categories=3 catalog=1 profile=1 profileUpdate=0
+register=0 login=2 categories=5 catalog=1 profile=1 profileUpdate=0
 passwordUpdate=0 logout=0 product=1 cartCreate=0 cartAdd=0 cartGet=0
-cartUpdate=0 cartDelete=0 orderCreate=0 ordersList=2 orderDetail=3
-orderProduct=2 orderCancel=1
+cartUpdate=0 cartDelete=0 orderCreate=0 ordersList=2 orderDetail=4
+orderProduct=3 orderCancel=1
 ```
 
 ## Evidência funcional
