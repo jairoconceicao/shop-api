@@ -45,14 +45,14 @@ public class Usuario
     {
         if (string.IsNullOrWhiteSpace(senhaHash))
         {
-            return Result.Failure("Senha invalida.", new[]
-            {
+            return Result.Failure("Senha invalida.",
+            [
                 new Notification("USUARIO_SENHA_OBRIGATORIA", "Senha e obrigatoria.", nameof(SenhaHash))
-            });
+            ]);
         }
 
         SenhaHash = senhaHash;
-        AtualizadoEm = DateTime.Now;
+        AtualizadoEm = DateTime.UtcNow;
         return Result.Success("Senha atualizada com sucesso.");
     }
 }
