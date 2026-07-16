@@ -739,8 +739,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Afirmar requests e estados finais e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
   - Evidência: commits funcionais `8826f4c` e `2f33090`, documentação `634fa8a`, correção `b72e9ee` e estabilização `2a63572`; contagens brutas estáveis `register=0`, `login=1`, `categories=2`, `catalog=1`, `profile=1`, `logout=0`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `cartUpdate=0`, `cartDelete=0` e `orderCreate=1`. RED original confirmado no POST inesperado de `/api/v1/pedido`; a task foi reaberta quando `--repeat-each=20` reproduziu 5/20 falhas (`categories` 2/3) causadas pela corrida entre a consulta do `StoreLayout` e o redirect do `ProtectedRoute` ao iniciar por `/carrinho`. A jornada passou a iniciar diretamente em `/entrar`, aguardar as consultas paralelas e estritamente validadas de categorias e catálogo da home, confirmar `/` após login e carregar o produto integralmente, removendo a requisição cancelável sem relaxar as contagens exatas. Estabilização focada 20/20 PASS, suíte Chromium atual repetida 12/12 PASS e typecheck/lint/build/diff-check PASS; TASK-120 permanece `DONE`. O build manteve apenas o warning preexistente de chunk acima de 500 kB.
 
-[ ] TASK-121: Criar E2E de edição de dados e troca de senha.
-  - Status: READY
+[x] TASK-121: Criar E2E de edição de dados e troca de senha.
+  - Status: DONE
   - Depends on: TASK-010, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117
   - Escopo: Frontend
   - Critérios de aceite:
@@ -748,6 +748,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Editar e salvar o perfil, exigindo confirmação para alteração de CPF e confirmando os dados salvos após refresh.
     - Exibir regras, erros e sucesso da troca de senha e limpar valores sensíveis após a tentativa concluída.
     - Afirmar a contagem dos requests e executar a spec isolada e a suíte E2E Chromium sem dependência de ordem.
+  - Evidência: commits funcionais `ed6f75d` e `a3a7114` e relatório `d8dfaa8`; range revisado `9838c65..d8dfaa8` aprovado sem findings CRITICAL ou IMPORTANT após a resolução do blocker da TASK-120. A jornada da conta executou 20/20 PASS, a suíte Chromium completa 12/12 PASS e typecheck/lint/build/diff-check PASS.
 
 [ ] TASK-122: Criar E2E de consulta, detalhe e tentativa de cancelamento de pedido.
   - Status: READY
