@@ -17,7 +17,8 @@
 - Executar exatamente um comando por vez e interromper no primeiro exit code diferente de zero.
 - E2E deve executar com `CI=true`.
 - Não criar listener de `unhandledRejection`, console, page error ou runner.
-- Falha reabre a task dona; TASK-130 não altera produto, teste ou configuração.
+- Falha funcional comprovada reabre a task dona; falha ambiental, de
+  infraestrutura ou do executor não reabre task funcional.
 - Não restaurar mudanças exceto CRLF/EOL semântico-zero de `frontend/public/mockServiceWorker.js`, comprovado antes.
 - Backlog só muda depois da revisão independente aprovada.
 
@@ -86,7 +87,15 @@ git -C $gateWorktree status --short
 ```
 
 Expected: HEAD exatamente `$targetCommit`, entrada exata para
-`$gateWorktree`, checkout detached e status vazio.
+`$gateWorktree`, checkout detached e status vazio. A partir do sucesso de
+`git worktree add`, envolver todas as Tasks 2–4 em um `try/finally` externo; o
+`finally` da Task 4 é obrigatório tanto em sucesso quanto em falha.
+
+```powershell
+try {
+  # Executar integralmente as Tasks 2 e 3 e a classificação da Task 4.
+  # O bloco finally correspondente está definido na Task 4, Step 2.
+```
 
 ### Task 2: Executar os seis comandos obrigatórios
 
@@ -105,7 +114,7 @@ Expected: HEAD exatamente `$targetCommit`, entrada exata para
 ```powershell
 $frontend = Join-Path $gateWorktree 'frontend'
 $summary = Join-Path $logRoot 'summary.tsv'
-"step`tcommand`tstartedUtc`tdurationMs`texitCode`tgitStatus" |
+"step`tcommand`tstartedUtc`tdurationMs`texitCode`tstatusBeforeNormalization`tfinalGitStatus" |
   Set-Content -LiteralPath $summary -Encoding utf8
 
 function Invoke-GateStep {
@@ -134,10 +143,8 @@ function Invoke-GateStep {
     }
   }
 
-  $statusLines = @(git -C $gateWorktree status --short)
-  $statusText = ($statusLines -join ' | ')
-  "$Number`t$Name`t$($started.ToString('O'))`t$($watch.ElapsedMilliseconds)`t$exitCode`t$statusText" |
-    Add-Content -LiteralPath $summary -Encoding utf8
+  $statusBeforeNormalization = @(git -C $gateWorktree status --short)
+  $statusLines = $statusBeforeNormalization
 
   if ($statusLines.Count -gt 0 -and
       $statusLines.Count -eq 1 -and
@@ -150,13 +157,20 @@ function Invoke-GateStep {
     $statusLines = @(git -C $gateWorktree status --short)
   }
 
+  $beforeText = ($statusBeforeNormalization -join ' | ')
+  $finalText = ($statusLines -join ' | ')
+  "$Number`t$Name`t$($started.ToString('O'))`t$($watch.ElapsedMilliseconds)`t$exitCode`t$beforeText`t$finalText" |
+    Add-Content -LiteralPath $summary -Encoding utf8
+
   if ($exitCode -ne 0) { throw "Gate $Name falhou com exit $exitCode" }
   if ($statusLines.Count -ne 0) { throw "Gate $Name sujou checkout: $($statusLines -join ', ')" }
 }
 ```
 
-Expected: a função preserva log integral, stopwatch, exit code e status. Ela
-restaura somente EOL semântico-zero do worker; qualquer outra mudança falha.
+Expected: a função preserva log integral, stopwatch, exit code,
+`statusBeforeNormalization` e `finalGitStatus`; o resumo usa o status final.
+Ela restaura somente EOL semântico-zero do worker; qualquer outra mudança
+falha.
 
 - [ ] **Step 2: Executar a sequência exata**
 
@@ -178,19 +192,21 @@ Expected: `npm ci`, typecheck, lint, Vitest, Playwright e build, nessa ordem,
 todos exit 0; E2E mostra o total Chromium aprovado e usa `CI=true`. O executor
 não alcança o próximo passo depois de falha.
 
-- [ ] **Step 3: Auditar erros reportados pelos runners**
+- [ ] **Step 3: Registrar sinais reportados pelos runners**
 
 ```powershell
 $runnerPatterns = 'Unhandled Errors|Unhandled Rejection|Test runner error|Worker process exited unexpectedly'
-$runnerHits = rg -n -i $runnerPatterns `
+$runnerSignalLog = Join-Path $logRoot 'runner-signals.log'
+rg -n -i $runnerPatterns `
   (Join-Path $logRoot '04-vitest.log') `
-  (Join-Path $logRoot '05-playwright.log')
-if ($LASTEXITCODE -eq 0) { throw "Runner reportou erro não tratado: $runnerHits" }
-if ($LASTEXITCODE -ne 1) { throw "Falha ao auditar logs dos runners" }
+  (Join-Path $logRoot '05-playwright.log') *>&1 |
+  Set-Content -LiteralPath $runnerSignalLog
+if ($LASTEXITCODE -gt 1) { throw "Falha ao inspecionar logs dos runners" }
 ```
 
-Expected: `rg` exit 1, sem assinaturas. Não adicionar listeners: Vitest,
-Playwright, seus exit codes e logs integrais são a fonte de verdade.
+Expected: o arquivo registra zero ou mais sinais para revisão. Substrings não
+reprovam o gate sozinhas; exit codes e resumos estruturados dos runners são a
+decisão automática. Não adicionar listeners.
 
 ### Task 3: Executar auditorias adicionais e integridade final
 
@@ -218,24 +234,33 @@ try {
 Expected: exit 0; grafo confirma entry abaixo de 500 kB e seis rotas lazy;
 auditor privado e self-test aprovados.
 
-- [ ] **Step 2: Rejeitar testes focados ou ignorados**
+- [ ] **Step 2: Rejeitar modifiers incondicionais e revisar condicionais**
 
 ```powershell
 $focusLog = Join-Path $logRoot '09-focused-or-skipped-tests.log'
-$testModifiers = rg -n `
+$unconditional = rg -n `
   --glob '!node_modules/**' `
   --glob '!dist/**' `
   --glob '!playwright-report/**' `
   --glob '!test-results/**' `
-  '\b(?:test|it|describe)\.(?:only|skip)\s*\(' `
+  '\b(?:test|it|describe)\.only\s*\(|\b(?:test|it|describe)\.skip\s*\(\s*[''"]' `
   $frontend 2>&1 | Tee-Object -FilePath $focusLog
 $focusExit = $LASTEXITCODE
-if ($focusExit -eq 0) { throw "Existem testes .only/.skip: $testModifiers" }
+if ($focusExit -eq 0) { throw "Existem modifiers incondicionais: $unconditional" }
 if ($focusExit -ne 1) { throw "Busca de .only/.skip falhou com exit $focusExit" }
+
+$conditionalLog = Join-Path $logRoot '09b-conditional-skips.log'
+rg -n `
+  --glob '!node_modules/**' `
+  --glob '!dist/**' `
+  '\b(?:test|it|describe)\.skip\s*\(' `
+  $frontend 2>&1 | Set-Content -LiteralPath $conditionalLog
+if ($LASTEXITCODE -gt 1) { throw "Inventário de skips condicionais falhou" }
 ```
 
-Expected: exit 1 do `rg`, significando zero ocorrências. Comentários e docs não
-entram como exceção: qualquer chamada real ou textual deve ser revisada.
+Expected: nenhuma chamada incondicional. O segundo arquivo é inventário para
+revisão manual: cada ocorrência condicional recebe justificativa explícita;
+regex textual não decide sozinha quando a assinatura recebe uma condição.
 
 - [ ] **Step 3: Validar diff e status**
 
@@ -266,39 +291,77 @@ Expected: diff-check sem saída, status vazio e HEAD igual ao alvo.
 
 - [ ] **Step 1: Aplicar a política de falha**
 
-Se qualquer passo falhar, não editar frontend. Registrar no relatório:
+Se qualquer passo falhar, não editar frontend. Primeiro classificar como
+`environment`, `infrastructure`, `executor` ou `functional`; ownership
+funcional só pode ser atribuído após reprodução e evidência. Registrar:
 
 ```text
 targetCommit=<SHA>
 failedStep=<número e comando>
 exitCode=<código>
-ownerTask=<TASK-ID identificada pelo arquivo/feature>
+classification=<environment|infrastructure|executor|functional>
+ownerTask=<TASK-ID somente se functional comprovada; caso contrário none>
 log=<caminho absoluto>
-decision=TASK-130 BLOCKED; reabrir ownerTask; repetir gate completo após correção aprovada
+decision=<bloquear TASK-130 e corrigir ambiente/infra/executor, ou reabrir ownerTask functional>; repetir gate completo
 ```
 
-Expected: a task dona volta a não concluída por commit administrativo do
-orquestrador; a correção segue o workflow explorador → implementador → revisor.
-O gate inteiro recomeça em novo detached, desde `npm ci`.
+Expected: environment/infrastructure/executor mantêm TASK-130 não concluída ou
+bloqueada e corrigem o procedimento sem reabrir task funcional. Somente falha
+functional reproduzida reabre a task dona; a correção segue explorador →
+implementador → revisor. O gate inteiro recomeça desde `npm ci`.
 
-- [ ] **Step 2: Fazer cleanup seguro do worktree**
+- [ ] **Step 2: Capturar evidência e limpar no `finally` externo**
 
 ```powershell
-$listed = git worktree list --porcelain
-$escaped = [regex]::Escape(($gateWorktree -replace '\\','/'))
-if ($listed -notmatch "(?m)^worktree $escaped$") {
-  throw "Worktree temporário não está listado; cleanup abortado"
+finally {
+  $captureSucceeded = $false
+  try {
+    git -C $gateWorktree rev-parse HEAD *>&1 |
+      Set-Content -LiteralPath (Join-Path $logRoot 'final-head.log')
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar HEAD" }
+    git -C $gateWorktree status --short *>&1 |
+      Set-Content -LiteralPath (Join-Path $logRoot 'final-status.log')
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar status" }
+    git -C $gateWorktree diff --binary *>&1 |
+      Set-Content -LiteralPath (Join-Path $logRoot 'failure-or-final.patch')
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar patch" }
+    git -C $gateWorktree diff --name-status *>&1 |
+      Set-Content -LiteralPath (Join-Path $logRoot 'final-name-status.log')
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar nomes" }
+    git worktree list --porcelain *>&1 |
+      Set-Content -LiteralPath (Join-Path $logRoot 'worktrees-final.txt')
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar worktrees" }
+    $captureSucceeded = $true
+  } catch {
+    $_ | Out-String |
+      Set-Content -LiteralPath (Join-Path $logRoot 'capture-error.log')
+  }
+
+  $listed = git worktree list --porcelain
+  $escaped = [regex]::Escape(($gateWorktree -replace '\\','/'))
+  $insideParent = $gateWorktree.StartsWith(
+    ([IO.Path]::GetFullPath($worktreeParent) + [IO.Path]::DirectorySeparatorChar)
+  )
+  if ($captureSucceeded -and $insideParent -and
+      $listed -match "(?m)^worktree $escaped$") {
+    git worktree remove --force -- $gateWorktree
+    if ($LASTEXITCODE -eq 0) {
+      git worktree prune
+    } else {
+      "Remoção falhou; worktree preservado em $gateWorktree" |
+        Set-Content -LiteralPath (Join-Path $logRoot 'cleanup-error.log')
+    }
+  } else {
+    "Captura ou validação insegura; worktree preservado em $gateWorktree" |
+      Set-Content -LiteralPath (Join-Path $logRoot 'cleanup-skipped.log')
+  }
 }
-if (-not $gateWorktree.StartsWith(([IO.Path]::GetFullPath($worktreeParent) + [IO.Path]::DirectorySeparatorChar))) {
-  throw "Caminho de cleanup fora do diretório permitido"
-}
-git worktree remove --force -- $gateWorktree
-if ($LASTEXITCODE -ne 0) { throw "Falha ao remover worktree temporário" }
-git worktree prune
-if (Test-Path -LiteralPath $gateWorktree) { throw "Worktree ainda existe" }
 ```
 
-Expected: somente o worktree registrado é removido. `$logRoot` permanece.
+Expected: HEAD, status, patch binário e inventário são externos antes de
+qualquer remoção. Checkout limpo ou EOL restaurado é removido; alteração real
+também só é removida depois da captura íntegra. Se captura/validação falhar, o
+worktree permanece. `$logRoot` sempre permanece.
 
 - [ ] **Step 3: Delegar revisão independente**
 
@@ -308,7 +371,8 @@ Entregar ao revisor:
 - exploração e este plano;
 - `summary.tsv` e todos os logs externos;
 - contagens Vitest/E2E, bytes/chunks e auditoria privada;
-- evidência de `CI=true`, ausência de `.only/.skip`, runner errors, diff e status;
+- evidência de `CI=true`, ausência de modifiers incondicionais, revisão dos
+  condicionais, sinais dos runners, diff e status;
 - `git diff 2a8bddf47eb856ebd7fe8ea187fa06173fb176c1..HEAD`;
 - evidência de remoção do worktree.
 

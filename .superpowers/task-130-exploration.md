@@ -47,7 +47,8 @@ evidência útil. Cada comando deve:
 - executar sequencialmente, sem continuar depois de exit code diferente de 0;
 - ser medido por um `System.Diagnostics.Stopwatch` próprio;
 - gravar stdout e stderr juntos em um log externo;
-- registrar comando, início UTC, duração, exit code e status Git posterior;
+- registrar comando, início UTC, duração, exit code, status antes de eventual
+  normalização e status final;
 - exigir exit code 0 e status vazio antes de avançar.
 
 O E2E deve ser chamado com `CI=true`, o que ativa `forbidOnly`, retries e um
@@ -55,11 +56,10 @@ worker na configuração Playwright. O runner já é a fonte de page errors,
 console errors e falhas de assertions das specs. Vitest já reporta unhandled
 errors/rejections no resumo e encerra com falha quando eles existem. Portanto,
 o executor não deve inventar `process.on`, listeners de browser ou alterar
-configuração: ele preserva o log integral, exige exit code 0 e rejeita no log
-os cabeçalhos/sumários de erro do runner, como `Unhandled Errors`,
+configuração: ele preserva o log integral, exige exit code 0 e o resumo
+estruturado de sucesso do runner. Cabeçalhos como `Unhandled Errors`,
 `Unhandled Rejection`, `Test runner error` e `Worker process exited
-unexpectedly`. A revisão deve conferir o log integral em caso de assinatura
-ambígua; a busca textual é defesa adicional, não substitui o exit code.
+unexpectedly` são sinais para revisão, não falha autônoma por substring.
 
 ## Integridade do checkout
 
@@ -75,6 +75,10 @@ Depois de cada comando, qualquer outro status é falha do gate. Os diretórios
 ignorados `node_modules`, `dist`, `test-results` e `playwright-report` podem
 existir, mas nenhum artifact pode aparecer como tracked ou untracked.
 
+Chamadas incondicionais a `.only` e `.skip` são proibidas. Formas
+condicionais devem ser inventariadas por regex precisa ou AST e revisadas
+manualmente; uma regex ampla não pode reprovar um skip condicionado legítimo.
+
 ## Política de falha e ownership
 
 - Interromper no primeiro comando com exit code não zero, status inesperado,
@@ -82,19 +86,26 @@ existir, mas nenhum artifact pode aparecer como tracked ou untracked.
 - Preservar logs externos e identificar a task dona pelo arquivo/feature e pelo
   histórico do backlog.
 - Não editar produto, teste ou configuração na TASK-130.
-- Reabrir a task dona, registrar o diagnóstico e deixar TASK-130 `BLOCKED`.
+- Classificar antes de atribuir ownership. Falhas de ambiente, infraestrutura
+  ou do executor deixam TASK-130 não concluída/bloqueada sem reabrir task
+  funcional.
+- Reabrir a task dona somente após reprodução e evidência associarem a falha
+  ao comportamento introduzido ou coberto por ela.
 - Depois da correção, revisão e novo `DONE` da task dona, criar um novo commit
   alvo e repetir o gate inteiro desde `npm ci`; não reaproveitar resultados.
 
 ## Cleanup seguro
 
-O cleanup deve estar em `finally`. Antes de remover o worktree, resolver o
+Todo o fluxo posterior a `git worktree add` deve estar em um `try/finally`
+externo. O `finally` captura HEAD, status, diff binário, lista de arquivos e
+worktrees em logs externos antes de considerar remoção. Antes de remover,
+resolver o
 caminho absoluto e comprovar que ele é exatamente o caminho temporário
 registrado e está listado por `git worktree list --porcelain`. Usar
-`git worktree remove --force -- <caminho>` somente para esse checkout e depois
-`git worktree prune`. O diretório externo de logs deve ser preservado até a
-revisão; sua remoção posterior usa `Remove-Item -LiteralPath` apenas após
-confirmar que está sob o diretório temporário do sistema.
+`git worktree remove --force -- <caminho>` somente se o checkout estiver limpo,
+contiver apenas EOL semântico-zero já restaurado, ou se qualquer alteração real
+já estiver arquivada externamente. Se a captura falhar, manter o worktree para
+investigação. Depois da remoção segura, executar `git worktree prune`.
 
 ## Conclusão esperada
 
