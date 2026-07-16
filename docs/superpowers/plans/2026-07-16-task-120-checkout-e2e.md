@@ -25,8 +25,8 @@
 - `dataPedido` deve ser string ISO 8601 válida com offset e deve ser devolvida pelo servidor como `dataPedido` da confirmação.
 - O teste chama `form.requestSubmit(submitter)` duas vezes, sincronamente, na mesma avaliação do browser antes de React poder renderizar o estado pendente; dois eventos `submit` devem ser observados e o POST `/api/v1/pedido` deve ocorrer exatamente uma vez.
 - `AuthApi.customerSnapshot()` expõe uma cópia somente leitura do cliente salvo no backend em memória; o teste compara snapshots antes e depois do pedido para provar que a edição do checkout não alterou o perfil.
-- Contagens brutas esperadas: `login=1`, `categories=4`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `profile=1`, `orderCreate=1`; todas as demais são zero.
-- As quatro categorias correspondem às cargas completas de `/carrinho` visitante, `/carrinho` autenticado, produto e `/carrinho` após confirmação. As duas leituras de carrinho correspondem ao vínculo criado e à reconciliação do item adicionado; checkout reutiliza o cache confirmado.
+- Contagens brutas esperadas: `login=1`, `categories=3`, `product=2`, `cartCreate=1`, `cartAdd=1`, `cartGet=2`, `profile=1`, `orderCreate=1`; todas as demais são zero.
+- As três categorias correspondem à montagem inicial do layout protegido do carrinho, à remontagem do carrinho autenticado e à carga completa iniciada por `page.goto` no produto. Ao final, `emptyCartLink` navega pela SPA e reutiliza layout e cache, portanto não há uma quarta leitura de categorias nem um quarto GET do carrinho.
 - O consumo do carrinho deve ser provado pela UI: badge positivo ausente e `/carrinho` exibe “Seu carrinho está vazio” sem novo GET do carrinho antigo.
 - Commits de implementação permitidos: `test(TASK-120): Estender backend E2E para pedidos` e `test(TASK-120): Cobrir jornada E2E do checkout`.
 - Gate mínimo: spec isolada, repetição dupla, suíte Chromium, suíte Chromium repetida, typecheck, lint, build e `git diff --check`.
@@ -85,7 +85,7 @@ Authorization: Bearer task-117.header.payload
 ```
 
 ```text
-register=0 login=1 categories=4 profile=1 logout=0 product=2
+register=0 login=1 categories=3 profile=1 logout=0 product=2
 cartCreate=1 cartAdd=1 cartGet=2 cartUpdate=0 cartDelete=0 orderCreate=1
 ```
 
@@ -155,7 +155,7 @@ test('cria e confirma um pedido consumindo o carrinho', async ({
   expect(profileBeforeCheckout?.endereco.logradouro).toBe(data.street)
   authApi.expectRequestCounts({
     login: 1,
-    categories: 4,
+    categories: 3,
     product: 2,
     cartCreate: 1,
     cartAdd: 1,
