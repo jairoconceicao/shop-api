@@ -13,10 +13,16 @@
   `test(TASK-120): Estender backend E2E para pedidos`
 - `2f33090eb4d6ca7edf908554b89756d008e97b5e` —
   `test(TASK-120): Cobrir jornada E2E do checkout`
+- `2a63572` —
+  `test(TASK-120): Estabilizar contagem E2E do checkout`
 
 O primeiro commit adicionou ao backend Playwright o contrato estrito de pedido,
 snapshot defensivo do cliente, confirmação determinística e consumo do item. O
 segundo criou a jornada UI de carrinho, checkout, confirmação e carrinho vazio.
+O terceiro removeu a corrida do redirect inicial e registrou o catálogo da home
+no ledger estrito.
+
+**Range atualizado da TASK-120:** `746925c..2a63572`.
 
 ## Evidência TDD
 

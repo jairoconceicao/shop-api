@@ -29,7 +29,7 @@
 - A jornada inicia diretamente em `/entrar`, confirma o destino padrão `/` após categorias e catálogo da home concluírem e então usa `page.goto` no produto. As duas categorias correspondem à home pós-login e à carga completa do produto; o catálogo corresponde somente à home. Ao final, `emptyCartLink` navega pela SPA e reutiliza layout e cache, portanto não há uma terceira leitura de categorias, um segundo catálogo nem um novo GET do carrinho.
 - A entrada anterior por `/carrinho` foi reaberta após `--repeat-each=20` revelar `categories=2/3`: o `StoreLayout` iniciava categorias antes de `ProtectedRoute` redirecionar, e o cancelamento dessa requisição dependia da corrida de navegação.
 - O consumo do carrinho deve ser provado pela UI: badge positivo ausente e `/carrinho` exibe “Seu carrinho está vazio” sem novo GET do carrinho antigo.
-- Commits de implementação permitidos: `test(TASK-120): Estender backend E2E para pedidos` e `test(TASK-120): Cobrir jornada E2E do checkout`.
+- Commits de implementação permitidos: `test(TASK-120): Estender backend E2E para pedidos`, `test(TASK-120): Cobrir jornada E2E do checkout` e `test(TASK-120): Estabilizar contagem E2E do checkout`.
 - Gate mínimo: spec isolada, repetição dupla, suíte Chromium, suíte Chromium repetida, typecheck, lint, build e `git diff --check`.
 
 ---
