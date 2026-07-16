@@ -24,6 +24,14 @@ memória no React Query ou em snapshots privados registrados por cliente.
 Os storages usados pelos testes E2E também contêm apenas essas mesmas chaves;
 cookies e dados do backend simulado não são persistência da aplicação.
 
+O inventário reproduzível não pode confiar apenas em constantes `*_STORE_KEY`.
+Ele deve enumerar cada `persist(..., { name })`, `createJSONStorage`, wrapper ou
+adapter `StateStorage` e chamadas diretas ou encapsuladas a
+`localStorage|sessionStorage.setItem/removeItem`. Toda chave literal ou dinâmica
+que alcança esses sinks precisa ser resolvida para a allowlist exata. O teste
+negativo adiciona uma terceira escrita persistida sem declarar `*_STORE_KEY`;
+chave fora da allowlist ou dinâmica irresolúvel deve falhar.
+
 ## Decisão sobre `tipo`
 
 `tipo` não possui leitura direta depois da adaptação do login, mas faz parte do
@@ -51,8 +59,9 @@ migração versionada próprias.
 O fluxo de expiração da TASK-123 já usa essa função. As demais fronteiras ainda
 duplicam ou fragmentam a limpeza:
 
-- logout limpa auth e cache, mas não captura `clienteId` antes da limpeza, não
-  remove o mapa do carrinho e não limpa snapshots;
+- logout limpa auth e cache, mas não captura a identidade completa
+  `{ clienteId, token }` no início, não remove o mapa do carrinho e não limpa
+  snapshots;
 - `401` limpa auth e cache, mas não captura a identidade antes de invalidá-la,
   não remove o carrinho e não limpa snapshots;
 - cancelamento captura e valida `clienteId + token`, porém repete manualmente a
@@ -78,8 +87,14 @@ opcional e não substitui o guard.
   `clienteId` com outro token: deve ser rejeitada.
 - Uma sessão de cliente B também não autoriza o resultado iniciado por A.
 - Resolução normal com o mesmo `clienteId + token` preserva o comportamento.
+- Logout iniciado pela sessão A e concluído após login B não limpa B: A deve ser
+  capturada via `onMutate`/contexto e comparada por `clienteId + token` no
+  settlement.
 - Limpeza remove apenas dados privados; queries e mutations públicas continuam
   presentes.
+- Duas chamadas de `clearPrivateSession` para o cliente 7 são idempotentes:
+  snapshot 7 executa uma vez, snapshot/carrinho 8 permanecem e caches públicos
+  sobrevivem às duas chamadas.
 
 ## Logs e bootstrap
 

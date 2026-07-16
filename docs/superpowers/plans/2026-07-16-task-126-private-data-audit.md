@@ -17,6 +17,7 @@
 - Carrinho persiste somente `cartIdsByCustomer`; CPF, endereço, perfil, itens, pedidos e respostas nunca entram em Web Storage.
 - `tipo` permanece no contrato/runtime e na sessão persistida versionada; sua remoção exige decisão e migração fora desta task.
 - Guard de resposta tardia usa obrigatoriamente `clienteId + token`; abort é opcional e nunca substitui o guard.
+- Logout captura `{ clienteId, token }` no início via `onMutate`/contexto e só limpa no settlement se a sessão ativa ainda for exatamente a capturada.
 - Queries e mutations públicas devem sobreviver a toda limpeza.
 - Não ampliar o escopo para backend, criptografia de storage ou refatoração geral.
 
@@ -83,6 +84,20 @@ Adicionar chaves sentinela `public-preference` em ambos os storages e, após
 sanitizadas, enquanto as sentinelas permanecem. O teste deve manter query e
 mutation públicas e remover as privadas.
 
+Chamar `clearPrivateSession(queryClient, 7)` duas vezes. Registrar snapshots e
+carts para clientes 7 e 8 e provar:
+
+```ts
+expect(clearSnapshot7).toHaveBeenCalledOnce()
+expect(clearSnapshot8).not.toHaveBeenCalled()
+expect(useCartSessionStore.getState().getCartId(7)).toBeUndefined()
+expect(useCartSessionStore.getState().getCartId(8)).toBe(80)
+expect(queryClient.getQueryData(['public', 'catalog'])).toEqual(['Public'])
+expect(queryClient.getMutationCache().find({
+  mutationKey: ['public', 'newsletter'],
+})).toBeDefined()
+```
+
 - [ ] **Step 2: Executar o RED**
 
 Run:
@@ -146,23 +161,31 @@ expect(queryClient.getMutationCache().find({
 
 Expected RED: carrinho e snapshot do cliente 7 permanecem.
 
-- [ ] **Step 2: Implementar logout com identidade capturada**
+- [ ] **Step 2: Implementar logout com identidade completa capturada no início**
 
-Antes de iniciar a mutation, a variável já contém `token`; em `onSettled`,
-capture a sessão corrente antes de qualquer clear e só limpe se o token ainda
-corresponder:
+Usar `onMutate` para capturar a sessão correspondente ao token da tentativa:
 
 ```ts
-onSettled: (_data, _error, token) => {
-  const session = useAuthStore.getState().session
-  if (session?.token === token) {
-    clearPrivateSession(queryClient, session.clienteId)
+onMutate: (token) => {
+  const initial = useAuthStore.getState().session
+  return initial?.token === token
+    ? { identity: { clienteId: initial.clienteId, token: initial.token } }
+    : { identity: null }
+},
+onSettled: (_data, _error, _token, context) => {
+  const identity = context?.identity
+  const current = useAuthStore.getState().session
+  if (identity
+    && current?.clienteId === identity.clienteId
+    && current.token === identity.token) {
+    clearPrivateSession(queryClient, identity.clienteId)
   }
   navigate('/entrar', { replace: true })
 },
 ```
 
-Isso impede um logout tardio da sessão A de apagar uma sessão B.
+O teste inicia logout em A, autentica B antes do settlement e prova que B, seu
+carrinho e snapshots permanecem. Capturar somente no settlement é insuficiente.
 
 - [ ] **Step 3: Escrever RED do `401`**
 
@@ -377,7 +400,7 @@ git add frontend/src/bootstrap.tsx frontend/src/bootstrap.test.tsx
 git commit -m "fix(TASK-126): Sanitizar falha do bootstrap"
 ```
 
-### Task 5: Automatizar auditoria e registrar evidência
+### Task 5: Automatizar auditoria dos sinks e registrar evidência
 
 **Files:**
 - Create: `frontend/scripts/audit-private-data.mjs`
@@ -387,24 +410,30 @@ git commit -m "fix(TASK-126): Sanitizar falha do bootstrap"
 **Interfaces:**
 - Produces: `npm run audit:private-data`, saída determinística e relatório.
 
-- [ ] **Step 1: Escrever o auditor com allowlist exata**
+- [ ] **Step 1: Escrever o auditor dos pontos reais de persistência**
 
-O script percorre somente `src`, ignora `*.test.*`, lê texto UTF-8 e:
+O script percorre somente `src`, ignora `*.test.*`, lê texto UTF-8 e inventaria:
 
-1. encontra declarações `*_STORE_KEY`;
-2. exige exatamente:
+1. configurações `persist(..., { name })`;
+2. chamadas `createJSONStorage`;
+3. wrappers/adapters que implementam `StateStorage`;
+4. sinks diretos ou encapsulados
+   `localStorage|sessionStorage.setItem/removeItem`;
+5. a chave literal ou o fluxo da chave que alcança cada sink.
+
+Cada sink e cada `persist.name` deve ser resolvido para:
 
 ```js
-new Map([
-  ['AUTH_STORE_KEY', 'shop-api:auth'],
-  ['CART_SESSION_STORE_KEY', 'shop-api:cart-session'],
-])
+new Set(['shop-api:auth', 'shop-api:cart-session'])
 ```
 
-3. falha em qualquer `console.(log|info|warn|error|debug)(`;
-4. examina argumentos literais de `new Error`, `AppError` e reporters e falha
+Chave literal diferente, expressão dinâmica irresolúvel, novo wrapper ou sink
+sem vínculo comprovado falham. Depois o auditor:
+
+6. falha em qualquer `console.(log|info|warn|error|debug)(`;
+7. examina argumentos literais de `new Error`, `AppError` e reporters e falha
    em `token|cpf|documentoFiscal`, case-insensitive;
-5. imprime arquivos examinados, duas chaves e `PASS`.
+8. imprime arquivos, configurações, wrappers, sinks, duas chaves e `PASS`.
 
 Não pesquisar o identificador `token` genericamente: ele é necessário ao
 contrato e isso produziria falso positivo.
@@ -415,13 +444,21 @@ contrato e isso produziria falso positivo.
 "audit:private-data": "node scripts/audit-private-data.mjs"
 ```
 
-- [ ] **Step 3: Verificar RED controlado**
+- [ ] **Step 3: Verificar RED com uma terceira chave persistida**
 
-Crie temporariamente um fixture dentro de diretório temporário aceito por uma
-função exportada do script, contendo `console.error('token secreto')`, e teste a
-função com Node `assert`. Se o script permanecer monolítico, execute uma cópia
-temporária e remova-a antes do commit. Expected: exit code 1 citando arquivo e
-regra, sem repetir o literal sensível na saída.
+Crie fixture temporário aceito por função exportada pelo auditor:
+
+```ts
+const storage = {
+  setItem: (key: string, value: string) => localStorage.setItem(key, value),
+}
+storage.setItem('shop-api:third-private-store', '{"private":true}')
+```
+
+Expected: exit code 1 mesmo sem constante `*_STORE_KEY`. Adicionar casos para
+`persist.name = 'shop-api:third-private-store'` e chave dinâmica irresolúvel.
+Separadamente, `console.error('token secreto')` falha sem repetir o literal
+sensível na saída. Remover todos os fixtures antes do commit.
 
 - [ ] **Step 4: Executar auditoria real**
 
