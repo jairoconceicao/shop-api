@@ -25,6 +25,9 @@
   parcial vale e o gate integral deve recomeçar no novo `HEAD`.
 - Tentativa 2 teve pacote de evidências incompleto; nenhum resultado parcial
   vale e o gate integral deve recomeçar no novo `HEAD`.
+- Tentativa 3 teve colisão de helper/alias PowerShell; helpers curtos são
+  proibidos, o checkout antigo passa pelo cleanup preservado e o gate integral
+  recomeça no novo `HEAD`.
 
 ---
 
@@ -82,6 +85,28 @@ function Convert-ToGitPath {
   return $Path.Replace([char]92, [char]47)
 }
 
+function Write-RequiredEvidenceResult {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)][string]$LiteralPath,
+    [Parameter(Mandatory)][string]$Result
+  )
+  $parent = Split-Path -Parent $LiteralPath
+  if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
+    throw "Diretório de evidência ausente: $parent"
+  }
+  $Result | Set-Content -LiteralPath $LiteralPath -Encoding utf8
+  if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf) -or
+      (Get-Item -LiteralPath $LiteralPath).Length -le 0) {
+    throw "Falha ao escrever evidência obrigatória: $LiteralPath"
+  }
+}
+
+$writerCommand = Get-Command Write-RequiredEvidenceResult -ErrorAction Stop
+if ($writerCommand.CommandType -ne [Management.Automation.CommandTypes]::Function) {
+  throw "Write-RequiredEvidenceResult não resolveu como Function"
+}
+
 $normalizationCases = @{
   'C:\repo\.worktrees\x' = 'C:/repo/.worktrees/x'
   'C:/repo/.worktrees/x' = 'C:/repo/.worktrees/x'
@@ -91,6 +116,39 @@ foreach ($case in $normalizationCases.GetEnumerator()) {
   if ($actual -ne $case.Value) {
     throw "Self-check de normalização falhou: '$($case.Key)' => '$actual'"
   }
+}
+
+$writerDefinition = @'
+function Write-RequiredEvidenceResult {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)][string]$LiteralPath,
+    [Parameter(Mandatory)][string]$Result
+  )
+  $parent = Split-Path -Parent $LiteralPath
+  if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
+    throw "Diretório de evidência ausente: $parent"
+  }
+  $Result | Set-Content -LiteralPath $LiteralPath -Encoding utf8
+  if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf) -or
+      (Get-Item -LiteralPath $LiteralPath).Length -le 0) {
+    throw "Falha ao escrever evidência obrigatória: $LiteralPath"
+  }
+}
+'@
+$writerSmoke = Join-Path $logRoot 'writer-smoke.txt'
+$writerSmokeScript = @"
+$writerDefinition
+`$command = Get-Command Write-RequiredEvidenceResult -ErrorAction Stop
+if (`$command.CommandType -ne 'Function') { throw 'CommandType inválido' }
+Write-RequiredEvidenceResult -LiteralPath '$($writerSmoke.Replace("'","''"))' -Result 'result=writer-smoke-pass'
+"@
+& pwsh -NoLogo -NoProfile -Command $writerSmokeScript
+if ($LASTEXITCODE -ne 0 -or
+    -not (Test-Path -LiteralPath $writerSmoke -PathType Leaf) -or
+    (Get-Content -Raw -LiteralPath $writerSmoke).Trim() -ne
+      'result=writer-smoke-pass') {
+  throw "Smoke fresh-process do writer falhou"
 }
 
 if ((Split-Path -Parent $gateWorktree) -ne $worktreeParent) {
@@ -128,6 +186,8 @@ exatamente `<mainRoot>/.worktrees/task-130-final-gate`, filho direto, sem
 sobreposição com checkout listado, exceto o caminho exato preservado da
 tentativa 1 que será tratado no Step 2A; self-check cobre barras Windows e
 caminho já normalizado; nenhum delete é executado neste step.
+`Write-RequiredEvidenceResult` resolve como `Function` no processo atual e em
+`pwsh -NoProfile` novo, que efetivamente cria `writer-smoke.txt`.
 
 - [ ] **Step 2A: Limpar com segurança checkout preservado da tentativa 1**
 
@@ -297,8 +357,8 @@ rg -n -i $runnerPatterns `
   Set-Content -LiteralPath $runnerSignalLog
 if ($LASTEXITCODE -gt 1) { throw "Falha ao inspecionar logs dos runners" }
 if ((Get-Item -LiteralPath $runnerSignalLog).Length -eq 0) {
-  "result=none; source=vitest,playwright" |
-    Set-Content -LiteralPath $runnerSignalLog
+  Write-RequiredEvidenceResult -LiteralPath $runnerSignalLog `
+    -Result 'result=none; source=vitest,playwright'
 }
 ```
 
@@ -347,8 +407,8 @@ $focusExit = $LASTEXITCODE
 if ($focusExit -eq 0) { throw "Existem modifiers incondicionais: $unconditional" }
 if ($focusExit -ne 1) { throw "Busca de .only/.skip falhou com exit $focusExit" }
 if ((Get-Item -LiteralPath $focusLog).Length -eq 0) {
-  "result=none; rule=unconditional-only-or-skip" |
-    Set-Content -LiteralPath $focusLog
+  Write-RequiredEvidenceResult -LiteralPath $focusLog `
+    -Result 'result=none; rule=unconditional-only-or-skip'
 }
 
 $conditionalLog = Join-Path $logRoot '09b-conditional-skips.log'
@@ -359,8 +419,8 @@ rg -n `
   $frontend 2>&1 | Set-Content -LiteralPath $conditionalLog
 if ($LASTEXITCODE -gt 1) { throw "Inventário de skips condicionais falhou" }
 if ((Get-Item -LiteralPath $conditionalLog).Length -eq 0) {
-  "result=none; rule=conditional-skip-inventory" |
-    Set-Content -LiteralPath $conditionalLog
+  Write-RequiredEvidenceResult -LiteralPath $conditionalLog `
+    -Result 'result=none; rule=conditional-skip-inventory'
 }
 ```
 
@@ -376,13 +436,13 @@ git -C $gateWorktree diff --check 2>&1 |
 if ($LASTEXITCODE -ne 0) { throw "diff-check falhou" }
 $diffCheckLog = Join-Path $logRoot '10-diff-check.log'
 if ((Get-Item -LiteralPath $diffCheckLog).Length -eq 0) {
-  "result=clean" | Set-Content -LiteralPath $diffCheckLog
+  Write-RequiredEvidenceResult -LiteralPath $diffCheckLog -Result 'result=clean'
 }
 
 $finalStatus = @(git -C $gateWorktree status --short)
 $statusLog = Join-Path $logRoot '11-status.log'
 if ($finalStatus.Count -eq 0) {
-  "result=clean" | Set-Content -LiteralPath $statusLog
+  Write-RequiredEvidenceResult -LiteralPath $statusLog -Result 'result=clean'
 } else {
   $finalStatus | Set-Content -LiteralPath $statusLog
 }
@@ -439,7 +499,8 @@ finally {
     $capturedStatus = @(git -C $gateWorktree status --short)
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar status" }
     if ($capturedStatus.Count -eq 0) {
-      "result=clean" | Set-Content -LiteralPath $finalStatusLog
+      Write-RequiredEvidenceResult -LiteralPath $finalStatusLog `
+        -Result 'result=clean'
     } else {
       $capturedStatus | Set-Content -LiteralPath $finalStatusLog
     }
@@ -448,14 +509,16 @@ finally {
       Set-Content -LiteralPath $patchLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar patch" }
     if ((Get-Item -LiteralPath $patchLog).Length -eq 0) {
-      "result=clean; format=git-diff-binary" | Set-Content -LiteralPath $patchLog
+      Write-RequiredEvidenceResult -LiteralPath $patchLog `
+        -Result 'result=clean; format=git-diff-binary'
     }
     $nameStatusLog = Join-Path $logRoot 'final-name-status.log'
     git -C $gateWorktree diff --name-status *>&1 |
       Set-Content -LiteralPath $nameStatusLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar nomes" }
     if ((Get-Item -LiteralPath $nameStatusLog).Length -eq 0) {
-      "result=clean" | Set-Content -LiteralPath $nameStatusLog
+      Write-RequiredEvidenceResult -LiteralPath $nameStatusLog `
+        -Result 'result=clean'
     }
     $worktreesLog = Join-Path $logRoot 'worktrees-final.txt'
     git worktree list --porcelain *>&1 |
@@ -463,6 +526,7 @@ finally {
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar worktrees" }
 
     $requiredEvidence = @(
+      'writer-smoke.txt',
       'summary.tsv',
       '01-npm-ci.log',
       '02-typecheck.log',
@@ -488,8 +552,8 @@ finally {
       $stepLogPath = Join-Path $logRoot $stepLog
       if ((Test-Path -LiteralPath $stepLogPath -PathType Leaf) -and
           (Get-Item -LiteralPath $stepLogPath).Length -eq 0) {
-        "result=success; output=empty; file=$stepLog" |
-          Set-Content -LiteralPath $stepLogPath
+        Write-RequiredEvidenceResult -LiteralPath $stepLogPath `
+          -Result "result=success; output=empty; file=$stepLog"
       }
     }
     $manifestLines = @("path`tbytes`tsha256")
@@ -553,7 +617,8 @@ Expected: HEAD, status, patch binário e inventário são externos antes de
 qualquer remoção. Somente checkout limpo (inclusive após EOL restaurado) é
 removido. Qualquer alteração real ou untracked inesperado preserva o worktree,
 pois patch Git não arquiva seu conteúdo; remoção é sempre sem `--force`.
-O self-check exige todos os 19 arquivos, com conteúdo explícito, e gera
+O self-check exige todos os 20 arquivos, incluindo o smoke fresh-process do
+helper e conteúdo explícito, e gera
 `evidence-manifest.tsv` com tamanho/SHA-256 mais
 `evidence-manifest.sha256`; ausência, vazio ou erro de hash preserva o
 worktree. `$logRoot` sempre permanece.

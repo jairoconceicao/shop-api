@@ -28,6 +28,15 @@ nenhuma task funcional é reaberta. O checkout deve ser preservado se o pacote
 obrigatório não puder ser validado, e o gate integral deve recomeçar no novo
 `HEAD` com criação explícita de cada evidência durante a execução.
 
+## Tentativa 3 do executor
+
+A terceira tentativa sofreu colisão de helper PowerShell curto/alias, logo não
+produziu pacote confiável. A classificação é `executor`; nenhuma task funcional
+é reaberta. Helpers de uma letra ou nomes que possam resolver para alias são
+proibidos. Antes do rerun, o checkout antigo deve seguir o cleanup preservado:
+capturar evidências, validar caminho/listagem/status limpo e remover sem
+`--force`. O novo gate começa integralmente no novo `HEAD`.
+
 ## Fontes factuais
 
 O `frontend/package.json` expõe os cinco gates pedidos no backlog:
@@ -80,6 +89,12 @@ explícita (`result=none`, `result=clean` ou equivalente). Antes do cleanup, um
 manifesto externo deve listar caminho relativo, tamanho e SHA-256 de todas as
 evidências requeridas, incluindo ledger e logs dos steps; arquivo ausente,
 ilegível ou sem conteúdo preserva o worktree.
+
+A escrita desses resultados deve usar exclusivamente a função
+`Write-RequiredEvidenceResult`, com verbo PowerShell aprovado. Antes do uso,
+`Get-Command` deve confirmar `CommandType Function`, e um processo `pwsh`
+novo deve carregar a mesma definição, chamar a função e comprovar arquivo
+criado com conteúdo. Não usar helper de uma letra nem alias.
 
 O E2E deve ser chamado com `CI=true`, o que ativa `forbidOnly`, retries e um
 worker na configuração Playwright. O runner já é a fonte de page errors,
