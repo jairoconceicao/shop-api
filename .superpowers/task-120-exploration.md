@@ -106,4 +106,3 @@ criação real do pedido e que o suporte ainda não a implementa.
 - Manter o handler de pedido antes de matches mais amplos.
 - Só consumir o carrinho depois de validar integralmente o request.
 - Preservar reset e isolamento para `fullyParallel` e `--repeat-each`.
-
