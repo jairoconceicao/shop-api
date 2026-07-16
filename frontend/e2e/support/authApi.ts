@@ -67,6 +67,7 @@ export type AuthApi = {
   requestCounts(): RequestCounts
   customerSnapshot(): CustomerSnapshot | null
   seedCustomer(): void
+  setLoginExpirations(expirations: string[]): void
   assertRequestCounts(): void
   reset(): void
 }
@@ -250,6 +251,7 @@ export async function installAuthApi(
     orderCancel: 0,
   }
   let expected: ExpectedRequestCounts = {}
+  let loginExpirations: string[] | null = null
   let registeredCustomer: RegistrationRequest | null = null
   let passwordAttempts = 0
   let pendingOrderProduct = false
@@ -422,12 +424,18 @@ export async function installAuthApi(
       ) {
         throw new Error(`Unexpected login body: ${JSON.stringify(body)}`)
       }
+      const expiration = loginExpirations === null
+        ? '2099-12-31T23:59:59-03:00'
+        : loginExpirations.shift()
+      if (expiration === undefined) {
+        throw new Error('Unexpected additional login without configured expiration')
+      }
       await json(route, {
         status: true,
         data: {
           token: TOKEN,
           tipo: 'Bearer',
-          expiraEm: '2099-12-31T23:59:59-03:00',
+          expiraEm: expiration,
           usuarioId: data.userId,
           clienteId: data.customerId,
           email: data.email,
@@ -927,6 +935,9 @@ export async function installAuthApi(
     seedCustomer() {
       registeredCustomer = seededCustomer()
     },
+    setLoginExpirations(expirations) {
+      loginExpirations = [...expirations]
+    },
     assertRequestCounts() {
       const mismatches = (Object.keys(counts) as RequestName[]).flatMap(
         (name) => {
@@ -939,6 +950,11 @@ export async function installAuthApi(
       if (mismatches.length > 0) {
         throw new Error(`Request count mismatch:\n${mismatches.join('\n')}`)
       }
+      if (loginExpirations?.length) {
+        throw new Error(
+          `Unconsumed login expirations: ${loginExpirations.join(', ')}`,
+        )
+      }
     },
     reset() {
       passwordAttempts = 0
@@ -946,6 +962,7 @@ export async function installAuthApi(
       cartItem = null
       registeredCustomer = null
       expected = {}
+      loginExpirations = null
       ;(Object.keys(counts) as RequestName[]).forEach((name) => {
         counts[name] = 0
       })
