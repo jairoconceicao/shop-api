@@ -1,4 +1,5 @@
 import { act, render } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -221,14 +222,39 @@ describe('useAuthStore', () => {
     await useAuthStore.persist.rehydrate()
 
     expect(useAuthStore.getState().session).toBeNull()
+    expect(useAuthStore.getState().expiredSessionIdentity).toEqual({ clienteId: 20 })
     expect(window.localStorage.getItem(AUTH_STORE_KEY)).toBeNull()
+    expect(useAuthStore.getState().consumeExpiredSessionIdentity()).toEqual({ clienteId: 20 })
+    expect(useAuthStore.getState().consumeExpiredSessionIdentity()).toBeNull()
+  })
+
+  it('never persists the transient expired-session identity after a real write', async () => {
+    useAuthStore.setState({
+      expiredSessionIdentity: { clienteId: 20 },
+    })
+
+    useAuthStore.getState().setSession(session, 'local')
+
+    expect(JSON.parse(window.localStorage.getItem(AUTH_STORE_KEY) ?? '')).toEqual({
+      state: { session, persistence: 'local' },
+      version: AUTH_STORE_VERSION,
+    })
+    expect(window.localStorage.getItem(AUTH_STORE_KEY)).not.toContain(
+      'expiredSessionIdentity',
+    )
   })
 
   it('invalidates the active session when its expiration is reached', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-14T11:59:59.000Z'))
     useAuthStore.getState().setSession(session, 'session')
-    render(createElement(AuthSessionInitializer))
+    render(
+      createElement(
+        QueryClientProvider,
+        { client: new QueryClient() },
+        createElement(AuthSessionInitializer),
+      ),
+    )
 
     act(() => vi.advanceTimersByTime(1_000))
 

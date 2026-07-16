@@ -1,18 +1,37 @@
 import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
-import { isAuthSessionExpired, useAuthStore } from './authStore'
+import { clearPrivateSession } from '../session/clearPrivateSession'
+import { useAuthStore } from './authStore'
 
 export function AuthSessionInitializer() {
+  const queryClient = useQueryClient()
   const session = useAuthStore((state) => state.session)
-  const clearSession = useAuthStore((state) => state.clearSession)
+  const expiredSessionIdentity = useAuthStore((state) => state.expiredSessionIdentity)
+  const invalidateExpiredSession = useAuthStore(
+    (state) => state.invalidateExpiredSession,
+  )
+  const consumeExpiredSessionIdentity = useAuthStore(
+    (state) => state.consumeExpiredSessionIdentity,
+  )
 
   useEffect(() => {
-    if (!session) {
+    if (!expiredSessionIdentity) {
       return
     }
 
-    if (isAuthSessionExpired(session)) {
-      clearSession()
+    const identity = consumeExpiredSessionIdentity()
+    if (identity) {
+      clearPrivateSession(queryClient, identity.clienteId)
+    }
+  }, [
+    consumeExpiredSessionIdentity,
+    expiredSessionIdentity,
+    queryClient,
+  ])
+
+  useEffect(() => {
+    if (!session) {
       return
     }
 
@@ -22,7 +41,7 @@ export function AuthSessionInitializer() {
       const expiresIn = Date.parse(session.expiraEm) - Date.now()
 
       if (expiresIn <= 0) {
-        clearSession()
+        invalidateExpiredSession()
         return
       }
 
@@ -32,7 +51,7 @@ export function AuthSessionInitializer() {
     scheduleExpiration()
 
     return () => window.clearTimeout(timeout)
-  }, [clearSession, session])
+  }, [invalidateExpiredSession, session])
 
   return null
 }
