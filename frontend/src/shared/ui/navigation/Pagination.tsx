@@ -47,7 +47,10 @@ export function Pagination({
 
   return (
     <nav aria-label={ariaLabel} onKeyDown={handleKeyDown}>
-      <ul className="flex max-w-full items-center justify-center gap-1 overflow-x-auto py-1">
+      <ul
+        data-responsive-overflow="pagination"
+        className="flex max-w-full items-center justify-center gap-1 overflow-x-auto py-1"
+      >
         <li>
           <button
             type="button"
