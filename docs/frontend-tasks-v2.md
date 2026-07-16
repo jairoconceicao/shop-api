@@ -816,8 +816,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Registrar screenshots, findings e correções e executar a auditoria responsiva e os gates locais aplicáveis sem falhas.
   - Evidência: planos `d172cd2` e `2b53e00`; implementação `e9e50e4`, `6088d84`, `4f7af8b`, `b5e701d`, `594138e` e `0fa3123`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. A matriz executou 5 viewports × 13 estados, totalizando 65/65 checkpoints e screenshots anexadas, com anti-flake de 25/25 jornadas e 325 checkpoints; shards 1/5 e 5/5 executaram uma jornada cada. O auditor exige documento e controles integralmente contidos e permite exatamente `categories`, `account-navigation` e `pagination`. Um RED real no resumo do carrinho em 1024/1920 px (`scrollWidth=324`, `clientWidth=270`) foi corrigido mantendo as ações em coluna; o ledger estrito foi idêntico nos cinco viewports, incluindo login, carrinho, checkout, conta e pedidos. Suíte Chromium 14/14, repetição 28/28, Vitest 856/856, typecheck, lint, build com entry de 464,68 kB, diff-check e ausência de artefatos Playwright rastreados PASS.
 
-[ ] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
-  - Status: READY
+[x] TASK-128: Auditar navegação por teclado, foco, contraste, regiões vivas e movimento reduzido.
+  - Status: DONE
   - Depends on: TASK-007, TASK-019, TASK-020, TASK-021, TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028, TASK-029, TASK-030, TASK-031, TASK-110, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-127
   - Escopo: Frontend
   - Critérios de aceite:
@@ -825,6 +825,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Validar nomes, roles, landmarks, headings e anúncios de erros, status e toasts por regiões vivas.
     - Medir contraste conforme WCAG AA e comprovar que `prefers-reduced-motion` remove movimento não essencial.
     - Concluir auditoria automatizada sem violações sérias, registrar checklist manual e executar os gates locais aplicáveis sem falhas.
+  - Evidência: planos `57a7304` e `3c7128a`; implementação `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`, `2a99661`, `aa1399d`, `07b5223`, `851c5bc`, `c0d4822`, `badbc03` e `d112336`; revisão independente concluída sem findings CRITICAL ou IMPORTANT, com os findings MINOR finais de landmark `role="navigation"` genérico e contraste isolado de texto grande corrigidos. A jornada cobre sete estados por teclado, foco e restauração em menu e três dialogs, regiões vivas, semântica, contraste WCAG AA e movimento reduzido em elementos e pseudo-elementos. Accessibility final 6/6 e testes focados finais 2/2 PASS; anti-flake accessibility 50/50, Chromium 19/19 e repetição 38/38; Vitest 130 arquivos/863 testes, typecheck, lint, build com entry de 465,83 kB, diff-check e ausência de artifacts Playwright rastreados PASS.
 
 [ ] TASK-129: Documentar instalação, variáveis de ambiente, scripts e execução integrada no README do frontend.
   - Status: READY

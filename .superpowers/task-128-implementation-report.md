@@ -5,8 +5,10 @@
 - `BASE_COMMIT`: `f6bc9e502bbeb2d81896e2439c83c082cef5be47`.
 - Plano: `57a7304`, `3c7128a`.
 - Implementação: `a505adc`, `6c73d11`, `2ae1980`, `5d23b32`,
-  `2a99661`, `aa1399d`, `07b5223`, `c0d4822`.
-- O backlog não foi alterado.
+  `2a99661`, `aa1399d`, `07b5223`, `851c5bc`, `c0d4822`, `badbc03`
+  e `d112336`.
+- O backlog foi atualizado somente após a aprovação: TASK-128 `DONE`,
+  TASK-129 preservada `READY` e TASK-130 preservada `BLOCKED` por TASK-129.
 
 ## Cobertura entregue
 
@@ -74,7 +76,8 @@ contraste computado.
 - Cada estado exige exatamente um landmark `main` e um `h1`.
 - A sequência de headings não pode saltar níveis.
 - Controles e landmarks auditados exigem nome acessível não vazio.
-- Landmarks repetidos do mesmo tipo exigem nomes distintos.
+- Landmarks repetidos do mesmo tipo exigem nomes distintos, incluindo
+  elementos nativos `nav` e elementos genéricos com `role="navigation"`.
 - Apenas uma busca visível chamada `Buscar produtos` permanece na árvore.
 - Regiões vivas visíveis não podem estar vazias, aninhadas ou duplicar a
   combinação de severidade e anúncio.
@@ -83,9 +86,10 @@ contraste computado.
 - A auditoria de movimento inspeciona cada elemento e seus pseudo-elementos
   `::before` e `::after`, usa todas as durações/iterações computadas e reprova
   animações infinitas.
-- Quatro testes adversariais comprovam que os auditores reprovam headings e
+- Cinco testes adversariais comprovam que os auditores reprovam headings e
   landmarks inválidos, regiões vivas inválidas, movimento em elementos e
-  pseudo-elementos e contraste abaixo dos limites ou sobre gradiente.
+  pseudo-elementos, contraste abaixo dos limites ou sobre gradiente e,
+  isoladamente, texto grande com contraste realmente inferior a `3:1`.
 - A auditoria de movimento usa `prefers-reduced-motion: reduce` e confirmou
   catálogo, dialog e pedido:
   - `scroll-behavior: auto`;
@@ -123,7 +127,8 @@ contraste computado.
 
 Executados no Windows, Chromium, timezone `America/Sao_Paulo`:
 
-- accessibility isolada: 5/5 PASS;
+- accessibility isolada final: 6/6 PASS;
+- focados de landmark genérico e texto grande: 2/2 PASS;
 - accessibility `--workers=1 --repeat-each=10`: 50/50 PASS;
 - E2E Chromium completa: 19/19 PASS;
 - E2E Chromium `--repeat-each=2`: 38/38 PASS;
