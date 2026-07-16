@@ -11,12 +11,6 @@ import {
   type ResponsiveViewport,
 } from './support/responsiveAudit'
 
-test('define a matriz responsiva literal', () => {
-  expect(RESPONSIVE_VIEWPORTS).toHaveLength(5)
-  expect(RESPONSIVE_STATES).toHaveLength(13)
-  expect(RESPONSIVE_VIEWPORTS.length * RESPONSIVE_STATES.length).toBe(65)
-})
-
 const markersByState: Record<ResponsiveState, readonly string[]> = {
   catalog: ['categories', 'pagination'],
   'product-detail': ['categories'],
@@ -59,6 +53,9 @@ for (const viewport of RESPONSIVE_VIEWPORTS) {
       const visitedStates: ResponsiveState[] = []
       const productPath = `/produtos/${data.product.id}`
 
+      expect(RESPONSIVE_VIEWPORTS).toHaveLength(5)
+      expect(RESPONSIVE_STATES).toHaveLength(13)
+      expect(RESPONSIVE_VIEWPORTS.length * RESPONSIVE_STATES.length).toBe(65)
       authApi.seedCustomer()
       authApi.enableResponsiveCatalog()
 
