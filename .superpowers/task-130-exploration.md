@@ -36,8 +36,13 @@ build. A cobertura equivalente e mais precisa é `npm run build` seguido de
 
 O gate deve ocorrer em worktree temporário detached no commit exato aprovado
 para execução, nunca no checkout da feature. O caminho deve ser irmão dos
-outros worktrees sob o diretório administrativo compartilhado e validado por
-`git worktree list --porcelain` antes de criação e remoção.
+outros worktrees em `<mainRoot>/.worktrees/task-130-final-gate`. `mainRoot`
+deve ser derivado da primeira entrada administrativa de
+`git worktree list --porcelain` e confirmado como o checkout da branch
+main/admin. O destino normalizado deve ser filho direto de `.worktrees`, não
+pode estar dentro de nenhum outro checkout listado e não pode conter checkout;
+a localização administrativa sob `mainRoot/.worktrees` é a única exceção
+estrutural deliberada.
 
 Logs, resumo e arquivo de durações devem ficar fora do worktree validado, em um
 diretório temporário absoluto criado com `Join-Path ([IO.Path]::GetTempPath())`.
@@ -102,10 +107,12 @@ worktrees em logs externos antes de considerar remoção. Antes de remover,
 resolver o
 caminho absoluto e comprovar que ele é exatamente o caminho temporário
 registrado e está listado por `git worktree list --porcelain`. Usar
-`git worktree remove --force -- <caminho>` somente se o checkout estiver limpo,
-contiver apenas EOL semântico-zero já restaurado, ou se qualquer alteração real
-já estiver arquivada externamente. Se a captura falhar, manter o worktree para
-investigação. Depois da remoção segura, executar `git worktree prune`.
+`git worktree remove --force -- <caminho>` somente se o checkout estiver limpo
+ou contiver apenas EOL semântico-zero já restaurado. Se houver mudança real,
+inclusive untracked inesperado, preservar o worktree para investigação; não
+forçar remoção e não depender de patch Git, que não preserva conteúdo
+untracked. Se a captura falhar, também manter o worktree. Depois da remoção
+segura, executar `git worktree prune`.
 
 ## Conclusão esperada
 

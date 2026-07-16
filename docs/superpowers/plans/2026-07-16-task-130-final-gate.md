@@ -55,26 +55,55 @@ parar sem criar worktree.
 - [ ] **Step 2: Derivar caminhos seguros**
 
 ```powershell
-$commonDir = (git rev-parse --path-format=absolute --git-common-dir).Trim()
-$worktreeParent = Split-Path -Parent $commonDir
-$gateWorktree = Join-Path $worktreeParent "task-130-final-gate"
+$worktreePorcelain = @(git worktree list --porcelain)
+if ($LASTEXITCODE -ne 0) { throw "Falha ao listar worktrees" }
+$firstWorktreeLine = $worktreePorcelain | Where-Object { $_ -like 'worktree *' } |
+  Select-Object -First 1
+if (-not $firstWorktreeLine) { throw "Checkout administrativo não encontrado" }
+$mainRoot = [IO.Path]::GetFullPath($firstWorktreeLine.Substring(9))
+$mainBranch = (git -C $mainRoot branch --show-current).Trim()
+if ($mainBranch -notin @('main', 'codex/phase-8-hardening-plan')) {
+  throw "Primeiro checkout não é main/admin: $mainBranch"
+}
+$worktreeParent = [IO.Path]::GetFullPath((Join-Path $mainRoot '.worktrees'))
+$gateWorktree = [IO.Path]::GetFullPath(
+  (Join-Path $worktreeParent 'task-130-final-gate')
+)
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $logRoot = Join-Path $tempRoot "shop-api-task-130-$targetCommit"
-$gateWorktree = [IO.Path]::GetFullPath($gateWorktree)
 $logRoot = [IO.Path]::GetFullPath($logRoot)
 
-if (-not $gateWorktree.StartsWith(([IO.Path]::GetFullPath($worktreeParent) + [IO.Path]::DirectorySeparatorChar))) {
-  throw "Worktree fora do diretório administrativo: $gateWorktree"
+if ((Split-Path -Parent $gateWorktree) -ne $worktreeParent) {
+  throw "Worktree não é filho direto de .worktrees: $gateWorktree"
 }
 if (-not $logRoot.StartsWith($tempRoot)) {
   throw "Logs fora do temp do sistema: $logRoot"
 }
 if (Test-Path -LiteralPath $gateWorktree) { throw "Worktree alvo já existe" }
 if (Test-Path -LiteralPath $logRoot) { throw "Diretório de logs já existe" }
+
+$listedRoots = @(
+  $worktreePorcelain |
+    Where-Object { $_ -like 'worktree *' } |
+    ForEach-Object { [IO.Path]::GetFullPath($_.Substring(9)) }
+)
+foreach ($listedRoot in $listedRoots) {
+  # O destino administrativo fica fisicamente sob mainRoot/.worktrees por
+  # contrato; a sobreposição proibida é com qualquer outro checkout listado.
+  if ($listedRoot -eq $mainRoot) { continue }
+  $listedPrefix = $listedRoot.TrimEnd('\') + '\'
+  $gatePrefix = $gateWorktree.TrimEnd('\') + '\'
+  if ($gateWorktree.StartsWith($listedPrefix) -or
+      $listedRoot.StartsWith($gatePrefix)) {
+    throw "Destino contém ou está contido em checkout listado: $listedRoot"
+  }
+}
 New-Item -ItemType Directory -Path $logRoot | Out-Null
 ```
 
-Expected: dois caminhos absolutos inéditos; nenhum delete é executado.
+Expected: `mainRoot` vem da primeira entrada administrativa; destino é
+exatamente `<mainRoot>/.worktrees/task-130-final-gate`, filho direto, sem
+sobreposição com checkout listado; nenhum delete é executado.
 
 - [ ] **Step 3: Criar e validar o worktree**
 
@@ -339,10 +368,10 @@ finally {
 
   $listed = git worktree list --porcelain
   $escaped = [regex]::Escape(($gateWorktree -replace '\\','/'))
-  $insideParent = $gateWorktree.StartsWith(
-    ([IO.Path]::GetFullPath($worktreeParent) + [IO.Path]::DirectorySeparatorChar)
-  )
-  if ($captureSucceeded -and $insideParent -and
+  $isDirectChild = (Split-Path -Parent $gateWorktree) -eq $worktreeParent
+  $unexpectedStatus = @(git -C $gateWorktree status --short)
+  $isClean = $LASTEXITCODE -eq 0 -and $unexpectedStatus.Count -eq 0
+  if ($captureSucceeded -and $isDirectChild -and $isClean -and
       $listed -match "(?m)^worktree $escaped$") {
     git worktree remove --force -- $gateWorktree
     if ($LASTEXITCODE -eq 0) {
@@ -352,16 +381,17 @@ finally {
         Set-Content -LiteralPath (Join-Path $logRoot 'cleanup-error.log')
     }
   } else {
-    "Captura ou validação insegura; worktree preservado em $gateWorktree" |
+    "Captura/validação insegura ou status não limpo; worktree preservado em $gateWorktree. Status: $($unexpectedStatus -join ' | ')" |
       Set-Content -LiteralPath (Join-Path $logRoot 'cleanup-skipped.log')
   }
 }
 ```
 
 Expected: HEAD, status, patch binário e inventário são externos antes de
-qualquer remoção. Checkout limpo ou EOL restaurado é removido; alteração real
-também só é removida depois da captura íntegra. Se captura/validação falhar, o
-worktree permanece. `$logRoot` sempre permanece.
+qualquer remoção. Somente checkout limpo (inclusive após EOL restaurado) é
+removido. Qualquer alteração real ou untracked inesperado preserva o worktree,
+pois patch Git não arquiva seu conteúdo; nunca usar force remove nesse caso.
+`$logRoot` sempre permanece.
 
 - [ ] **Step 3: Delegar revisão independente**
 
