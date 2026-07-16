@@ -80,7 +80,18 @@ describe('TASK-112 customer integration', () => {
 
   it.each([409, 422])('keeps confirmed profile and suppresses success for HTTP %i', async (status) => {
     seedSession(); server.use(http.get('*/api/v1/cliente/7', () => HttpResponse.json(profile)), http.put('*/api/v1/cliente/7', () => HttpResponse.json({ error: { message: 'Perfil recusado', details: [{ propertyName: 'Cpf', message: 'CPF recusado.' }] } }, { status })))
-    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/minha-conta/dados'] }); expect(await screen.findByDisplayValue('Ana Silva')).toBeInTheDocument(); await user.clear(screen.getByLabelText('Nome completo')); await user.type(screen.getByLabelText('Nome completo'), 'Tentativa'); await user.click(screen.getByRole('button', { name: 'Salvar alterações' })); expect(await screen.findByText(/recusad/i)).toBeInTheDocument(); expect(queryClient.getQueryData<{ nome: string }>(customerProfileQueryKeys.detail(7))?.nome).toBe('Ana Silva'); expect(screen.queryByText(/dados atualizados com sucesso/i)).not.toBeInTheDocument()
+    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/minha-conta/dados'] })
+    expect(await screen.findByDisplayValue('Ana Silva')).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Nome completo')); await user.type(screen.getByLabelText('Nome completo'), 'Tentativa'); await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    if (status === 409) {
+      const summary = await screen.findByRole('alert')
+      expect(within(summary).getByText('Já existe outro cliente com estes dados.')).toBeInTheDocument()
+    } else {
+      expect(await screen.findAllByText('CPF recusado.')).not.toHaveLength(0)
+      expect(screen.getByLabelText('CPF')).toHaveAccessibleDescription('CPF recusado.')
+    }
+    expect(queryClient.getQueryData<{ nome: string }>(customerProfileQueryKeys.detail(7))?.nome).toBe('Ana Silva')
+    expect(screen.queryByText(/dados atualizados com sucesso/i)).not.toBeInTheDocument()
   })
 })
 ```
