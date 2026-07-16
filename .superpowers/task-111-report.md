@@ -36,5 +36,12 @@
 ## Observações
 
 - `frontend/src/shared/testing/setup.ts` permanece com `onUnhandledRequest: 'error'`.
-- O backlog não foi marcado como DONE; essa atualização depende da revisão obrigatória.
+- O backlog foi marcado como DONE somente após a revisão obrigatória aprovar o range sem findings.
 - Suites consumidoras passaram, embora quatro testes preexistentes de checkout tenham emitido avisos de `act(...)` no stderr.
+
+## Ledger
+
+- TASK-111: `COMPLETE`.
+- Range revisado: `09c47fb..272cb59`.
+- Review: aprovada com 0 findings.
+- Backlog: atualizado para `[x]` / `DONE` após aprovação.

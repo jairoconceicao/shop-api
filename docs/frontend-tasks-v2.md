@@ -627,8 +627,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Registrar a matriz componente por critério e executar com sucesso somente os testes necessários para células descobertas, além de typecheck e lint.
   - Evidência: commits `a1c2665`, `cbaecf8` e `62d92b8`; `user-event` focado 17/17, shared UI 43/43 e consumers relevantes 136/136; typecheck/lint/diff-check PASS; produto inalterado. Button ativa por Enter/Space, LinkButton navega por Enter e Checkbox alterna por Space; o Select usa foco por Tab e `user.selectOptions`, fluxo aceito porque `user-event` 14.6.1 não implementa mudança por `ArrowDown` no jsdom. A re-review aprovou teclado e rastreabilidade e solicitou somente o ajuste documental final incorporado. Desvio justificado: o teste monolítico não foi criado por duplicar provas proprietárias; somente células GAP foram adicionadas. O commit `59acae2` é administrativo do lote e está fora do range funcional da task.
 
-[ ] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
-  - Status: READY
+[x] TASK-111: Testar integração de login, logout, `401` e retorno seguro com MSW.
+  - Status: DONE
   - Depends on: TASK-009, TASK-035, TASK-036, TASK-037, TASK-038, TASK-039, TASK-040, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -636,6 +636,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Chamar o endpoint de logout e limpar stores e caches privados mesmo diante de falha remota ou token expirado.
     - Tratar `401` de leitura protegida uma única vez, limpar dados privados e redirecionar sem permitir que requests tardios restaurem cache ou sessão.
     - Verificar request, efeito visível, cache e rota, executar testes focados, typecheck e lint e falhar diante de endpoint, método ou reconciliação incorretos.
+  - Evidência: commits `6ec0d8e` e `272cb59`; integração auth 8/8 PASS, suite auth 64/64 PASS, consumidores App/cart/checkout 230/230 PASS e expiração ativa 1/1 PASS; typecheck/lint/diff-check PASS; review do range `09c47fb..272cb59` aprovada com 0 findings. Quatro warnings preexistentes de `act(...)` na suite de checkout estão fora do diff e não são bloqueantes.
 
 [ ] TASK-112: Testar integração de cadastro e perfil com respostas `201`, `409` e `422`.
   - Status: READY
