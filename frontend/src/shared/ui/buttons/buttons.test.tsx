@@ -1,27 +1,29 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from './Button'
 import { IconButton } from './IconButton'
 import { LinkButton } from './LinkButton'
 
 describe('Button', () => {
-  it('preserves focus and keyboard event semantics without activating when disabled', () => {
+  it('activates with Enter and Space and blocks interaction when disabled', async () => {
+    const user = userEvent.setup()
     const onClick = vi.fn()
-    const onKeyDown = vi.fn()
-    render(<><Button onKeyDown={onKeyDown}>Continuar</Button><Button disabled onClick={onClick}>Salvar</Button></>)
+    const onDisabledClick = vi.fn()
+    render(<><Button onClick={onClick}>Continuar</Button><Button disabled onClick={onDisabledClick}>Salvar</Button></>)
 
     const enabled = screen.getByRole('button', { name: 'Continuar' })
-    enabled.focus()
-    fireEvent.keyDown(enabled, { key: 'Enter' })
-    fireEvent.keyDown(enabled, { key: ' ' })
+    await user.tab()
+    await user.keyboard('{Enter}')
+    await user.keyboard(' ')
 
     expect(enabled).toHaveFocus()
-    expect(onKeyDown).toHaveBeenCalledTimes(2)
+    expect(onClick).toHaveBeenCalledTimes(2)
     const disabled = screen.getByRole('button', { name: 'Salvar' })
-    fireEvent.click(disabled)
+    await user.click(disabled)
     expect(disabled).toBeDisabled()
-    expect(onClick).not.toHaveBeenCalled()
+    expect(onDisabledClick).not.toHaveBeenCalled()
   })
 
   it('uses a safe button type and forwards native behavior', () => {
@@ -61,17 +63,17 @@ describe('IconButton', () => {
 })
 
 describe('LinkButton', () => {
-  it('is focusable and receives the native Enter keyboard event', () => {
-    const onKeyDown = vi.fn()
-    render(<MemoryRouter><LinkButton to="/produtos" onKeyDown={onKeyDown}>Produtos</LinkButton></MemoryRouter>)
+  it('navigates with Enter while preserving the target route', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter initialEntries={['/']}><Routes><Route path="/" element={<LinkButton to="/produtos">Produtos</LinkButton>} /><Route path="/produtos" element={<h1>Catálogo</h1>} /></Routes></MemoryRouter>)
 
     const link = screen.getByRole('link', { name: 'Produtos' })
-    link.focus()
-    fireEvent.keyDown(link, { key: 'Enter' })
+    await user.tab()
 
     expect(link).toHaveFocus()
     expect(link).toHaveAttribute('href', '/produtos')
-    expect(onKeyDown).toHaveBeenCalledOnce()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('heading', { name: 'Catálogo' })).toBeInTheDocument()
   })
 
   it('renders navigation as a link with button styling', () => {
