@@ -23,6 +23,8 @@
 - Backlog só muda depois da revisão independente aprovada.
 - Tentativa 1 foi falha de executor por `-replace '\','/'`; nenhum resultado
   parcial vale e o gate integral deve recomeçar no novo `HEAD`.
+- Tentativa 2 teve pacote de evidências incompleto; nenhum resultado parcial
+  vale e o gate integral deve recomeçar no novo `HEAD`.
 
 ---
 
@@ -294,6 +296,10 @@ rg -n -i $runnerPatterns `
   (Join-Path $logRoot '05-playwright.log') *>&1 |
   Set-Content -LiteralPath $runnerSignalLog
 if ($LASTEXITCODE -gt 1) { throw "Falha ao inspecionar logs dos runners" }
+if ((Get-Item -LiteralPath $runnerSignalLog).Length -eq 0) {
+  "result=none; source=vitest,playwright" |
+    Set-Content -LiteralPath $runnerSignalLog
+}
 ```
 
 Expected: o arquivo registra zero ou mais sinais para revisão. Substrings não
@@ -340,6 +346,10 @@ $unconditional = rg -n `
 $focusExit = $LASTEXITCODE
 if ($focusExit -eq 0) { throw "Existem modifiers incondicionais: $unconditional" }
 if ($focusExit -ne 1) { throw "Busca de .only/.skip falhou com exit $focusExit" }
+if ((Get-Item -LiteralPath $focusLog).Length -eq 0) {
+  "result=none; rule=unconditional-only-or-skip" |
+    Set-Content -LiteralPath $focusLog
+}
 
 $conditionalLog = Join-Path $logRoot '09b-conditional-skips.log'
 rg -n `
@@ -348,6 +358,10 @@ rg -n `
   '\b(?:test|it|describe)\.skip\s*\(' `
   $frontend 2>&1 | Set-Content -LiteralPath $conditionalLog
 if ($LASTEXITCODE -gt 1) { throw "Inventário de skips condicionais falhou" }
+if ((Get-Item -LiteralPath $conditionalLog).Length -eq 0) {
+  "result=none; rule=conditional-skip-inventory" |
+    Set-Content -LiteralPath $conditionalLog
+}
 ```
 
 Expected: nenhuma chamada incondicional. O segundo arquivo é inventário para
@@ -360,9 +374,18 @@ regex textual não decide sozinha quando a assinatura recebe uma condição.
 git -C $gateWorktree diff --check 2>&1 |
   Tee-Object -FilePath (Join-Path $logRoot '10-diff-check.log')
 if ($LASTEXITCODE -ne 0) { throw "diff-check falhou" }
+$diffCheckLog = Join-Path $logRoot '10-diff-check.log'
+if ((Get-Item -LiteralPath $diffCheckLog).Length -eq 0) {
+  "result=clean" | Set-Content -LiteralPath $diffCheckLog
+}
 
 $finalStatus = @(git -C $gateWorktree status --short)
-$finalStatus | Set-Content -LiteralPath (Join-Path $logRoot '11-status.log')
+$statusLog = Join-Path $logRoot '11-status.log'
+if ($finalStatus.Count -eq 0) {
+  "result=clean" | Set-Content -LiteralPath $statusLog
+} else {
+  $finalStatus | Set-Content -LiteralPath $statusLog
+}
 if ($finalStatus.Count -ne 0) { throw "Checkout final não está limpo" }
 
 git -C $gateWorktree rev-parse HEAD |
@@ -408,21 +431,92 @@ implementador → revisor. O gate inteiro recomeça desde `npm ci`.
 finally {
   $captureSucceeded = $false
   try {
+    $finalHeadLog = Join-Path $logRoot 'final-head.log'
     git -C $gateWorktree rev-parse HEAD *>&1 |
-      Set-Content -LiteralPath (Join-Path $logRoot 'final-head.log')
+      Set-Content -LiteralPath $finalHeadLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar HEAD" }
-    git -C $gateWorktree status --short *>&1 |
-      Set-Content -LiteralPath (Join-Path $logRoot 'final-status.log')
+    $finalStatusLog = Join-Path $logRoot 'final-status.log'
+    $capturedStatus = @(git -C $gateWorktree status --short)
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar status" }
+    if ($capturedStatus.Count -eq 0) {
+      "result=clean" | Set-Content -LiteralPath $finalStatusLog
+    } else {
+      $capturedStatus | Set-Content -LiteralPath $finalStatusLog
+    }
+    $patchLog = Join-Path $logRoot 'failure-or-final.patch'
     git -C $gateWorktree diff --binary *>&1 |
-      Set-Content -LiteralPath (Join-Path $logRoot 'failure-or-final.patch')
+      Set-Content -LiteralPath $patchLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar patch" }
+    if ((Get-Item -LiteralPath $patchLog).Length -eq 0) {
+      "result=clean; format=git-diff-binary" | Set-Content -LiteralPath $patchLog
+    }
+    $nameStatusLog = Join-Path $logRoot 'final-name-status.log'
     git -C $gateWorktree diff --name-status *>&1 |
-      Set-Content -LiteralPath (Join-Path $logRoot 'final-name-status.log')
+      Set-Content -LiteralPath $nameStatusLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar nomes" }
+    if ((Get-Item -LiteralPath $nameStatusLog).Length -eq 0) {
+      "result=clean" | Set-Content -LiteralPath $nameStatusLog
+    }
+    $worktreesLog = Join-Path $logRoot 'worktrees-final.txt'
     git worktree list --porcelain *>&1 |
-      Set-Content -LiteralPath (Join-Path $logRoot 'worktrees-final.txt')
+      Set-Content -LiteralPath $worktreesLog
     if ($LASTEXITCODE -ne 0) { throw "Falha ao capturar worktrees" }
+
+    $requiredEvidence = @(
+      'summary.tsv',
+      '01-npm-ci.log',
+      '02-typecheck.log',
+      '03-lint.log',
+      '04-vitest.log',
+      '05-playwright.log',
+      '06-build.log',
+      '07-production-graph.log',
+      '08-private-data.log',
+      '09-focused-or-skipped-tests.log',
+      '09b-conditional-skips.log',
+      'runner-signals.log',
+      '10-diff-check.log',
+      '11-status.log',
+      'final-status.log',
+      'failure-or-final.patch',
+      'final-name-status.log',
+      'final-head.log',
+      'worktrees-final.txt'
+    )
+    foreach ($stepLog in $requiredEvidence |
+        Where-Object { $_ -match '^\d{2}-.+\.log$' }) {
+      $stepLogPath = Join-Path $logRoot $stepLog
+      if ((Test-Path -LiteralPath $stepLogPath -PathType Leaf) -and
+          (Get-Item -LiteralPath $stepLogPath).Length -eq 0) {
+        "result=success; output=empty; file=$stepLog" |
+          Set-Content -LiteralPath $stepLogPath
+      }
+    }
+    $manifestLines = @("path`tbytes`tsha256")
+    foreach ($relativePath in $requiredEvidence) {
+      $evidencePath = Join-Path $logRoot $relativePath
+      if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) {
+        throw "Evidência obrigatória ausente: $relativePath"
+      }
+      $item = Get-Item -LiteralPath $evidencePath
+      if ($item.Length -le 0) {
+        throw "Evidência obrigatória vazia: $relativePath"
+      }
+      $hash = (Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash
+      $manifestLines += "$relativePath`t$($item.Length)`t$hash"
+    }
+    $manifestPath = Join-Path $logRoot 'evidence-manifest.tsv'
+    $manifestLines | Set-Content -LiteralPath $manifestPath -Encoding utf8
+    if ((Get-Item -LiteralPath $manifestPath).Length -le 0) {
+      throw "Manifesto de evidências vazio"
+    }
+    $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
+    $manifestHashPath = Join-Path $logRoot 'evidence-manifest.sha256'
+    "file=evidence-manifest.tsv; sha256=$manifestHash; entries=$($requiredEvidence.Count)" |
+      Set-Content -LiteralPath $manifestHashPath
+    if ((Get-Item -LiteralPath $manifestHashPath).Length -le 0) {
+      throw "Checksum do manifesto vazio"
+    }
     $captureSucceeded = $true
   } catch {
     $_ | Out-String |
@@ -459,7 +553,10 @@ Expected: HEAD, status, patch binário e inventário são externos antes de
 qualquer remoção. Somente checkout limpo (inclusive após EOL restaurado) é
 removido. Qualquer alteração real ou untracked inesperado preserva o worktree,
 pois patch Git não arquiva seu conteúdo; remoção é sempre sem `--force`.
-`$logRoot` sempre permanece.
+O self-check exige todos os 19 arquivos, com conteúdo explícito, e gera
+`evidence-manifest.tsv` com tamanho/SHA-256 mais
+`evidence-manifest.sha256`; ausência, vazio ou erro de hash preserva o
+worktree. `$logRoot` sempre permanece.
 
 - [ ] **Step 3: Delegar revisão independente**
 
@@ -471,6 +568,7 @@ Entregar ao revisor:
 - contagens Vitest/E2E, bytes/chunks e auditoria privada;
 - evidência de `CI=true`, ausência de modifiers incondicionais, revisão dos
   condicionais, sinais dos runners, diff e status;
+- manifesto com tamanho e SHA-256 de todas as evidências obrigatórias;
 - `git diff 2a8bddf47eb856ebd7fe8ea187fa06173fb176c1..HEAD`;
 - evidência de remoção do worktree.
 

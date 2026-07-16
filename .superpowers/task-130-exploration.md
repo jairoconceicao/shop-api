@@ -19,6 +19,15 @@ nenhum resultado parcial conta como gate. O checkout preservado deve ser
 capturado, confirmado limpo/listado/no caminho exato e removido sem `--force`;
 depois o gate integral recomeça desde `npm ci` no novo `HEAD`.
 
+## Tentativa 2 do executor
+
+A segunda tentativa produziu evidência incompleta: arquivos esperados vazios
+ou ausentes impedem provar retrospectivamente busca de modifiers, sinais dos
+runners, diff/status e estado final. A classificação continua `executor`;
+nenhuma task funcional é reaberta. O checkout deve ser preservado se o pacote
+obrigatório não puder ser validado, e o gate integral deve recomeçar no novo
+`HEAD` com criação explícita de cada evidência durante a execução.
+
 ## Fontes factuais
 
 O `frontend/package.json` expõe os cinco gates pedidos no backlog:
@@ -65,6 +74,12 @@ evidência útil. Cada comando deve:
 - registrar comando, início UTC, duração, exit code, status antes de eventual
   normalização e status final;
 - exigir exit code 0 e status vazio antes de avançar.
+
+Todo resultado vazio deve ainda produzir arquivo com cabeçalho e conclusão
+explícita (`result=none`, `result=clean` ou equivalente). Antes do cleanup, um
+manifesto externo deve listar caminho relativo, tamanho e SHA-256 de todas as
+evidências requeridas, incluindo ledger e logs dos steps; arquivo ausente,
+ilegível ou sem conteúdo preserva o worktree.
 
 O E2E deve ser chamado com `CI=true`, o que ativa `forbidOnly`, retries e um
 worker na configuração Playwright. O runner já é a fonte de page errors,
