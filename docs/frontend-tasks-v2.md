@@ -838,8 +838,8 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Validar em checkout limpo que os comandos documentados podem ser copiados e executados com sucesso.
   - Evidência: planos `a9806f4`, `7a1751c` e `77da209`; implementação e validação `3f031c7`, `50caf90`, `86f773f` e `653baae`; revisão independente aprovada sem findings CRITICAL ou IMPORTANT. Em worktree detached no commit exato, Node 26.3.1/npm 11.16.0 executaram `npm ci` com 315 pacotes e zero vulnerabilidades, typecheck, lint, Vitest 130 arquivos/863 testes, Playwright Chromium 20/20, build, grafo inicial de 465833 bytes com 6 rotas lazy e auditoria privada de 153 arquivos/19 negativos, todos com exit code zero. O Docker Desktop foi iniciado de modo oculto dentro do deadline; Docker 29.6.1, PostgreSQL 17.10 e .NET SDK 10.0.302 executaram `shop-api-db` healthy, restore e migrations com `dotnet-ef` 10.0.10, `shop-api-app` com readiness 200 e smoke Chromium real 1/1, MSW desativado, sem service worker, interceptações, erros de console, página ou CORS. Um RED real em checkout limpo revelou `NETSDK1004` e adicionou `dotnet restore` ao container one-shot; a revisão tornou o segundo terminal autocontido e separou o diagnóstico da migration dos logs da API. O cleanup confirmou containers, rede, diretório temporário e listener 5173 ausentes; worktree temporário removido, diff-check e status final PASS.
 
-[ ] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
-  - Status: READY
+[x] TASK-130: Executar typecheck, lint, testes, E2E e build como gate final do MVP.
+  - Status: DONE
   - Depends on: TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-111, TASK-112, TASK-113, TASK-114, TASK-115, TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123, TASK-124, TASK-125, TASK-126, TASK-127, TASK-128, TASK-129
   - Escopo: Frontend
   - Critérios de aceite:
@@ -847,6 +847,7 @@ Lote 2: complete (d130202..3eb713b, broad review clean; gate 835/835)
     - Rejeitar `.only`, erros, rejeições não tratadas e alterações pendentes produzidas pelo gate.
     - Registrar contagens, duração, ambiente e commit exato da execução.
     - Se houver falha, reabrir a task dona do comportamento e não corrigir produto diretamente na TASK-130.
+  - Evidência: planos e correções do executor `4641e9f`, `92a68aa`, `9b68b5d`, `8ffad7d`, `4403e31`, `e82c6bd` e `0a9bc60`; tentativas e relatórios `80c52cb`, `dfa7bfe`, `d977950`, `e769d53`, `c0711ef` e `e49ea5b`; a falha funcional de foco reabriu a TASK-128 em `518a1f3` e foi estabilizada em `694e58e`, antes do novo gate integral. No checkout detached do alvo `0a9bc60`, `npm ci` 6,963 s, typecheck 7,078 s, lint 8,394 s, Vitest 54,233 s com 130 arquivos/863 testes, Playwright `CI=true` 60,892 s com 20/20 e um worker, build 4,254 s com 390 módulos, grafo 540 ms com entry de 465833 bytes e 6 rotas lazy, e auditoria privada 1,497 s com 153 arquivos/19 testes negativos passaram com exit zero. O pacote validou 22 evidências não vazias e manifest SHA-256 `4F90DDE48FFB4A078058A6FA01224A89D2232D19D9858CA8BD30F9641B8FA6E9`; zero `.only`, skips condicionais ou sinais de runner, diff/status limpos e cleanup sem `--force`. Revisão independente aprovada sem findings CRITICAL ou IMPORTANT.
 
 ### Fase 9 — Ajustes de experiência
 
