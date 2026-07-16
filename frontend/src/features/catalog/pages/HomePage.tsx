@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Button } from '../../../shared/ui/buttons/Button'
@@ -128,6 +129,25 @@ export function HomePage() {
   const location = useLocation()
   const catalogUrl = parseCatalogUrl(searchParams)
   const categoryId = parseCategoryId(catalogUrl.categoriaId)
+  const navigate = useNavigate()
+  const canonicalSearch = serializeCatalogUrl({
+    page: catalogUrl.page,
+    ...(catalogUrl.searchword ? { searchword: catalogUrl.searchword } : {}),
+    ...(categoryId !== undefined ? { categoriaId: String(categoryId) } : {}),
+  }).toString()
+
+  useEffect(() => {
+    if (searchParams.toString() === canonicalSearch) return
+
+    void navigate(
+      {
+        pathname: location.pathname,
+        search: canonicalSearch ? `?${canonicalSearch}` : '',
+      },
+      { replace: true },
+    )
+  }, [canonicalSearch, location.pathname, navigate, searchParams])
+
   useCategoriesQuery()
 
   return (
