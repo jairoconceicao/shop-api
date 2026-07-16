@@ -649,8 +649,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Verificar requests e efeitos visíveis e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `b12c096`, `aa4815c` e `93512ff`; integração e consumidores customer 50/50 PASS; typecheck/lint/diff-check PASS; review do range `aeed2db..93512ff` aprovada com 0 findings.
 
-[ ] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
-  - Status: READY
+[x] TASK-113: Testar integração de catálogo, categoria, busca, paginação e produto `404` com MSW.
+  - Status: DONE
   - Depends on: TASK-009, TASK-046, TASK-047, TASK-048, TASK-049, TASK-050, TASK-051, TASK-052, TASK-053, TASK-054, TASK-055, TASK-056, TASK-057, TASK-058, TASK-059, TASK-060, TASK-061, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -658,6 +658,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Serializar busca e página na URL e no request, seguir a metadata de paginação e restaurar a consulta no histórico.
     - Canonicalizar filtros inválidos e exibir estado específico para produto `404` sem retry.
     - Verificar request, efeito visível, cache e rota e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `929444e`, `a06a1b1` e `7fc8285`; integração de catálogo 5/5 PASS e catálogo/consumidores 75/75 PASS; typecheck/lint/diff-check PASS; review do range `2373274..7fc8285` aprovada sem findings CRITICAL ou IMPORTANT. A observação MINOR registrada está fora do escopo da TASK-113.
 
 [ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
   - Status: READY
