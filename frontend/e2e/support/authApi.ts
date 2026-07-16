@@ -20,6 +20,10 @@ export type RequestName =
   | 'cartUpdate'
   | 'cartDelete'
   | 'orderCreate'
+  | 'ordersList'
+  | 'orderDetail'
+  | 'orderProduct'
+  | 'orderCancel'
 export type ExpectedRequestCounts = Partial<Record<RequestName, number>>
 export type RequestCounts = Readonly<Record<RequestName, number>>
 
@@ -54,6 +58,7 @@ export type RegistrationData = {
   cartId: number
   cartItemId: number
   orderId: number
+  secondaryOrderId: number
 }
 
 export type AuthApi = {
@@ -178,6 +183,7 @@ export function buildRegistrationData(testInfo: TestInfo): RegistrationData {
     cartId: 30_000 + seed,
     cartItemId: 40_000 + seed,
     orderId: 50_000 + seed,
+    secondaryOrderId: 60_000 + seed,
   }
 }
 
@@ -238,6 +244,10 @@ export async function installAuthApi(
     cartUpdate: 0,
     cartDelete: 0,
     orderCreate: 0,
+    ordersList: 0,
+    orderDetail: 0,
+    orderProduct: 0,
+    orderCancel: 0,
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
@@ -269,6 +279,62 @@ export async function installAuthApi(
       numero: data.phone,
       whatsApp: true,
     },
+  })
+
+  const targetOrder = () => ({
+    pedidoId: data.orderId,
+    carrinhoId: data.cartId,
+    clienteId: data.customerId,
+    enderecoEntrega: {
+      logradouro: data.street,
+      numero: data.number,
+      complemento: null,
+      cep: data.postalCode,
+      bairro: data.district,
+      cidade: data.city,
+      uf: data.state,
+    },
+    dataPedido: '2026-07-10T14:30:00-03:00',
+    formaPagamento: 'Cartao',
+    status: 'Criado',
+    items: [
+      {
+        itemId: data.cartItemId,
+        produtoId: data.product.id,
+        quantidade: 2,
+        valorUnitario: data.product.price,
+      },
+      {
+        itemId: data.cartItemId + 1,
+        produtoId: data.product.id,
+        quantidade: 1,
+        valorUnitario: 3000.1,
+      },
+    ],
+  })
+
+  const secondaryOrder = () => ({
+    pedidoId: data.secondaryOrderId,
+    carrinhoId: data.cartId + 1,
+    clienteId: data.customerId,
+    enderecoEntrega: {
+      logradouro: data.street,
+      numero: data.number,
+      complemento: null,
+      cep: data.postalCode,
+      bairro: data.district,
+      cidade: data.city,
+      uf: data.state,
+    },
+    dataPedido: '2026-06-20T09:00:00-03:00',
+    formaPagamento: 'Pix',
+    status: 'Processado',
+    items: [{
+      itemId: data.cartItemId + 1,
+      produtoId: data.product.id,
+      quantidade: 1,
+      valorUnitario: data.product.price,
+    }],
   })
 
   const customerSnapshot = (): CustomerSnapshot | null => {
@@ -371,7 +437,12 @@ export async function installAuthApi(
 
     if (url.pathname === `/api/v1/produto/${data.product.id}`) {
       requireMethod(route, 'GET')
-      increment('product')
+      if (request.postData() !== null) {
+        throw new Error(
+          `Expected empty product body, received ${request.postData()}`,
+        )
+      }
+      increment(counts.orderDetail > 0 ? 'orderProduct' : 'product')
       await json(route, {
         status: true,
         data: {
@@ -544,6 +615,92 @@ export async function installAuthApi(
       increment('categories')
       await json(route, { status: true, data: [] })
       return
+    }
+
+    if (url.pathname === '/api/v1/pedido' && request.method() === 'GET') {
+      requireAuthorization(route)
+      increment('ordersList')
+      if (request.postData() !== null) {
+        throw new Error(
+          `Expected empty orders list body, received ${request.postData()}`,
+        )
+      }
+
+      const query = url.searchParams
+      const expectedCpf = registeredCustomer?.cpf
+      if (!expectedCpf || query.get('cpf') !== expectedCpf) {
+        throw new Error(`Unexpected orders CPF: ${query.get('cpf')}`)
+      }
+      if (query.get('page') !== '1' || query.get('size') !== '20') {
+        throw new Error(`Unexpected orders pagination: ${url.search}`)
+      }
+
+      const start = query.get('dataInicio')
+      const end = query.get('dataFim')
+      const isUnfiltered =
+        start === null
+        && end === null
+        && [...query.keys()].sort().join(',') === 'cpf,page,size'
+      const isFiltered =
+        start === '2026-07-01T03:00:00.000Z'
+        && end === '2026-07-16T02:59:59.999Z'
+        && [...query.keys()].sort().join(',')
+          === 'cpf,dataFim,dataInicio,page,size'
+
+      if (!isUnfiltered && !isFiltered) {
+        throw new Error(`Unexpected orders query: ${url.search}`)
+      }
+
+      const orders = isFiltered
+        ? [targetOrder()]
+        : [targetOrder(), secondaryOrder()]
+      await json(route, {
+        status: true,
+        pagination: {
+          pages: 1,
+          size: 20,
+          totalItems: orders.length,
+          data: orders,
+        },
+      })
+      return
+    }
+
+    if (url.pathname === `/api/v1/pedido/${data.orderId}`) {
+      requireAuthorization(route)
+
+      if (request.method() === 'GET') {
+        increment('orderDetail')
+        if (request.postData() !== null) {
+          throw new Error(
+            `Expected empty order detail body, received ${request.postData()}`,
+          )
+        }
+        await json(route, { status: true, data: targetOrder() })
+        return
+      }
+
+      if (request.method() === 'PATCH') {
+        increment('orderCancel')
+        const body = readJson<{ status: string }>(route)
+        const expectedBody = { status: 'Cancelado' }
+        if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
+          throw new Error(
+            `Unexpected order cancellation body: ${JSON.stringify(body)}`,
+          )
+        }
+        await json(route, {
+          error: {
+            code: 'ORDER_NOT_CANCELLABLE',
+            message: 'Pedido não pode ser cancelado.',
+          },
+        }, 422)
+        return
+      }
+
+      throw new Error(
+        `Expected GET or PATCH ${request.url()}, received ${request.method()}`,
+      )
     }
 
     if (url.pathname === '/api/v1/pedido') {
