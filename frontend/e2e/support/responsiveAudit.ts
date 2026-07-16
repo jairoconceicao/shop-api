@@ -99,9 +99,19 @@ export async function assertResponsiveDocument(
           '[data-responsive-overflow]',
         )
         const isMarker = markerContainer === element
+        const isEditableControl = [
+          'INPUT',
+          'SELECT',
+          'TEXTAREA',
+        ].includes(element.tagName)
         const escapesDocument = rect.left < 0 || rect.right > root.clientWidth
         const hasUnallowedInternalOverflow =
-          element.scrollWidth > element.clientWidth && markerContainer === null
+          element.scrollWidth > element.clientWidth
+          && markerContainer === null
+          && !isEditableControl
+          && !['hidden', 'clip'].includes(
+            window.getComputedStyle(element).overflowX,
+          )
 
         if (
           !escapesDocument

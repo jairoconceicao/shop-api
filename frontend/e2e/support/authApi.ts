@@ -63,6 +63,7 @@ export type RegistrationData = {
 
 export type AuthApi = {
   data: RegistrationData
+  enableResponsiveCatalog(): void
   expectRequestCounts(expected: ExpectedRequestCounts): void
   requestCounts(): RequestCounts
   customerSnapshot(): CustomerSnapshot | null
@@ -251,6 +252,7 @@ export async function installAuthApi(
     orderCancel: 0,
   }
   let expected: ExpectedRequestCounts = {}
+  let responsiveCatalogEnabled = false
   let loginExpirations: string[] | null = null
   let registeredCustomer: RegistrationRequest | null = null
   let passwordAttempts = 0
@@ -621,7 +623,24 @@ export async function installAuthApi(
       increment('catalog')
       await json(route, {
         status: true,
-        pagination: { pages: 0, size: 20, totalItems: 0, data: [] },
+        pagination: responsiveCatalogEnabled
+          ? {
+              pages: 10,
+              size: 20,
+              totalItems: 181,
+              data: [{
+                produtoId: data.product.id,
+                titulo: data.product.title,
+                thumb: null,
+                preco: data.product.price,
+                estoque: data.product.stock,
+                categoria: {
+                  categoriaId: data.product.categoryId,
+                  titulo: data.product.categoryTitle,
+                },
+              }],
+            }
+          : { pages: 0, size: 20, totalItems: 0, data: [] },
       })
       return
     }
@@ -923,6 +942,9 @@ export async function installAuthApi(
 
   return {
     data,
+    enableResponsiveCatalog() {
+      responsiveCatalogEnabled = true
+    },
     expectRequestCounts(nextExpected) {
       expected = { ...nextExpected }
     },
@@ -958,6 +980,7 @@ export async function installAuthApi(
     },
     reset() {
       passwordAttempts = 0
+      responsiveCatalogEnabled = false
       pendingOrderProduct = false
       cartItem = null
       registeredCustomer = null
