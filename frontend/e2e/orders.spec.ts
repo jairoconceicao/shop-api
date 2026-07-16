@@ -9,11 +9,12 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
   authApi.seedCustomer()
   authApi.expectRequestCounts({
     login: 1,
-    categories: 2,
+    categories: 3,
     catalog: 1,
     profile: 1,
     ordersList: 2,
     orderDetail: 3,
+    product: 1,
     orderProduct: 2,
     orderCancel: 1,
   })
@@ -140,5 +141,15 @@ test('filtra pedidos e mantém o status confirmado após cancelamento recusado',
     orderDetail: 3,
     orderProduct: 2,
     orderCancel: 1,
+  })
+
+  await page.goto(`/produtos/${data.product.id}`)
+  await expect(
+    page.getByRole('heading', { level: 1, name: data.product.title }),
+  ).toBeVisible()
+  await expect.poll(() => authApi.requestCounts()).toMatchObject({
+    categories: 3,
+    product: 1,
+    orderProduct: 2,
   })
 })

@@ -30,8 +30,8 @@
 6. O GREEN focado passou com contagens exatas:
 
 ```text
-register=0 login=1 categories=2 catalog=1 profile=1 profileUpdate=0
-passwordUpdate=0 logout=0 product=0 cartCreate=0 cartAdd=0 cartGet=0
+register=0 login=1 categories=3 catalog=1 profile=1 profileUpdate=0
+passwordUpdate=0 logout=0 product=1 cartCreate=0 cartAdd=0 cartGet=0
 cartUpdate=0 cartDelete=0 orderCreate=0 ordersList=2 orderDetail=3
 orderProduct=2 orderCancel=1
 ```
@@ -49,6 +49,8 @@ orderProduct=2 orderCancel=1
 - A API simulada responde `422` com `ORDER_NOT_CANCELLABLE`.
 - A UI anuncia a recusa, refaz a leitura do detalhe e mantém `Criado`.
 - Após reload, o detalhe continua com `Criado` e os dois itens confirmados.
+- Uma navegação fria posterior para o produto comum incrementa `product`, sem
+  reutilizar indevidamente o contexto já consumido de `orderProduct`.
 
 ## Gates executados
 

@@ -252,6 +252,7 @@ export async function installAuthApi(
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
   let passwordAttempts = 0
+  let pendingOrderProduct = false
   let cartItem: {
     itemId: number
     productId: number
@@ -442,7 +443,12 @@ export async function installAuthApi(
           `Expected empty product body, received ${request.postData()}`,
         )
       }
-      increment(counts.orderDetail > 0 ? 'orderProduct' : 'product')
+      if (pendingOrderProduct) {
+        pendingOrderProduct = false
+        increment('orderProduct')
+      } else {
+        increment('product')
+      }
       await json(route, {
         status: true,
         data: {
@@ -671,6 +677,7 @@ export async function installAuthApi(
 
       if (request.method() === 'GET') {
         increment('orderDetail')
+        pendingOrderProduct = true
         if (request.postData() !== null) {
           throw new Error(
             `Expected empty order detail body, received ${request.postData()}`,
@@ -933,6 +940,7 @@ export async function installAuthApi(
     },
     reset() {
       passwordAttempts = 0
+      pendingOrderProduct = false
       cartItem = null
       registeredCustomer = null
       expected = {}
