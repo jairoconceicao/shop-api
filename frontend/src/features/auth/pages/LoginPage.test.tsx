@@ -64,6 +64,7 @@ describe('LoginPage', () => {
 
     expect(await screen.findAllByText('Informe um e-mail válido.')).toHaveLength(2)
     expect(screen.getAllByText('Informe sua senha.')).toHaveLength(2)
+    expect(screen.getByRole('alert')).toHaveFocus()
     expect(requests).toBe(0)
   })
 

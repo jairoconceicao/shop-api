@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -19,6 +20,7 @@ type LoginFormValues = LoginRequest & {
 }
 
 export function LoginPage() {
+  const summaryRef = useRef<HTMLDivElement>(null)
   const setSession = useAuthStore((state) => state.setSession)
   const location = useLocation()
   const navigate = useNavigate()
@@ -59,6 +61,10 @@ export function LoginPage() {
     loginMutation.error ? { message: loginMutation.error.message } : null,
   ].filter((error): error is { fieldId?: string; message: string } => error !== null)
 
+  useEffect(() => {
+    if (formErrors.length > 0) summaryRef.current?.focus()
+  }, [formErrors.length])
+
   return (
     <section className="container-page flex min-h-dvh items-center justify-center py-12 sm:py-16">
       <div className="w-full max-w-md rounded-2xl border border-ink-700/80 bg-ink-850 p-6 shadow-2xl shadow-black/40 sm:p-8">
@@ -82,7 +88,7 @@ export function LoginPage() {
         ) : null}
 
         <form className="mt-8 space-y-5" noValidate onSubmit={submitLogin}>
-          <FormErrorSummary errors={formErrors} />
+          <FormErrorSummary ref={summaryRef} errors={formErrors} />
           <Input
             id="login-email"
             label="E-mail"
