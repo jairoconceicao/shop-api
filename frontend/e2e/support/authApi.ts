@@ -9,6 +9,8 @@ export type RequestName =
   | 'login'
   | 'categories'
   | 'profile'
+  | 'profileUpdate'
+  | 'passwordUpdate'
   | 'logout'
   | 'product'
   | 'cartCreate'
@@ -82,6 +84,13 @@ type RegistrationRequest = {
 }
 
 type LoginRequest = { email: string; senha: string }
+
+type UpdateCustomerRequest = Omit<RegistrationRequest, 'senha'>
+
+type UpdatePasswordRequest = {
+  senhaAtual: string
+  senhaNova: string
+}
 
 type DeliveryAddressRequest = {
   logradouro: string
@@ -206,11 +215,19 @@ export async function installAuthApi(
   testInfo: TestInfo,
 ): Promise<AuthApi> {
   const data = buildRegistrationData(testInfo)
+  const updatedCpf = `8000000${data.cpf.slice(-4)}`
+  const updatedName = `${data.name} Atualizado`
+  const updatedEmail = `atualizado-${data.email}`
+  const updatedStreet = `${data.street} Atualizada`
+  const firstNewPassword = `Primeira@${data.cpf.slice(-4)}A`
+  const finalNewPassword = `Final@${data.cpf.slice(-4)}B`
   const counts: Record<RequestName, number> = {
     register: 0,
     login: 0,
     categories: 0,
     profile: 0,
+    profileUpdate: 0,
+    passwordUpdate: 0,
     logout: 0,
     product: 0,
     cartCreate: 0,
@@ -222,6 +239,7 @@ export async function installAuthApi(
   }
   let expected: ExpectedRequestCounts = {}
   let registeredCustomer: RegistrationRequest | null = null
+  let passwordAttempts = 0
   let cartItem: {
     itemId: number
     productId: number
@@ -572,26 +590,132 @@ export async function installAuthApi(
       return
     }
 
-    if (url.pathname === `/api/v1/cliente/${data.customerId}`) {
-      requireMethod(route, 'GET')
+    if (url.pathname === `/api/v1/cliente/${data.customerId}/senha`) {
+      requireMethod(route, 'PUT')
       requireAuthorization(route)
-      increment('profile')
+      increment('passwordUpdate')
+
       if (registeredCustomer === null) {
-        throw new Error('Profile requested before registration')
+        throw new Error('Password update requested before customer seed')
+      }
+      if (passwordAttempts >= 2) {
+        throw new Error('Unexpected additional password update attempt')
+      }
+
+      const body = readJson<UpdatePasswordRequest>(route)
+      const expectedNewPassword =
+        passwordAttempts === 0 ? firstNewPassword : finalNewPassword
+      const expectedBody = {
+        senhaAtual: data.password,
+        senhaNova: expectedNewPassword,
+      }
+      if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
+        throw new Error('Unexpected password update body')
+      }
+
+      passwordAttempts += 1
+      if (passwordAttempts === 1) {
+        await json(route, {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Revise os dados informados.',
+            details: [{
+              propertyName: 'SenhaAtual',
+              message: 'Senha atual incorreta.',
+            }],
+          },
+        }, 422)
+        return
+      }
+
+      registeredCustomer = {
+        ...registeredCustomer,
+        senha: body.senhaNova,
       }
       await json(route, {
         status: true,
-        data: {
-          clienteId: data.customerId,
-          cpf: registeredCustomer.cpf,
-          nome: registeredCustomer.nome,
-          dataNascimento: registeredCustomer.dataNascimento,
-          email: registeredCustomer.email,
-          endereco: registeredCustomer.endereco,
-          celular: registeredCustomer.celular,
-        },
+        data: { clienteId: data.customerId },
       })
       return
+    }
+
+    if (url.pathname === `/api/v1/cliente/${data.customerId}`) {
+      requireAuthorization(route)
+
+      if (request.method() === 'GET') {
+        increment('profile')
+        if (registeredCustomer === null) {
+          throw new Error('Profile requested before registration')
+        }
+        await json(route, {
+          status: true,
+          data: {
+            clienteId: data.customerId,
+            cpf: registeredCustomer.cpf,
+            nome: registeredCustomer.nome,
+            dataNascimento: registeredCustomer.dataNascimento,
+            email: registeredCustomer.email,
+            endereco: registeredCustomer.endereco,
+            celular: registeredCustomer.celular,
+          },
+        })
+        return
+      }
+
+      if (request.method() === 'PUT') {
+        increment('profileUpdate')
+        if (registeredCustomer === null) {
+          throw new Error('Profile update requested before customer seed')
+        }
+
+        const body = readJson<UpdateCustomerRequest>(route)
+        const expectedBody: UpdateCustomerRequest = {
+          cpf: updatedCpf,
+          nome: updatedName,
+          dataNascimento: data.birthDate,
+          email: updatedEmail,
+          endereco: {
+            logradouro: updatedStreet,
+            numero: data.number,
+            complemento: null,
+            cep: data.postalCode.replace(/(\d{5})(\d{3})/, '$1-$2'),
+            bairro: data.district,
+            cidade: data.city,
+            uf: data.state,
+          },
+          celular: {
+            ddd: data.areaCode,
+            numero: data.phone,
+            whatsApp: true,
+          },
+        }
+        if (JSON.stringify(body) !== JSON.stringify(expectedBody)) {
+          throw new Error(
+            `Unexpected profile update body: ${JSON.stringify(body)}`,
+          )
+        }
+        if ('clienteId' in body || 'senha' in body) {
+          throw new Error(
+            `Forbidden profile fields: ${JSON.stringify(body)}`,
+          )
+        }
+
+        registeredCustomer = {
+          ...registeredCustomer,
+          ...body,
+          endereco: { ...body.endereco },
+          celular: { ...body.celular },
+        }
+        await json(route, {
+          status: true,
+          data: { clienteId: data.customerId },
+        })
+        return
+      }
+
+      throw new Error(
+        `Expected GET or PUT ${request.url()}, received ${request.method()}`,
+      )
     }
 
     if (url.pathname === '/api/v1/auth/logout') {
@@ -636,6 +760,7 @@ export async function installAuthApi(
       }
     },
     reset() {
+      passwordAttempts = 0
       cartItem = null
       registeredCustomer = null
       expected = {}
