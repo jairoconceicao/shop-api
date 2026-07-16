@@ -660,8 +660,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Verificar request, efeito visível, cache e rota e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `929444e`, `a06a1b1` e `7fc8285`; integração de catálogo 5/5 PASS e catálogo/consumidores 75/75 PASS; typecheck/lint/diff-check PASS; review do range `2373274..7fc8285` aprovada sem findings CRITICAL ou IMPORTANT. A observação MINOR registrada está fora do escopo da TASK-113.
 
-[ ] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
-  - Status: READY
+[x] TASK-114: Testar criação, leitura, atualização, remoção e rollback do carrinho com MSW.
+  - Status: DONE
   - Depends on: TASK-009, TASK-062, TASK-063, TASK-064, TASK-065, TASK-066, TASK-067, TASK-068, TASK-069, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110
   - Escopo: Frontend
   - Critérios de aceite:
@@ -669,9 +669,10 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Alterar quantidade por PATCH e remover por DELETE somente após confirmação, emitindo cada request esperado uma vez.
     - Em falhas, restaurar somente o item alvo e preservar mudanças concorrentes; em `404`, remover o vínculo local.
     - Confirmar convergência entre resposta validada, caches, lista e badge e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `a86a77f` e `dfa6bd1`; carrinho 139/139 PASS, consumidores 46/46 PASS e revisão focada 6/6 PASS; typecheck/lint/diff-check PASS; review do range `c034c13..dfa6bd1` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
 [ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
-  - Status: BLOCKED
+  - Status: READY
   - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-114
   - Escopo: Frontend
   - Critérios de aceite:
