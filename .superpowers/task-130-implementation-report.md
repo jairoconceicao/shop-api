@@ -1,5 +1,18 @@
 # TASK-130 — Relatório de implementação
 
+## Execução aprovada no commit 0a9bc60
+
+O gate foi repetido integralmente desde `npm ci`. Todos os seis gates
+obrigatórios, as duas auditorias, as buscas estáticas, diff e status passaram.
+
+O pacote externo contém 22 evidências obrigatórias não vazias. O manifest
+registra tamanho e SHA-256 de cada arquivo, possui 22 entradas e seu checksum é
+`4F90DDE48FFB4A078058A6FA01224A89D2232D19D9858CA8BD30F9641B8FA6E9`.
+
+Antes do cleanup, o executor validou self-check de normalização, caminho exato,
+registro Git, filho direto, status limpo e manifest. O worktree foi removido
+sem `--force` e podado. Nenhum arquivo de produto ou backlog foi alterado.
+
 ## Tentativa no commit 3e09fc6
 
 ```text

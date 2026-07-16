@@ -1,5 +1,29 @@
 # TASK-130 — Relatório do gate final do MVP
 
+## Resultado aprovado no commit 0a9bc60
+
+- Resultado: **PASS**, aguardando revisão independente.
+- Commit alvo: `0a9bc60c19d3ad3ff73dcd72db3493cd12a0926d`.
+- Oito comandos com exit 0 e status final limpo.
+- Vitest: 130 arquivos e 863 testes.
+- Playwright: 20/20 com `CI=true` e um worker.
+- Build: 390 módulos; entry de 465.833 bytes.
+- Grafo: seis rotas lazy.
+- Auditoria privada: 153 arquivos e 19 testes negativos.
+- Modifiers incondicionais, skips condicionais e sinais de runner: zero.
+- 22 evidências obrigatórias não vazias.
+- Manifest SHA-256:
+  `4F90DDE48FFB4A078058A6FA01224A89D2232D19D9858CA8BD30F9641B8FA6E9`.
+- Cleanup validado e executado sem `--force`, seguido de prune.
+
+Durações: `npm ci` 6.963 s, typecheck 7.078 s, lint 8.394 s, Vitest
+54.233 s, Playwright 60.892 s, build 4.254 s, grafo 540 ms e auditoria
+privada 1.497 s.
+
+Logs externos:
+
+`C:\Users\jairo\AppData\Local\Temp\shop-api-task-130-0a9bc60c19d3ad3ff73dcd72db3493cd12a0926d`
+
 ## Resultado da tentativa no commit 3e09fc6
 
 - Resultado: **BLOCKED** na geração das evidências.
