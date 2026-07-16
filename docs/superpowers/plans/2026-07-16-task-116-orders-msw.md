@@ -8,6 +8,8 @@
 
 **Tech Stack:** Vitest, Testing Library, MSW, TanStack Query, React Router, Zustand.
 
+**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-116 para `BLOCKED` e retorna ao explorador.
+
 ## Global Constraints
 
 - TASK-116 READY; dependências DONE; BASE antes da escrita; `server.listen({ onUnhandledRequest: 'error' })`; zero mocks de produto; writer único.
@@ -16,9 +18,6 @@
 
 **Files:**
 - Create: `frontend/src/features/orders/orders.integration.test.tsx`
-- Modify somente após RED `orders-unique-products`: `frontend/src/features/orders/queries/useOrderProductsQuery.ts`
-- Modify somente após RED `orders-rejected-refresh` ou `orders-success-cache`: `frontend/src/features/orders/mutations/useCancelOrderMutation.ts`
-- Modify somente após RED `orders-list-request`: `frontend/src/features/orders/queries/useOrdersQuery.ts`
 
 **Interfaces:** exact keys `orderQueryKeys.detail(7,900)`, `orderQueryKeys.lists(7)`, `['orders','products',[42]]`; list size `20`.
 
@@ -26,10 +25,10 @@
 
 BASE_COMMIT → relatório do explorador → implementador → IN_PROGRESS.
 
-- [ ] **Step 2: criar spec completa**
+#### Complete target listing
 
 ```tsx
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { AppRouter } from '../../app/router/AppRouter'
@@ -66,21 +65,37 @@ describe('TASK-116 orders integration', () => {
   it('sends only Cancelado, announces 422, keeps Criado and reloads detail', async () => {
     let details = 0; const bodies: unknown[] = []
     server.use(http.get('*/api/v1/cliente/7', () => HttpResponse.json(profile)), http.get('*/api/v1/pedido/900', () => { details += 1; return HttpResponse.json(detailResponse) }), http.get('*/api/v1/produto/42', () => HttpResponse.json(product)), http.patch('*/api/v1/pedido/900', async ({ request }) => { bodies.push(await request.json()); return HttpResponse.json({ error: { code: 'ORDER_NOT_CANCELLABLE', message: 'Pedido não pode ser cancelado.' } }, { status: 422 }) }))
-    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/pedidos/900'] }); expect(await screen.findByText('Criado')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: /cancelar pedido/i })); await user.click(await screen.findByRole('button', { name: /confirmar cancelamento/i })); expect(await screen.findByText('Pedido não pode ser cancelado.')).toBeInTheDocument(); await waitFor(() => expect(details).toBe(2)); expect(bodies).toEqual([{ status: 'Cancelado' }]); expect(screen.getByText('Criado')).toBeInTheDocument(); expect(queryClient.getQueryData<{ status: string }>(orderQueryKeys.detail(7, 900))?.status).toBe('Criado')
+    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/pedidos/900'] }); expect(await screen.findByText('Criado')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'Cancelar pedido' })); const dialog = await screen.findByRole('dialog', { name: 'Cancelar pedido' }); await user.click(within(dialog).getByRole('button', { name: 'Cancelar pedido' })); expect(await screen.findByRole('alert')).toHaveTextContent('O cancelamento não foi aceitoA API recusou a alteração. O estado mais recente disponível do pedido está sendo exibido.'); await waitFor(() => expect(details).toBe(2)); expect(bodies).toEqual([{ status: 'Cancelado' }]); expect(screen.getByText('Criado')).toBeInTheDocument(); expect(queryClient.getQueryData<{ status: string }>(orderQueryKeys.detail(7, 900))?.status).toBe('Criado')
   })
 
   it('reconciles detail and customer 7 lists after successful cancel', async () => {
     let details = 0; server.use(http.get('*/api/v1/cliente/7', () => HttpResponse.json(profile)), http.get('*/api/v1/pedido/900', () => { details += 1; return HttpResponse.json(details === 1 ? detailResponse : cancelledDetailResponse) }), http.get('*/api/v1/produto/42', () => HttpResponse.json(product)), http.patch('*/api/v1/pedido/900', () => HttpResponse.json(cancelResponse)))
-    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/pedidos/900'] }); queryClient.setQueryData(orderQueryKeys.list(7, undefined, undefined, 1, 20), { marker: 'customer-7' }); queryClient.setQueryData(orderQueryKeys.list(8, undefined, undefined, 1, 20), { marker: 'customer-8' }); await screen.findByText('Criado'); await user.click(screen.getByRole('button', { name: /cancelar pedido/i })); await user.click(await screen.findByRole('button', { name: /confirmar cancelamento/i })); await waitFor(() => expect(details).toBe(2)); expect(queryClient.getQueryData<{ status: string }>(orderQueryKeys.detail(7, 900))?.status).toBe('Cancelado'); expect(queryClient.getQueryState(orderQueryKeys.list(7, undefined, undefined, 1, 20))?.isInvalidated).toBe(true); expect(queryClient.getQueryState(orderQueryKeys.list(8, undefined, undefined, 1, 20))?.isInvalidated).toBe(false)
+    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/pedidos/900'] }); queryClient.setQueryData(orderQueryKeys.list(7, undefined, undefined, 1, 20), { marker: 'customer-7' }); queryClient.setQueryData(orderQueryKeys.list(8, undefined, undefined, 1, 20), { marker: 'customer-8' }); await screen.findByText('Criado'); await user.click(screen.getByRole('button', { name: 'Cancelar pedido' })); const dialog = await screen.findByRole('dialog', { name: 'Cancelar pedido' }); await user.click(within(dialog).getByRole('button', { name: 'Cancelar pedido' })); await waitFor(() => expect(details).toBe(2)); expect(queryClient.getQueryData<{ status: string }>(orderQueryKeys.detail(7, 900))?.status).toBe('Cancelado'); expect(queryClient.getQueryState(orderQueryKeys.list(7, undefined, undefined, 1, 20))?.isInvalidated).toBe(true); expect(queryClient.getQueryState(orderQueryKeys.list(8, undefined, undefined, 1, 20))?.isInvalidated).toBe(false)
   })
 })
 ```
 
-- [ ] **Step 3: RED/GREEN/review**
+- [ ] **Step 2: criar imports, fixtures e helper de sessão**
 
-RED focused expected literals: product count `expected 2 to be 1`; 422 refresh `expected 1 to be 2`; success customer scope `expected false to be true`.
+Copie o início do listing até antes de `describe`.
 
-GREEN focused + typecheck + lint exit `0`. Commits `test(TASK-116): integrar pedidos com MSW`; sob RED `fix(TASK-116): reconciliar cancelamento de pedido`. Execute `git diff $BASE_COMMIT..HEAD`, review, fix-loop e DONE.
+- [ ] **Step 3: adicionar lista e detalhe**
+
+Copie `beforeEach` e os dois primeiros testes.
+
+- [ ] **Step 4: adicionar cancelamento 422**
+
+Copie o terceiro teste com dialog/copy reais.
+
+- [ ] **Step 5: adicionar cancelamento bem-sucedido**
+
+Copie o teste final e feche `describe`.
+
+- [ ] **Step 6: RED/GREEN/review**
+
+RED focused expected literals: product count `expected 2 to be 1`; 422 refresh `expected 1 to be 2`; success customer scope `expected false to be true`. Esse resultado muda TASK-116 para `BLOCKED` e retorna ao explorador.
+
+GREEN focused + typecheck + lint exit `0`. Commit `test(TASK-116): integrar pedidos com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 

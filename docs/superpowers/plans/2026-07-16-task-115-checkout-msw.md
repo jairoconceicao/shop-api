@@ -8,6 +8,8 @@
 
 **Tech Stack:** Vitest, Testing Library, MSW, TanStack Query, React Router, Zustand.
 
+**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-115 para `BLOCKED` e retorna ao explorador.
+
 ## Global Constraints
 
 - Execução proibida enquanto TASK-114 não estiver DONE e TASK-115 não estiver READY.
@@ -17,8 +19,6 @@
 
 **Files:**
 - Create: `frontend/src/features/checkout/checkout.integration.test.tsx`
-- Modify somente após RED `checkout-double-post`: `frontend/src/features/checkout/pages/CheckoutPage.tsx`
-- Modify somente após RED `checkout-success-effects` ou `checkout-failure-effects`: `frontend/src/features/checkout/mutations/useCreateOrderMutation.ts`
 
 **Interfaces:** exact keys `cartQueryKeys.detail(7,70)`, `orderQueryKeys.all`, `orderConfirmationKey(7,900)`; POST `/api/v1/pedido`.
 
@@ -26,7 +26,7 @@
 
 Verifique TASK-114 DONE e TASK-115 READY; registre BASE_COMMIT; relatório do explorador; implementador; IN_PROGRESS.
 
-- [ ] **Step 2: criar spec completa**
+#### Complete target listing
 
 ```tsx
 import { screen, waitFor } from '@testing-library/react'
@@ -65,16 +65,33 @@ describe('TASK-115 checkout integration', () => {
 
   it.each([409, 422])('preserves checkout and skips success effects for HTTP %i', async (status) => {
     server.use(...baseHandlers(), http.post('*/api/v1/pedido', () => HttpResponse.json({ error: { code: 'ORDER_REJECTED', message: status === 409 ? 'Carrinho alterado.' : 'Pedido inválido.' } }, { status })))
-    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/checkout'] }); queryClient.setQueryData(orderQueryKeys.list(7, undefined, undefined, 1, 20), { marker: 'existing-orders' }); expect(await screen.findByRole('heading', { name: 'Checkout' })).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'Confirmar pedido' })); expect(await screen.findByText(status === 409 ? 'Carrinho alterado.' : 'Pedido inválido.')).toBeInTheDocument(); expect(screen.getByRole('heading', { name: 'Checkout' })).toBeInTheDocument(); expect(screen.getByDisplayValue('Rua A')).toBeInTheDocument(); expect(screen.getByRole('radio', { name: 'Pix' })).toBeChecked(); expect(useCartSessionStore.getState().getCartId(7)).toBe(70); expect(queryClient.getQueryData(cartQueryKeys.detail(7, 70))).toEqual(cart); expect(queryClient.getQueryData(orderConfirmationKey(7, 900))).toBeUndefined(); expect(queryClient.getQueryState(orderQueryKeys.list(7, undefined, undefined, 1, 20))?.isInvalidated).toBe(false)
+    const expectedCopy = status === 409 ? 'Revise o carrinho antes de tentar novamente.' : 'Revise os dados do pedido e tente novamente.'
+    const { user, queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/checkout'] }); queryClient.setQueryData(orderQueryKeys.list(7, undefined, undefined, 1, 20), { marker: 'existing-orders' }); expect(await screen.findByRole('heading', { name: 'Checkout' })).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'Confirmar pedido' })); expect(await screen.findByRole('alert')).toHaveTextContent(`Não foi possível confirmar o pedido${expectedCopy}`); expect(screen.getByRole('heading', { name: 'Checkout' })).toBeInTheDocument(); expect(screen.getByDisplayValue('Rua A')).toBeInTheDocument(); expect(screen.getByRole('radio', { name: 'Pix' })).toBeChecked(); expect(useCartSessionStore.getState().getCartId(7)).toBe(70); expect(queryClient.getQueryData(cartQueryKeys.detail(7, 70))).toEqual(cart); expect(queryClient.getQueryData(orderConfirmationKey(7, 900))).toBeUndefined(); expect(queryClient.getQueryState(orderQueryKeys.list(7, undefined, undefined, 1, 20))?.isInvalidated).toBe(false)
   })
 })
 ```
 
-- [ ] **Step 3: RED/GREEN/review**
+- [ ] **Step 2: criar imports, fixtures e helpers**
 
-RED focused expected literals: `expected bodies to have a length of 1 but got 2`; `expected 99 to be 2`; `expected 70 to be undefined`; failure branch `expected 70`.
+Copie o início do listing até antes de `describe`.
 
-GREEN focused + typecheck + lint exit `0`. Commits `test(TASK-115): integrar criação de pedido com MSW`; sob RED `fix(TASK-115): tornar checkout idempotente`. Execute `git diff $BASE_COMMIT..HEAD`, review, fix-loop e DONE.
+- [ ] **Step 3: adicionar setup determinístico**
+
+Copie `beforeEach` e `afterEach`; execute `npm --prefix frontend run typecheck`. Expected: exit `0`.
+
+- [ ] **Step 4: adicionar contrato e efeitos 201**
+
+Copie o primeiro teste.
+
+- [ ] **Step 5: adicionar branches 409/422**
+
+Copie o teste parametrizado e feche `describe`.
+
+- [ ] **Step 6: RED/GREEN/review**
+
+RED focused expected literals: `expected bodies to have a length of 1 but got 2`, `expected 70 to be undefined` ou failure branch `expected 70`. Esse resultado muda TASK-115 para `BLOCKED` e retorna ao explorador.
+
+GREEN focused + typecheck + lint exit `0`. Commit `test(TASK-115): integrar criação de pedido com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 

@@ -8,6 +8,8 @@
 
 **Tech Stack:** Vitest, Testing Library, MSW, TanStack Query, React Router.
 
+**No product change planned.** Este plano cria somente a spec. Um RED sem patch literal muda TASK-113 para `BLOCKED` e retorna ao explorador.
+
 ## Global Constraints
 
 - TASK-113 READY, dependências DONE, BASE registrado, writer único, `server.listen({ onUnhandledRequest: 'error' })` e zero mocks de produto.
@@ -16,9 +18,6 @@
 
 **Files:**
 - Create: `frontend/src/features/catalog/catalog.integration.test.tsx`
-- Modify somente após RED `catalog-canonical`: `frontend/src/features/catalog/pages/HomePage.tsx`
-- Modify somente após RED `catalog-history`: `frontend/src/app/layouts/StoreLayout.tsx`
-- Modify somente após RED `product-404-retry`: `frontend/src/features/catalog/queries/useProductDetailQuery.ts`
 
 **Interfaces:** consumes `renderIntegration`, AppRouter; requests `/api/v1/categoria`, `/api/v1/produto`, `/api/v1/produto/categoria/5`, `/api/v1/produto/42`; catalog size literal `20`.
 
@@ -26,7 +25,7 @@
 
 BASE_COMMIT → relatório do explorador dos quatro arquivos → implementador → IN_PROGRESS.
 
-- [ ] **Step 2: criar spec completa**
+#### Complete target listing
 
 ```tsx
 import { screen, waitFor } from '@testing-library/react'
@@ -36,6 +35,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { AppRouter } from '../../app/router/AppRouter'
 import { renderIntegration } from '../../shared/testing/renderIntegration'
 import { server } from '../../shared/testing/server'
+import { catalogQueryKeys } from './queries/useCatalogQuery'
+import { productQueryKeys } from './queries/useProductDetailQuery'
 
 const categories = { status: true, data: [{ categoriaId: 5, titulo: 'Hardware', descricao: 'Componentes' }] } as const
 const page = { status: true, pagination: { pages: 2, size: 20, totalItems: 21, data: [{ produtoId: 42, titulo: 'Teclado Mecânico', thumb: null, preco: 199.9, estoque: 8, categoria: { categoriaId: 5, titulo: 'Hardware' } }] } } as const
@@ -56,8 +57,8 @@ describe('TASK-113 catalog integration', () => {
   it('serializes search and page in URL/request and restores history', async () => {
     const urls: string[] = []
     server.use(http.get('*/api/v1/categoria', () => HttpResponse.json(categories)), http.get('*/api/v1/produto', ({ request }) => { urls.push(new URL(request.url).search); return HttpResponse.json(page) }))
-    const { user } = renderIntegration(<><AppRouter /><BackButton /><LocationProbe /></>)
-    const search = (await screen.findAllByRole('searchbox', { name: 'Buscar produtos' }))[0]; await user.type(search, 'teclado'); await user.keyboard('{Enter}'); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado')); await user.click(screen.getByRole('button', { name: 'Página 2' })); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado&page=2')); expect(urls.at(-1)).toBe('?page=2&size=20&searchword=teclado'); await user.click(screen.getByRole('button', { name: 'Voltar histórico' })); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado')); expect(screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]).toHaveValue('teclado'); expect(screen.queryByRole('button', { name: 'Página 3' })).not.toBeInTheDocument()
+    const { user, queryClient } = renderIntegration(<><AppRouter /><BackButton /><LocationProbe /></>)
+    const search = (await screen.findAllByRole('searchbox', { name: 'Buscar produtos' }))[0]; await user.type(search, 'teclado'); await user.keyboard('{Enter}'); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado')); await user.click(screen.getByRole('button', { name: 'Página 2' })); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado&page=2')); expect(urls.at(-1)).toBe('?page=2&size=20&searchword=teclado'); await user.click(screen.getByRole('button', { name: 'Voltar histórico' })); await waitFor(() => expect(screen.getByRole('status', { name: 'URL atual' })).toHaveTextContent('?searchword=teclado')); expect(screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]).toHaveValue('teclado'); expect(queryClient.getQueryData(catalogQueryKeys.list({ page: 1, size: 20, searchword: 'teclado' }))).toEqual({ products: [{ id: 42, title: 'Teclado Mecânico', thumbnail: null, price: 199.9, stock: 8, category: { id: 5, title: 'Hardware' } }], pagination: { pages: 2, size: 20, totalItems: 21 } }); expect(screen.queryByRole('button', { name: 'Página 3' })).not.toBeInTheDocument()
   })
 
   it('uses only dedicated category endpoint', async () => {
@@ -75,18 +76,34 @@ describe('TASK-113 catalog integration', () => {
   it('renders product 404 after one request without retry', async () => {
     let calls = 0
     server.use(http.get('*/api/v1/produto/42', () => { calls += 1; return HttpResponse.json({ error: { message: 'Produto ausente' } }, { status: 404 }) }))
-    renderIntegration(<AppRouter />, { initialEntries: ['/produtos/42'] }); expect(await screen.findByRole('heading', { name: 'Produto não encontrado' })).toBeInTheDocument(); await new Promise((done) => setTimeout(done, 50)); expect(calls).toBe(1)
+    const { queryClient } = renderIntegration(<AppRouter />, { initialEntries: ['/produtos/42'] }); expect(await screen.findByRole('heading', { name: 'Produto não encontrado' })).toBeInTheDocument(); await new Promise((done) => setTimeout(done, 50)); expect(calls).toBe(1); expect(queryClient.getQueryState(productQueryKeys.detail(42))?.status).toBe('error'); expect(queryClient.getQueryData(productQueryKeys.detail(42))).toBeUndefined()
   })
 })
 ```
 
-- [ ] **Step 3: RED/GREEN/review**
+- [ ] **Step 2: criar imports, fixtures e probes**
 
-RED: focused command. Expected literals: canonical test `expected '?page=abc...' to be ''`; history test `expected '?searchword=teclado&page=2'`; 404 test `expected 3 to be 1`. Produto muda somente no arquivo associado ao literal.
+Copie do listing o início até antes de `describe`.
+
+- [ ] **Step 3: adicionar paralelismo e histórico**
+
+Copie `beforeEach` e os dois primeiros testes.
+
+- [ ] **Step 4: adicionar categoria e canonicalização**
+
+Copie os testes do endpoint dedicado e filtros inválidos.
+
+- [ ] **Step 5: adicionar 404 sem stale**
+
+Copie o teste 404 e feche `describe`.
+
+- [ ] **Step 6: RED/GREEN/review**
+
+RED: focused command. Expected literals: canonical test `expected '?page=abc...' to be ''`; history test `expected '?searchword=teclado&page=2'`; 404 test `expected 3 to be 1`. Esse resultado muda TASK-113 para `BLOCKED` e retorna ao explorador.
 
 Commands: `npm --prefix frontend test -- src/features/catalog/catalog.integration.test.tsx --reporter=verbose`; typecheck; lint. GREEN = exit `0` nos três.
 
-Commits: `test(TASK-113): integrar catálogo com MSW`; sob RED: `fix(TASK-113): canonicalizar navegação do catálogo`. Execute `git diff $BASE_COMMIT..HEAD`, review, fix-loop e DONE.
+Commit: `test(TASK-113): integrar catálogo com MSW`. Execute `git diff $BASE_COMMIT..HEAD`, review e DONE.
 
 ## Self-review
 
