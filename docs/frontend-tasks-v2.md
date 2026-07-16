@@ -671,8 +671,8 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Confirmar convergência entre resposta validada, caches, lista e badge e executar com sucesso testes focados, typecheck e lint.
   - Evidência: commits `a86a77f` e `dfa6bd1`; carrinho 139/139 PASS, consumidores 46/46 PASS e revisão focada 6/6 PASS; typecheck/lint/diff-check PASS; review do range `c034c13..dfa6bd1` aprovada sem findings CRITICAL ou IMPORTANT. Nenhuma mudança de produto foi necessária.
 
-[ ] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
-  - Status: READY
+[x] TASK-115: Testar checkout e criação de pedido sem `clienteId` e `carrinhoId` no payload.
+  - Status: DONE
   - Depends on: TASK-009, TASK-076, TASK-077, TASK-078, TASK-079, TASK-080, TASK-081, TASK-082, TASK-083, TASK-084, TASK-085, TASK-106, TASK-107, TASK-108, TASK-109, TASK-110, TASK-114
   - Escopo: Frontend
   - Critérios de aceite:
@@ -680,6 +680,7 @@ Lote 1: complete (3c7e575..f807f5a, broad review clean; gate 801/801)
     - Garantir que o payload nunca contenha `clienteId` ou `carrinhoId` e que submissão duplicada produza somente um POST.
     - Após `201`, limpar o vínculo, invalidar pedidos e navegar para a confirmação; em `409` ou `422`, preservar o checkout e não executar efeitos de sucesso.
     - Verificar request, cache e rota e executar com sucesso testes focados, typecheck e lint.
+  - Evidência: commits `c114921` e `fdb0a68`; integração 201/409/422 3/3 PASS, página/navegação/mutation 24/24 PASS, consumidores de checkout 89/89 PASS e revisão focada 27/27 PASS; typecheck/lint/diff-check PASS; review do range `172bbcc..fdb0a68` aprovada sem findings CRITICAL ou IMPORTANT. Quatro warnings preexistentes de React `act(...)` permaneceram não bloqueantes.
 
 [ ] TASK-116: Testar lista, detalhe e cancelamento recusado de pedido com MSW.
   - Status: READY
