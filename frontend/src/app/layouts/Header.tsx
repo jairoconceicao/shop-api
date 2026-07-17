@@ -143,7 +143,11 @@ function CategoryNavigation({
         <ul className="flex min-w-max items-center gap-1 py-2">
           <li>
             <Link
-              className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-medium text-brand-400 hover:bg-ink-800 hover:text-brand-300"
+              className={`flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-medium ${
+                selectedCategoryId === undefined
+                  ? 'bg-brand-500 text-ink-950'
+                  : 'text-brand-400 hover:bg-ink-800 hover:text-brand-300'
+              }`}
               to="/"
               aria-current={selectedCategoryId === undefined ? 'page' : undefined}
             >
@@ -153,7 +157,11 @@ function CategoryNavigation({
           {categories?.map((category) => (
             <li key={category.id}>
               <Link
-                className="flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm text-zinc-300 hover:bg-ink-800 hover:text-zinc-50"
+                className={`flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm ${
+                  selectedCategoryId === category.id
+                    ? 'bg-brand-500 text-ink-950'
+                    : 'text-zinc-300 hover:bg-ink-800 hover:text-zinc-50'
+                }`}
                 to={{
                   pathname: '/',
                   search: `?${serializeCatalogUrl({
