@@ -8,7 +8,7 @@ export interface ErrorStateProps extends HTMLAttributes<HTMLDivElement> {
 
 export function ErrorState({
   title = 'Não foi possível carregar o conteúdo',
-  description = 'Tente novamente em alguns instantes.',
+  description = 'Verifique sua conexão e tente novamente.',
   action,
   className,
   ...props

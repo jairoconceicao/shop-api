@@ -37,9 +37,9 @@ const HTTP_FALLBACK_MESSAGES: Partial<Record<number, string>> = {
 }
 
 const DEFAULT_HTTP_MESSAGE = 'Não foi possível concluir a solicitação.'
-const SERVER_ERROR_MESSAGE = 'O serviço está indisponível no momento. Tente novamente.'
-const NETWORK_ERROR_MESSAGE = 'Não foi possível conectar ao serviço. Verifique sua conexão.'
-const CONTRACT_ERROR_MESSAGE = 'A resposta recebida pelo serviço é inválida.'
+const SERVER_ERROR_MESSAGE = 'O serviço está indisponível no momento. Tente novamente em alguns instantes.'
+const NETWORK_ERROR_MESSAGE = 'Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente.'
+const CONTRACT_ERROR_MESSAGE = 'A resposta recebida pelo serviço é inválida. Tente novamente.'
 
 export function mapHttpError(status: number, body: unknown): AppError {
   const parsedBody = apiErrorResponseSchema.safeParse(body)

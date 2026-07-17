@@ -56,7 +56,7 @@ describe('mapHttpError', () => {
       status: 500,
       code: undefined,
       details: undefined,
-      message: 'O serviço está indisponível no momento. Tente novamente.',
+      message: 'O serviço está indisponível no momento. Tente novamente em alguns instantes.',
     })
   })
 })
@@ -68,7 +68,7 @@ describe('mapNetworkError', () => {
 
     expect(error).toMatchObject({
       kind: 'network',
-      message: 'Não foi possível conectar ao serviço. Verifique sua conexão.',
+      message: 'Não foi possível conectar ao serviço. Verifique sua conexão e tente novamente.',
       cause,
     })
   })
@@ -81,7 +81,7 @@ describe('mapContractError', () => {
 
     expect(error).toMatchObject({
       kind: 'contract',
-      message: 'A resposta recebida pelo serviço é inválida.',
+      message: 'A resposta recebida pelo serviço é inválida. Tente novamente.',
       cause,
     })
   })
