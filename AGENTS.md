@@ -21,16 +21,65 @@ Banco de dados: PostgreSql
 
 ### Infra
 
-A aplicação vai rodar localmente via docker, nos seguintes containers:
+#### Local (Docker Compose)
 
-- shop-api-app: container para a api
-- shop-api-db: container para o banco de dados
+```bash
+docker compose up -d
+```
 
-Dados de conexão para o banco de dados
+| Container | Imagem | Porta |
+|-----------|--------|-------|
+| shop-api-app | Dockerfile (build local) | 5228:8080 |
+| shop-api-db | postgres:16-alpine | 5432:5432 |
+
+Conexao local:
 
 - user: shopapi
 - password: shopapi
 - databaseName: shopapi
+- connection string: `Host=shop-api-db;Port=5432;Database=shopapi;Username=shopapi;Password=shopapi`
+
+#### Cloud (Azure)
+
+Arquitetura provisionada via Bicep em `infra/`. Regiao: `eastus2`. Resource Group: `rg-shopapi-prod-001`.
+
+| Servico | SKU | URL / Identificador |
+|---------|-----|---------------------|
+| Container Apps Environment | Consumption-only | `cae-shopapi-prod-001` |
+| Container App (API .NET) | Consumption (0.5CPU/1GB) | `ca-shopapi-prod-001.redstone-b8464437.eastus2.azurecontainerapps.io` |
+| PostgreSQL Flexible Server | Burstable B1ms, 32GB | `psql-shopapi-prod-001.postgres.database.azure.com` |
+| Static Web App (React) | Free | `thankful-sand-0fc8a4a0f.7.azurestaticapps.net` |
+| Container Registry | Basic | `crshopapiprod001.azurecr.io` |
+| Key Vault | Standard | `kv-shopapi-prod-001.vault.azure.net` |
+| Log Analytics | PerGB | `log-shopapi-prod-001` |
+| Application Insights | Free (5GB) | `appi-shopapi-prod-001` |
+
+Secrets no Key Vault (acesso via Managed Identity `id-shopapi-prod-001`):
+
+- `db-connection-string` — conexao PostgreSQL (SSL enabled)
+- `jwt-signing-key` — chave de assinatura JWT
+
+IaC: `infra/main.bicep` + modulos em `infra/modules/`. Parametros em `infra/main.bicepparam`.
+
+```bash
+# Deploy infra
+az deployment group create --resource-group rg-shopapi-prod-001 \
+  --template-file infra/main.bicep --parameters infra/main.bicepparam
+
+# Build + push API
+az acr login --name crshopapiprod001
+docker build -t crshopapiprod001.azurecr.io/shop-api:latest .
+docker push crshopapiprod001.azurecr.io/shop-api:latest
+az containerapp update --name ca-shopapi-prod-001 --resource-group rg-shopapi-prod-001 \
+  --image crshopapiprod001.azurecr.io/shop-api:latest
+
+# Deploy frontend
+cd frontend && npm run build
+npx @azure/static-web-apps-cli deploy dist \
+  --deployment-token $(az staticwebapp secrets list --name stapp-shopapi-prod-001 -g rg-shopapi-prod-001 --query properties.apiKey -o tsv)
+```
+
+Custo mensal estimado: **~$25-31** (demo/POC, escala a zero quando ocioso).
 
 ### Frontend
 
@@ -86,10 +135,6 @@ Required for every changed behavior. Domain → unit; Application → fakes; API
 O agente principal deve atuar somente como orquestrador.
 
 ### Fonte das tasks
-
-As tasks estão em:
-
-`docs/frontend-tasks-v2.md`
 
 Uma task pode ser executada somente quando:
 
@@ -152,4 +197,3 @@ Se você utilizar worktree:
 - garanta que as alterações sejam comitadas na branch do lote
 - libere o worktree com segurança
 - suba para o repositório remoto a branch do lote.
-
