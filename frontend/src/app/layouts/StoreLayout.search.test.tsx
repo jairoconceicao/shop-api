@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HomePage } from '../../features/catalog/pages/HomePage'
 import { StoreLayout } from './StoreLayout'
@@ -190,5 +190,144 @@ describe('StoreLayout catalog search', () => {
     )
     await waitFor(() => expect(fetchProductsByCategory).toHaveBeenCalledWith(7, expect.any(AbortSignal)))
     expect(fetchCatalog).not.toHaveBeenCalled()
+  })
+})
+
+describe('StoreLayout debounced search', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    fetchCatalog.mockReset()
+    fetchCategories.mockReset()
+    fetchProductsByCategory.mockReset()
+    fetchCatalog.mockResolvedValue({ products: [], pagination: { pages: 1, size: 20, totalItems: 0 } })
+    fetchCategories.mockResolvedValue([])
+    fetchProductsByCategory.mockResolvedValue({ products: [], pagination: { pages: 1, size: 20, totalItems: 0 } })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  function renderStore(initialEntry: string) {
+    const router = createMemoryRouter(
+      [
+        {
+          element: <NavigationProbe />,
+          children: [
+            {
+              element: <StoreLayout />,
+              children: [
+                { index: true, element: <HomePage /> },
+                { path: 'carrinho', element: <h1>Carrinho</h1> },
+              ],
+            },
+          ],
+        },
+      ],
+      { initialEntries: [initialEntry] },
+    )
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+  }
+
+  it('navigates automatically after 300ms of typing inactivity', async () => {
+    renderStore('/')
+    const input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    fireEvent.change(input, { target: { value: 'teclado' } })
+
+    expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/')
+
+    vi.advanceTimersByTime(300)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=teclado')
+    })
+  })
+
+  it('only triggers one navigation after rapid typing', async () => {
+    renderStore('/')
+    const input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    fireEvent.change(input, { target: { value: 't' } })
+    vi.advanceTimersByTime(100)
+    fireEvent.change(input, { target: { value: 'te' } })
+    vi.advanceTimersByTime(100)
+    fireEvent.change(input, { target: { value: 'tec' } })
+    vi.advanceTimersByTime(100)
+    fireEvent.change(input, { target: { value: 'tecl' } })
+
+    vi.advanceTimersByTime(300)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=tecl')
+    })
+  })
+
+  it('does not trigger navigation on initial mount with pre-filled searchword', async () => {
+    renderStore('/?searchword=mouse')
+    const input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    expect(input).toHaveValue('mouse')
+
+    vi.advanceTimersByTime(500)
+    await vi.runAllTimersAsync()
+
+    expect(fetchCatalog).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses replace navigation for debounced search', async () => {
+    renderStore('/')
+    let input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    fireEvent.change(input, { target: { value: 'teclado' } })
+    vi.advanceTimersByTime(300)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=teclado')
+    })
+
+    input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+    fireEvent.change(input, { target: { value: 'monitor' } })
+    vi.advanceTimersByTime(300)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=monitor')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar histórico' }))
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/')
+    })
+  })
+
+  it('form submit still uses push navigation', async () => {
+    renderStore('/')
+    let input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+
+    fireEvent.change(input, { target: { value: 'teclado' } })
+    vi.advanceTimersByTime(300)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=teclado')
+    })
+
+    input = screen.getAllByRole('searchbox', { name: 'Buscar produtos' })[0]
+    fireEvent.change(input, { target: { value: 'monitor' } })
+    fireEvent.submit(input.closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=monitor')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar histórico' }))
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Localização atual' })).toHaveTextContent('/?searchword=teclado')
+    })
   })
 })

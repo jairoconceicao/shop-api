@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLogoutMutation } from '../../features/auth/mutations/useLogoutMutation'
 import { useAuthStore } from '../../features/auth/store/authStore'
@@ -6,6 +6,7 @@ import { parseCatalogUrl, serializeCatalogUrl } from '../../features/catalog/rou
 import { parseCategoryId } from '../../features/catalog/routing/catalogUrl'
 import { useCategoriesQuery } from '../../features/catalog/queries/useCategoriesQuery'
 import { useConfirmedCartCount } from '../../features/cart/hooks/useConfirmedCartCount'
+import { useDebounce } from '../../shared/hooks/useDebounce'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -62,6 +63,17 @@ function CatalogHeader({
   navigate,
 }: CatalogHeaderProps) {
   const [searchword, setSearchword] = useState(initialSearchword)
+  const debouncedSearchword = useDebounce(searchword, 300)
+  const initialized = useRef(false)
+
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true
+      return
+    }
+    const search = serializeCatalogUrl({ searchword: debouncedSearchword, categoriaId, page: 1 }).toString()
+    navigate({ pathname: '/', search: search ? `?${search}` : '' }, { replace: true })
+  }, [debouncedSearchword, categoriaId, navigate])
 
   function handleSearchSubmit() {
     const search = serializeCatalogUrl({ searchword, categoriaId, page: 1 }).toString()

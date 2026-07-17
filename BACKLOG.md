@@ -35,7 +35,7 @@ Tasks pequenas e independentes, sem fase específica. Podem ser executadas a qua
 | CONT-FRONT-003 | Exibir fallback visual quando imagem de produto falha ao carregar (placeholder ou cor de fundo) | — | DONE |
 | CONT-FRONT-004 | Adicionar skeleton loading nos ProductCards durante carregamento inicial do catálogo | — | DONE |
 | CONT-FRONT-005 | Melhorar mensagens de erro de rede com sugestão de ação (ex: "Verifique sua conexão e tente novamente") | — | DONE |
-| CONT-FRONT-006 | Aplicar debounce de 300ms no input de busca do Header para reduzir chamadas | — | READY |
+| CONT-FRONT-006 | Aplicar debounce de 300ms no input de busca do Header para reduzir chamadas | — | DONE |
 
 ### Backend
 
