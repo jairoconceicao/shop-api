@@ -139,6 +139,28 @@ describe('TASK-115 checkout integration', () => {
 
   afterEach(() => vi.useRealTimers())
 
+  it('preloads and validates the order confirmation page', async () => {
+    server.use(
+      ...baseHandlers({ cart: 0, profile: 0 }),
+    )
+
+    const { queryClient } = renderIntegration(<AppRouter />, {
+      initialEntries: ['/pedido-confirmado/900'],
+    })
+    queryClient.setQueryData(orderConfirmationKey(7, 900), {
+      id: 900,
+      customerId: 7,
+      createdAt: '2026-07-16T12:00:00.000Z',
+      paymentMethod: 'Pix',
+      status: 'Criado',
+      total: 399.8,
+    })
+
+    expect(
+      await screen.findByRole('heading', { name: 'Pedido criado' }),
+    ).toBeInTheDocument()
+  })
+
   it('posts strict confirmed contract once and applies exact 201 effects', async () => {
     const gate = deferred<Response>()
     const bodies: unknown[] = []
