@@ -41,7 +41,7 @@ Tasks pequenas e independentes, sem fase específica. Podem ser executadas a qua
 
 | ID | Task | Deps | Status |
 |----|------|------|--------|
-| CONT-BACK-001 | Adicionar índice GIN com `pg_trgm` no campo `titulo` da tabela `Produtos` para busca textual eficiente | — | READY |
+| CONT-BACK-001 | Adicionar índice GIN com `pg_trgm` no campo `titulo` da tabela `Produtos` para busca textual eficiente | — | **DONE** |
 | CONT-BACK-002 | Criar ADR documentando decisão de usar Notification Pattern + Result Object em vez de exceptions | — | READY |
 | CONT-BACK-003 | Adicionar validação de Content-Type nos endpoints que recebem JSON | — | READY |
 | CONT-BACK-004 | Normalizar retorno de erros de validação: garantir que `ApiErrorResponse.details` sempre contenha o campo que falhou | — | READY |
