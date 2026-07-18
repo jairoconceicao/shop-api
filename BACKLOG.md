@@ -36,6 +36,7 @@ Tasks pequenas e independentes, sem fase específica. Podem ser executadas a qua
 | CONT-FRONT-004 | Adicionar skeleton loading nos ProductCards durante carregamento inicial do catálogo | — | DONE |
 | CONT-FRONT-005 | Melhorar mensagens de erro de rede com sugestão de ação (ex: "Verifique sua conexão e tente novamente") | — | DONE |
 | CONT-FRONT-006 | Aplicar debounce de 300ms no input de busca do Header para reduzir chamadas | — | DONE |
+| CONT-FRONT-007 | Corrigir redirecionamento indesejado ao navegar para a página de detalhes de produtos ou carrinho | — | DONE |
 
 ### Backend
 
