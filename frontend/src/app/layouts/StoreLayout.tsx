@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLogoutMutation } from '../../features/auth/mutations/useLogoutMutation'
 import { useAuthStore } from '../../features/auth/store/authStore'
 import { parseCatalogUrl, serializeCatalogUrl } from '../../features/catalog/routing/catalogUrl'
@@ -65,15 +65,33 @@ function CatalogHeader({
   const [searchword, setSearchword] = useState(initialSearchword)
   const debouncedSearchword = useDebounce(searchword, 300)
   const initialized = useRef(false)
+  const location = useLocation()
 
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true
       return
     }
-    const search = serializeCatalogUrl({ searchword: debouncedSearchword, categoriaId, page: 1 }).toString()
-    navigate({ pathname: '/', search: search ? `?${search}` : '' }, { replace: true })
-  }, [debouncedSearchword, categoriaId, navigate])
+
+    const newParams = serializeCatalogUrl({ searchword: debouncedSearchword, categoriaId, page: 1 })
+    const newSearchString = newParams.toString()
+
+    const currentSearch = new URLSearchParams(location.search)
+    const currentParams = serializeCatalogUrl({
+      searchword: currentSearch.get('searchword') ?? undefined,
+      categoriaId: currentSearch.get('categoriaId') ?? undefined,
+      page: 1,
+    })
+    const currentSearchString = currentParams.toString()
+
+    const isCatalogPage = location.pathname === '/'
+    const hasActiveFilters = debouncedSearchword !== '' || categoriaId !== undefined
+    const searchChanged = newSearchString !== currentSearchString
+
+    if ((isCatalogPage && searchChanged) || (!isCatalogPage && hasActiveFilters)) {
+      navigate({ pathname: '/', search: newSearchString ? `?${newSearchString}` : '' }, { replace: true })
+    }
+  }, [debouncedSearchword, categoriaId, location.pathname, location.search, navigate])
 
   function handleSearchSubmit() {
     const search = serializeCatalogUrl({ searchword, categoriaId, page: 1 }).toString()
